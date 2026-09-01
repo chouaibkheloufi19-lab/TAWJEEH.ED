@@ -1,5 +1,15 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  ClerkProvider,
+  Show,
+  SignIn,
+  SignUp,
+  useAuth,
+  useClerk,
+} from '@clerk/react';
+import { publishableKeyFromHost } from '@clerk/react/internal';
+import { shadcn } from '@clerk/themes';
 import {
   ArrowLeft,
   ArrowRight,
@@ -42,13 +52,78 @@ import {
   type Quiz,
   type QuizResult,
 } from '@workspace/api-client-react';
-import { Route, Switch, Link, useLocation } from 'wouter';
+import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
-import TawjeehHero from '@/components/tawjeeh-hero';
-import AuthPage from '@/pages/auth';
 import logoPath from '@assets/اللوغو_العالمي_1787910738500.jpg';
 
 const queryClient = new QueryClient();
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const clerkPubKey = publishableKeyFromHost(
+  window.location.hostname,
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
+const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+
+if (!clerkPubKey) {
+  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in environment');
+}
+
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || '/'
+    : path;
+}
+
+const clerkAppearance = {
+  theme: shadcn,
+  cssLayerName: 'clerk',
+  options: {
+    logoPlacement: 'inside' as const,
+    logoLinkUrl: basePath || '/',
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+    socialButtonsPlacement: 'top' as const,
+    socialButtonsVariant: 'blockButton' as const,
+  },
+  variables: {
+    colorPrimary: '#005689',
+    colorForeground: '#004b75',
+    colorMutedForeground: '#64748b',
+    colorBackground: '#ffffff',
+    colorInput: '#f7fcfe',
+    colorInputForeground: '#004b75',
+    colorDanger: '#b42318',
+    colorNeutral: '#b3e5fc',
+    fontFamily: 'Cairo, sans-serif',
+    borderRadius: '0.85rem',
+  },
+  elements: {
+    rootBox: 'w-full flex justify-center',
+    cardBox: 'bg-white rounded-2xl w-[440px] max-w-full overflow-hidden',
+    card: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    footer: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    headerTitle: 'text-[#004b75] font-extrabold',
+    headerSubtitle: 'text-[#64748b]',
+    socialButtonsBlockButtonText: 'text-[#004b75] font-bold',
+    formFieldLabel: 'text-[#004b75] font-bold',
+    footerActionLink: 'text-[#005689] font-extrabold',
+    footerActionText: 'text-[#64748b]',
+    dividerText: 'text-[#64748b]',
+    identityPreviewEditButton: 'text-[#005689]',
+    formFieldSuccessText: 'text-[#2e8b7b]',
+    alertText: 'text-[#b42318]',
+    logoBox: 'h-12',
+    logoImage: 'max-h-12',
+    socialButtonsBlockButton: 'border-[#b3e5fc] bg-white hover:bg-[#f7fcfe]',
+    formButtonPrimary: 'bg-[#005689] hover:bg-[#004b75] font-extrabold',
+    formFieldInput: 'border-[#b3e5fc] bg-[#f7fcfe] text-[#004b75]',
+    footerAction: 'bg-transparent',
+    dividerLine: 'bg-[#d8edf3]',
+    alert: 'border-[#f3c5c0] bg-[#fff7f6]',
+    otpCodeFieldInput: 'border-[#b3e5fc] bg-[#f7fcfe]',
+    formFieldRow: 'gap-2',
+    main: 'gap-5',
+  },
+};
 
 const navItems = [
   { href: '/dashboard', label: 'مساحتي', icon: LayoutDashboard },
@@ -170,6 +245,133 @@ function Shell({ children, title }: { children: ReactNode; title: string }) {
       <NavLinks mobile />
     </div>
   );
+}
+
+function AuthLoading() {
+  return (
+    <main className="auth-gate" aria-busy="true">
+      <div className="auth-gate-card auth-loading-card">
+        <img src={logoPath} alt="" className="auth-gate-logo" />
+        <p>جاري تجهيز الدخول إلى توجيه...</p>
+      </div>
+    </main>
+  );
+}
+
+function AuthBrand() {
+  return (
+    <div className="auth-gate-brand">
+      <img src={logoPath} alt="شعار توجيه" />
+      <div>
+        <strong>TAWJEEH</strong>
+        <span>مساحة التعلّم</span>
+      </div>
+    </div>
+  );
+}
+
+function AuthWelcome() {
+  return (
+    <main className="auth-gate" dir="rtl">
+      <div className="auth-gate-glow auth-gate-glow-one" />
+      <div className="auth-gate-glow auth-gate-glow-two" />
+      <section className="auth-gate-layout">
+        <div className="auth-gate-copy">
+          <AuthBrand />
+          <p className="auth-gate-label">الدخول إلى مساحة التعلّم</p>
+          <h1>أهلًا بك في توجيه.</h1>
+          <p className="auth-gate-description">
+            سجّل دخولك لتصل إلى خطتك، مكتبة المعرفة، الاختبارات، ومساعدة بومة توجيه.
+          </p>
+          <div className="auth-gate-actions">
+            <Link href="/sign-in" className="auth-gate-primary">
+              تسجيل الدخول
+            </Link>
+            <Link href="/sign-up" className="auth-gate-secondary">
+              إنشاء حساب جديد
+            </Link>
+          </div>
+          <p className="auth-gate-note">لا توجد خيارات قبل الدخول. مساحتك التعليمية تبدأ من هنا.</p>
+        </div>
+        <div className="auth-gate-card">
+          <div className="auth-gate-card-mark">
+            <img src={logoPath} alt="" />
+          </div>
+          <p className="auth-gate-card-kicker">توجيه</p>
+          <h2>ادخل لتتعلّم.</h2>
+          <p>حسابك يحفظ مكانك وتقدّمك في كل جلسة.</p>
+          <Link href="/sign-in" className="auth-gate-card-link">
+            متابعة إلى تسجيل الدخول <ArrowLeft size={16} />
+          </Link>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function HomeRedirect() {
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) return <AuthLoading />;
+  return isSignedIn ? <Redirect to="/dashboard" /> : <AuthWelcome />;
+}
+
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) return <AuthLoading />;
+  if (!isSignedIn) return <Redirect to="/sign-in" />;
+  return <>{children}</>;
+}
+
+function SignInPage() {
+  const { isSignedIn } = useAuth();
+  if (isSignedIn) return <Redirect to="/dashboard" />;
+  return (
+    <main className="clerk-auth-page" dir="rtl">
+      <div className="clerk-auth-heading">
+        <AuthBrand />
+        <p>سجّل دخولك لتفتح مساحة التعلّم الخاصة بك.</p>
+      </div>
+      <SignIn
+        routing="path"
+        path={`${basePath}/sign-in`}
+        signUpUrl={`${basePath}/sign-up`}
+      />
+    </main>
+  );
+}
+
+function SignUpPage() {
+  const { isSignedIn } = useAuth();
+  if (isSignedIn) return <Redirect to="/dashboard" />;
+  return (
+    <main className="clerk-auth-page" dir="rtl">
+      <div className="clerk-auth-heading">
+        <AuthBrand />
+        <p>أنشئ حسابك ثم ابدأ التعلّم من مكانك الصحيح.</p>
+      </div>
+      <SignUp
+        routing="path"
+        path={`${basePath}/sign-up`}
+        signInUrl={`${basePath}/sign-in`}
+      />
+    </main>
+  );
+}
+
+function ClerkQueryClientCacheInvalidator() {
+  const { addListener } = useClerk();
+  const previousUserId = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const unsubscribe = addListener(({ user }) => {
+      const userId = user?.id ?? null;
+      if (previousUserId.current !== undefined && previousUserId.current !== userId) {
+        queryClient.clear();
+      }
+      previousUserId.current = userId;
+    });
+    return unsubscribe;
+  }, [addListener]);
+  return null;
 }
 
 function LoadingState({ label = 'جاري تجهيز مساحتك...' }: { label?: string }) {
@@ -491,11 +693,62 @@ function NotFoundArabic() {
 
 function Router() {
   const [location] = useLocation();
-  return <ErrorBoundary resetKey={location}><Switch><Route path="/" component={TawjeehHero} /><Route path="/login" component={() => <AuthPage mode="login" />} /><Route path="/register" component={() => <AuthPage mode="register" />} /><Route path="/dashboard" component={DashboardPage} /><Route path="/knowledge" component={KnowledgePage} /><Route path="/quizzes" component={QuizzesPage} /><Route path="/chat" component={ChatPage} /><Route component={NotFoundArabic} /></Switch></ErrorBoundary>;
+  return (
+    <ErrorBoundary resetKey={location}>
+      <Switch>
+        <Route path="/" component={HomeRedirect} />
+        <Route path="/sign-in/*?" component={SignInPage} />
+        <Route path="/sign-up/*?" component={SignUpPage} />
+        <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/knowledge" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
+        <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
+        <Route path="/chat" component={() => <ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route component={NotFoundArabic} />
+      </Switch>
+    </ErrorBoundary>
+  );
 }
 
 function App() {
-  return <QueryClientProvider client={queryClient}><Router /></QueryClientProvider>;
+  const [, setLocation] = useLocation();
+  return (
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      proxyUrl={clerkProxyUrl}
+      appearance={clerkAppearance}
+      signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      localization={{
+        signIn: {
+          start: {
+            title: 'مرحبًا بعودتك',
+            subtitle: 'سجّل دخولك لتواصل التعلّم',
+          },
+        },
+        signUp: {
+          start: {
+            title: 'أنشئ حسابك في توجيه',
+            subtitle: 'خطوتك الأولى نحو تعلّم أكثر وضوحًا',
+          },
+        },
+      }}
+      routerPush={(to) => setLocation(stripBase(to))}
+      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ClerkQueryClientCacheInvalidator />
+        <Router />
+      </QueryClientProvider>
+    </ClerkProvider>
+  );
 }
 
-export default App;
+function AppRoot() {
+  return (
+    <WouterRouter base={basePath}>
+      <App />
+    </WouterRouter>
+  );
+}
+
+export default AppRoot;
