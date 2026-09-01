@@ -49,7 +49,21 @@ class KnowledgeRequestHandler(BaseHTTPRequestHandler):
         try:
             store = self._store()
             route = self._route()
-            if route == "/healthz":
+            if route == "/":
+                self._send(
+                    HTTPStatus.OK,
+                    {
+                        "service": "tawjeeh-knowledge-base",
+                        "status": "ok",
+                        "message": "Tawjeeh knowledge base API is running.",
+                        "endpoints": {
+                            "health": "/knowledge/healthz",
+                            "collections": "/knowledge/v1/collections",
+                            "query": "POST /knowledge/v1/query",
+                        },
+                    },
+                )
+            elif route == "/healthz":
                 self._send(
                     HTTPStatus.OK,
                     {
