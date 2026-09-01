@@ -56,6 +56,7 @@ import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } fr
 import { ErrorBoundary } from '@/components/error-boundary';
 import logoPath from '@assets/اللوغو_العالمي_1787910738500.jpg';
 import welcomeVideo from '@assets/Gemini_Generated_Image_697ml8697ml8697m_1788300867064.mp4';
+import owlLogoPath from '@assets/Screenshot_2026-08-14_111104_1788301581503.png';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -273,29 +274,56 @@ function AuthBrand() {
 }
 
 function AuthWelcome() {
-  return (
-    <main className="auth-splash" dir="rtl">
-      <div className="auth-splash-media" aria-hidden="true">
-        <video className="auth-splash-video" autoPlay muted playsInline preload="auto" poster={logoPath}>
-          <source src={welcomeVideo} type="video/mp4" />
-        </video>
-        <div className="auth-splash-overlay" />
-      </div>
-      <div className="auth-splash-glow auth-splash-glow-one" />
-      <div className="auth-splash-glow auth-splash-glow-two" />
-      <section className="auth-splash-content">
-        <div className="auth-splash-brand"><AuthBrand /></div>
-        <div className="auth-splash-copy">
-          <span className="auth-splash-label"><span /> مساحة التعلّم تبدأ من هنا</span>
-          <h1>أهلًا بك<br /><strong>في توجيه.</strong></h1>
-          <p>رفيقك الهادئ نحو البكالوريا. خطتك، مكتبة المعرفة، والاختبارات في مساحة واحدة.</p>
-          <div className="auth-splash-actions">
-            <Link href="/sign-in" className="auth-splash-primary">ابدأ رحلتك <ArrowLeft size={18} /></Link>
-            <Link href="/sign-up" className="auth-splash-secondary">إنشاء حساب جديد</Link>
-          </div>
-          <p className="auth-splash-note">سجّل دخولك أو أنشئ حسابك مجانًا، وابدأ بخطوة واحدة واضحة.</p>
+  const [showWelcomePage, setShowWelcomePage] = useState(false);
+
+  useEffect(() => {
+    const fallbackTimer = window.setTimeout(() => setShowWelcomePage(true), 8500);
+    return () => window.clearTimeout(fallbackTimer);
+  }, []);
+
+  if (!showWelcomePage) {
+    return (
+      <main className="auth-splash auth-animation-screen" dir="rtl">
+        <div className="auth-splash-media" aria-hidden="true">
+          <video
+            className="auth-splash-video"
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            poster={logoPath}
+            onEnded={() => setShowWelcomePage(true)}
+          >
+            <source src={welcomeVideo} type="video/mp4" />
+          </video>
+          <div className="auth-splash-overlay" />
         </div>
-        <div className="auth-splash-footer">
+        <div className="auth-animation-brand"><AuthBrand /></div>
+        <p className="auth-animation-label">مساحة التعلّم تبدأ من هنا</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="auth-followup-page" dir="rtl">
+      <header className="auth-followup-header">
+        <span className="auth-followup-subject">رياضيات · فيزياء</span>
+        <AuthBrand />
+      </header>
+      <section className="auth-followup-hero">
+        <div className="auth-followup-visual" aria-hidden="true">
+          <img src={owlLogoPath} alt="" />
+        </div>
+        <div className="auth-followup-copy">
+          <span className="auth-followup-kicker">رفيقك في رحلة التعلّم</span>
+          <h1>خطوتك الأولى<br /><strong>تبدأ هنا.</strong></h1>
+          <p>رتّب وقتك، راجع دروسك، وتقدّم بثقة في مساحة صُمّمت لك.</p>
+          <div className="auth-followup-actions">
+            <Link href="/sign-in" className="auth-followup-primary">ابدأ رحلتك <ArrowLeft size={18} /></Link>
+            <Link href="/sign-up" className="auth-followup-secondary">إنشاء حساب جديد</Link>
+          </div>
+        </div>
+        <div className="auth-followup-footer">
           <span><CheckCircle2 size={16} /> محتوى واضح من المنهاج الجزائري</span>
           <span><CheckCircle2 size={16} /> تقدّمك محفوظ في كل جلسة</span>
         </div>
