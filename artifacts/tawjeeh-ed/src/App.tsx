@@ -55,6 +55,7 @@ import {
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
 import logoPath from '@assets/اللوغو_العالمي_1787910738500.jpg';
+import welcomeVideo from '@assets/Gemini_Generated_Image_697ml8697ml8697m_1788300867064.mp4';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -103,7 +104,7 @@ const clerkAppearance = {
     footer: '!shadow-none !border-0 !bg-transparent !rounded-none',
     headerTitle: 'text-[#004b75] font-extrabold',
     headerSubtitle: 'text-[#64748b]',
-    socialButtonsBlockButtonText: 'text-[#004b75] font-bold',
+    socialButtonsBlockButtonText: '!text-[#004b75] font-extrabold',
     formFieldLabel: 'text-[#004b75] font-bold',
     footerActionLink: 'text-[#005689] font-extrabold',
     footerActionText: 'text-[#64748b]',
@@ -113,9 +114,10 @@ const clerkAppearance = {
     alertText: 'text-[#b42318]',
     logoBox: 'h-12',
     logoImage: 'max-h-12',
-    socialButtonsBlockButton: 'border-[#b3e5fc] bg-white hover:bg-[#f7fcfe]',
-    formButtonPrimary: 'bg-[#005689] hover:bg-[#004b75] font-extrabold',
-    formFieldInput: 'border-[#b3e5fc] bg-[#f7fcfe] text-[#004b75]',
+    socialButtonsBlockButton: 'min-h-12 rounded-xl border-[#d7e8ee] bg-white shadow-[0_6px_18px_rgba(0,75,117,.06)] transition-all hover:!border-[#76bfd1] hover:!bg-[#f7fcfe] hover:!shadow-[0_10px_24px_rgba(0,75,117,.1)]',
+    socialButtonsProviderIcon: 'h-5 w-5',
+    formButtonPrimary: 'min-h-12 rounded-xl bg-[#005689] shadow-[0_9px_20px_rgba(0,86,137,.18)] transition-all hover:!bg-[#004b75] hover:!shadow-[0_12px_25px_rgba(0,75,117,.22)] font-extrabold',
+    formFieldInput: 'min-h-12 rounded-xl border-[#d7e8ee] bg-[#f7fcfe] text-[#004b75] shadow-none transition-all focus:!border-[#76bfd1] focus:!bg-white',
     footerAction: 'bg-transparent',
     dividerLine: 'bg-[#d8edf3]',
     alert: 'border-[#f3c5c0] bg-[#fff7f6]',
@@ -272,37 +274,30 @@ function AuthBrand() {
 
 function AuthWelcome() {
   return (
-    <main className="auth-gate" dir="rtl">
-      <div className="auth-gate-glow auth-gate-glow-one" />
-      <div className="auth-gate-glow auth-gate-glow-two" />
-      <section className="auth-gate-layout">
-        <div className="auth-gate-copy">
-          <AuthBrand />
-          <p className="auth-gate-label">الدخول إلى مساحة التعلّم</p>
-          <h1>أهلًا بك في توجيه.</h1>
-          <p className="auth-gate-description">
-            سجّل دخولك لتصل إلى خطتك، مكتبة المعرفة، الاختبارات، ومساعدة بومة توجيه.
-          </p>
-          <div className="auth-gate-actions">
-            <Link href="/sign-in" className="auth-gate-primary">
-              تسجيل الدخول
-            </Link>
-            <Link href="/sign-up" className="auth-gate-secondary">
-              إنشاء حساب جديد
-            </Link>
+    <main className="auth-splash" dir="rtl">
+      <div className="auth-splash-media" aria-hidden="true">
+        <video className="auth-splash-video" autoPlay muted playsInline preload="auto" poster={logoPath}>
+          <source src={welcomeVideo} type="video/mp4" />
+        </video>
+        <div className="auth-splash-overlay" />
+      </div>
+      <div className="auth-splash-glow auth-splash-glow-one" />
+      <div className="auth-splash-glow auth-splash-glow-two" />
+      <section className="auth-splash-content">
+        <div className="auth-splash-brand"><AuthBrand /></div>
+        <div className="auth-splash-copy">
+          <span className="auth-splash-label"><span /> مساحة التعلّم تبدأ من هنا</span>
+          <h1>أهلًا بك<br /><strong>في توجيه.</strong></h1>
+          <p>رفيقك الهادئ نحو البكالوريا. خطتك، مكتبة المعرفة، والاختبارات في مساحة واحدة.</p>
+          <div className="auth-splash-actions">
+            <Link href="/sign-in" className="auth-splash-primary">ابدأ رحلتك <ArrowLeft size={18} /></Link>
+            <Link href="/sign-up" className="auth-splash-secondary">إنشاء حساب جديد</Link>
           </div>
-          <p className="auth-gate-note">لا توجد خيارات قبل الدخول. مساحتك التعليمية تبدأ من هنا.</p>
+          <p className="auth-splash-note">سجّل دخولك أو أنشئ حسابك مجانًا، وابدأ بخطوة واحدة واضحة.</p>
         </div>
-        <div className="auth-gate-card">
-          <div className="auth-gate-card-mark">
-            <img src={logoPath} alt="" />
-          </div>
-          <p className="auth-gate-card-kicker">توجيه</p>
-          <h2>ادخل لتتعلّم.</h2>
-          <p>حسابك يحفظ مكانك وتقدّمك في كل جلسة.</p>
-          <Link href="/sign-in" className="auth-gate-card-link">
-            متابعة إلى تسجيل الدخول <ArrowLeft size={16} />
-          </Link>
+        <div className="auth-splash-footer">
+          <span><CheckCircle2 size={16} /> محتوى واضح من المنهاج الجزائري</span>
+          <span><CheckCircle2 size={16} /> تقدّمك محفوظ في كل جلسة</span>
         </div>
       </section>
     </main>
@@ -322,21 +317,65 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function AuthStory({ mode }: { mode: 'login' | 'register' }) {
+  const isRegister = mode === 'register';
+  return (
+    <section className="auth-story" aria-label="ترحيب توجيه">
+      <div className="auth-story-topline">
+        <AuthBrand />
+        <span className="auth-story-status"><span /> مساحة تعلّم هادئة</span>
+      </div>
+      <div className="auth-story-mark">
+        <div className="auth-story-mark-image"><img src={logoPath} alt="" /></div>
+        <span>بومة توجيه معك في كل خطوة</span>
+      </div>
+      <div className="auth-story-copy">
+        <span className="auth-story-eyebrow">{isRegister ? 'خطوتك الأولى نحو الوضوح' : 'مرحبًا بعودتك إلى مساحتك'}</span>
+        <h1>{isRegister ? 'تعلّم أهدأ، تقدّم أوضح.' : 'أهلًا بك من جديد.'}</h1>
+        <p>{isRegister ? 'أنشئ حسابك، وسنرتّب لك بداية تشبه مستواك وهدفك.' : 'خطتك، ملخصاتك، ومساعدتك الذكية بانتظارك.'}</p>
+      </div>
+      <div className="auth-story-trust">
+        <span><CheckCircle2 size={16} /> محتوى واضح من المنهاج الجزائري</span>
+        <span><CheckCircle2 size={16} /> تقدّم محفوظ في كل جلسة</span>
+      </div>
+    </section>
+  );
+}
+
+function AuthPageFrame({
+  mode,
+  children,
+}: {
+  mode: 'login' | 'register';
+  children: ReactNode;
+}) {
+  const isRegister = mode === 'register';
+  return (
+    <main className="clerk-auth-page" dir="rtl">
+      <AuthStory mode={mode} />
+      <section className="clerk-auth-form-column" aria-label={isRegister ? 'إنشاء حساب' : 'تسجيل الدخول'}>
+        <div className="clerk-auth-heading">
+          <span className="auth-form-kicker">{isRegister ? 'حساب طالب جديد' : 'دخول آمن وبسيط'}</span>
+          <h2>{isRegister ? 'أنشئ حسابك الدراسي' : 'سجّل دخولك إلى مساحتك'}</h2>
+          <p>{isRegister ? 'ابدأ بتفاصيل بسيطة، ودع توجيه يهيّئ لك تجربة أكثر ملاءمة.' : 'واصل من حيث توقفت، بخطوة واضحة واحدة.'}</p>
+        </div>
+        {children}
+      </section>
+    </main>
+  );
+}
+
 function SignInPage() {
   const { isSignedIn } = useAuth();
   if (isSignedIn) return <Redirect to="/dashboard" />;
   return (
-    <main className="clerk-auth-page" dir="rtl">
-      <div className="clerk-auth-heading">
-        <AuthBrand />
-        <p>سجّل دخولك لتفتح مساحة التعلّم الخاصة بك.</p>
-      </div>
+    <AuthPageFrame mode="login">
       <SignIn
         routing="path"
         path={`${basePath}/sign-in`}
         signUpUrl={`${basePath}/sign-up`}
       />
-    </main>
+    </AuthPageFrame>
   );
 }
 
@@ -344,17 +383,13 @@ function SignUpPage() {
   const { isSignedIn } = useAuth();
   if (isSignedIn) return <Redirect to="/dashboard" />;
   return (
-    <main className="clerk-auth-page" dir="rtl">
-      <div className="clerk-auth-heading">
-        <AuthBrand />
-        <p>أنشئ حسابك ثم ابدأ التعلّم من مكانك الصحيح.</p>
-      </div>
+    <AuthPageFrame mode="register">
       <SignUp
         routing="path"
         path={`${basePath}/sign-up`}
         signInUrl={`${basePath}/sign-in`}
       />
-    </main>
+    </AuthPageFrame>
   );
 }
 
