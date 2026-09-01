@@ -1,0 +1,1 @@
+- [Imported artifact registration](imported-artifacts.md) — conversation transitions may preserve app files without registering the runnable artifact.
