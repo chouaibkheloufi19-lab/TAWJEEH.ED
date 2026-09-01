@@ -11,7 +11,7 @@
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
 - `python main.py ingest --file <pdf> --year second_secondary` — import a PDF into ChromaDB
-- `python main.py serve` — run the knowledge-base query service
+- `python main.py serve --port 8000` — run the knowledge-base query service on Replit
 
 ## Stack
 
