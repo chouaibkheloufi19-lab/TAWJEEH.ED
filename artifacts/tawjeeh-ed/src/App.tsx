@@ -65,9 +65,11 @@ import {
 } from 'lucide-react';
 import {
   getGetDashboardQueryKey,
+  getHealthCheckQueryKey,
   getListKnowledgeQueryKey,
   getListQuizzesQueryKey,
   useGetDashboard,
+  useHealthCheck,
   useListKnowledge,
   useListQuizzes,
   useQueryKnowledge,
@@ -83,6 +85,7 @@ import { ProgramAgent } from '@/components/program-agent';
 <<<<<<< HEAD
 <<<<<<< HEAD
 import { LessonWorkspace } from '@/components/lesson-workspace';
+<<<<<<< HEAD
 =======
 >>>>>>> origin/main
 =======
@@ -90,7 +93,15 @@ import { LessonWorkspace } from '@/components/lesson-workspace';
 >>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 import logoPath from '@assets/tawjeeh-logo-transparent.png';
 import welcomeVideo from '@assets/Gemini_Generated_Image_697ml8697ml8697m_1788300867064.mp4';
+=======
+>>>>>>> 0692bd4 (نارا)
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
+import owlGuidingPose from '@assets/owl-guiding-pose.png';
+import owlSuccessPose from '@assets/owl-success-pose.png';
+import owlThinkingPose from '@assets/owl-thinking-pose.png';
+import owlMistakePose from '@assets/owl-mistake-pose.png';
+import owlCreationPose from '@assets/owl-creation-pose.png';
+import owlFailurePose from '@assets/owl-failure-pose.png';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -205,14 +216,15 @@ function Logo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function AgentAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+function AgentAvatar({ size = 'md', pose = 'default' }: { size?: 'sm' | 'md' | 'lg'; pose?: 'default' | 'guiding' | 'success' | 'thinking' | 'mistake' | 'creation' | 'failure' }) {
   const dimensions = size === 'lg' ? 'h-20 w-20' : size === 'sm' ? 'h-9 w-9' : 'h-12 w-12';
+  const poseMap = { default: owlLogoPath, guiding: owlGuidingPose, success: owlSuccessPose, thinking: owlThinkingPose, mistake: owlMistakePose, creation: owlCreationPose, failure: owlFailurePose };
   return (
     <img
-      src={owlLogoPath}
+      src={poseMap[pose]}
       alt="بومة توجيه"
       data-testid="img-owl-avatar"
-      className={`${dimensions} rounded-[28%] object-contain`}
+      className={`${dimensions} rounded-[28%] object-contain companion-owl is-${pose}`}
     />
   );
 }
@@ -240,6 +252,8 @@ function NavLinks({ mobile = false }: { mobile?: boolean }) {
 }
 
 function Sidebar() {
+  const healthQuery = useHealthCheck({ query: { queryKey: getHealthCheckQueryKey(), staleTime: 60_000 } });
+  const connected = healthQuery.data?.status === 'ok' || healthQuery.data?.status === 'healthy';
   return (
     <aside className="sidebar fixed inset-y-0 right-0 z-10 hidden w-[252px] flex-col px-5 py-7 lg:flex">
       <Logo />
@@ -257,6 +271,7 @@ function Sidebar() {
        <div className="mt-5 flex items-center justify-end px-1 text-[10px] text-[#b3e5fc]">
          <span className="mono">١.٠</span>
        </div>
+<<<<<<< HEAD
 =======
 =======
        <div className="mt-5 flex items-center justify-end px-1 text-[10px] text-[#b3e5fc]">
@@ -264,8 +279,11 @@ function Sidebar() {
        </div>
 >>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
       <div className="mt-5 flex items-center justify-between px-1 text-[10px] text-[#b3e5fc]">
+=======
+       <div className="mt-5 flex items-center justify-between px-1 text-[10px] text-[#b3e5fc]">
+>>>>>>> 0692bd4 (نارا)
         <span>البكالوريا الجزائرية</span>
-        <span className="mono">١.٠</span>
+         <span className="flex items-center gap-1.5"><i className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-[#8fe5cd]' : 'bg-[#e7ba8f]'}`} />{connected ? 'متصل' : 'يستعد'}</span>
       </div>
 <<<<<<< HEAD
 >>>>>>> origin/main
@@ -364,54 +382,35 @@ function AuthBrand() {
 }
 
 function AuthWelcome() {
-  const [showWelcomePage, setShowWelcomePage] = useState(false);
-
-  useEffect(() => {
-    const fallbackTimer = window.setTimeout(() => setShowWelcomePage(true), 8500);
-    return () => window.clearTimeout(fallbackTimer);
-  }, []);
-
-  if (!showWelcomePage) {
-    return (
-      <main className="auth-splash auth-animation-screen" dir="rtl">
-        <div className="auth-splash-media" aria-hidden="true">
-          <video
-            className="auth-splash-video"
-            autoPlay
-            muted
-            playsInline
-            preload="auto"
-            poster={logoPath}
-            onEnded={() => setShowWelcomePage(true)}
-          >
-            <source src={welcomeVideo} type="video/mp4" />
-          </video>
-          <div className="auth-splash-overlay" />
-        </div>
-        <div className="auth-animation-brand"><AuthBrand /></div>
-        <p className="auth-animation-label">مساحة التعلّم تبدأ من هنا</p>
-      </main>
-    );
-  }
-
+  const { isSignedIn } = useAuth();
+  const [step, setStep] = useState(0);
+  const steps = [
+    { title: 'أرتّب لك البداية.', body: 'أعرّفك على خطتك، ثم أترك لك خطوة واحدة واضحة بدل قائمة طويلة تشتّتك.' },
+    { title: 'أحفظ ما يهمك.', body: 'ملخصاتك، محاولاتك، وأخطاءك تبقى قريبة منك حتى تعود إليها وقت المراجعة.' },
+    { title: 'نمشي معًا.', body: 'ابدأ من وكيل البرنامج، وسأوصلك إلى فهيم والتمارين في اللحظة المناسبة.' },
+  ];
+  const isLast = step === steps.length - 1;
   return (
-    <main className="auth-followup-page" dir="rtl">
-      <header className="auth-followup-header">
-        <span className="auth-followup-subject">رياضيات · فيزياء</span>
+    <main className="auth-onboarding" dir="rtl">
+      <header className="auth-onboarding-header">
         <AuthBrand />
+        <button className="onboarding-skip" type="button" onClick={() => setStep(steps.length - 1)} data-testid="button-skip-onboarding">تجاوز الشرح <ArrowLeft size={14} /></button>
       </header>
-      <section className="auth-followup-hero">
-        <div className="auth-followup-visual" aria-hidden="true">
-          <img src={owlLogoPath} alt="" />
+      <section className="onboarding-layout">
+        <div className="onboarding-owl" aria-label="بومة توجيه الشارحة">
+          <div className="owl-pose-frame"><img src={owlGuidingPose} alt="بومة توجيه تشرح لك الطريق" className="companion-owl" /></div>
+          <span className="onboarding-spark one">خطوة واحدة الآن</span>
+          <span className="onboarding-spark two">كل تقدمك محفوظ</span>
         </div>
-        <div className="auth-followup-copy">
-          <span className="auth-followup-kicker">رفيقك في رحلة التعلّم</span>
-          <h1>خطوتك الأولى<br /><strong>تبدأ هنا.</strong></h1>
-          <p>رتّب وقتك، راجع دروسك، وتقدّم بثقة في مساحة صُمّمت لك.</p>
-          <div className="auth-followup-actions">
-            <Link href="/sign-in" className="auth-followup-primary">ابدأ رحلتك <ArrowLeft size={18} /></Link>
-            <Link href="/sign-up" className="auth-followup-secondary">إنشاء حساب جديد</Link>
+        <div className="onboarding-copy">
+          <span className="onboarding-step"><i /> الشارحة · {step + 1} من {steps.length}</span>
+          <h1>مرحبًا بك في<br /><strong>مساحتك.</strong></h1>
+          <p>أنا بومة توجيه، رفيقتك الزرقاء في رحلة البكالوريا الجزائرية. لا أشرح كل شيء دفعة واحدة؛ نبدأ بما تحتاجه اليوم.</p>
+          <div className="onboarding-bubble" aria-live="polite" data-testid="status-onboarding-message">
+            <strong>بومة توجيه تقول</strong>
+            <span>{steps[step].title} {steps[step].body}</span>
           </div>
+<<<<<<< HEAD
         </div>
         <div className="auth-followup-footer">
 <<<<<<< HEAD
@@ -424,6 +423,20 @@ function AuthWelcome() {
           <span><CheckCircle2 size={16} /> خطة دراسية مرتبطة بأهدافك</span>
 >>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
           <span><CheckCircle2 size={16} /> تقدّمك محفوظ في كل جلسة</span>
+=======
+          <div className="onboarding-dots" aria-label="مراحل الشرح">
+            {steps.map((item, index) => <i key={item.title} className={index === step ? 'active' : ''} />)}
+          </div>
+          <div className="onboarding-actions">
+            {isLast ? (
+              <Link href={isSignedIn ? '/program' : '/sign-in'} className="onboarding-next" data-testid="link-onboarding-continue">إلى وكيل البرنامج <ArrowLeft size={17} /></Link>
+            ) : (
+              <button type="button" className="onboarding-next" onClick={() => setStep((current) => current + 1)} data-testid="button-next-onboarding">تابع الشرح <ArrowLeft size={17} /></button>
+            )}
+            {!isSignedIn && <Link href="/sign-up" className="onboarding-login" data-testid="link-onboarding-signup">إنشاء حساب جديد</Link>}
+          </div>
+          <p className="onboarding-note">لا تحتاج إلى مشاهدة فيديو للوصول إلى التطبيق. أنت من يختار الإيقاع.</p>
+>>>>>>> 0692bd4 (نارا)
         </div>
       </section>
     </main>
@@ -608,6 +621,14 @@ function DashboardPage() {
   const dashboard = dashboardQuery.data as Dashboard | undefined;
   const [completed, setCompleted] = useState<string[]>([]);
   const [startedId, setStartedId] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('tawjeeh.dashboard.completed') || '[]');
+      if (Array.isArray(saved)) setCompleted(saved.filter((item): item is string => typeof item === 'string'));
+    } catch {
+      setCompleted([]);
+    }
+  }, []);
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -646,7 +667,7 @@ function DashboardPage() {
           <div className="absolute bottom-[-60px] right-[-28px] h-44 w-44 rounded-full border-[24px] border-[#b3e5fc] opacity-50" />
           <div className="relative z-[1] flex items-start justify-between gap-4">
             <div className="max-w-[500px]">
-              <div className="mb-4 flex items-center gap-3"><AgentAvatar size="sm" /><span className="text-xs font-bold text-[#b3e5fc]">بومة توجيه معك اليوم</span></div>
+               <div className="mb-4 flex items-center gap-3"><AgentAvatar size="sm" pose={today.length > 0 && today.every((block) => block.completed || completed.includes(block.id)) ? 'success' : 'guiding'} /><span className="text-xs font-bold text-[#b3e5fc]">بومة توجيه معك اليوم</span></div>
               <h2 className="display mb-3 text-[27px] md:text-[34px]" data-testid="text-dashboard-focus">{dashboard.focus || 'نحو فهمٍ أعمق، خطوة واحدة كل مرة.'}</h2>
               <p className="mb-6 max-w-md text-sm leading-7 text-[#e6f6fb]">خطة صغيرة وواضحة الآن أفضل من ساعات طويلة مشتتة. لنبدأ من حيث أنت.</p>
               <Link href="/chat" className="primary-button bg-[#e6f6fb] text-[#005689]" data-testid="link-ask-owl"><MessageCircle size={16} /> اسأل بومة توجيه</Link>
@@ -693,7 +714,7 @@ function DashboardPage() {
                   <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${index % 2 ? 'bg-[#e8f8f5] text-[#2e8b7b]' : 'bg-[#e6f6fb] text-[#005689]'}`}><BookOpen size={18} /></div>
                   <div className="min-w-0 flex-1"><p className={`truncate text-sm font-extrabold ${isComplete ? 'text-[#64748b] line-through' : ''}`}>{block.title}</p><p className="mt-0.5 text-[11px] text-[#64748b]">{block.subject} · {block.kind}</p></div>
                   {isComplete ? <CheckCircle2 className="text-[#2e8b7b]" size={20} /> : (
-                    <button className="secondary-button !rounded-lg !px-3 !py-2 !text-[11px]" onClick={() => { setStartedId(block.id); setCompleted((current) => [...current, block.id]); }} data-testid={`button-complete-${block.id}`}>{startedId === block.id ? 'أحسنت' : 'ابدأ'}</button>
+                     <button className="secondary-button !rounded-lg !px-3 !py-2 !text-[11px]" onClick={() => { setStartedId(block.id); setCompleted((current) => { const next = current.includes(block.id) ? current : [...current, block.id]; localStorage.setItem('tawjeeh.dashboard.completed', JSON.stringify(next)); return next; }); }} data-testid={`button-complete-${block.id}`}>{startedId === block.id ? 'أحسنت' : 'ابدأ'}</button>
                   )}
                 </div>
               );
@@ -733,6 +754,19 @@ function ProfilePage() {
   const displayName = user?.firstName || user?.username || 'الطالب';
   const email = user?.primaryEmailAddress?.emailAddress || 'لم يضف بريدًا إلكترونيًا';
   const appId = user?.id || 'يظهر بعد اكتمال تسجيل الدخول';
+  const [savedNotes, setSavedNotes] = useState<string[]>([]);
+  const [savedAttempts, setSavedAttempts] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const session = JSON.parse(localStorage.getItem('tawjeeh.lesson.workspace.v1') || '{}') as { note?: string };
+      const attempts = JSON.parse(localStorage.getItem('tawjeeh.attempt.bank.v1') || '[]') as Array<{ fileName?: string; firstErrorStep?: string }>;
+      setSavedNotes(session.note?.trim() ? [session.note.trim()] : []);
+      setSavedAttempts(attempts.slice(0, 3).map((item) => `${item.fileName || 'محاولة مكتوبة'} · ${item.firstErrorStep || 'مراجعة محفوظة'}`));
+    } catch {
+      setSavedNotes([]);
+      setSavedAttempts([]);
+    }
+  }, []);
   return (
     <Shell title="الملف الشخصي">
       <section className="profile-page" dir="rtl">
@@ -751,6 +785,20 @@ function ProfilePage() {
         <div className="profile-actions">
           <Link href="/program" className="primary-button"><CalendarDays size={16} /> افتح وكيل البرنامج</Link>
           <Link href="/chat" className="secondary-button"><MessageCircle size={16} /> اذهب إلى التفاعل</Link>
+        </div>
+        <div className="profile-learning-grid">
+          <section className="surface profile-bank-card">
+            <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">أثر جلساتك</p><h3 className="display text-lg">بنك الملخصات</h3></div><AgentAvatar size="sm" pose="creation" /></div>
+            <div className="profile-bank-list">
+              {savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">اكتبي ملاحظة داخل جلسة فهيم، وستظهر هنا لتعودي إليها قبل المراجعة.</p>}
+            </div>
+          </section>
+          <section className="surface profile-bank-card">
+            <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">نتعلّم من المحاولة</p><h3 className="display text-lg">بنك الأخطاء</h3></div><AgentAvatar size="sm" pose="thinking" /></div>
+            <div className="profile-bank-list">
+              {savedAttempts.length ? savedAttempts.map((attempt, index) => <div className="profile-bank-item" key={`${attempt}-${index}`}><RotateCcw size={15} /><span>{attempt}</span></div>) : <p className="profile-bank-empty">ارفقي صورة حل في جلسة فهيم. سنحفظ نقطة التوقف لتصبحي أقوى في المحاولة التالية.</p>}
+            </div>
+          </section>
         </div>
       </section>
     </Shell>

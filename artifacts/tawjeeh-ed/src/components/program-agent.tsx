@@ -18,9 +18,15 @@ import {
   Timer,
   X,
 } from 'lucide-react';
+<<<<<<< HEAD
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+import owlCreationPose from '@assets/owl-creation-pose.png';
+import owlSuccessPose from '@assets/owl-success-pose.png';
+import owlThinkingPose from '@assets/owl-thinking-pose.png';
+>>>>>>> 0692bd4 (نارا)
 import { useLocation } from 'wouter';
 =======
 >>>>>>> origin/main
@@ -91,7 +97,7 @@ function ProgramAgentAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const dimensions = size === 'lg' ? 'program-avatar-lg' : size === 'sm' ? 'program-avatar-sm' : 'program-avatar-md';
   return (
     <span className={`program-agent-avatar ${dimensions}`}>
-      <img src={owlLogoPath} alt="بومة وكيل البرنامج" />
+      <img src={owlCreationPose} alt="مِيزان، وكيل البرنامج" />
       <i />
     </span>
   );
@@ -299,9 +305,9 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           </div>
           <div className="program-side-card">
             <div className="program-card-kicker"><GraduationCap size={14} /> الوكلاء المتصلون</div>
-            <div className="program-connected-agent"><span className="program-mini-avatar fahim">ف</span><div><strong>فَهيم</strong><small>المكتسبات والفجوات</small></div><i /></div>
-            <div className="program-connected-agent"><span className="program-mini-avatar dalil">د</span><div><strong>دليل</strong><small>الشرح والملخصات</small></div><i /></div>
-            <div className="program-connected-agent"><span className="program-mini-avatar exercises">ت</span><div><strong>التمارين</strong><small>التطبيق والكويزات</small></div><i /></div>
+           <div className="program-connected-agent"><span className="program-mini-avatar fahim"><img src={owlThinkingPose} alt="فهيم" /></span><div><strong>فَهيم</strong><small>المكتسبات والفجوات</small></div><i /></div>
+           <div className="program-connected-agent"><span className="program-mini-avatar dalil"><img src={owlCreationPose} alt="دليل" /></span><div><strong>دليل</strong><small>الشرح والملخصات</small></div><i /></div>
+           <div className="program-connected-agent"><span className="program-mini-avatar exercises"><img src={owlSuccessPose} alt="التمارين" /></span><div><strong>التمارين</strong><small>التطبيق والكويزات</small></div><i /></div>
           </div>
           <div className="program-side-note"><CalendarClock size={18} /><p>أضف موعد فرض أو اختبار، وسأضعه في البرنامج وأرفع كثافة التدريب قبله.</p></div>
         </aside>

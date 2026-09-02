@@ -17,6 +17,10 @@ import {
   X,
 } from 'lucide-react';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
+import owlThinkingPose from '@assets/owl-thinking-pose.png';
+import owlMistakePose from '@assets/owl-mistake-pose.png';
+import owlSuccessPose from '@assets/owl-success-pose.png';
+import owlFailurePose from '@assets/owl-failure-pose.png';
 
 type LessonConcept = {
   id: string;
@@ -408,7 +412,7 @@ export function LessonWorkspace() {
         <section className="lesson-panel lesson-conversation-panel" aria-label="محادثة فهيم">
           <div className="lesson-panel-heading lesson-conversation-heading">
             <div className="lesson-fahim-chip">
-              <span className="lesson-fahim-avatar"><img src={owlLogoPath} alt="فهيم، وكيل تثبيت المفاهيم" /></span>
+               <span className="lesson-fahim-avatar"><img src={isThinking ? owlThinkingPose : analysisState === 'error' ? owlFailurePose : owlLogoPath} alt="فهيم، وكيل تثبيت المفاهيم" /></span>
               <span><strong>فَهيم</strong><small>متصل بوكيل البرنامج</small></span>
             </div>
             <MessageCircle size={20} />
@@ -463,7 +467,7 @@ export function LessonWorkspace() {
                 <h2>{activeConcept.title}</h2>
                 <p>{activeConcept.duration} · المحطة {lessonConcepts.indexOf(activeConcept) + 1} من {lessonConcepts.length}</p>
               </div>
-              <div className="lesson-board-owl"><img src={owlLogoPath} alt="بومة فهيم تشرح المفهوم الحالي" /></div>
+               <div className="lesson-board-owl"><img src={analysis ? owlMistakePose : isConceptDone(activeConcept) ? owlSuccessPose : owlLogoPath} alt="بومة فهيم تشرح المفهوم الحالي" /></div>
             </div>
             <div className="lesson-board-body">
               <p>الفكرة الأساسية: <button type="button" className={`lesson-highlight-part ${highlightedPart === activeConcept.highlight ? 'is-selected' : ''}`} onClick={() => setHighlightedPart(activeConcept.highlight)} aria-pressed={highlightedPart === activeConcept.highlight} data-testid="button-highlight-concept">{activeConcept.highlight}</button> {activeConcept.explanation.replace(`${activeConcept.highlight} `, '')}</p>
