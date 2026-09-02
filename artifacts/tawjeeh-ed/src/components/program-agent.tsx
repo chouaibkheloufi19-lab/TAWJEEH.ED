@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
+import { useLocation } from 'wouter';
 
 type ProgramKind = 'مكتسبات' | 'حصة تطبيقية' | 'مراجعة' | 'اختبار' | 'فرض' | 'بحث' | 'عطلة';
 
@@ -136,6 +137,7 @@ function ProgramEntryCard({
 }
 
 export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
+  const [, setLocation] = useLocation();
   const [entries, setEntries] = useState<ProgramEntry[]>(initialEntries);
   const [selectedDate, setSelectedDate] = useState(today);
   const [activeTab, setActiveTab] = useState<'schedule' | 'events' | 'notifications'>('schedule');
@@ -184,6 +186,9 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const startEntry = (entry: ProgramEntry) => {
     setActiveEntry(entry.id);
     setActiveTab('schedule');
+    if (entry.kind === 'مكتسبات' || entry.kind === 'حصة تطبيقية' || entry.kind === 'مراجعة') {
+      setLocation(`/lesson/${entry.id}`);
+    }
   };
 
   const toggleNotifications = () => {

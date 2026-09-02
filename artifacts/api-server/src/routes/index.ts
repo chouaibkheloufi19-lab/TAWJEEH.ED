@@ -5,6 +5,7 @@ import healthRouter from "./health";
 import learningRouter from "./learning";
 import knowledgeRouter from "./knowledge";
 import quizzesRouter from "./quizzes";
+import fahimRouter from "./fahim";
 
 const router: IRouter = Router();
 
@@ -21,5 +22,6 @@ router.use((req: Request, res: Response, next: NextFunction): void => {
 router.use(learningRouter);
 router.use(knowledgeRouter);
 router.use(quizzesRouter);
+router.use(fahimRouter);
 
 export default router;

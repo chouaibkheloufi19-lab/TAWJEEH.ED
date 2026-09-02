@@ -34,11 +34,27 @@ type Message = {
   text: string;
 };
 
+type AttemptAnalysis = {
+  firstError: string;
+  firstErrorStep: string;
+  lastCorrectStep: string;
+  feedback: string;
+  nextExercise: string;
+  summaryAnchor: string;
+};
+
+type AttemptBankItem = AttemptAnalysis & {
+  id: string;
+  fileName: string;
+  createdAt: string;
+};
+
 type LessonSession = {
   activeConcept: string;
   completedExamples: string[];
   note: string;
   attachment: string | null;
+  attachmentName: string | null;
 };
 
 const lessonConcepts: LessonConcept[] = [
@@ -81,6 +97,7 @@ const lessonConcepts: LessonConcept[] = [
 ];
 
 const sessionKey = 'tawjeeh.lesson.workspace.v1';
+const attemptBankKey = 'tawjeeh.attempt.bank.v1';
 
 function readSession(): LessonSession {
   const fallback: LessonSession = {
@@ -88,6 +105,7 @@ function readSession(): LessonSession {
     completedExamples: [],
     note: '',
     attachment: null,
+    attachmentName: null,
   };
   if (typeof window === 'undefined') return fallback;
   try {
@@ -99,9 +117,21 @@ function readSession(): LessonSession {
       completedExamples: Array.isArray(parsed.completedExamples) ? parsed.completedExamples.filter((id): id is string => typeof id === 'string') : [],
       note: typeof parsed.note === 'string' ? parsed.note : '',
       attachment: typeof parsed.attachment === 'string' ? parsed.attachment : null,
+      attachmentName: typeof parsed.attachmentName === 'string' ? parsed.attachmentName : null,
     };
   } catch {
     return fallback;
+  }
+}
+
+function readAttemptBank(): AttemptBankItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(attemptBankKey);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.slice(0, 8) : [];
+  } catch {
+    return [];
   }
 }
 
@@ -121,6 +151,12 @@ export function LessonWorkspace() {
   const [narrationProgress, setNarrationProgress] = useState(0);
   const [noteStatus, setNoteStatus] = useState('محفوظ محليًا');
   const [attachmentError, setAttachmentError] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
+  const [analysis, setAnalysis] = useState<AttemptAnalysis | null>(null);
+  const [analysisState, setAnalysisState] = useState<'idle' | 'analyzing' | 'ready' | 'error'>('idle');
+  const [analysisError, setAnalysisError] = useState('');
+  const [attemptBank, setAttemptBank] = useState<AttemptBankItem[]>(readAttemptBank);
+  const [generatedExercise, setGeneratedExercise] = useState('');
   const attachmentInputRef = useRef<HTMLInputElement>(null);
 
   const activeConcept = useMemo(
@@ -138,6 +174,10 @@ export function LessonWorkspace() {
     window.localStorage.setItem(sessionKey, JSON.stringify(session));
     setNoteStatus('محفوظ محليًا');
   }, [session]);
+
+  useEffect(() => {
+    window.localStorage.setItem(attemptBankKey, JSON.stringify(attemptBank));
+  }, [attemptBank]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -177,21 +217,39 @@ export function LessonWorkspace() {
     }));
   };
 
-  const askFahim = (text: string) => {
+  const askFahim = async (text: string) => {
     const cleanText = text.trim();
     if (!cleanText) return;
+    const userId = `user-${Date.now()}`;
     setMessages((current) => [
       ...current,
-      { id: `user-${Date.now()}`, role: 'user', text: cleanText },
-      {
-        id: `answer-${Date.now() + 1}`,
-        role: 'assistant',
-        text: highlightedPart
-          ? `سؤالك عن «${highlightedPart}» مهم. تخيليها كحالة الجسم قبل أن تغيّر القوة مساره؛ راقبي ما الذي تغيّر وما الذي بقي ثابتًا.`
-          : `لنربطها بمثال قريب: ${activeConcept.examples[0].detail} هل تريدين تجربة المثال التالي؟`,
-      },
+      { id: userId, role: 'user', text: cleanText },
     ]);
     setQuestion('');
+    setIsThinking(true);
+    try {
+      const response = await fetch('/api/fahim/message', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          question: cleanText,
+          lesson: 'قوانين نيوتن والحركة',
+          concept: activeConcept.title,
+          context: analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}` : highlightedPart,
+        }),
+      });
+      const payload = (await response.json()) as { answer?: string; message?: string };
+      if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
+      setMessages((current) => [...current, { id: `answer-${Date.now()}`, role: 'assistant', text: payload.answer as string }]);
+    } catch {
+      setMessages((current) => [
+        ...current,
+        { id: `answer-error-${Date.now()}`, role: 'assistant', text: 'تعذر الوصول إلى فهيم الآن. لم أفقد سؤالك؛ حاولي الإرسال مرة أخرى بعد لحظات.' },
+      ]);
+    } finally {
+      setIsThinking(false);
+    }
   };
 
   const handleQuestionSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -202,6 +260,46 @@ export function LessonWorkspace() {
   const askAboutHighlight = () => {
     if (!highlightedPart) return;
     askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`);
+  };
+
+  const analyzeAttempt = async (imageDataUrl: string, fileName: string) => {
+    setAnalysis(null);
+    setAnalysisError('');
+    setAnalysisState('analyzing');
+    try {
+      const response = await fetch('/api/fahim/analyze-attempt', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          imageDataUrl,
+          lesson: 'قوانين نيوتن والحركة',
+          concept: activeConcept.title,
+        }),
+      });
+      const payload = (await response.json()) as Partial<AttemptAnalysis> & { message?: string };
+      if (!response.ok || !payload.firstError || !payload.lastCorrectStep) {
+        throw new Error(payload.message || 'تعذر تحليل المحاولة');
+      }
+      const nextAnalysis = payload as AttemptAnalysis;
+      setAnalysis(nextAnalysis);
+      setAnalysisState('ready');
+      setAttemptBank((current) => [
+        { ...nextAnalysis, id: `attempt-${Date.now()}`, fileName, createdAt: getTimeLabel() },
+        ...current,
+      ].slice(0, 8));
+      setMessages((current) => [
+        ...current,
+        {
+          id: `analysis-${Date.now()}`,
+          role: 'assistant',
+          text: `قرأت محاولتك. توقفت عند «${nextAnalysis.firstErrorStep}»، وسنعود إلى «${nextAnalysis.lastCorrectStep}» قبل أن نبني تمرينًا مشابهًا.`,
+        },
+      ]);
+    } catch (error) {
+      setAnalysisState('error');
+      setAnalysisError(error instanceof Error ? error.message : 'تعذر تحليل الصورة');
+    }
   };
 
   const handleAttachment = (event: ChangeEvent<HTMLInputElement>) => {
@@ -221,14 +319,40 @@ export function LessonWorkspace() {
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
-        setSession((current) => ({ ...current, attachment: reader.result as string }));
+        setSession((current) => ({ ...current, attachment: reader.result as string, attachmentName: file.name }));
+        void analyzeAttempt(reader.result as string, file.name);
       }
     };
     reader.readAsDataURL(file);
     event.target.value = '';
   };
 
-  const removeAttachment = () => setSession((current) => ({ ...current, attachment: null }));
+  const removeAttachment = () => {
+    setSession((current) => ({ ...current, attachment: null, attachmentName: null }));
+    setAnalysis(null);
+    setAnalysisState('idle');
+    setAnalysisError('');
+  };
+  const resetToLastCorrect = () => {
+    if (!analysis) return;
+    setSession((current) => ({
+      ...current,
+      completedExamples: current.completedExamples.filter((id) => !id.startsWith(`${activeConcept.id}-`)),
+    }));
+    setGeneratedExercise('');
+    setMessages((current) => [
+      ...current,
+      { id: `recovery-${Date.now()}`, role: 'assistant', text: `ثبتنا آخر خطوة صحيحة: «${analysis.lastCorrectStep}». أعدنا هذا المفهوم إلى ما قبل الخطأ حتى نبنيه من جديد.` },
+    ]);
+  };
+  const buildExercise = () => {
+    if (!analysis) return;
+    setGeneratedExercise(analysis.nextExercise);
+    setMessages((current) => [
+      ...current,
+      { id: `exercise-${Date.now()}`, role: 'assistant', text: 'بنيت لك تمرينًا جديدًا على نفس موضع الخطأ. حاولي كتابة أول خطوة فقط ثم أرسليها لي.' },
+    ]);
+  };
   const isConceptDone = (concept: LessonConcept) => concept.examples.every((example) => session.completedExamples.includes(example.id));
 
   return (
@@ -305,7 +429,7 @@ export function LessonWorkspace() {
             <div className="lesson-composer-box">
               <textarea id="lesson-question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="مثال: لماذا يستمر الراكب في الحركة؟" rows={2} data-testid="input-lesson-question" />
               <button type="button" className="lesson-icon-button" onClick={() => attachmentInputRef.current?.click()} aria-label="إرفاق صورة handwritten" data-testid="button-attach-handwritten"><ImagePlus size={17} /></button>
-              <button type="submit" className="lesson-send-button" aria-label="إرسال السؤال إلى فهيم" data-testid="button-send-lesson-question"><Send size={16} /></button>
+              <button type="submit" className="lesson-send-button" aria-label="إرسال السؤال إلى فهيم" disabled={!question.trim() || isThinking} data-testid="button-send-lesson-question"><Send size={16} /></button>
             </div>
             <input ref={attachmentInputRef} type="file" accept="image/*" onChange={handleAttachment} hidden data-testid="input-handwritten-image" />
             {session.attachment && (
@@ -316,6 +440,18 @@ export function LessonWorkspace() {
               </div>
             )}
             {attachmentError && <p className="lesson-field-error" role="alert" data-testid="status-attachment-error">{attachmentError}</p>}
+            {isThinking && <p className="lesson-thinking" role="status">فهيم يراجع سؤالك...</p>}
+            {analysisState === 'analyzing' && <p className="lesson-thinking" role="status" data-testid="status-attempt-analysis">فهيم يقرأ المحاولة ويبحث عن أول خطأ...</p>}
+            {analysisState === 'error' && <div className="lesson-analysis-error" role="alert" data-testid="status-attempt-analysis-error"><span>{analysisError}</span><button type="button" onClick={() => { if (session.attachment) void analyzeAttempt(session.attachment, session.attachmentName ?? 'محاولة'); }}>إعادة التحليل</button></div>}
+            {analysis && (
+              <div className="lesson-analysis-card" data-testid="card-attempt-analysis">
+                <div className="lesson-analysis-header"><strong>قراءة فهيم للمحاولة</strong><span>حُفظت في بنك الأخطاء</span></div>
+                <div className="lesson-analysis-row is-correct"><span>آخر خطوة صحيحة</span><strong>{analysis.lastCorrectStep}</strong></div>
+                <div className="lesson-analysis-row is-error"><span>بداية الخطأ</span><strong>{analysis.firstErrorStep}</strong></div>
+                <p>{analysis.feedback}</p>
+                <div className="lesson-analysis-actions"><button type="button" onClick={resetToLastCorrect} data-testid="button-reset-to-last-correct">العودة لآخر خطوة صحيحة</button><button type="button" onClick={buildExercise} data-testid="button-generate-error-exercise">ابنِ تمرينًا مشابهًا</button></div>
+              </div>
+            )}
           </form>
         </section>
 
@@ -360,6 +496,7 @@ export function LessonWorkspace() {
                 );
               })}
             </div>
+            {generatedExercise && <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise"><span>تمرين يعالج نفس الخطأ</span><p>{generatedExercise}</p></div>}
           </div>
 
           <div className="lesson-note-card">
@@ -370,6 +507,7 @@ export function LessonWorkspace() {
             <textarea value={session.note} onChange={(event) => { setNoteStatus('يُحفظ الآن'); setSession((current) => ({ ...current, note: event.target.value })); }} placeholder="اكتبي كلمة أو علاقة تريدين تذكرها..." aria-label="ملاحظة الدرس" data-testid="input-lesson-note" />
             <button type="button" className="lesson-save-note" onClick={() => { window.localStorage.setItem(sessionKey, JSON.stringify(session)); setNoteStatus('حُفظت الملاحظة'); }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
             {session.attachment && <div className="lesson-saved-image"><img src={session.attachment} alt="الحل المرفق محفوظ محليًا" /><span>الصورة محفوظة مع الجلسة</span></div>}
+            {attemptBank.length > 0 && <div className="lesson-bank"><div className="lesson-bank-heading"><strong>بنك الأخطاء</strong><span>{attemptBank.length} محاولات محللة</span></div>{attemptBank.slice(0, 3).map((item) => <button type="button" key={item.id} className="lesson-bank-item" onClick={() => { setAnalysis(item); setAnalysisState('ready'); }}><span>{item.fileName}</span><small>{item.createdAt} · {item.summaryAnchor}</small></button>)}</div>}
           </div>
         </section>
       </div>

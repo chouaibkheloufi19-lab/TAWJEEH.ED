@@ -56,6 +56,7 @@ import {
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { ProgramAgent } from '@/components/program-agent';
+import { LessonWorkspace } from '@/components/lesson-workspace';
 import logoPath from '@assets/tawjeeh-logo-transparent.png';
 import welcomeVideo from '@assets/Gemini_Generated_Image_697ml8697ml8697m_1788300867064.mp4';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
@@ -767,6 +768,7 @@ function Router() {
         <Route path="/sign-up/*?" component={SignUpPage} />
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/program" component={() => <ProtectedRoute><Shell title="وكيل البرنامج"><ProgramAgent /></Shell></ProtectedRoute>} />
+        <Route path="/lesson/:id" component={() => <ProtectedRoute><Shell title="جلسة فهيم"><LessonWorkspace /></Shell></ProtectedRoute>} />
         <Route path="/knowledge" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
         <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
         <Route path="/chat" component={() => <ProtectedRoute><ChatPage /></ProtectedRoute>} />
