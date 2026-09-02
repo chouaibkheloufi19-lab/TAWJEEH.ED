@@ -176,9 +176,6 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     [entries],
   );
 
-  const completedCount = entries.filter((entry) => entry.completed).length;
-  const commitment = entries.length ? Math.round((completedCount / entries.length) * 100) : 0;
-
   const toggleEntry = (id: string) => {
     setEntries((current) => current.map((entry) => entry.id === id ? { ...entry, completed: !entry.completed } : entry));
   };
@@ -243,7 +240,6 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         </div>
         <div className="program-agent-stats">
           <div><span>مرحلة المكتسبات</span><strong>اليوم ٤ <small>/ ١٠</small></strong><em>فهيم يقود البداية</em></div>
-          <div><span>نسبة الالتزام</span><strong>{commitment}%</strong><em>تتغير مع كل حصة</em></div>
           <div><span>حصص اليوم</span><strong>{entries.filter((entry) => entry.date === today).length}</strong><em>تبدأ حسب توقيتك</em></div>
         </div>
       </section>

@@ -80,7 +80,7 @@ export default function AuthPage({ mode: initialMode = 'login' }: { mode?: AuthM
             : 'واصل من حيث توقفت، واستعد لخطوتك الدراسية التالية بهدوء وتركيز.'}</p>
           <ul className="auth-benefits">
             <li><CheckCircle2 size={18} /> خطة تعلّم تناسب مستواك</li>
-            <li><CheckCircle2 size={18} /> ملخصات واضحة من المنهاج الجزائري</li>
+             <li><CheckCircle2 size={18} /> ملخصات مرتبطة بخطتك الدراسية</li>
             <li><CheckCircle2 size={18} /> متابعة تقدّمك دون ضغط</li>
           </ul>
         </aside>
@@ -100,7 +100,7 @@ export default function AuthPage({ mode: initialMode = 'login' }: { mode?: AuthM
             {isRegister && (
               <label className="auth-field">
                 <span>الاسم الكامل</span>
-                <div className="auth-input-wrap"><UserRound size={17} /><input value={form.name} onChange={(event) => update('name', event.target.value)} required placeholder="مثال: ياسين بن علي" autoComplete="name" data-testid="input-auth-name" /></div>
+                <div className="auth-input-wrap"><UserRound size={17} /><input value={form.name} onChange={(event) => update('name', event.target.value)} required placeholder="اكتب اسمك الكامل" autoComplete="name" data-testid="input-auth-name" /></div>
               </label>
             )}
             <label className="auth-field">

@@ -1715,6 +1715,17 @@ button { cursor: pointer; }
 .lesson-bank-item:hover { border-color: #8cb486; background: #fffdf8; }
 .lesson-bank-item span { overflow: hidden; color: #64815c; font-size: 9px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
 .lesson-bank-item small { overflow: hidden; color: #8b9d88; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.profile-page { display: grid; gap: 16px; max-width: 760px; }
+.profile-identity-card,
+.profile-id-card { display: flex; align-items: center; gap: 18px; border: 1px solid #b3e5fc; border-radius: 22px; background: #fff; box-shadow: 0 12px 30px rgba(0, 86, 137, .06); }
+.profile-identity-card { padding: 26px; }
+.profile-identity-card h2 { margin: 5px 0 4px; color: #004b75; font-size: 28px; }
+.profile-identity-card p:last-child { margin: 0; color: #64748b; font-size: 12px; }
+.profile-id-card { justify-content: space-between; padding: 20px 22px; color: #005689; }
+.profile-id-card > div { display: grid; gap: 7px; min-width: 0; }
+.profile-id-card strong { overflow: hidden; color: #004b75; font-family: var(--app-font-mono); font-size: 13px; text-overflow: ellipsis; direction: ltr; text-align: right; }
+.profile-id-card small { color: #64748b; font-size: 10px; font-weight: 700; }
+.profile-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .lesson-board-panel { background: rgba(255, 253, 250, .25); }
 .lesson-board-card {
   position: relative;
