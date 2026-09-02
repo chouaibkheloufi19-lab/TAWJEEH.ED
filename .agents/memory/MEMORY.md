@@ -1,6 +1,2 @@
-<<<<<<< HEAD
 - [Imported artifact registration](imported-artifacts.md) — conversation transitions may preserve app files without registering the runnable artifact.
 - [Arabic educational OCR](arabic-ocr.md) — never embed empty, timed-out, or visibly unreliable OCR; keep scanned sources pending review.
-=======
-- [Imported artifact registration](imported-artifacts.md) — conversation transitions may preserve app files without registering the runnable artifact.
->>>>>>> origin/main
