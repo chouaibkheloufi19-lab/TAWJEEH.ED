@@ -61,6 +61,27 @@ type AttemptAnalysis = {
   summaryAnchor: string;
 };
 
+type GeneratedGraphPoint = Point & { label?: string };
+
+type GeneratedLesson = {
+  status: 'generated';
+  lessonTitle: string;
+  sourceDocuments: { title: string; source: string; page: number }[];
+  objective: string;
+  elements: { id: string; title: string; kind: string; summary: string }[];
+  explanation: string;
+  highlight: string;
+  graph: {
+    type: 'line' | 'bar' | 'none';
+    title: string;
+    xLabel: string;
+    yLabel: string;
+    points: GeneratedGraphPoint[];
+  };
+  prompt: string;
+  concept: LessonSectionId;
+};
+
 type AttemptBankItem = AttemptAnalysis & {
   id: string;
   fileName: string;
@@ -211,6 +232,23 @@ function sourceForSection(section: LessonSection, cards: KnowledgeCard[]) {
     ?? cards.find((card) => card.lesson?.includes('نيوتن') || card.title?.includes('نيوتن'));
 }
 
+function normalizeGraphPoints(points: GeneratedGraphPoint[]) {
+  if (!points.length) return [];
+  const xValues = points.map((point) => point.x);
+  const yValues = points.map((point) => point.y);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const xRange = maxX - minX || 1;
+  const yRange = maxY - minY || 1;
+  return points.map((point) => ({
+    ...point,
+    sx: 24 + ((point.x - minX) / xRange) * 272,
+    sy: 126 - ((point.y - minY) / yRange) * 96,
+  }));
+}
+
 function drawBoard(ctx: CanvasRenderingContext2D, width: number, height: number, sectionId: LessonSectionId, strokes: Point[][], mode: BoardMode, highlightedPart: string) {
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = '#fbfaf5';
@@ -277,6 +315,9 @@ export function LessonWorkspace() {
   const [analysisError, setAnalysisError] = useState('');
   const [attemptBank, setAttemptBank] = useState<AttemptBankItem[]>(readAttemptBank);
   const [generatedExercise, setGeneratedExercise] = useState('');
+  const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
+  const [lessonGenerationState, setLessonGenerationState] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
+  const [lessonGenerationError, setLessonGenerationError] = useState('');
   const [boardMode, setBoardMode] = useState<BoardMode>('pen');
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -287,6 +328,9 @@ export function LessonWorkspace() {
   const activeSection = useMemo(() => lessonSections.find((section) => section.id === session.activeConcept) ?? lessonSections[0], [session.activeConcept]);
   const activeSource = useMemo(() => sourceForSection(activeSection, knowledgeCards), [activeSection, knowledgeCards]);
   const activeExamples = exampleDetails[activeSection.id];
+  const displayedTitle = generatedLesson?.lessonTitle ?? activeSection.title;
+  const displayedExplanation = generatedLesson?.explanation ?? activeSection.explanation;
+  const displayedHighlight = generatedLesson?.highlight || activeSection.highlight;
   const completedCount = activeExamples.filter((example) => session.completedExamples.includes(example.id)).length;
   const totalExamples = lessonSections.reduce((total, section) => total + exampleDetails[section.id].length, 0);
   const totalCompleted = lessonSections.reduce((total, section) => total + exampleDetails[section.id].filter((example) => session.completedExamples.includes(example.id)).length, 0);
@@ -316,6 +360,9 @@ export function LessonWorkspace() {
     setNarrationProgress(0);
     setIsPlaying(false);
     setHighlightedPart('');
+    setGeneratedLesson(null);
+    setLessonGenerationState('idle');
+    setLessonGenerationError('');
   }, [activeSection.id]);
 
   useEffect(() => {
@@ -346,6 +393,41 @@ export function LessonWorkspace() {
     }));
   };
 
+  const generateLesson = async () => {
+    setLessonGenerationState('generating');
+    setLessonGenerationError('');
+    try {
+      const response = await fetch('/api/lesson/generate', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          lesson: 'قوانين نيوتن والحركة',
+          level: '3AS',
+          activeConcept: activeSection.title,
+          attemptContext: analysis
+            ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`
+            : session.note || '',
+        }),
+      });
+      const payload = await response.json() as Partial<GeneratedLesson> & { message?: string };
+      if (!response.ok || typeof payload.lessonTitle !== 'string' || !Array.isArray(payload.elements)) {
+        throw new Error(payload.message || 'تعذر توليد شرح الدرس من المصادر.');
+      }
+      setGeneratedLesson({ ...(payload as Omit<GeneratedLesson, 'concept'>), concept: activeSection.id });
+      setLessonGenerationState('ready');
+      setHighlightedPart(typeof payload.highlight === 'string' ? payload.highlight : '');
+      setMessages((current) => [...current, {
+        id: `generated-lesson-${Date.now()}`,
+        role: 'assistant',
+        text: `حضّرت لك شرحًا مخصصًا عن «${payload.lessonTitle}». ابدئي بالهدف ثم اختاري عنصرًا واحدًا للتثبيت.`,
+      }]);
+    } catch (error) {
+      setLessonGenerationState('error');
+      setLessonGenerationError(error instanceof Error ? error.message : 'تعذر توليد شرح الدرس الآن.');
+    }
+  };
+
   const askFahim = async (text: string) => {
     const cleanText = text.trim();
     if (!cleanText) return;
@@ -361,7 +443,9 @@ export function LessonWorkspace() {
           question: cleanText,
           lesson: 'قوانين نيوتن والحركة',
           concept: activeSection.title,
-          context: analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}` : highlightedPart || activeSection.explanation,
+          context: analysis
+            ? `${analysis.lastCorrectStep} — ${analysis.firstError}`
+            : highlightedPart || displayedExplanation,
         }),
       });
       const payload = await response.json() as { answer?: string; message?: string };
@@ -581,14 +665,78 @@ export function LessonWorkspace() {
           <div className="lesson-teaching-header">
             <div>
               <span className="lesson-panel-kicker"><Volume2 size={13} /> يشرح الآن</span>
-              <h2>{activeSection.title}</h2>
+               <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
               <p>{activeSection.duration} · {activeSection.label}</p>
             </div>
-            <div className="lesson-board-owl"><img src={analysis ? owlAgentViolet : progress === 100 ? owlAgentGold : owlAgentMint} alt="فهيم يشرح المفهوم الحالي" /></div>
+             <div className="lesson-teaching-actions">
+               <button
+                 type="button"
+                 className="lesson-generate-button"
+                 onClick={() => void generateLesson()}
+                 disabled={lessonGenerationState === 'generating'}
+                 data-testid="button-generate-lesson"
+               >
+                 {lessonGenerationState === 'generating' ? <LoaderCircle size={13} className="lesson-spin-icon" /> : <Sparkles size={13} />}
+                 {lessonGenerationState === 'generating' ? 'يُحضّر...' : generatedLesson ? 'تحديث الشرح' : 'ولّد شرحًا ذكيًا'}
+               </button>
+               <div className="lesson-board-owl"><img src={analysis ? owlAgentViolet : progress === 100 ? owlAgentGold : owlAgentMint} alt="فهيم يشرح المفهوم الحالي" /></div>
+             </div>
           </div>
+           {lessonGenerationState === 'error' && (
+             <div className="lesson-generation-error" role="alert" data-testid="status-lesson-generation-error">
+               <span>{lessonGenerationError}</span>
+               <button type="button" onClick={() => void generateLesson()} data-testid="button-retry-lesson-generation">إعادة المحاولة</button>
+             </div>
+           )}
+           {generatedLesson && (
+             <div className="lesson-generated-lesson" data-testid="card-generated-lesson">
+               <div className="lesson-generated-lesson-head">
+                 <div>
+                   <span className="lesson-explanation-label">شرح مخصص من مصادر المنهاج</span>
+                   <h3>{generatedLesson.lessonTitle}</h3>
+                 </div>
+                 <span className="lesson-generated-badge"><CheckCircle2 size={12} /> جاهز</span>
+               </div>
+               <div className="lesson-generated-objective"><strong>هدف الجلسة</strong><span>{generatedLesson.objective}</span></div>
+               <div className="lesson-generated-elements" aria-label="عناصر الدرس المولّد">
+                 {generatedLesson.elements.map((element) => (
+                   <article key={element.id} className="lesson-generated-element" data-testid={`card-generated-element-${element.id}`}>
+                     <span>{element.kind === 'practice' ? 'تدريب' : element.kind === 'graph' ? 'رسم' : element.kind === 'recap' ? 'خلاصة' : element.kind === 'example' ? 'مثال' : 'فكرة'}</span>
+                     <strong>{element.title}</strong>
+                     <p>{element.summary}</p>
+                   </article>
+                 ))}
+               </div>
+               {generatedLesson.graph.type !== 'none' && generatedLesson.graph.points.length > 0 && (() => {
+                 const graphPoints = normalizeGraphPoints(generatedLesson.graph.points);
+                 const path = graphPoints.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.sx} ${point.sy}`).join(' ');
+                 return (
+                   <div className="lesson-generated-graph" data-testid="card-generated-graph">
+                     <div><strong>{generatedLesson.graph.title}</strong><span>{generatedLesson.graph.yLabel} مقابل {generatedLesson.graph.xLabel}</span></div>
+                     <svg viewBox="0 0 320 150" role="img" aria-label={generatedLesson.graph.title}>
+                       <path d="M24 126 H296 M24 126 V22" className="lesson-graph-axis" />
+                       {generatedLesson.graph.type === 'bar'
+                         ? graphPoints.map((point) => <rect key={`${point.x}-${point.y}`} x={point.sx - 7} y={point.sy} width="14" height={126 - point.sy} rx="3" className="lesson-graph-bar" />)
+                         : <path d={path} className="lesson-graph-line" />}
+                       {graphPoints.map((point) => <circle key={`point-${point.x}-${point.y}`} cx={point.sx} cy={point.sy} r="3.5" className="lesson-graph-point" />)}
+                     </svg>
+                   </div>
+                 );
+               })()}
+               <div className="lesson-generated-footer">
+                 <p><strong>سؤال فهيم:</strong> {generatedLesson.prompt}</p>
+                 {generatedLesson.sourceDocuments.length > 0 && (
+                   <div className="lesson-generated-sources">
+                     <BookOpen size={12} />
+                     <span>المصادر: {generatedLesson.sourceDocuments.slice(0, 3).map((source) => `${source.title} · ص ${source.page}`).join('، ')}</span>
+                   </div>
+                 )}
+               </div>
+             </div>
+           )}
           <div className="lesson-explanation">
             <span className="lesson-explanation-label">فكرة مركزيّة</span>
-            <p>{activeSection.explanation.replace(`${activeSection.highlight} `, '')} <button type="button" className={`lesson-highlight-part ${highlightedPart === activeSection.highlight ? 'is-selected' : ''}`} onClick={() => setHighlightedPart(activeSection.highlight)} aria-pressed={highlightedPart === activeSection.highlight} data-testid="button-highlight-concept">{activeSection.highlight}</button></p>
+             <p>{displayedExplanation.replace(`${displayedHighlight} `, '')} <button type="button" className={`lesson-highlight-part ${highlightedPart === displayedHighlight ? 'is-selected' : ''}`} onClick={() => setHighlightedPart(displayedHighlight)} aria-pressed={highlightedPart === displayedHighlight} data-testid="button-highlight-concept">{displayedHighlight}</button></p>
             {activeSource && <div className="lesson-source-line"><BookOpen size={13} /><span>{activeSource.title}</span><small>{activeSource.source} · ص {activeSource.page}</small></div>}
             <button type="button" className="lesson-ask-highlight" onClick={() => { if (highlightedPart) void askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`); }} disabled={!highlightedPart} data-testid="button-ask-highlighted"><Highlighter size={13} /> اسألي عن الجزء المحدد</button>
           </div>
@@ -609,7 +757,7 @@ export function LessonWorkspace() {
           <div className="lesson-teaching-footer">
             <div className="lesson-narration" role="status" aria-live="polite">
               <button type="button" className="lesson-play-button" onClick={() => setIsPlaying((playing) => !playing)} aria-label={isPlaying ? 'إيقاف شرح فهيم' : 'تشغيل شرح فهيم'} data-testid="button-toggle-narration">{isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
-              <div className="lesson-narration-copy"><strong>{isPlaying ? 'فهيم يشرح لك...' : 'شرح فهيم جاهز'}</strong><span>{isPlaying ? activeSection.explanation : 'استمعي للفكرة الأساسية أو اقرئيها على اللوح.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
+               <div className="lesson-narration-copy"><strong>{isPlaying ? 'فهيم يشرح لك...' : 'شرح فهيم جاهز'}</strong><span>{isPlaying ? displayedExplanation : 'استمعي للفكرة الأساسية أو اقرئيها على اللوح.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
             </div>
             <form className="lesson-board-question" onSubmit={(event) => { event.preventDefault(); void askFahim(question || `ساعدني في فهم ${activeSection.label}`); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="اسألي فهيم عن اللوح" aria-label="سؤال فهيم عن اللوح" data-testid="input-board-question" /><button type="submit" aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
           </div>

@@ -730,24 +730,52 @@ function QuizzesPage() {
   );
 }
 
-type ChatMessage = { id: number; from: 'student' | 'agent'; text: string };
+type ChatMessage = { id: string; from: 'student' | 'agent'; text: string };
 const agentOptions = [
   { id: 'host', name: 'توجيه', role: 'محادثة عامة' },
   { id: 'fahim', name: 'فَهيم', role: 'تشخيص الفجوات' },
   { id: 'dalil', name: 'دليل', role: 'شرح المفاهيم' },
 ];
-const starterMessages: ChatMessage[] = [{ id: 1, from: 'agent', text: 'أهلًا بك. اكتب ما يشغلك الآن، وسأساعدك في الوصول إلى الشرح أو التدريب المناسب.' }];
+const starterMessages: ChatMessage[] = [{ id: 'starter', from: 'agent', text: 'أهلًا بك. اكتب ما يشغلك الآن، وسأساعدك في الوصول إلى الشرح أو التدريب المناسب.' }];
 
 function ChatPage() {
   const [agent, setAgent] = useState('host');
   const [text, setText] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
+  const [isThinking, setIsThinking] = useState(false);
+  const [error, setError] = useState('');
   const selectedAgent = agentOptions.find((item) => item.id === agent) ?? agentOptions[0];
-  const send = (value = text) => {
+  const send = async (value = text) => {
     const clean = value.trim();
-    if (!clean) return;
-    setMessages((current) => [...current, { id: Date.now(), from: 'student', text: clean }, { id: Date.now() + 1, from: 'agent', text: agent === 'fahim' ? 'لنحددها معًا. اكتب ما تعرفه عن الفكرة، وسأكشف لك الجزء الذي يحتاج مراجعة.' : agent === 'dalil' ? 'سأشرحها لك خطوة خطوة وبأمثلة من المنهاج. ما المصطلح الذي تريد تبسيطه؟' : 'فكرة جيدة. يمكنني توجيهك إلى ملخص مناسب أو تدريب قصير. من أي مادة نبدأ؟' }]);
+    if (!clean || isThinking) return;
+    setError('');
+    setMessages((current) => [...current, { id: `student-${Date.now()}`, from: 'student', text: clean }]);
     setText('');
+    setIsThinking(true);
+    try {
+      const response = await fetch('/api/fahim/message', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          question: clean,
+          lesson: 'المساعدة الدراسية العامة',
+          concept: selectedAgent.role,
+          context: `نوع المساعدة المختار: ${selectedAgent.name} — ${selectedAgent.role}.`,
+        }),
+      });
+      const payload = await response.json() as { answer?: string; message?: string };
+      if (!response.ok || !payload.answer) {
+        throw new Error(payload.message || 'تعذر الحصول على رد فهيم الآن.');
+      }
+      setMessages((current) => [...current, { id: `agent-${Date.now()}`, from: 'agent', text: payload.answer as string }]);
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : 'تعذر الحصول على رد فهيم الآن.';
+      setError(message);
+      setMessages((current) => [...current, { id: `agent-error-${Date.now()}`, from: 'agent', text: 'لم أتمكن من الوصول إلى المساعد الآن. يمكنك إعادة إرسال السؤال بعد لحظات.' }]);
+    } finally {
+      setIsThinking(false);
+    }
   };
   return (
     <Shell title="اسأل توجيه">
@@ -758,9 +786,9 @@ function ChatPage() {
            <div className="mt-5 rounded-2xl bg-[#e8f8f5] p-4"><div className="mb-2 flex items-center gap-2 text-[#005689]"><Sparkles size={15} /><span className="text-xs font-extrabold">اقتراح سريع</span></div><p className="text-xs font-bold leading-6 text-[#64748b]">إن لم تعرف من تختار، ابدأ بالمحادثة العامة وسنحدد الخطوة التالية.</p></div>
         </aside>
         <section className="surface order-1 flex min-h-[570px] flex-col overflow-hidden lg:order-2">
-           <div className="flex items-center gap-3 border-b border-[#b3e5fc] bg-[#f7fcfe] px-5 py-4"><div className="relative">{selectedAgent.id === 'host' ? <AgentAvatar size="sm" /> : <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#e6f6fb] text-[#005689]">{selectedAgent.id === 'fahim' ? <BrainCircuit size={17} /> : <BookOpen size={17} />}</span>}<i className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f7fcfe] bg-[#2e8b7b]" /></div><div><strong className="block text-sm font-extrabold">{selectedAgent.name}</strong><span className="text-[10px] text-[#64748b]">{selectedAgent.role} · متصل الآن</span></div><MoreHorizontal className="mr-auto text-[#64748b]" size={19} /></div>
-           <div className="flex-1 space-y-4 overflow-y-auto p-5 md:p-7">{messages.map((message) => <div key={message.id} className={`flex items-end gap-2 ${message.from === 'student' ? 'justify-start' : 'justify-end'}`} data-testid={`message-chat-${message.id}`}>{message.from === 'agent' && <AgentAvatar size="sm" />}<div className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-7 ${message.from === 'student' ? 'rounded-bl-md bg-[#004b75] text-white' : 'rounded-br-md bg-[#e8f8f5] text-[#005689]'}`}>{message.text}</div></div>)}</div>
-           <div className="border-t border-[#b3e5fc] p-4"><div className="mb-3 flex flex-wrap gap-2">{['اشرح لي درسًا', 'اختبرني قليلًا', 'أين أخطئ؟'].map((prompt) => <button key={prompt} onClick={() => send(prompt)} className="tag bg-[#f7fcfe] text-[#64748b] transition hover:bg-[#e6f6fb]" data-testid={`button-prompt-${prompt}`}>{prompt}</button>)}</div><form className="flex items-end gap-2" onSubmit={(event) => { event.preventDefault(); send(); }}><button type="button" className="icon-button h-11 w-11 shrink-0" onClick={() => setText((current) => current || 'أريد إرفاق ملفًا')} data-testid="button-attach" aria-label="إرفاق ملف"><Paperclip size={18} /></button><textarea rows={1} value={text} onChange={(event) => setText(event.target.value)} className="min-h-11 flex-1 resize-none rounded-xl border border-[#b3e5fc] bg-white px-4 py-3 text-sm outline-none focus:border-[#005689]" placeholder="اكتب سؤالك هنا..." data-testid="input-chat-message" /><button className="primary-button h-11 w-11 shrink-0 !p-0" type="submit" disabled={!text.trim()} data-testid="button-send-message" aria-label="إرسال الرسالة"><Send size={17} /></button></form><p className="mt-2 text-center text-[10px] text-[#64748b]">توجيه يساعدك على الفهم، وأنت صاحب القرار في رحلتك.</p></div>
+            <div className="flex items-center gap-3 border-b border-[#b3e5fc] bg-[#f7fcfe] px-5 py-4"><div className="relative">{selectedAgent.id === 'host' ? <AgentAvatar size="sm" /> : <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#e6f6fb] text-[#005689]">{selectedAgent.id === 'fahim' ? <BrainCircuit size={17} /> : <BookOpen size={17} />}</span>}<i className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f7fcfe] bg-[#2e8b7b]" /></div><div><strong className="block text-sm font-extrabold">{selectedAgent.name}</strong><span className="text-[10px] text-[#64748b]">{selectedAgent.role} · {isThinking ? 'يفكر الآن' : 'متصل الآن'}</span></div><MoreHorizontal className="mr-auto text-[#64748b]" size={19} /></div>
+            <div className="flex-1 space-y-4 overflow-y-auto p-5 md:p-7">{messages.map((message) => <div key={message.id} className={`flex items-end gap-2 ${message.from === 'student' ? 'justify-start' : 'justify-end'}`} data-testid={`message-chat-${message.id}`}>{message.from === 'agent' && <AgentAvatar size="sm" />}<div className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-7 ${message.from === 'student' ? 'rounded-bl-md bg-[#004b75] text-white' : 'rounded-br-md bg-[#e8f8f5] text-[#005689]'}`}>{message.text}</div></div>)}{isThinking && <div className="flex items-end justify-end gap-2" data-testid="status-chat-thinking"><AgentAvatar size="sm" /><div className="rounded-2xl rounded-br-md bg-[#e8f8f5] px-4 py-3 text-sm text-[#005689]">فهيم يكتب الآن...</div></div>}</div>
+            <div className="border-t border-[#b3e5fc] p-4"><div className="mb-3 flex flex-wrap gap-2">{['اشرح لي درسًا', 'اختبرني قليلًا', 'أين أخطئ؟'].map((prompt) => <button key={prompt} onClick={() => void send(prompt)} disabled={isThinking} className="tag bg-[#f7fcfe] text-[#64748b] transition hover:bg-[#e6f6fb] disabled:cursor-wait disabled:opacity-60" data-testid={`button-prompt-${prompt}`}>{prompt}</button>)}</div>{error && <p className="mb-2 text-xs font-bold text-[#a34e4e]" role="alert" data-testid="status-chat-error">{error}</p>}<form className="flex items-end gap-2" onSubmit={(event) => { event.preventDefault(); void send(); }}><button type="button" className="icon-button h-11 w-11 shrink-0" onClick={() => setText((current) => current || 'أريد إرفاق ملفًا')} data-testid="button-attach" aria-label="إرفاق ملف"><Paperclip size={18} /></button><textarea rows={1} value={text} onChange={(event) => setText(event.target.value)} className="min-h-11 flex-1 resize-none rounded-xl border border-[#b3e5fc] bg-white px-4 py-3 text-sm outline-none focus:border-[#005689]" placeholder="اكتب سؤالك هنا..." data-testid="input-chat-message" /><button className="primary-button h-11 w-11 shrink-0 !p-0" type="submit" disabled={!text.trim() || isThinking} data-testid="button-send-message" aria-label="إرسال الرسالة"><Send size={17} /></button></form><p className="mt-2 text-center text-[10px] text-[#64748b]">توجيه يساعدك على الفهم، وأنت صاحب القرار في رحلتك.</p></div>
         </section>
       </div>
     </Shell>
