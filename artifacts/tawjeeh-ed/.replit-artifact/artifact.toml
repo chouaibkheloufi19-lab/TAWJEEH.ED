@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "TAWJEEH.ED"
+description = "An Arabic-first adaptive learning workspace for baccalaureate students, bringing study planning, concept mastery, guided help, and quizzes into one focused experience."
+version = "1.0.0"
+id = "artifacts/tawjeeh-ed"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25786
+
+[services.development]
+run = "pnpm --filter @workspace/tawjeeh-ed run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/tawjeeh-ed", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/tawjeeh-ed/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25786"
+BASE_PATH = "/"
