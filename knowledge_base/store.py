@@ -32,7 +32,11 @@ class KnowledgeStore:
             name=collection_name,
             metadata={
                 "description": "Tawjeeh educational knowledge chunks",
+<<<<<<< HEAD
                 "schema_version": "2",
+=======
+                "schema_version": "1",
+>>>>>>> origin/main
                 "hnsw:space": "cosine",
             },
         )
@@ -54,6 +58,7 @@ class KnowledgeStore:
         )
         return len(chunks)
 
+<<<<<<< HEAD
     def replace_source(self, source_file: str, chunks: list[KnowledgeChunk]) -> int:
         """Upsert a source and remove stale chunks from an earlier revision."""
 
@@ -74,6 +79,8 @@ class KnowledgeStore:
             self.collection.delete(ids=stale_ids)
         return len(chunks)
 
+=======
+>>>>>>> origin/main
     def query(
         self,
         query: str,

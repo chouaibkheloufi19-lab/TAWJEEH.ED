@@ -6,7 +6,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 COLLECTION_NAME = "tawjeeh_knowledge"
+<<<<<<< HEAD
 SCHEMA_VERSION = "2"
+=======
+SCHEMA_VERSION = "1"
+>>>>>>> origin/main
 
 CONTENT_TYPES = frozenset(
     {
@@ -19,7 +23,10 @@ CONTENT_TYPES = frozenset(
         "summary",
         "assessment",
         "reference",
+<<<<<<< HEAD
     "program",
+=======
+>>>>>>> origin/main
     }
 )
 
@@ -46,12 +53,16 @@ class KnowledgeMetadata:
     skills: str = ""
     concepts: str = ""
     agent_roles: str = "fahim,guide,exercise"
+<<<<<<< HEAD
     agent_priority: str = "fahim"
     prerequisites: str = ""
     lesson_keys: str = ""
     source_file: str = ""
     source_type: str = "pdf"
     extraction_method: str = "text"
+=======
+    source_file: str = ""
+>>>>>>> origin/main
     source_page: int = 0
     source_hash: str = ""
     chunk_index: int = 0
@@ -70,12 +81,16 @@ class KnowledgeMetadata:
             "skills": self.skills,
             "concepts": self.concepts,
             "agent_roles": self.agent_roles,
+<<<<<<< HEAD
             "agent_priority": self.agent_priority,
             "prerequisites": self.prerequisites,
             "lesson_keys": self.lesson_keys,
             "source_file": self.source_file,
             "source_type": self.source_type,
             "extraction_method": self.extraction_method,
+=======
+            "source_file": self.source_file,
+>>>>>>> origin/main
             "source_page": self.source_page,
             "source_hash": self.source_hash,
             "chunk_index": self.chunk_index,
