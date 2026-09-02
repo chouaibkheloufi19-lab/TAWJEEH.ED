@@ -1,14 +1,15 @@
 {
   "version": 2,
-  "generated_at": "2026-09-02T10:06:04.174453+00:00",
+  "generated_at": "2026-09-02T10:19:39.965937+00:00",
   "assets_root": "attached_assets",
   "stats": {
-    "needs_review": 224,
-    "indexed": 47,
+    "needs_review": 204,
+    "indexed": 45,
     "excluded_media": 3,
+    "duplicate_source": 22,
     "excluded_reference": 1,
     "total_assets": 275,
-    "indexed_chunks": 678
+    "indexed_chunks": 664
   },
   "sources": [
     {
@@ -37,12 +38,13 @@
       "agent_priority": "fahim",
       "title": "#بكالوريا 37 نهاية بالحل في الدوال المثل",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 6,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 6
+        "empty": 6
       },
       "summary": "محتوى تعليمي مصنّف ضمن #بكالوريا 37 نهاية بالحل في الدوال المثل.",
       "tags": [
@@ -78,12 +80,13 @@
       "agent_priority": "fahim",
       "title": "1 مجلة الخليل في الدوال العددية الأستاذ قويسم خليل",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 50,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 50
+        "empty": 50
       },
       "summary": "محتوى تعليمي مصنّف ضمن 1 مجلة الخليل في الدوال العددية الأستاذ قويسم خليل.",
       "tags": [
@@ -119,12 +122,13 @@
       "agent_priority": "fahim",
       "title": "60 نهاية مع لحل",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 9,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 9
+        "empty": 9
       },
       "summary": "محتوى تعليمي مصنّف ضمن 60 نهاية مع لحل.",
       "tags": [
@@ -160,6 +164,7 @@
       "agent_priority": "fahim",
       "title": "⁨واجب في الاشتقاق⁩",
       "status": "indexed",
+      "review_reason": "",
       "pages": 4,
       "chunks": 4,
       "first_page": 1,
@@ -201,12 +206,14 @@
       "agent_priority": "fahim",
       "title": "BcZ63qCCMmK2VxOd4libmEZCK3EDsuGjlEAlyZlz",
       "status": "indexed",
+      "review_reason": "",
       "pages": 5,
       "chunks": 3,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
-        "text": 5
+        "text": 2,
+        "empty": 3
       },
       "summary": ". نقسمه إلى.جزأين متماثلين في كأسين",
       "tags": [
@@ -242,12 +249,13 @@
       "agent_priority": "fahim",
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 9,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 9
+        "empty": 9
       },
       "summary": "محتوى تعليمي مصنّف ضمن الرياضيات · مراجعة عامة.",
       "tags": [
@@ -283,12 +291,13 @@
       "agent_priority": "fahim",
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 15,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 15
+        "empty": 15
       },
       "summary": "محتوى تعليمي مصنّف ضمن الرياضيات · مراجعة عامة.",
       "tags": [
@@ -324,12 +333,13 @@
       "agent_priority": "fahim",
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 420,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 420
+        "empty": 420
       },
       "summary": "محتوى تعليمي مصنّف ضمن الرياضيات · مراجعة عامة.",
       "tags": [
@@ -365,12 +375,13 @@
       "agent_priority": "fahim",
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 285,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 285
+        "empty": 285
       },
       "summary": "محتوى تعليمي مصنّف ضمن الرياضيات · مراجعة عامة.",
       "tags": [
@@ -406,12 +417,13 @@
       "agent_priority": "fahim",
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 219,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 219
+        "empty": 219
       },
       "summary": "محتوى تعليمي مصنّف ضمن الرياضيات · مراجعة عامة.",
       "tags": [
@@ -447,6 +459,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 1020872",
       "status": "indexed",
+      "review_reason": "",
       "pages": 6,
       "chunks": 6,
       "first_page": 1,
@@ -488,6 +501,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 1239357",
       "status": "indexed",
+      "review_reason": "",
       "pages": 7,
       "chunks": 8,
       "first_page": 1,
@@ -529,6 +543,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 1281644",
       "status": "indexed",
+      "review_reason": "",
       "pages": 7,
       "chunks": 8,
       "first_page": 1,
@@ -570,6 +585,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 141833",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 3,
       "first_page": 1,
@@ -611,6 +627,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 142133",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 2,
       "first_page": 1,
@@ -652,6 +669,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 185407",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 3,
       "first_page": 1,
@@ -693,6 +711,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 185681",
       "status": "indexed",
+      "review_reason": "",
       "pages": 3,
       "chunks": 5,
       "first_page": 1,
@@ -734,6 +753,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 197621",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 3,
       "first_page": 1,
@@ -775,6 +795,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 200899",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 3,
       "first_page": 1,
@@ -816,6 +837,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 253605",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 2,
       "first_page": 1,
@@ -857,6 +879,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 343543",
       "status": "indexed",
+      "review_reason": "",
       "pages": 4,
       "chunks": 4,
       "first_page": 1,
@@ -898,6 +921,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 376520",
       "status": "indexed",
+      "review_reason": "",
       "pages": 4,
       "chunks": 4,
       "first_page": 1,
@@ -939,6 +963,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 376766",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 2,
       "first_page": 1,
@@ -980,6 +1005,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 410266",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 2,
       "first_page": 1,
@@ -1021,6 +1047,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 458613",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 2,
       "first_page": 1,
@@ -1062,6 +1089,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 499824",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 2,
       "first_page": 1,
@@ -1103,6 +1131,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 500437",
       "status": "indexed",
+      "review_reason": "",
       "pages": 4,
       "chunks": 5,
       "first_page": 1,
@@ -1144,6 +1173,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as mathematiques 951483",
       "status": "indexed",
+      "review_reason": "",
       "pages": 5,
       "chunks": 6,
       "first_page": 1,
@@ -1185,6 +1215,7 @@
       "agent_priority": "fahim",
       "title": "dzexams 2as physique 107696",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 3,
       "first_page": 1,
@@ -1226,6 +1257,7 @@
       "agent_priority": "fahim",
       "title": "dzexams docs 3as 902063",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 2,
       "first_page": 1,
@@ -1267,6 +1299,7 @@
       "agent_priority": "fahim",
       "title": "dzexams docs 3as 907425",
       "status": "indexed",
+      "review_reason": "",
       "pages": 5,
       "chunks": 9,
       "first_page": 1,
@@ -1308,12 +1341,13 @@
       "agent_priority": "fahim",
       "title": "eddirasa.com اختبار في العلوم الفيزيائية الفصل الثاني السنة ال",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 2,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 2
+        "empty": 2
       },
       "summary": "محتوى تعليمي مصنّف ضمن eddirasa.com اختبار في العلوم الفيزيائية الفصل الثاني السنة ال.",
       "tags": [
@@ -1349,12 +1383,13 @@
       "agent_priority": "fahim",
       "title": "eddirasa.com اختبار في العلوم الفيزيائية الفصل الثاني السنة ال",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن eddirasa.com اختبار في العلوم الفيزيائية الفصل الثاني السنة ال.",
       "tags": [
@@ -1390,12 +1425,14 @@
       "agent_priority": "fahim",
       "title": "eddirasa.com الموضوع رقم 56 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
+      "review_reason": "",
       "pages": 6,
       "chunks": 6,
       "first_page": 2,
       "extraction_method": "text",
       "extraction_methods": {
-        "text": 6
+        "empty": 1,
+        "text": 5
       },
       "summary": "بيروكسيد الهيدروجين )هو ئل سا",
       "tags": [
@@ -1431,12 +1468,13 @@
       "agent_priority": "fahim",
       "title": "eddirasa.com الموضوع رقم 57 اختبار الفصل الثاني علوم فيزيائية",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 3,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 3
+        "empty": 3
       },
       "summary": "محتوى تعليمي مصنّف ضمن eddirasa.com الموضوع رقم 57 اختبار الفصل الثاني علوم فيزيائية.",
       "tags": [
@@ -1458,31 +1496,33 @@
       "curriculum_year": "unspecified",
       "stream": "experimental_sciences",
       "term": "unspecified",
-      "unit": "الأعداد والحساب",
-      "lesson": "الأعداد والحساب",
-      "lesson_key": "numbers_calculus",
+      "unit": "التحولات الكيميائية",
+      "lesson": "التحولات الكيميائية",
+      "lesson_key": "chemical_transformations",
       "content_type": "solution",
       "difficulty": "mixed",
       "language": "ar",
-      "skills": "حساب",
-      "concepts": "حساب",
+      "skills": "تفاعل",
+      "concepts": "تفاعل",
       "prerequisites": "مراجعة المكتسبات القبلية",
-      "lesson_keys": "numbers_calculus",
+      "lesson_keys": "chemical_transformations",
       "agent_roles": "fahim,guide,exercise",
       "agent_priority": "fahim",
       "title": "eddirasa.com الموضوع رقم 58 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
+      "review_reason": "",
       "pages": 5,
       "chunks": 6,
       "first_page": 2,
       "extraction_method": "text",
       "extraction_methods": {
-        "text": 5
+        "empty": 1,
+        "text": 4
       },
       "summary": ".أحسب إستطاعة التحويل الحراري المكتسب خالل مدة التحول",
       "tags": [
-        "الأعداد والحساب",
-        "الأعداد والحساب",
+        "التحولات الكيميائية",
+        "التحولات الكيميائية",
         "solution"
       ],
       "indexed_source_hash": "b113545bd8fdb2acb80d8221b87abc66b98fe8950df0b00cc604e961b9d1f155"
@@ -1499,31 +1539,33 @@
       "curriculum_year": "unspecified",
       "stream": "experimental_sciences",
       "term": "unspecified",
-      "unit": "الأعداد والحساب",
-      "lesson": "الأعداد والحساب",
-      "lesson_key": "numbers_calculus",
+      "unit": "التحولات الكيميائية",
+      "lesson": "التحولات الكيميائية",
+      "lesson_key": "chemical_transformations",
       "content_type": "assessment",
       "difficulty": "mixed",
       "language": "ar",
-      "skills": "الأعداد والحساب",
-      "concepts": "الأعداد والحساب",
+      "skills": "تفاعل,اليود",
+      "concepts": "تفاعل,اليود",
       "prerequisites": "مراجعة المكتسبات القبلية",
-      "lesson_keys": "numbers_calculus",
+      "lesson_keys": "chemical_transformations",
       "agent_roles": "fahim,guide,exercise",
       "agent_priority": "fahim",
       "title": "eddirasa.com الموضوع رقم 59 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
+      "review_reason": "",
       "pages": 3,
       "chunks": 2,
       "first_page": 2,
       "extraction_method": "text",
       "extraction_methods": {
-        "text": 3
+        "empty": 1,
+        "text": 2
       },
       "summary": "من محلول ماء اليود 𝐼2(𝑎𝑞)",
       "tags": [
-        "الأعداد والحساب",
-        "الأعداد والحساب",
+        "التحولات الكيميائية",
+        "التحولات الكيميائية",
         "assessment"
       ],
       "indexed_source_hash": "4bd663525c5edfeceb11ed7bc6d9081629d57f8ec0f39e2cbd399c7a7b109075"
@@ -1554,12 +1596,14 @@
       "agent_priority": "fahim",
       "title": "eddirasa.com الموضوع رقم 60 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
+      "review_reason": "",
       "pages": 5,
       "chunks": 1,
       "first_page": 5,
       "extraction_method": "text",
       "extraction_methods": {
-        "text": 5
+        "empty": 4,
+        "text": 1
       },
       "summary": "الجليد خالل مرحلة اإلنصهار:",
       "tags": [
@@ -1595,6 +1639,7 @@
       "agent_priority": "fahim",
       "title": "eddirasa.com الموضوع رقم 61 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
+      "review_reason": "",
       "pages": 6,
       "chunks": 10,
       "first_page": 1,
@@ -1660,12 +1705,13 @@
       "agent_priority": "fahim",
       "title": "Gemini Generated Image exgepoexgepoexge",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن Gemini Generated Image exgepoexgepoexge.",
       "tags": [
@@ -1701,12 +1747,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -1742,12 +1789,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -1783,12 +1831,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -1824,12 +1873,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -1865,6 +1915,7 @@
       "agent_priority": "fahim",
       "title": "lim2as2027",
       "status": "indexed",
+      "review_reason": "",
       "pages": 13,
       "chunks": 54,
       "first_page": 1,
@@ -1906,6 +1957,7 @@
       "agent_priority": "fahim",
       "title": "Pasted 1787910632969",
       "status": "indexed",
+      "review_reason": "",
       "pages": 1,
       "chunks": 3,
       "first_page": 1,
@@ -1928,39 +1980,9 @@
       "source_type": "txt",
       "bytes": 6210,
       "sha256": "11c94accbda0511da43e60a09a7875f9fc9de96b3eeba67f590b2e2f9b9d9579",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "third_secondary",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "الدوال العددية",
-      "lesson": "الدوال",
-      "lesson_key": "functions",
-      "content_type": "assessment",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "الدوال",
-      "concepts": "الدوال",
-      "prerequisites": "مراجعة المكتسبات القبلية",
-      "lesson_keys": "functions",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "Pasted 1788336925968",
-      "status": "indexed",
-      "pages": 1,
-      "chunks": 3,
-      "first_page": 1,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "اول حاجة اريد ان اجعل البومة الزرقاء التي تكون ممثلة للتطبيق وواجهته هي التي تقابل المستخدم بحيث تكن حيوية كبومة ديو في ديولينغو حيث عند الضغط على ايقونة التطبيق التي سارسلها لك تظهر البومة وبعد ذلك تظهر لك البومة تشرح لك نظام التطبيق تقودك بعد ذلك الى وكيل البرنامج الذي يبرمج للتلميذ ويكون قابل لاضافة بعض اوقات الاختبارات حسب كل تلميذ مع بحوث في العطل ان وج",
-      "tags": [
-        "الدوال",
-        "الدوال العددية",
-        "assessment"
-      ],
-      "indexed_source_hash": "11c94accbda0511da43e60a09a7875f9fc9de96b3eeba67f590b2e2f9b9d9579"
+      "status": "duplicate_source",
+      "canonical_source": "Pasted---1787910632969_1787910632971.txt",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "13a745e764deb03417c5d79041cd020b63289199f4ddc02c83e6faf4b3d37a03",
@@ -1988,12 +2010,13 @@
       "agent_priority": "fahim",
       "title": "pdf 2026 07 22 13 41 39",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 11,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 11
+        "empty": 11
       },
       "summary": "محتوى تعليمي مصنّف ضمن pdf 2026 07 22 13 41 39.",
       "tags": [
@@ -2029,12 +2052,13 @@
       "agent_priority": "fahim",
       "title": "pdf 2026 07 22 15 39 37",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 16,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 16
+        "empty": 16
       },
       "summary": "محتوى تعليمي مصنّف ضمن pdf 2026 07 22 15 39 37.",
       "tags": [
@@ -2070,12 +2094,13 @@
       "agent_priority": "fahim",
       "title": "pdf 2026 07 22 18 08 08",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 10,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 10
+        "empty": 10
       },
       "summary": "محتوى تعليمي مصنّف ضمن pdf 2026 07 22 18 08 08.",
       "tags": [
@@ -2111,12 +2136,13 @@
       "agent_priority": "fahim",
       "title": "pdf 2026 07 22 20 32 02",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 13,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 13
+        "empty": 13
       },
       "summary": "محتوى تعليمي مصنّف ضمن pdf 2026 07 22 20 32 02.",
       "tags": [
@@ -2152,12 +2178,13 @@
       "agent_priority": "fahim",
       "title": "pdf 2026 08 08 12 12 21",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 8,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 8
+        "empty": 8
       },
       "summary": "محتوى تعليمي مصنّف ضمن pdf 2026 08 08 12 12 21.",
       "tags": [
@@ -2193,12 +2220,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2234,12 +2262,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2275,12 +2304,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2316,12 +2346,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2357,12 +2388,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2398,12 +2430,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2439,12 +2472,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2480,12 +2514,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2521,12 +2556,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2562,12 +2598,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2584,39 +2621,9 @@
       "source_type": "jpg",
       "bytes": 83433,
       "sha256": "c7df8d9c89c0996aa76df8d21aa54e805ec9f9f9726e65106f2653f5eb95838c",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "c7df8d9c89c0996aa76df8d21aa54e805ec9f9f9726e65106f2653f5eb95838c"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-35-54_1788339989215.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "89dec3c9e39cf77bb84d53ad5814df874c99308eb56293063ac22332262d6849",
@@ -2625,39 +2632,9 @@
       "source_type": "jpg",
       "bytes": 73402,
       "sha256": "89dec3c9e39cf77bb84d53ad5814df874c99308eb56293063ac22332262d6849",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "89dec3c9e39cf77bb84d53ad5814df874c99308eb56293063ac22332262d6849"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-35-57_1788339989214.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "649430a6030c3667bf534c4ca8af0e729d9e1fab5c86a82718252aec23e0c6e1",
@@ -2666,39 +2643,9 @@
       "source_type": "jpg",
       "bytes": 131160,
       "sha256": "649430a6030c3667bf534c4ca8af0e729d9e1fab5c86a82718252aec23e0c6e1",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "649430a6030c3667bf534c4ca8af0e729d9e1fab5c86a82718252aec23e0c6e1"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-36-01_1788339989213.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "649430a6030c3667bf534c4ca8af0e729d9e1fab5c86a82718252aec23e0c6e1",
@@ -2707,39 +2654,9 @@
       "source_type": "jpg",
       "bytes": 131160,
       "sha256": "649430a6030c3667bf534c4ca8af0e729d9e1fab5c86a82718252aec23e0c6e1",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "649430a6030c3667bf534c4ca8af0e729d9e1fab5c86a82718252aec23e0c6e1"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-36-01_1788339989213.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "2284bd6aa078343a80b95b191b576cd77b620993c0059e58355a1adad54453c3",
@@ -2748,39 +2665,9 @@
       "source_type": "jpg",
       "bytes": 89170,
       "sha256": "2284bd6aa078343a80b95b191b576cd77b620993c0059e58355a1adad54453c3",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "2284bd6aa078343a80b95b191b576cd77b620993c0059e58355a1adad54453c3"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-36-19_1788339967738.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "d68badd42b7355ac348bde20d7b81fb180cf52085e4acabb6dce79400b8e1c26",
@@ -2808,12 +2695,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2849,12 +2737,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2890,12 +2779,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2931,12 +2821,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -2972,12 +2863,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3013,12 +2905,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3054,12 +2947,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3095,12 +2989,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3117,39 +3012,9 @@
       "source_type": "jpg",
       "bytes": 47306,
       "sha256": "e9459f399b2f16d2a4ec14b16b00a5f70ba1510ea2a792bd03fc27e33d2ff387",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "e9459f399b2f16d2a4ec14b16b00a5f70ba1510ea2a792bd03fc27e33d2ff387"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-37-33_1788339967742.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "57f846666960cbe16463ac6897715255b89265bd01c7c2b68597f1ecece1de57",
@@ -3177,12 +3042,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3218,12 +3084,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3259,12 +3126,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3300,12 +3168,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3322,39 +3191,9 @@
       "source_type": "jpg",
       "bytes": 78624,
       "sha256": "822f53565c8ce570b4b566605c772a3e932369ec619bf81b98f0fbc09143e289",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "822f53565c8ce570b4b566605c772a3e932369ec619bf81b98f0fbc09143e289"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-38-16_1788339967739.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "9661933b5184c2d93ef76114802f3c6a5860597d74ba4c36cfe6aba57a2510f4",
@@ -3382,12 +3221,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3404,39 +3244,9 @@
       "source_type": "jpg",
       "bytes": 89638,
       "sha256": "9661933b5184c2d93ef76114802f3c6a5860597d74ba4c36cfe6aba57a2510f4",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "9661933b5184c2d93ef76114802f3c6a5860597d74ba4c36cfe6aba57a2510f4"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-38-25_1788339950294.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "2f1585227ce4c73f588588887147ae4474b5fb968c3ee40c132b02b641007bb2",
@@ -3464,12 +3274,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3505,12 +3316,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3546,12 +3358,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3587,12 +3400,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3628,12 +3442,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3669,12 +3484,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3710,12 +3526,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3751,12 +3568,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3792,12 +3610,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3833,12 +3652,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3874,12 +3694,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3915,12 +3736,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3956,12 +3778,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -3997,12 +3820,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4038,12 +3862,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4079,12 +3904,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4120,12 +3946,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4161,12 +3988,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4202,12 +4030,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4243,12 +4072,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4284,12 +4114,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4325,12 +4156,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4366,12 +4198,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4407,12 +4240,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4448,12 +4282,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4489,12 +4324,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4511,39 +4347,9 @@
       "source_type": "jpg",
       "bytes": 97655,
       "sha256": "2f21059d9b6b28bc78a96b10a3216561af99ab0e43d6fd5782a4b116491c37af",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "2f21059d9b6b28bc78a96b10a3216561af99ab0e43d6fd5782a4b116491c37af"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-40-53_1788339924672.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "b330a812a3c871a04f97900ee0444a0bf93f6ad2664eaa5a632c9a6879699a7a",
@@ -4571,12 +4377,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4612,12 +4419,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4653,12 +4461,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4675,39 +4484,9 @@
       "source_type": "jpg",
       "bytes": 84496,
       "sha256": "c304299893e945c41b38eea330c5b2ccf1465734eb6431e5c3252557ae31347d",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "c304299893e945c41b38eea330c5b2ccf1465734eb6431e5c3252557ae31347d"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-41-43_1788339924670.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "3cc7df66a0bafd78c7c133e4084ed05dd2323d6d3df6be689cc00324cbdce20d",
@@ -4735,12 +4514,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4757,39 +4537,9 @@
       "source_type": "jpg",
       "bytes": 101055,
       "sha256": "3cc7df66a0bafd78c7c133e4084ed05dd2323d6d3df6be689cc00324cbdce20d",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "3cc7df66a0bafd78c7c133e4084ed05dd2323d6d3df6be689cc00324cbdce20d"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-41-57_1788339924669.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "642e4c16e1f34403db35548b077cc4ae6fb057ff3ea0ffe87700a764f1dade94",
@@ -4817,12 +4567,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4839,39 +4590,9 @@
       "source_type": "jpg",
       "bytes": 89243,
       "sha256": "642e4c16e1f34403db35548b077cc4ae6fb057ff3ea0ffe87700a764f1dade94",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "642e4c16e1f34403db35548b077cc4ae6fb057ff3ea0ffe87700a764f1dade94"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-42-06_1788339924667.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "6699b1179394bb8a53709ed57b9d2a15a3abeb2dc90b44d89c687a1cf915230a",
@@ -4899,12 +4620,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4940,12 +4662,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -4981,12 +4704,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5022,12 +4746,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5063,12 +4788,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5104,12 +4830,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5145,12 +4872,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5186,12 +4914,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5227,12 +4956,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5268,12 +4998,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5309,12 +5040,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5350,12 +5082,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5391,12 +5124,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5432,12 +5166,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5473,12 +5208,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5514,12 +5250,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5555,12 +5292,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5596,12 +5334,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5637,12 +5376,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5678,12 +5418,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5700,39 +5441,9 @@
       "source_type": "jpg",
       "bytes": 33894,
       "sha256": "48ffb17a98e8f583e699819ff35dfb94461e53d597ba18c1a1488c1b70369333",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "48ffb17a98e8f583e699819ff35dfb94461e53d597ba18c1a1488c1b70369333"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-44-32_(2)_1788339907850.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "f46286b9179f8f7cf05268e9bb3f5394215ecdb44522096ac04e89e8a815e8d3",
@@ -5760,12 +5471,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5801,12 +5513,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5842,12 +5555,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5883,12 +5597,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5924,12 +5639,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -5965,12 +5681,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6006,12 +5723,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6047,12 +5765,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6088,12 +5807,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6129,12 +5849,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6170,12 +5891,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6211,12 +5933,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6252,12 +5975,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6293,12 +6017,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6334,12 +6059,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6375,12 +6101,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6416,12 +6143,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6457,12 +6185,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6498,12 +6227,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6539,12 +6269,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6580,12 +6311,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6621,12 +6353,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6662,12 +6395,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6703,12 +6437,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6744,12 +6479,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6785,12 +6521,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6826,12 +6563,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6867,12 +6605,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6908,12 +6647,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6949,12 +6689,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -6990,12 +6731,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7031,12 +6773,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7072,12 +6815,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7113,12 +6857,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7154,12 +6899,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7195,12 +6941,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7236,12 +6983,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7277,12 +7025,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7318,12 +7067,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7359,12 +7109,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7400,12 +7151,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7441,12 +7193,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7482,12 +7235,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7523,12 +7277,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7564,12 +7319,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7605,12 +7361,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7646,12 +7403,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7687,12 +7445,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7728,12 +7487,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7769,12 +7529,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7791,39 +7552,9 @@
       "source_type": "jpg",
       "bytes": 96236,
       "sha256": "e4b52e80717fc368d925ef3054516036c04aaf2b0ff2ae19afc3b01e9a748ada",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "e4b52e80717fc368d925ef3054516036c04aaf2b0ff2ae19afc3b01e9a748ada"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-46-41_1788339724417.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "5dd0eb2f982be45cbfcec57cfdfe746b65a98751861ac7c61e6eb10158c79d3d",
@@ -7851,12 +7582,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7892,12 +7624,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7933,12 +7666,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -7955,39 +7689,9 @@
       "source_type": "jpg",
       "bytes": 91968,
       "sha256": "98c5322e98688f7bf1ce704ae6dc36715230c4d0af29ae121298ffc404a8947c",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "98c5322e98688f7bf1ce704ae6dc36715230c4d0af29ae121298ffc404a8947c"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-46-47_(2)_1788339724414.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "aaaf063e24354d9a5f794b6417d8917b1df4059aee4eca804cee22947fc596d8",
@@ -8015,12 +7719,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8056,12 +7761,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8078,39 +7784,9 @@
       "source_type": "jpg",
       "bytes": 225618,
       "sha256": "9589bcdbd03b73ab62d8394a3de02f9e291e16737de351a9249f87f5b83ffc6b",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "9589bcdbd03b73ab62d8394a3de02f9e291e16737de351a9249f87f5b83ffc6b"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-46-51_1788339724420.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "56aad795c484b2128216b954829a56cbb2f44d0faabc8f9c79612fa922feb2d4",
@@ -8138,12 +7814,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8179,12 +7856,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8201,39 +7879,9 @@
       "source_type": "jpg",
       "bytes": 198947,
       "sha256": "6f8a23aa2f0eb2b95a5a059fc560a86d86139ab8b3be81ca507899d6ef32cfde",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "6f8a23aa2f0eb2b95a5a059fc560a86d86139ab8b3be81ca507899d6ef32cfde"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-47-25_1788339724419.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "0f793dd489b3f15db34c271a5699703511fccbe26fcd1e786b8f9ccb352de8b7",
@@ -8261,12 +7909,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8302,12 +7951,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8343,12 +7993,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8384,12 +8035,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8425,12 +8077,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8466,12 +8119,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8488,39 +8142,9 @@
       "source_type": "jpg",
       "bytes": 211376,
       "sha256": "ea340a391833002923cf467ea2d5dfac32d6a2cda54f3d2327f0618491b92d02",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "ea340a391833002923cf467ea2d5dfac32d6a2cda54f3d2327f0618491b92d02"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-47-48_1788339711466.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "307f1210919b4d8e3e963a19ae7d52496c593beed86cf02eb412d2aa52e3a333",
@@ -8548,12 +8172,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8589,12 +8214,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8611,39 +8237,9 @@
       "source_type": "jpg",
       "bytes": 117828,
       "sha256": "b5af6f6ad4db48a66fab6e4d2f00f8bef2ddfdb74a60bb0b99eafe8d8c606d2a",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "غير محدد · مراجعة عامة",
-      "status": "needs_review",
-      "pages": 1,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 1
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "reference"
-      ],
-      "indexed_source_hash": "b5af6f6ad4db48a66fab6e4d2f00f8bef2ddfdb74a60bb0b99eafe8d8c606d2a"
+      "status": "duplicate_source",
+      "canonical_source": "photo_2026-08-24_13-48-09_1788339690763.jpg",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "541ff9d59feb9ee70e0bcdf399ed92b69a09bd04f48dce4bd2e7f00aa488ca3c",
@@ -8671,12 +8267,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8712,12 +8309,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8753,12 +8351,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8794,12 +8393,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8835,12 +8435,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8876,12 +8477,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8917,12 +8519,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8958,12 +8561,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -8999,12 +8603,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9040,12 +8645,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9081,12 +8687,14 @@
       "agent_priority": "fahim",
       "title": "physics3as moghni unit01 (1)",
       "status": "indexed",
+      "review_reason": "",
       "pages": 51,
       "chunks": 11,
       "first_page": 2,
       "extraction_method": "text",
       "extraction_methods": {
-        "text": 51
+        "empty": 41,
+        "text": 10
       },
       "summary": "(%) b Li Ul ; ? : P P : a »",
       "tags": [
@@ -9103,39 +8711,9 @@
       "source_type": "pdf",
       "bytes": 25188274,
       "sha256": "83c5b6bba5c51d0302ccb114545b38890c52a37e80393a490884ab7f282b7fde",
-      "subject": "الفيزياء",
-      "subject_id": "physics",
-      "curriculum_year": "third_secondary",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "العلوم الفيزيائية",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "physical_sciences_general",
-      "content_type": "reference",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "",
-      "lesson_keys": "physical_sciences_general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "physics3as moghni unit01",
-      "status": "indexed",
-      "pages": 51,
-      "chunks": 11,
-      "first_page": 2,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 51
-      },
-      "summary": "(%) b Li Ul ; ? : P P : a »",
-      "tags": [
-        "مراجعة عامة",
-        "العلوم الفيزيائية",
-        "reference"
-      ],
-      "indexed_source_hash": "83c5b6bba5c51d0302ccb114545b38890c52a37e80393a490884ab7f282b7fde"
+      "status": "duplicate_source",
+      "canonical_source": "physics3as_moghni-unit01_(1)_1788341649962.pdf",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "ff3627b3e044a7fd9495131e68551cd366d26a0a2e6ef6fb9f44e8ffac0214f9",
@@ -9163,12 +8741,13 @@
       "agent_priority": "fahim",
       "title": "physics3as moghni unit02",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 39,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 39
+        "empty": 39
       },
       "summary": "محتوى تعليمي مصنّف ضمن physics3as moghni unit02.",
       "tags": [
@@ -9204,12 +8783,13 @@
       "agent_priority": "fahim",
       "title": "physics3as moghni unit03",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 58,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 58
+        "empty": 58
       },
       "summary": "محتوى تعليمي مصنّف ضمن physics3as moghni unit03.",
       "tags": [
@@ -9245,12 +8825,13 @@
       "agent_priority": "fahim",
       "title": "physics3as moghni unit04",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 57,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 57
+        "empty": 57
       },
       "summary": "محتوى تعليمي مصنّف ضمن physics3as moghni unit04.",
       "tags": [
@@ -9286,12 +8867,13 @@
       "agent_priority": "fahim",
       "title": "physics3as moghni unit05",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 65,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 65
+        "empty": 65
       },
       "summary": "محتوى تعليمي مصنّف ضمن physics3as moghni unit05.",
       "tags": [
@@ -9327,12 +8909,13 @@
       "agent_priority": "fahim",
       "title": "physics3as moghni unit06",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 38,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 38
+        "empty": 38
       },
       "summary": "محتوى تعليمي مصنّف ضمن physics3as moghni unit06.",
       "tags": [
@@ -9368,12 +8951,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9409,12 +8993,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9450,12 +9035,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9491,12 +9077,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9532,12 +9119,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9573,12 +9161,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9614,12 +9203,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9655,12 +9245,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9696,12 +9287,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9737,12 +9329,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9778,12 +9371,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9819,12 +9413,13 @@
       "agent_priority": "fahim",
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
       "tags": [
@@ -9860,12 +9455,13 @@
       "agent_priority": "fahim",
       "title": "sy10D31pUO4VL75JDOB2by2UsxJs2n3r1xNUPGeL",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 15,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 15
+        "empty": 15
       },
       "summary": "محتوى تعليمي مصنّف ضمن sy10D31pUO4VL75JDOB2by2UsxJs2n3r1xNUPGeL.",
       "tags": [
@@ -9901,12 +9497,13 @@
       "agent_priority": "fahim",
       "title": "tawjeeh logo transparent",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن tawjeeh logo transparent.",
       "tags": [
@@ -9942,12 +9539,13 @@
       "agent_priority": "fahim",
       "title": "tawjeeh owl transparent",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن tawjeeh owl transparent.",
       "tags": [
@@ -9983,12 +9581,13 @@
       "agent_priority": "fahim",
       "title": "xXtPpVcchbM0NX5MjzweqBbcp0zzhgrJeyNhwDJZ",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 16,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 16
+        "empty": 16
       },
       "summary": "محتوى تعليمي مصنّف ضمن xXtPpVcchbM0NX5MjzweqBbcp0zzhgrJeyNhwDJZ.",
       "tags": [
@@ -10024,6 +9623,7 @@
       "agent_priority": "fahim",
       "title": "أفكار الدوال",
       "status": "indexed",
+      "review_reason": "",
       "pages": 40,
       "chunks": 40,
       "first_page": 1,
@@ -10065,6 +9665,7 @@
       "agent_priority": "fahim",
       "title": "استنتاج تمثيل بياني لدالة انطلاقا من تمثيل آخر من إعداد الأ",
       "status": "indexed",
+      "review_reason": "",
       "pages": 4,
       "chunks": 4,
       "first_page": 1,
@@ -10106,6 +9707,7 @@
       "agent_priority": "fahim",
       "title": "التمرين 8",
       "status": "indexed",
+      "review_reason": "",
       "pages": 1,
       "chunks": 2,
       "first_page": 1,
@@ -10147,12 +9749,13 @@
       "agent_priority": "fahim",
       "title": "الدورة التأسيسية ملف الحصة 07",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 17,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 17
+        "empty": 17
       },
       "summary": "محتوى تعليمي مصنّف ضمن الدورة التأسيسية ملف الحصة 07.",
       "tags": [
@@ -10188,12 +9791,13 @@
       "agent_priority": "fahim",
       "title": "الدورة التأسيسية ملف الحصة 08",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 8,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 8
+        "empty": 8
       },
       "summary": "محتوى تعليمي مصنّف ضمن الدورة التأسيسية ملف الحصة 08.",
       "tags": [
@@ -10229,12 +9833,13 @@
       "agent_priority": "fahim",
       "title": "الدورة التأسيسية ملف الحصة 5",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 11,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 11
+        "empty": 11
       },
       "summary": "محتوى تعليمي مصنّف ضمن الدورة التأسيسية ملف الحصة 5.",
       "tags": [
@@ -10270,12 +9875,13 @@
       "agent_priority": "fahim",
       "title": "اللوغو العالمي",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 1,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 1
+        "empty": 1
       },
       "summary": "محتوى تعليمي مصنّف ضمن اللوغو العالمي.",
       "tags": [
@@ -10311,12 +9917,14 @@
       "agent_priority": "fahim",
       "title": "المحطة الثانية نحو الامتياز رياضيات نافع بكالوريا 2026",
       "status": "indexed",
+      "review_reason": "",
       "pages": 45,
       "chunks": 66,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
-        "text": 45
+        "text": 42,
+        "empty": 3
       },
       "summary": "الجمهورية الجزائرية الديمقراطية الشعبية",
       "tags": [
@@ -10333,8 +9941,8 @@
       "source_type": "pdf",
       "bytes": 1072525,
       "sha256": "710df36215f6eed6d3bf1b8300640205f51086a6dcd6d95f86ef92ae4b7df6c7",
-      "subject": "العلوم الفيزيائية",
-      "subject_id": "physical_sciences",
+      "subject": "الرياضيات",
+      "subject_id": "mathematics",
       "curriculum_year": "third_secondary",
       "stream": "mathematics",
       "term": "unspecified",
@@ -10352,6 +9960,7 @@
       "agent_priority": "fahim",
       "title": "برنامج الرياضيات شعبة رياضيات 2023",
       "status": "indexed",
+      "review_reason": "",
       "pages": 19,
       "chunks": 34,
       "first_page": 1,
@@ -10393,12 +10002,13 @@
       "agent_priority": "fahim",
       "title": "بكالوريا في دوال عددية بالحل مفصل",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 5,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 5
+        "empty": 5
       },
       "summary": "محتوى تعليمي مصنّف ضمن بكالوريا في دوال عددية بالحل مفصل.",
       "tags": [
@@ -10434,6 +10044,7 @@
       "agent_priority": "fahim",
       "title": "تمارين الدوال العددية في البكالوريا للشعب العلمية",
       "status": "indexed",
+      "review_reason": "",
       "pages": 3,
       "chunks": 6,
       "first_page": 1,
@@ -10475,6 +10086,7 @@
       "agent_priority": "fahim",
       "title": "تمرين بكالوريا",
       "status": "indexed",
+      "review_reason": "",
       "pages": 1,
       "chunks": 2,
       "first_page": 1,
@@ -10502,20 +10114,21 @@
       "curriculum_year": "second_secondary",
       "stream": "all",
       "term": "unspecified",
-      "unit": "الدوال العددية",
-      "lesson": "الدوال",
-      "lesson_key": "functions",
+      "unit": "التحولات الكيميائية",
+      "lesson": "التحولات الكيميائية",
+      "lesson_key": "chemical_transformations",
       "content_type": "exercise",
       "difficulty": "mixed",
       "language": "ar",
-      "skills": "الدوال",
-      "concepts": "الدوال",
+      "skills": "التحول الكيميائي,تفاعل",
+      "concepts": "التحول الكيميائي,تفاعل",
       "prerequisites": "",
-      "lesson_keys": "functions",
+      "lesson_keys": "chemical_transformations",
       "agent_roles": "fahim,guide,exercise",
       "agent_priority": "fahim",
       "title": "تمرين شامل في الناقلية و الضغط",
       "status": "indexed",
+      "review_reason": "",
       "pages": 2,
       "chunks": 2,
       "first_page": 1,
@@ -10525,8 +10138,8 @@
       },
       "summary": "ومحلول حمض الهيدروجين(𝐻3𝑂+ ،𝐶𝑙−)",
       "tags": [
-        "الدوال",
-        "الدوال العددية",
+        "التحولات الكيميائية",
+        "التحولات الكيميائية",
         "exercise"
       ],
       "indexed_source_hash": "8a7040bc3ca14c4a2744487af26febfb330ecb878311686186f590fa9d90d06b"
@@ -10557,12 +10170,13 @@
       "agent_priority": "fahim",
       "title": "حل الاختبار المقترح",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 32,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 32
+        "empty": 32
       },
       "summary": "محتوى تعليمي مصنّف ضمن حل الاختبار المقترح.",
       "tags": [
@@ -10598,12 +10212,13 @@
       "agent_priority": "fahim",
       "title": "حل تمرين شامل ضغط غاز",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 10,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 10
+        "empty": 10
       },
       "summary": "محتوى تعليمي مصنّف ضمن حل تمرين شامل ضغط غاز.",
       "tags": [
@@ -10639,6 +10254,7 @@
       "agent_priority": "fahim",
       "title": "سلسلة تمارين رقم 3",
       "status": "indexed",
+      "review_reason": "",
       "pages": 3,
       "chunks": 3,
       "first_page": 1,
@@ -10680,12 +10296,13 @@
       "agent_priority": "fahim",
       "title": "سلسلة مكتسبات قبلية اضافية",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 25,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 25
+        "empty": 25
       },
       "summary": "محتوى تعليمي مصنّف ضمن سلسلة مكتسبات قبلية اضافية.",
       "tags": [
@@ -10721,6 +10338,7 @@
       "agent_priority": "fahim",
       "title": "مجلة الدوال العددية بكالوريا",
       "status": "indexed",
+      "review_reason": "",
       "pages": 62,
       "chunks": 100,
       "first_page": 1,
@@ -10762,12 +10380,14 @@
       "agent_priority": "fahim",
       "title": "محطة الانطلاق رياضيات الجزء الأول 01 نافع بكالوريا 2026",
       "status": "indexed",
+      "review_reason": "",
       "pages": 60,
       "chunks": 35,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
-        "text": 60
+        "text": 34,
+        "empty": 26
       },
       "summary": "،، نضع بين أيديكم هذه الباقة المعلوماتية ،، في مادة الرياضيات",
       "tags": [
@@ -10803,6 +10423,7 @@
       "agent_priority": "fahim",
       "title": "مسائل شاملة حول الدوال 4 صفحات في صفحة",
       "status": "indexed",
+      "review_reason": "",
       "pages": 59,
       "chunks": 159,
       "first_page": 1,
@@ -10844,12 +10465,13 @@
       "agent_priority": "fahim",
       "title": "مسائل دوال عددية بدون حل",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 8,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 8
+        "empty": 8
       },
       "summary": "محتوى تعليمي مصنّف ضمن مسائل دوال عددية بدون حل.",
       "tags": [
@@ -10885,12 +10507,13 @@
       "agent_priority": "fahim",
       "title": "مسألة لمراجعة مكتسبات",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 12,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 12
+        "empty": 12
       },
       "summary": "محتوى تعليمي مصنّف ضمن مسألة لمراجعة مكتسبات.",
       "tags": [
@@ -10907,39 +10530,9 @@
       "source_type": "pdf",
       "bytes": 2192080,
       "sha256": "229a1dca347be594f29ec9922baf4b1d8b12c0976eecb1f09c6b069432c03f18",
-      "subject": "غير محدد",
-      "subject_id": "unspecified",
-      "curriculum_year": "unspecified",
-      "stream": "all",
-      "term": "unspecified",
-      "unit": "غير محدد",
-      "lesson": "مراجعة عامة",
-      "lesson_key": "general",
-      "content_type": "summary",
-      "difficulty": "mixed",
-      "language": "ar",
-      "skills": "مراجعة عامة",
-      "concepts": "مراجعة عامة",
-      "prerequisites": "مراجعة المكتسبات القبلية",
-      "lesson_keys": "general",
-      "agent_roles": "fahim,guide,exercise",
-      "agent_priority": "fahim",
-      "title": "مسألة لمراجعة مكتسبات",
-      "status": "needs_review",
-      "pages": 12,
-      "chunks": 0,
-      "first_page": 0,
-      "extraction_method": "text",
-      "extraction_methods": {
-        "text": 12
-      },
-      "summary": "محتوى تعليمي مصنّف ضمن مسألة لمراجعة مكتسبات.",
-      "tags": [
-        "مراجعة عامة",
-        "غير محدد",
-        "summary"
-      ],
-      "indexed_source_hash": "229a1dca347be594f29ec9922baf4b1d8b12c0976eecb1f09c6b069432c03f18"
+      "status": "duplicate_source",
+      "canonical_source": "مسألة_لمراجعة_مكتسبات_1788341522507.pdf",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "0b03f17f98abadccd77fcf62ce63921fc9877168276f5e7f662df0cd385cae16",
@@ -10967,6 +10560,7 @@
       "agent_priority": "fahim",
       "title": "مستندات 2 ثانوي منسوخة",
       "status": "indexed",
+      "review_reason": "",
       "pages": 1,
       "chunks": 7,
       "first_page": 1,
@@ -11008,12 +10602,13 @@
       "agent_priority": "fahim",
       "title": "مطوية المكتسبات القبلية 2027",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 2,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 2
+        "empty": 2
       },
       "summary": "محتوى تعليمي مصنّف ضمن مطوية المكتسبات القبلية 2027.",
       "tags": [
@@ -11049,12 +10644,13 @@
       "agent_priority": "fahim",
       "title": "مكتسبات قبلية في دوال عددية",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 15,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 15
+        "empty": 15
       },
       "summary": "محتوى تعليمي مصنّف ضمن مكتسبات قبلية في دوال عددية.",
       "tags": [
@@ -11090,12 +10686,13 @@
       "agent_priority": "fahim",
       "title": "ملخص الدوال",
       "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
       "pages": 8,
       "chunks": 0,
       "first_page": 0,
-      "extraction_method": "text",
+      "extraction_method": "none",
       "extraction_methods": {
-        "text": 8
+        "empty": 8
       },
       "summary": "محتوى تعليمي مصنّف ضمن ملخص الدوال.",
       "tags": [
@@ -11131,6 +10728,7 @@
       "agent_priority": "fahim",
       "title": "ملف المراجعة الفصلية من معسكر الانقاذ",
       "status": "indexed",
+      "review_reason": "",
       "pages": 10,
       "chunks": 20,
       "first_page": 1,
@@ -11589,15 +11187,15 @@
       "title": "eddirasa.com الموضوع رقم 58 اختبار الفصل الثاني علوم فيزيائية",
       "summary": ".أحسب إستطاعة التحويل الحراري المكتسب خالل مدة التحول",
       "subject": "الفيزياء",
-      "unit": "الأعداد والحساب",
-      "lesson": "الأعداد والحساب",
+      "unit": "التحولات الكيميائية",
+      "lesson": "التحولات الكيميائية",
       "type": "solution",
       "difficulty": "mixed",
       "source": "eddirasa.com-الموضوع-رقم-58-اختبار-الفصل-الثاني-علوم-فيزيائية-_1788341786170.pdf",
       "page": 2,
       "tags": [
-        "الأعداد والحساب",
-        "الأعداد والحساب",
+        "التحولات الكيميائية",
+        "التحولات الكيميائية",
         "solution"
       ]
     },
@@ -11606,15 +11204,15 @@
       "title": "eddirasa.com الموضوع رقم 59 اختبار الفصل الثاني علوم فيزيائية",
       "summary": "من محلول ماء اليود 𝐼2(𝑎𝑞)",
       "subject": "الفيزياء",
-      "unit": "الأعداد والحساب",
-      "lesson": "الأعداد والحساب",
+      "unit": "التحولات الكيميائية",
+      "lesson": "التحولات الكيميائية",
       "type": "assessment",
       "difficulty": "mixed",
       "source": "eddirasa.com-الموضوع-رقم-59-اختبار-الفصل-الثاني-علوم-فيزيائية-_1788341786169.pdf",
       "page": 2,
       "tags": [
-        "الأعداد والحساب",
-        "الأعداد والحساب",
+        "التحولات الكيميائية",
+        "التحولات الكيميائية",
         "assessment"
       ]
     },
@@ -11687,23 +11285,6 @@
       ]
     },
     {
-      "id": "11c94accbda0511da43e60a09a7875f9fc9de96b3eeba67f590b2e2f9b9d9579",
-      "title": "Pasted 1788336925968",
-      "summary": "اول حاجة اريد ان اجعل البومة الزرقاء التي تكون ممثلة للتطبيق وواجهته هي التي تقابل المستخدم بحيث تكن حيوية كبومة ديو في ديولينغو حيث عند الضغط على ايقونة التطبيق التي سارسلها لك تظهر البومة وبعد ذلك تظهر لك البومة تشرح لك نظام التطبيق تقودك بعد ذلك الى وكيل البرنامج الذي يبرمج للتلميذ ويكون قابل لاضافة بعض اوقات الاختبارات حسب كل تلميذ مع بحوث في العطل ان وج",
-      "subject": "غير محدد",
-      "unit": "الدوال العددية",
-      "lesson": "الدوال",
-      "type": "assessment",
-      "difficulty": "mixed",
-      "source": "Pasted---1788336925968_1788336925969.txt",
-      "page": 1,
-      "tags": [
-        "الدوال",
-        "الدوال العددية",
-        "assessment"
-      ]
-    },
-    {
       "id": "83c5b6bba5c51d0302ccb114545b38890c52a37e80393a490884ab7f282b7fde",
       "title": "physics3as moghni unit01 (1)",
       "summary": "(%) b Li Ul ; ? : P P : a »",
@@ -11713,23 +11294,6 @@
       "type": "reference",
       "difficulty": "mixed",
       "source": "physics3as_moghni-unit01_(1)_1788341649962.pdf",
-      "page": 2,
-      "tags": [
-        "مراجعة عامة",
-        "العلوم الفيزيائية",
-        "reference"
-      ]
-    },
-    {
-      "id": "83c5b6bba5c51d0302ccb114545b38890c52a37e80393a490884ab7f282b7fde",
-      "title": "physics3as moghni unit01",
-      "summary": "(%) b Li Ul ; ? : P P : a »",
-      "subject": "الفيزياء",
-      "unit": "العلوم الفيزيائية",
-      "lesson": "مراجعة عامة",
-      "type": "reference",
-      "difficulty": "mixed",
-      "source": "physics3as_moghni-unit01_1788341649961.pdf",
       "page": 2,
       "tags": [
         "مراجعة عامة",
@@ -11809,7 +11373,7 @@
       "id": "710df36215f6eed6d3bf1b8300640205f51086a6dcd6d95f86ef92ae4b7df6c7",
       "title": "برنامج الرياضيات شعبة رياضيات 2023",
       "summary": "الجمهورية الجزائرية الديمقراطية الشعبية",
-      "subject": "العلوم الفيزيائية",
+      "subject": "الرياضيات",
       "unit": "الدوال العددية",
       "lesson": "الدوال",
       "type": "assessment",
@@ -11861,15 +11425,15 @@
       "title": "تمرين شامل في الناقلية و الضغط",
       "summary": "ومحلول حمض الهيدروجين(𝐻3𝑂+ ،𝐶𝑙−)",
       "subject": "الفيزياء",
-      "unit": "الدوال العددية",
-      "lesson": "الدوال",
+      "unit": "التحولات الكيميائية",
+      "lesson": "التحولات الكيميائية",
       "type": "exercise",
       "difficulty": "mixed",
       "source": "تمرين_شامل_في_الناقلية_و_الضغط_1788342118798.pdf",
       "page": 1,
       "tags": [
-        "الدوال",
-        "الدوال العددية",
+        "التحولات الكيميائية",
+        "التحولات الكيميائية",
         "exercise"
       ]
     },

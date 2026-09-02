@@ -240,6 +240,7 @@ def index_assets(
     knowledge_store = store or KnowledgeStore()
     previous = load_catalog(catalog_path)
     records: list[dict[str, Any]] = []
+    seen_hashes: dict[str, str] = {}
 
     for path in sorted(root.iterdir(), key=lambda item: item.name.casefold()):
         if not path.is_file():
@@ -270,6 +271,17 @@ def index_assets(
         try:
             if verbose:
                 print(f"[index] {path.name}", file=sys.stderr, flush=True)
+            canonical_name = seen_hashes.get(source_hash)
+            if canonical_name:
+                knowledge_store.replace_source(path.name, [])
+                record.update(
+                    status="duplicate_source",
+                    canonical_source=canonical_name,
+                    reason="نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع",
+                )
+                records.append(record)
+                continue
+            seen_hashes[source_hash] = path.name
             pages = extract_file_pages(path, ocr_empty_pages=ocr_empty_pages)
             full_text = "\n\n".join(page.text for page in pages if page.text)
             profile = infer_profile(path, full_text)
@@ -303,6 +315,11 @@ def index_assets(
             record.update(
                 {
                     "status": "indexed" if chunks else "needs_review",
+                    "review_reason": (
+                        ""
+                        if chunks
+                        else "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية"
+                    ),
                     "pages": len(pages),
                     "chunks": len(chunks),
                     "first_page": next((page.number for page in pages if page.text), 0),

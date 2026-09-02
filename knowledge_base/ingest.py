@@ -126,7 +126,7 @@ def extract_file_pages(
     with pymupdf.open(path) as document:
         for page_number, page in enumerate(document, start=1):
             text = normalize_text(page.get_text("text"))
-            method = "text"
+            method = "text" if text else "empty"
             if not text and ocr_empty_pages:
                 pixmap = page.get_pixmap(matrix=pymupdf.Matrix(1.1, 1.1), alpha=False)
                 text = _ocr_bytes(pixmap.tobytes("png"))
