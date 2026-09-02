@@ -105,3 +105,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         raise RuntimeError(f"Unsupported command: {args.command}")
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()
