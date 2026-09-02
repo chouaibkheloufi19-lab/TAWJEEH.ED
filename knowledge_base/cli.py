@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Sequence
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from .catalog import index_assets
 =======
 <<<<<<< HEAD
@@ -16,6 +17,9 @@ from .catalog import index_assets
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+from .catalog import index_assets
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 from .ingest import ingest_pdf
 from .schema import DIFFICULTY_LEVELS, KnowledgeMetadata
 from .server import serve
@@ -75,9 +79,12 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("collections", help="Show collection counts.")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     index_parser = subparsers.add_parser(
         "index-assets", help="OCR and index all educational uploads in a directory."
     )
@@ -93,10 +100,13 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     serve_parser = subparsers.add_parser(
         "serve", help="Run the read-only agent query service."
     )
@@ -130,9 +140,12 @@ def main(argv: Sequence[str] | None = None) -> None:
     elif args.command == "collections":
         result = {"collections": store.collections()}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     elif args.command == "index-assets":
         result = index_assets(
             args.directory,
@@ -142,10 +155,13 @@ def main(argv: Sequence[str] | None = None) -> None:
             ocr_empty_pages=not args.no_ocr,
         )
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     elif args.command == "serve":
         serve(args.host, args.port)
         return
@@ -153,17 +169,23 @@ def main(argv: Sequence[str] | None = None) -> None:
         raise RuntimeError(f"Unsupported command: {args.command}")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
     main()
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
     print(json.dumps(result, ensure_ascii=False, indent=2))
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)

@@ -6,9 +6,13 @@ import learningRouter from "./learning";
 import knowledgeRouter from "./knowledge";
 import quizzesRouter from "./quizzes";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import fahimRouter from "./fahim";
 =======
 >>>>>>> origin/main
+=======
+import fahimRouter from "./fahim";
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 const router: IRouter = Router();
 
@@ -26,8 +30,12 @@ router.use(learningRouter);
 router.use(knowledgeRouter);
 router.use(quizzesRouter);
 <<<<<<< HEAD
+<<<<<<< HEAD
 router.use(fahimRouter);
 =======
 >>>>>>> origin/main
+=======
+router.use(fahimRouter);
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 export default router;

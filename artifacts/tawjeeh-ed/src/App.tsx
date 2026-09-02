@@ -8,9 +8,13 @@ import {
   useAuth,
   useClerk,
 <<<<<<< HEAD
+<<<<<<< HEAD
   useUser,
 =======
 >>>>>>> origin/main
+=======
+  useUser,
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
@@ -29,10 +33,15 @@ import {
   FileText,
   Flame,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   LayoutDashboard,
   Library,
 >>>>>>> origin/main
+=======
+  LayoutDashboard,
+  Library,
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   MessageCircle,
   MoreHorizontal,
   Paperclip,
@@ -44,9 +53,13 @@ import {
   Target,
   Trophy,
 <<<<<<< HEAD
+<<<<<<< HEAD
   UserRound,
 =======
 >>>>>>> origin/main
+=======
+  UserRound,
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   X,
   Zap,
 } from 'lucide-react';
@@ -68,9 +81,13 @@ import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } fr
 import { ErrorBoundary } from '@/components/error-boundary';
 import { ProgramAgent } from '@/components/program-agent';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { LessonWorkspace } from '@/components/lesson-workspace';
 =======
 >>>>>>> origin/main
+=======
+import { LessonWorkspace } from '@/components/lesson-workspace';
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 import logoPath from '@assets/tawjeeh-logo-transparent.png';
 import welcomeVideo from '@assets/Gemini_Generated_Image_697ml8697ml8697m_1788300867064.mp4';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
@@ -147,6 +164,7 @@ const clerkAppearance = {
 
 const navItems = [
 <<<<<<< HEAD
+<<<<<<< HEAD
   { href: '/program', label: 'وكيل البرنامج', icon: CalendarDays },
   { href: '/profile', label: 'الملف الشخصي', icon: UserRound },
   { href: '/chat', label: 'التفاعل', icon: MessageCircle },
@@ -158,6 +176,14 @@ const navItems = [
   { href: '/quizzes', label: 'الاختبارات', icon: BrainCircuit },
   { href: '/chat', label: 'اسأل توجيه', icon: MessageCircle },
 >>>>>>> origin/main
+=======
+  { href: '/dashboard', label: 'مساحتي', icon: LayoutDashboard },
+  { href: '/program', label: 'وكيل البرنامج', icon: CalendarDays },
+  { href: '/profile', label: 'الملف الشخصي', icon: UserRound },
+  { href: '/knowledge', label: 'المعرفة', icon: Library },
+  { href: '/chat', label: 'التفاعل', icon: MessageCircle },
+  { href: '/quizzes', label: 'الاختبارات والنقاط', icon: BrainCircuit },
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 ];
 
 function Logo({ compact = false }: { compact?: boolean }) {
@@ -227,15 +253,24 @@ function Sidebar() {
         <p className="text-[11px] leading-5 text-[#b3e5fc]">ارجع إلى خطتك حين تتشتت. بومة توجيه تعرف أين توقفت.</p>
       </div>
 <<<<<<< HEAD
+<<<<<<< HEAD
        <div className="mt-5 flex items-center justify-end px-1 text-[10px] text-[#b3e5fc]">
          <span className="mono">١.٠</span>
        </div>
 =======
+=======
+       <div className="mt-5 flex items-center justify-end px-1 text-[10px] text-[#b3e5fc]">
+         <span className="mono">١.٠</span>
+       </div>
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
       <div className="mt-5 flex items-center justify-between px-1 text-[10px] text-[#b3e5fc]">
         <span>البكالوريا الجزائرية</span>
         <span className="mono">١.٠</span>
       </div>
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     </aside>
   );
 }
@@ -243,11 +278,17 @@ function Sidebar() {
 function Topbar({ title }: { title: string }) {
   const [noticeOpen, setNoticeOpen] = useState(false);
 <<<<<<< HEAD
+<<<<<<< HEAD
   const { user } = useUser();
   const displayName = user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress?.split('@')[0] || 'الطالب';
   const initials = displayName.slice(0, 1);
 =======
 >>>>>>> origin/main
+=======
+  const { user } = useUser();
+  const displayName = user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress?.split('@')[0] || 'الطالب';
+  const initials = displayName.slice(0, 1);
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   return (
     <header className="mb-7 flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
@@ -264,6 +305,7 @@ function Topbar({ title }: { title: string }) {
         {noticeOpen && <div className="surface absolute left-0 top-12 z-10 w-56 p-3 text-right shadow-lg" data-testid="panel-notifications"><p className="mb-1 text-xs font-extrabold">تذكير صغير</p><p className="text-[11px] leading-5 text-[#71818a]">لديك جلسة مراجعة متبقية في خطة اليوم.</p></div>}
         </div>
 <<<<<<< HEAD
+<<<<<<< HEAD
          <div className="surface hidden items-center gap-2 px-2 py-1.5 sm:flex">
             <div className="grid h-7 w-7 place-items-center rounded-lg bg-[#e6f6fb] text-xs font-extrabold text-[#005689]">{initials}</div>
            <span className="pl-1 text-xs font-bold">{displayName}</span>
@@ -272,6 +314,11 @@ function Topbar({ title }: { title: string }) {
            <div className="grid h-7 w-7 place-items-center rounded-lg bg-[#e6f6fb] text-xs font-extrabold text-[#005689]">ي</div>
           <span className="pl-1 text-xs font-bold">ياسين</span>
 >>>>>>> origin/main
+=======
+         <div className="surface hidden items-center gap-2 px-2 py-1.5 sm:flex">
+            <div className="grid h-7 w-7 place-items-center rounded-lg bg-[#e6f6fb] text-xs font-extrabold text-[#005689]">{initials}</div>
+           <span className="pl-1 text-xs font-bold">{displayName}</span>
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
         </div>
       </div>
     </header>
@@ -368,10 +415,14 @@ function AuthWelcome() {
         </div>
         <div className="auth-followup-footer">
 <<<<<<< HEAD
+<<<<<<< HEAD
           <span><CheckCircle2 size={16} /> خطة دراسية مرتبطة بأهدافك</span>
 =======
           <span><CheckCircle2 size={16} /> محتوى واضح من المنهاج الجزائري</span>
 >>>>>>> origin/main
+=======
+          <span><CheckCircle2 size={16} /> خطة دراسية مرتبطة بأهدافك</span>
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
           <span><CheckCircle2 size={16} /> تقدّمك محفوظ في كل جلسة</span>
         </div>
       </section>
@@ -383,10 +434,14 @@ function HomeRedirect() {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return <AuthLoading />;
 <<<<<<< HEAD
+<<<<<<< HEAD
   return isSignedIn ? <Redirect to="/program" /> : <AuthWelcome />;
 =======
   return isSignedIn ? <Redirect to="/dashboard" /> : <AuthWelcome />;
 >>>>>>> origin/main
+=======
+  return isSignedIn ? <Redirect to="/program" /> : <AuthWelcome />;
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 }
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -415,10 +470,14 @@ function AuthStory({ mode }: { mode: 'login' | 'register' }) {
       </div>
       <div className="auth-story-trust">
 <<<<<<< HEAD
+<<<<<<< HEAD
         <span><CheckCircle2 size={16} /> أدواتك التعليمية في مكان واحد</span>
 =======
         <span><CheckCircle2 size={16} /> محتوى واضح من المنهاج الجزائري</span>
 >>>>>>> origin/main
+=======
+        <span><CheckCircle2 size={16} /> أدواتك التعليمية في مكان واحد</span>
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
         <span><CheckCircle2 size={16} /> تقدّم محفوظ في كل جلسة</span>
       </div>
     </section>
@@ -551,6 +610,7 @@ function DashboardPage() {
   const [startedId, setStartedId] = useState<string | null>(null);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   if (dashboardQuery.isLoading) return <Shell title="وكيل البرنامج"><LoadingState /></Shell>;
   if (dashboardQuery.isError) return <Shell title="وكيل البرنامج"><ErrorState onRetry={() => dashboardQuery.refetch()} /></Shell>;
   if (!dashboard) return <Shell title="وكيل البرنامج"><EmptyState title="لم تصل خطتك بعد" body="ستظهر هنا أولويات يومك بمجرد تجهيز مساحة الدراسة." /></Shell>;
@@ -559,6 +619,11 @@ function DashboardPage() {
   if (dashboardQuery.isError) return <Shell title="مساحتي"><ErrorState onRetry={() => dashboardQuery.refetch()} /></Shell>;
   if (!dashboard) return <Shell title="مساحتي"><EmptyState title="لم تصل خطتك بعد" body="ستظهر هنا أولويات يومك بمجرد تجهيز مساحة الدراسة." /></Shell>;
 >>>>>>> origin/main
+=======
+  if (dashboardQuery.isLoading) return <Shell title="مساحتي"><LoadingState /></Shell>;
+  if (dashboardQuery.isError) return <Shell title="مساحتي"><ErrorState onRetry={() => dashboardQuery.refetch()} /></Shell>;
+  if (!dashboard) return <Shell title="مساحتي"><EmptyState title="لم تصل خطتك بعد" body="ستظهر هنا أولويات يومك بمجرد تجهيز مساحة الدراسة." /></Shell>;
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
   const today = dashboard.today ?? [];
   const metrics = dashboard.metrics ?? [];
@@ -567,10 +632,14 @@ function DashboardPage() {
 
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
     <Shell title={`صباح الخير، ${profile?.name ?? 'الطالب'}`}>
 =======
     <Shell title={`صباح الخير، ${profile?.name ?? 'ياسين'}`}>
 >>>>>>> origin/main
+=======
+    <Shell title={`صباح الخير، ${profile?.name ?? 'ياسين'}`}>
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
       <section className="hero-grid mb-5 grid grid-cols-[1.55fr_.9fr] gap-5">
         <div className="relative overflow-hidden rounded-[1.35rem] bg-[#004b75] px-6 py-7 text-white shadow-[0_16px_38px_rgba(0,86,137,.16)] md:px-8">
           <div className="absolute -left-10 -top-16 h-44 w-44 rounded-full border-[22px] border-[#b3e5fc] opacity-40" />
@@ -656,6 +725,9 @@ function DashboardPage() {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 function ProfilePage() {
   const { user } = useUser();
   const displayName = user?.firstName || user?.username || 'الطالب';
@@ -685,8 +757,11 @@ function ProfilePage() {
   );
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 function KnowledgeCardView({ card }: { card: KnowledgeCard }) {
   return (
       <article className="surface border-[#b3e5fc] p-5 transition-transform hover:-translate-y-0.5" data-testid={`card-knowledge-${card.id}`}>
@@ -724,10 +799,14 @@ function KnowledgePage() {
        <section className="surface mb-5 overflow-hidden border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">
         <div className="grid grid-cols-[1fr_auto] items-center gap-5">
 <<<<<<< HEAD
+<<<<<<< HEAD
            <div><p className="eyebrow mb-2">المعرفة عند الحاجة</p><h2 className="display max-w-xl text-[26px] md:text-[34px]">ابحث عن الفكرة، لا عن الصفحة.</h2><p className="mt-3 max-w-lg text-sm leading-7 text-[#64748b]">ملخصات مرتبطة بدروسك، مع إحالة تساعدك على العودة إلى المصدر.</p></div>
 =======
            <div><p className="eyebrow mb-2">معرفة موثوقة، بوضوح</p><h2 className="display max-w-xl text-[26px] md:text-[34px]">ابحث عن الفكرة، لا عن الصفحة.</h2><p className="mt-3 max-w-lg text-sm leading-7 text-[#64748b]">ملخصات مستخرجة من مصادر المنهاج الجزائري، مع إحالة واضحة تساعدك على العودة إلى الأصل.</p></div>
 >>>>>>> origin/main
+=======
+           <div><p className="eyebrow mb-2">معرفة موثوقة، بوضوح</p><h2 className="display max-w-xl text-[26px] md:text-[34px]">ابحث عن الفكرة، لا عن الصفحة.</h2><p className="mt-3 max-w-lg text-sm leading-7 text-[#64748b]">ملخصات مستخرجة من مصادر المنهاج الجزائري، مع إحالة واضحة تساعدك على العودة إلى الأصل.</p></div>
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
            <div className="hidden h-20 w-20 place-items-center rounded-[30px] bg-[#e6f6fb] text-[#005689] sm:grid"><Search size={31} strokeWidth={1.5} /></div>
         </div>
         <form className="mt-7 flex gap-2" onSubmit={submitSearch}>
@@ -821,10 +900,14 @@ const agentOptions = [
   { id: 'dalil', name: 'دليل', role: 'شرح المفاهيم' },
 ];
 <<<<<<< HEAD
+<<<<<<< HEAD
 const starterMessages: ChatMessage[] = [{ id: 1, from: 'agent', text: 'أهلًا بك. أنا بومة توجيه، وسأوصلك إلى الوكيل المناسب. ماذا يشغلك الآن؟' }];
 =======
 const starterMessages: ChatMessage[] = [{ id: 1, from: 'agent', text: 'أهلًا ياسين. أنا بومة توجيه، وسأوصلك إلى المساعدة المناسبة. ماذا يشغل بالك الآن؟' }];
 >>>>>>> origin/main
+=======
+const starterMessages: ChatMessage[] = [{ id: 1, from: 'agent', text: 'أهلًا بك. أنا بومة توجيه، وسأوصلك إلى الوكيل المناسب. ماذا يشغلك الآن؟' }];
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 function ChatPage() {
   const [agent, setAgent] = useState('host');
@@ -857,10 +940,15 @@ function ChatPage() {
 
 function NotFoundArabic() {
 <<<<<<< HEAD
+<<<<<<< HEAD
    return <div className="app-shell flex min-h-[100dvh] items-center justify-center p-6"><div className="surface max-w-md p-9 text-center"><div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#e8f8f5] text-[#2e8b7b]"><Compass size={28} /></div><h1 className="display mb-3 text-2xl">هذه الصفحة خارج الخريطة</h1><p className="mb-6 text-sm leading-7 text-[#64748b]">لنعد إلى البرنامج ونكمل من حيث توقفت.</p><Link href="/program" className="primary-button" data-testid="link-not-found-home">العودة إلى وكيل البرنامج <ArrowLeft size={16} /></Link></div></div>;
 =======
    return <div className="app-shell flex min-h-[100dvh] items-center justify-center p-6"><div className="surface max-w-md p-9 text-center"><div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#e8f8f5] text-[#2e8b7b]"><Compass size={28} /></div><h1 className="display mb-3 text-2xl">هذه الصفحة خارج الخريطة</h1><p className="mb-6 text-sm leading-7 text-[#64748b]">لنعد إلى مساحة الدراسة ونكمل من حيث توقفت.</p><Link href="/" className="primary-button" data-testid="link-not-found-home">العودة إلى مساحتي <ArrowLeft size={16} /></Link></div></div>;
 >>>>>>> origin/main
+=======
+   return <div className="app-shell flex min-h-[100dvh] items-center justify-center p-6"><div className="surface max-w-md p-9 text-center"><div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#e8f8f5] text-[#2e8b7b]"><Compass size={28} /></div><h1 className="display mb-3 text-2xl">هذه الصفحة خارج الخريطة</h1><p className="mb-6 text-sm leading-7 text-[#64748b]">لنعد إلى مساحة الدراسة ونكمل من حيث توقفت.</p><Link href="/" className="primary-button" data-testid="link-not-found-home">العودة إلى مساحتي <ArrowLeft size={16} /></Link></div></div>;
+   return <div className="app-shell flex min-h-[100dvh] items-center justify-center p-6"><div className="surface max-w-md p-9 text-center"><div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#e8f8f5] text-[#2e8b7b]"><Compass size={28} /></div><h1 className="display mb-3 text-2xl">هذه الصفحة خارج الخريطة</h1><p className="mb-6 text-sm leading-7 text-[#64748b]">لنعد إلى البرنامج ونكمل من حيث توقفت.</p><Link href="/program" className="primary-button" data-testid="link-not-found-home">العودة إلى وكيل البرنامج <ArrowLeft size={16} /></Link></div></div>;
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 }
 
 function Router() {
@@ -872,6 +960,7 @@ function Router() {
         <Route path="/sign-in/*?" component={SignInPage} />
         <Route path="/sign-up/*?" component={SignUpPage} />
 <<<<<<< HEAD
+<<<<<<< HEAD
         <Route path="/dashboard" component={() => <Redirect to="/program" />} />
         <Route path="/profile" component={() => <ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/program" component={() => <ProtectedRoute><Shell title="وكيل البرنامج"><ProgramAgent /></Shell></ProtectedRoute>} />
@@ -880,6 +969,12 @@ function Router() {
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/program" component={() => <ProtectedRoute><Shell title="وكيل البرنامج"><ProgramAgent /></Shell></ProtectedRoute>} />
 >>>>>>> origin/main
+=======
+        <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/profile" component={() => <ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/program" component={() => <ProtectedRoute><Shell title="وكيل البرنامج"><ProgramAgent /></Shell></ProtectedRoute>} />
+        <Route path="/lesson/:id" component={() => <ProtectedRoute><Shell title="جلسة فهيم"><LessonWorkspace /></Shell></ProtectedRoute>} />
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
         <Route path="/knowledge" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
         <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
         <Route path="/chat" component={() => <ProtectedRoute><ChatPage /></ProtectedRoute>} />

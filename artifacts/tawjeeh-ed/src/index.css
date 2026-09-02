@@ -1368,6 +1368,9 @@ button { cursor: pointer; }
   .auth-followup-primary, .auth-followup-secondary { width: min(100%, 260px); }
   .auth-followup-footer { display: grid; gap: 6px; text-align: center; }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 }
 
 /* Lesson workspace — a quiet, three-desk study view for Fahim */
@@ -1890,6 +1893,9 @@ button { cursor: pointer; }
   .lesson-path-item { padding-inline: 3px; }
   .lesson-path-item strong { font-size: 9px; }
   .lesson-path-item small { font-size: 8px; }
+<<<<<<< HEAD
 =======
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 }

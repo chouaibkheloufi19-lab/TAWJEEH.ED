@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import re
 <<<<<<< HEAD
+<<<<<<< HEAD
 import subprocess
 from dataclasses import dataclass
 =======
@@ -14,6 +15,10 @@ from dataclasses import dataclass
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+import subprocess
+from dataclasses import dataclass
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 from pathlib import Path
 
 import pymupdf
@@ -24,9 +29,12 @@ from .store import KnowledgeStore
 DEFAULT_CHUNK_SIZE = 1400
 DEFAULT_OVERLAP = 180
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 OCR_LANGUAGES = "ara+eng"
 OCR_TIMEOUT_SECONDS = 30
 
@@ -37,10 +45,13 @@ class ExtractedPage:
     text: str
     method: str
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 
 def normalize_text(text: str) -> str:
@@ -99,9 +110,12 @@ def _stable_source_hash(pdf_path: Path) -> str:
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 def _ocr_bytes(image_bytes: bytes) -> str:
     """Run the system Tesseract installation without writing user content to disk."""
 
@@ -212,10 +226,13 @@ def _chunks_from_pages(
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 def extract_pdf_chunks(
     pdf_path: str | Path,
     base_metadata: KnowledgeMetadata,
@@ -232,9 +249,12 @@ def extract_pdf_chunks(
         raise ValueError(f"Expected a PDF file, received: {path.name}")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     return _chunks_from_pages(
         path,
         extract_file_pages(path),
@@ -262,6 +282,7 @@ def extract_file_chunks(
         max_chars=max_chars,
         overlap=overlap,
     )
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -309,6 +330,8 @@ def extract_file_chunks(
     return chunks
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 
 def ingest_pdf(

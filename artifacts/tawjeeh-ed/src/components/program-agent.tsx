@@ -20,9 +20,13 @@ import {
 } from 'lucide-react';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useLocation } from 'wouter';
 =======
 >>>>>>> origin/main
+=======
+import { useLocation } from 'wouter';
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 type ProgramKind = 'مكتسبات' | 'حصة تطبيقية' | 'مراجعة' | 'اختبار' | 'فرض' | 'بحث' | 'عطلة';
 
@@ -141,9 +145,13 @@ function ProgramEntryCard({
 
 export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
 <<<<<<< HEAD
+<<<<<<< HEAD
   const [, setLocation] = useLocation();
 =======
 >>>>>>> origin/main
+=======
+  const [, setLocation] = useLocation();
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   const [entries, setEntries] = useState<ProgramEntry[]>(initialEntries);
   const [selectedDate, setSelectedDate] = useState(today);
   const [activeTab, setActiveTab] = useState<'schedule' | 'events' | 'notifications'>('schedule');
@@ -183,11 +191,17 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   );
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   const completedCount = entries.filter((entry) => entry.completed).length;
   const commitment = entries.length ? Math.round((completedCount / entries.length) * 100) : 0;
 
 >>>>>>> origin/main
+=======
+  const completedCount = entries.filter((entry) => entry.completed).length;
+  const commitment = entries.length ? Math.round((completedCount / entries.length) * 100) : 0;
+
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   const toggleEntry = (id: string) => {
     setEntries((current) => current.map((entry) => entry.id === id ? { ...entry, completed: !entry.completed } : entry));
   };
@@ -196,11 +210,17 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     setActiveEntry(entry.id);
     setActiveTab('schedule');
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (entry.kind === 'مكتسبات' || entry.kind === 'حصة تطبيقية' || entry.kind === 'مراجعة') {
       setLocation(`/lesson/${entry.id}`);
     }
 =======
 >>>>>>> origin/main
+=======
+    if (entry.kind === 'مكتسبات' || entry.kind === 'حصة تطبيقية' || entry.kind === 'مراجعة') {
+      setLocation(`/lesson/${entry.id}`);
+    }
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   };
 
   const toggleNotifications = () => {
@@ -256,9 +276,13 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         <div className="program-agent-stats">
           <div><span>مرحلة المكتسبات</span><strong>اليوم ٤ <small>/ ١٠</small></strong><em>فهيم يقود البداية</em></div>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
           <div><span>نسبة الالتزام</span><strong>{commitment}%</strong><em>تتغير مع كل حصة</em></div>
 >>>>>>> origin/main
+=======
+          <div><span>نسبة الالتزام</span><strong>{commitment}%</strong><em>تتغير مع كل حصة</em></div>
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
           <div><span>حصص اليوم</span><strong>{entries.filter((entry) => entry.date === today).length}</strong><em>تبدأ حسب توقيتك</em></div>
         </div>
       </section>

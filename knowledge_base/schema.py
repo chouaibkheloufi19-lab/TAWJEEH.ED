@@ -7,6 +7,7 @@ from typing import Any
 
 COLLECTION_NAME = "tawjeeh_knowledge"
 <<<<<<< HEAD
+<<<<<<< HEAD
 SCHEMA_VERSION = "2"
 =======
 <<<<<<< HEAD
@@ -15,6 +16,9 @@ SCHEMA_VERSION = "2"
 SCHEMA_VERSION = "1"
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+SCHEMA_VERSION = "2"
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 CONTENT_TYPES = frozenset(
     {
@@ -28,6 +32,7 @@ CONTENT_TYPES = frozenset(
         "assessment",
         "reference",
 <<<<<<< HEAD
+<<<<<<< HEAD
         "program",
 =======
 <<<<<<< HEAD
@@ -35,6 +40,9 @@ CONTENT_TYPES = frozenset(
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+        "program",
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     }
 )
 
@@ -62,9 +70,12 @@ class KnowledgeMetadata:
     concepts: str = ""
     agent_roles: str = "fahim,guide,exercise"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     agent_priority: str = "fahim"
     prerequisites: str = ""
     lesson_keys: str = ""
@@ -72,11 +83,14 @@ class KnowledgeMetadata:
     source_type: str = "pdf"
     extraction_method: str = "text"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
     source_file: str = ""
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     source_page: int = 0
     source_hash: str = ""
     chunk_index: int = 0
@@ -96,9 +110,12 @@ class KnowledgeMetadata:
             "concepts": self.concepts,
             "agent_roles": self.agent_roles,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
             "agent_priority": self.agent_priority,
             "prerequisites": self.prerequisites,
             "lesson_keys": self.lesson_keys,
@@ -106,11 +123,14 @@ class KnowledgeMetadata:
             "source_type": self.source_type,
             "extraction_method": self.extraction_method,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
             "source_file": self.source_file,
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
             "source_page": self.source_page,
             "source_hash": self.source_hash,
             "chunk_index": self.chunk_index,

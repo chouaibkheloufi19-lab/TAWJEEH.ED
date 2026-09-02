@@ -33,6 +33,7 @@ class KnowledgeStore:
             metadata={
                 "description": "Tawjeeh educational knowledge chunks",
 <<<<<<< HEAD
+<<<<<<< HEAD
                 "schema_version": "2",
 =======
 <<<<<<< HEAD
@@ -41,6 +42,9 @@ class KnowledgeStore:
                 "schema_version": "1",
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+                "schema_version": "2",
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
                 "hnsw:space": "cosine",
             },
         )
@@ -63,9 +67,12 @@ class KnowledgeStore:
         return len(chunks)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     def replace_source(self, source_file: str, chunks: list[KnowledgeChunk]) -> int:
         """Upsert a source and remove stale chunks from an earlier revision."""
 
@@ -87,10 +94,13 @@ class KnowledgeStore:
         return len(chunks)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     def query(
         self,
         query: str,

@@ -5,9 +5,12 @@ learning platform. It stores page-aware educational chunks in a persistent
 ChromaDB collection and exposes read-only semantic search for future agents.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 ## Index the uploaded library
 
 ```bash
@@ -27,11 +30,14 @@ The educational collection gives **فهيم** primary retrieval priority through
 
 ## Import one PDF
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 ## Import a physics PDF
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 ```bash
 python main.py ingest \
@@ -66,6 +72,7 @@ python main.py serve --port 8001
 - `GET /knowledge/v1/collections`
 - `POST /knowledge/v1/query`
 <<<<<<< HEAD
+<<<<<<< HEAD
 - `GET /knowledge/v1/catalog`
 =======
 <<<<<<< HEAD
@@ -73,6 +80,9 @@ python main.py serve --port 8001
 =======
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+- `GET /knowledge/v1/catalog`
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 The query API is deliberately read-only. Source documents are imported from
 the CLI, which keeps write access out of the public app surface.

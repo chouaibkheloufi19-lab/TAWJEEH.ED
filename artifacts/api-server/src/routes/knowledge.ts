@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Router, type IRouter, type Response } from "express";
 =======
 <<<<<<< HEAD
@@ -7,6 +8,9 @@ import { Router, type IRouter, type Response } from "express";
 import { Router, type IRouter } from "express";
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+import { Router, type IRouter, type Response } from "express";
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 import {
   ListKnowledgeQueryParams,
   ListKnowledgeResponse,
@@ -16,9 +20,12 @@ import {
 
 const router: IRouter = Router();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 const knowledgeBaseUrl = (
   process.env.KNOWLEDGE_BASE_URL ?? "http://127.0.0.1:8001/knowledge"
 ).replace(/\/$/, "");
@@ -95,6 +102,7 @@ function serviceUnavailable(res: Response): void {
 
 router.get("/knowledge", async (req, res): Promise<void> => {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 
@@ -156,6 +164,8 @@ const cards = [
 router.get("/knowledge", (req, res): void => {
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   const parsed = ListKnowledgeQueryParams.safeParse(req.query);
   if (!parsed.success) {
     req.log.warn({ errors: parsed.error.message }, "Invalid knowledge filters");
@@ -163,10 +173,13 @@ router.get("/knowledge", (req, res): void => {
     return;
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   const params = new URLSearchParams();
   if (parsed.data.subject) params.set("subject", parsed.data.subject);
   if (parsed.data.curriculum_year) {
@@ -186,6 +199,7 @@ router.get("/knowledge", (req, res): void => {
 
 router.post("/knowledge/query", async (req, res): Promise<void> => {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
   const { subject, curriculum_year: _curriculumYear } = parsed.data;
@@ -196,6 +210,8 @@ router.post("/knowledge/query", async (req, res): Promise<void> => {
 router.post("/knowledge/query", (req, res): void => {
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   const parsed = QueryKnowledgeBody.safeParse(req.body);
   if (!parsed.success) {
     req.log.warn({ errors: parsed.error.message }, "Invalid knowledge query");
@@ -203,10 +219,13 @@ router.post("/knowledge/query", (req, res): void => {
     return;
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
   const where = parsed.data.subject ? { subject: parsed.data.subject } : undefined;
   try {
     const payload = await knowledgeFetch<{
@@ -234,6 +253,7 @@ router.post("/knowledge/query", (req, res): void => {
     serviceUnavailable(res);
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
   const query = parsed.data.query.trim().toLowerCase();
@@ -254,6 +274,8 @@ router.post("/knowledge/query", (req, res): void => {
   res.json(data);
 >>>>>>> origin/main
 >>>>>>> origin/main
+=======
+>>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 });
 
 export default router;
