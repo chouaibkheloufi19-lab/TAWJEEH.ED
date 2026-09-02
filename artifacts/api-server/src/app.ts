@@ -34,15 +34,7 @@ app.use(
 );
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 app.use(cors({ credentials: true, origin: true }));
-<<<<<<< HEAD
-<<<<<<< HEAD
 app.use(express.json({ limit: "8mb" }));
-=======
-app.use(express.json());
->>>>>>> origin/main
-=======
-app.use(express.json({ limit: "8mb" }));
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 app.use(express.urlencoded({ extended: true }));
 
 app.use(

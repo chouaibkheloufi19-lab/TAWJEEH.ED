@@ -10,23 +10,9 @@
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
-<<<<<<< HEAD
-<<<<<<< HEAD
-- `python main.py index-assets --directory attached_assets --catalog knowledge_base/catalog.json` — inventory and index the educational library
-- Add `--no-ocr` for a fast, safe catalog pass that marks scanned pages for later OCR
-=======
-<<<<<<< HEAD
-- `python main.py index-assets --directory attached_assets --catalog knowledge_base/catalog.json` — inventory and index the educational library
-- Add `--no-ocr` for a fast, safe catalog pass that marks scanned pages for later OCR
-=======
-- `python main.py ingest --file <pdf> --year second_secondary` — import a PDF into ChromaDB
->>>>>>> origin/main
->>>>>>> origin/main
-=======
 - `python main.py index-assets --directory attached_assets --catalog knowledge_base/catalog.json` — inventory and index the educational library
 - Add `--no-ocr` for a fast, safe catalog pass that marks scanned pages for later OCR
 - `python main.py ingest --file <pdf> --year second_secondary` — import a PDF into ChromaDB
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 - `python main.py serve --port 8000` — run the knowledge-base query service on Replit
 
 ## Stack
@@ -42,25 +28,9 @@
 
 - `knowledge_base/` — ChromaDB storage, PDF extraction/chunking, CLI, and query service
 - `knowledge_base/schema.py` — metadata contract shared by ingestion and retrieval
-<<<<<<< HEAD
-<<<<<<< HEAD
 - `knowledge_base/ingest.py` — page-aware PDF/image/text extraction and OCR pipeline
 - `knowledge_base/catalog.py` — deterministic batch catalog, taxonomy inference, duplicate handling, and safe indexing
 - `knowledge_base/catalog.json` — generated source manifest and user-facing source cards
-=======
-<<<<<<< HEAD
-- `knowledge_base/ingest.py` — page-aware PDF/image/text extraction and OCR pipeline
-- `knowledge_base/catalog.py` — deterministic batch catalog, taxonomy inference, duplicate handling, and safe indexing
-- `knowledge_base/catalog.json` — generated source manifest and user-facing source cards
-=======
-- `knowledge_base/ingest.py` — page-aware PDF ingestion pipeline
->>>>>>> origin/main
->>>>>>> origin/main
-=======
-- `knowledge_base/ingest.py` — page-aware PDF/image/text extraction and OCR pipeline
-- `knowledge_base/catalog.py` — deterministic batch catalog, taxonomy inference, duplicate handling, and safe indexing
-- `knowledge_base/catalog.json` — generated source manifest and user-facing source cards
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 - `knowledge_base/server.py` — read-only HTTP API for agent retrieval
 - `.chroma/` — local persistent ChromaDB data (ignored from version control)
 
@@ -68,19 +38,7 @@
 
 - ChromaDB stores searchable content chunks; metadata stays scalar and filterable so agents can target year, unit, type, difficulty, and source.
 - Every chunk keeps deterministic IDs and source page metadata, allowing generated explanations and exercises to cite the original PDF.
-<<<<<<< HEAD
-<<<<<<< HEAD
 - Batch ingestion is explicit through the CLI; originals remain in `attached_assets`, duplicate binaries are cataloged but not embedded twice, and scan failures are surfaced as `needs_review`.
-=======
-<<<<<<< HEAD
-- Batch ingestion is explicit through the CLI; originals remain in `attached_assets`, duplicate binaries are cataloged but not embedded twice, and scan failures are surfaced as `needs_review`.
-=======
-- PDF ingestion is intentionally explicit through the CLI; no document is silently imported or overwritten.
->>>>>>> origin/main
->>>>>>> origin/main
-=======
-- Batch ingestion is explicit through the CLI; originals remain in `attached_assets`, duplicate binaries are cataloged but not embedded twice, and scan failures are surfaced as `needs_review`.
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 - The query service is read-only. Content is ingested offline by the CLI, reducing the risk of exposing write access.
 
 ## Product

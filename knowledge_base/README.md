@@ -4,40 +4,6 @@ This package is the first data-layer foundation for the Tawjeeh multi-agent
 learning platform. It stores page-aware educational chunks in a persistent
 ChromaDB collection and exposes read-only semantic search for future agents.
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
-## Index the uploaded library
-
-```bash
-python main.py index-assets --directory attached_assets
-```
-
-The batch indexer:
-
-- inventories PDFs, images, and text files without moving or deleting originals;
-- extracts existing PDF text and uses Arabic/English OCR for scans and images;
-- infers subject, year, stream, unit, lesson, content type, prerequisites, and agent priority;
-- writes an atomic `knowledge_base/catalog.json` manifest and deterministic Chroma chunks;
-- can be run again safely: unchanged sources do not duplicate, and revised sources replace stale chunks.
-
-The educational collection gives **فهيم** primary retrieval priority through the
-`agent_priority`, `agent_roles`, `prerequisites`, and `lesson_keys` metadata.
-
-## Import one PDF
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-## Import a physics PDF
->>>>>>> origin/main
->>>>>>> origin/main
-=======
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 ```bash
 python main.py ingest \
@@ -71,18 +37,7 @@ python main.py serve --port 8001
 - `GET /knowledge/healthz`
 - `GET /knowledge/v1/collections`
 - `POST /knowledge/v1/query`
-<<<<<<< HEAD
-<<<<<<< HEAD
 - `GET /knowledge/v1/catalog`
-=======
-<<<<<<< HEAD
-- `GET /knowledge/v1/catalog`
-=======
->>>>>>> origin/main
->>>>>>> origin/main
-=======
-- `GET /knowledge/v1/catalog`
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
 
 The query API is deliberately read-only. Source documents are imported from
 the CLI, which keeps write access out of the public app surface.

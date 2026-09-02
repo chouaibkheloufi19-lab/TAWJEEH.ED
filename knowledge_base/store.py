@@ -32,19 +32,7 @@ class KnowledgeStore:
             name=collection_name,
             metadata={
                 "description": "Tawjeeh educational knowledge chunks",
-<<<<<<< HEAD
-<<<<<<< HEAD
                 "schema_version": "2",
-=======
-<<<<<<< HEAD
-                "schema_version": "2",
-=======
-                "schema_version": "1",
->>>>>>> origin/main
->>>>>>> origin/main
-=======
-                "schema_version": "2",
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
                 "hnsw:space": "cosine",
             },
         )
@@ -66,41 +54,6 @@ class KnowledgeStore:
         )
         return len(chunks)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
-    def replace_source(self, source_file: str, chunks: list[KnowledgeChunk]) -> int:
-        """Upsert a source and remove stale chunks from an earlier revision."""
-
-        existing = self.collection.get(
-            where={"source_file": source_file},
-            include=["metadatas"],
-        )
-        old_ids = existing.get("ids", [])
-        old_metadatas = existing.get("metadatas", [])
-        new_hash = chunks[0].metadata.source_hash if chunks else ""
-        self.upsert(chunks)
-        stale_ids = [
-            item_id
-            for item_id, metadata in zip(old_ids, old_metadatas)
-            if metadata and metadata.get("source_hash") != new_hash
-        ]
-        if stale_ids:
-            self.collection.delete(ids=stale_ids)
-        return len(chunks)
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/main
->>>>>>> origin/main
-=======
->>>>>>> 9685650 (Update api server configuration and regenerate client schemas)
     def query(
         self,
         query: str,
