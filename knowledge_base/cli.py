@@ -8,7 +8,14 @@ import os
 from pathlib import Path
 from typing import Sequence
 
+<<<<<<< HEAD
 from .catalog import index_assets
+=======
+<<<<<<< HEAD
+from .catalog import index_assets
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
 from .ingest import ingest_pdf
 from .schema import DIFFICULTY_LEVELS, KnowledgeMetadata
 from .server import serve
@@ -67,6 +74,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("collections", help="Show collection counts.")
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
     index_parser = subparsers.add_parser(
         "index-assets", help="OCR and index all educational uploads in a directory."
     )
@@ -81,6 +92,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Catalog scanned pages as pending instead of running OCR.",
     )
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
     serve_parser = subparsers.add_parser(
         "serve", help="Run the read-only agent query service."
     )
@@ -113,6 +129,10 @@ def main(argv: Sequence[str] | None = None) -> None:
         }
     elif args.command == "collections":
         result = {"collections": store.collections()}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
     elif args.command == "index-assets":
         result = index_assets(
             args.directory,
@@ -121,14 +141,29 @@ def main(argv: Sequence[str] | None = None) -> None:
             verbose=args.verbose,
             ocr_empty_pages=not args.no_ocr,
         )
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
     elif args.command == "serve":
         serve(args.host, args.port)
         return
     else:
         raise RuntimeError(f"Unsupported command: {args.command}")
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
     main()
+<<<<<<< HEAD
+=======
+=======
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+>>>>>>> origin/main
+>>>>>>> origin/main

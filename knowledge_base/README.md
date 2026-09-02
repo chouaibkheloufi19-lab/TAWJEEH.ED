@@ -4,6 +4,10 @@ This package is the first data-layer foundation for the Tawjeeh multi-agent
 learning platform. It stores page-aware educational chunks in a persistent
 ChromaDB collection and exposes read-only semantic search for future agents.
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 ## Index the uploaded library
 
 ```bash
@@ -22,6 +26,12 @@ The educational collection gives **فهيم** primary retrieval priority through
 `agent_priority`, `agent_roles`, `prerequisites`, and `lesson_keys` metadata.
 
 ## Import one PDF
+<<<<<<< HEAD
+=======
+=======
+## Import a physics PDF
+>>>>>>> origin/main
+>>>>>>> origin/main
 
 ```bash
 python main.py ingest \
@@ -55,7 +65,14 @@ python main.py serve --port 8001
 - `GET /knowledge/healthz`
 - `GET /knowledge/v1/collections`
 - `POST /knowledge/v1/query`
+<<<<<<< HEAD
 - `GET /knowledge/v1/catalog`
+=======
+<<<<<<< HEAD
+- `GET /knowledge/v1/catalog`
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
 
 The query API is deliberately read-only. Source documents are imported from
 the CLI, which keeps write access out of the public app surface.

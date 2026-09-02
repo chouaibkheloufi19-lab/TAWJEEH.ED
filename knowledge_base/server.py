@@ -7,9 +7,20 @@ import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
+<<<<<<< HEAD
 from urllib.parse import parse_qs, urlparse
 
 from .catalog import load_catalog
+=======
+<<<<<<< HEAD
+from urllib.parse import parse_qs, urlparse
+
+from .catalog import load_catalog
+=======
+from urllib.parse import urlparse
+
+>>>>>>> origin/main
+>>>>>>> origin/main
 from .store import KnowledgeStore
 
 
@@ -76,6 +87,10 @@ class KnowledgeRequestHandler(BaseHTTPRequestHandler):
                 )
             elif route == "/v1/collections":
                 self._send(HTTPStatus.OK, {"collections": store.collections()})
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
             elif route == "/v1/catalog":
                 catalog = load_catalog()
                 params = parse_qs(urlparse(self.path).query)
@@ -127,6 +142,11 @@ class KnowledgeRequestHandler(BaseHTTPRequestHandler):
                         "count": len(sources),
                     },
                 )
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
             else:
                 self._send(HTTPStatus.NOT_FOUND, {"error": "route_not_found"})
         except Exception as error:

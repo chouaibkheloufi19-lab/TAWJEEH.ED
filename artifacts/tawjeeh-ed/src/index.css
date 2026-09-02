@@ -1367,6 +1367,7 @@ button { cursor: pointer; }
   .auth-followup-actions { flex-direction: column; align-items: center; }
   .auth-followup-primary, .auth-followup-secondary { width: min(100%, 260px); }
   .auth-followup-footer { display: grid; gap: 6px; text-align: center; }
+<<<<<<< HEAD
 }
 
 /* Lesson workspace — a quiet, three-desk study view for Fahim */
@@ -1889,4 +1890,6 @@ button { cursor: pointer; }
   .lesson-path-item { padding-inline: 3px; }
   .lesson-path-item strong { font-size: 9px; }
   .lesson-path-item small { font-size: 8px; }
+=======
+>>>>>>> origin/main
 }
