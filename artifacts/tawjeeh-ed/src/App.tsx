@@ -142,7 +142,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
         src={owlLogoPath}
         alt="بومة توجيه"
         data-testid="img-brand-logo"
-        className={compact ? 'h-10 w-10 rounded-xl object-cover object-[50%_30%]' : 'h-11 w-11 rounded-xl object-cover object-[50%_30%]'}
+        className={compact ? 'h-10 w-10 rounded-xl object-contain' : 'h-11 w-11 rounded-xl object-contain'}
       />
       {!compact && (
         <span className="leading-none">
@@ -161,7 +161,7 @@ function AgentAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
       src={owlLogoPath}
       alt="بومة توجيه"
       data-testid="img-owl-avatar"
-      className={`${dimensions} rounded-[28%] object-cover object-[50%_28%]`}
+      className={`${dimensions} rounded-[28%] object-contain`}
     />
   );
 }
