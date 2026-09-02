@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowUpLeft, BookOpen, CheckCircle2, GraduationCap, Sparkles } from 'lucide-react';
 import { Link } from 'wouter';
-import logoPath from '@assets/اللوغو_العالمي_1787910738500.jpg';
+import logoPath from '@assets/Gemini_Generated_Image_exgepoexgepoexge_1788335808418.jpg';
 
 const tracks = [
   { label: 'علوم تجريبية', detail: 'علوم الحياة والفيزياء', icon: '01' },

@@ -54,7 +54,7 @@ import {
 } from '@workspace/api-client-react';
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
-import logoPath from '@assets/اللوغو_العالمي_1787910738500.jpg';
+import logoPath from '@assets/Gemini_Generated_Image_exgepoexgepoexge_1788335808418.jpg';
 import welcomeVideo from '@assets/Gemini_Generated_Image_697ml8697ml8697m_1788300867064.mp4';
 import owlLogoPath from '@assets/Screenshot_2026-08-14_111104_1788301581503.png';
 
@@ -82,7 +82,7 @@ const clerkAppearance = {
   options: {
     logoPlacement: 'inside' as const,
     logoLinkUrl: basePath || '/',
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+    logoImageUrl: `${window.location.origin}${basePath}/tawjeeh-logo.jpg`,
     socialButtonsPlacement: 'top' as const,
     socialButtonsVariant: 'blockButton' as const,
   },
