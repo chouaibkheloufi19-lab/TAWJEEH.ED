@@ -25,8 +25,6 @@ import {
   Compass,
   FileText,
   Flame,
-  LayoutDashboard,
-  Library,
   MessageCircle,
   MoreHorizontal,
   Paperclip,
@@ -62,12 +60,10 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { LessonWorkspace } from '@/components/lesson-workspace';
 import { ProgramAgent } from '@/components/program-agent';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
-import owlGuidingPose from '@assets/owl-guiding-pose.png';
-import owlSuccessPose from '@assets/owl-success-pose.png';
-import owlThinkingPose from '@assets/owl-thinking-pose.png';
-import owlMistakePose from '@assets/owl-mistake-pose.png';
-import owlCreationPose from '@assets/owl-creation-pose.png';
-import owlFailurePose from '@assets/owl-failure-pose.png';
+import owlAgentMint from '@assets/owl-agent-fahim-mint_1788382004392.png';
+import owlAgentTeal from '@assets/owl-agent-fahim-teal_1788382004393.png';
+import owlAgentViolet from '@assets/owl-agent-fahim-violet_1788382004393.png';
+import owlAgentGold from '@assets/owl-agent-fahim-gold_1788382004394.png';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -140,12 +136,9 @@ const clerkAppearance = {
 };
 
 const navItems = [
-  { href: '/dashboard', label: 'مساحتي', icon: LayoutDashboard },
-  { href: '/program', label: 'وكيل البرنامج', icon: CalendarDays },
-  { href: '/profile', label: 'الملف الشخصي', icon: UserRound },
-  { href: '/library', label: 'المعرفة', icon: Library },
+  { href: '/profile', label: 'ملف شخصي', icon: UserRound },
   { href: '/chat', label: 'التفاعل', icon: MessageCircle },
-  { href: '/quizzes', label: 'الاختبارات والنقاط', icon: BrainCircuit },
+  { href: '/quizzes', label: 'الكويزات الأسبوعية', icon: BrainCircuit },
 ];
 
 function Logo({ compact = false }: { compact?: boolean }) {
@@ -153,7 +146,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
     <Link href="/" className="flex items-center gap-3" data-testid="link-brand">
       <img
         src={owlLogoPath}
-        alt="بومة توجيه"
+        alt="شعار توجيه"
         data-testid="img-brand-logo"
         className={compact ? 'h-10 w-10 rounded-xl object-contain' : 'h-11 w-11 rounded-xl object-contain'}
       />
@@ -169,11 +162,11 @@ function Logo({ compact = false }: { compact?: boolean }) {
 
 function AgentAvatar({ size = 'md', pose = 'default' }: { size?: 'sm' | 'md' | 'lg'; pose?: 'default' | 'guiding' | 'success' | 'thinking' | 'mistake' | 'creation' | 'failure' }) {
   const dimensions = size === 'lg' ? 'h-20 w-20' : size === 'sm' ? 'h-9 w-9' : 'h-12 w-12';
-  const poseMap = { default: owlLogoPath, guiding: owlGuidingPose, success: owlSuccessPose, thinking: owlThinkingPose, mistake: owlMistakePose, creation: owlCreationPose, failure: owlFailurePose };
+  const poseMap = { default: owlAgentMint, guiding: owlAgentTeal, success: owlAgentGold, thinking: owlAgentViolet, mistake: owlAgentViolet, creation: owlAgentGold, failure: owlAgentTeal };
   return (
     <img
       src={poseMap[pose]}
-      alt="بومة توجيه"
+      alt="مساعد توجيه"
       data-testid="img-owl-avatar"
       className={`${dimensions} rounded-[28%] object-contain companion-owl is-${pose}`}
     />
@@ -215,7 +208,7 @@ function Sidebar() {
           <Sparkles size={17} className="text-[#e6f6fb]" />
         </div>
         <p className="mb-1 text-sm font-extrabold text-white">كل خطوة تُحسب.</p>
-        <p className="text-[11px] leading-5 text-[#b3e5fc]">ارجع إلى خطتك حين تتشتت. بومة توجيه تعرف أين توقفت.</p>
+        <p className="text-[11px] leading-5 text-[#b3e5fc]">ارجع إلى خطتك حين تتشتت. النظام يعرف أين توقفت.</p>
       </div>
       <div className="mt-5 flex items-center justify-between px-1 text-[10px] text-[#b3e5fc]">
         <span>البكالوريا الجزائرية</span>
@@ -298,7 +291,7 @@ function AuthWelcome() {
   const steps = [
     { title: 'أرتّب لك البداية.', body: 'أعرّفك على خطتك، ثم أترك لك خطوة واحدة واضحة بدل قائمة طويلة تشتّتك.' },
     { title: 'أحفظ ما يهمك.', body: 'ملخصاتك، محاولاتك، وأخطاءك تبقى قريبة منك حتى تعود إليها وقت المراجعة.' },
-    { title: 'نمشي معًا.', body: 'ابدأ من وكيل البرنامج، وسأوصلك إلى فهيم والتمارين في اللحظة المناسبة.' },
+    { title: 'تعلّم بإيقاعك.', body: 'اختر وقت الحصة، وسأوصلك إلى الدرس والتمارين في اللحظة المناسبة.' },
   ];
   const isLast = step === steps.length - 1;
   return (
@@ -308,17 +301,17 @@ function AuthWelcome() {
         <button className="onboarding-skip" type="button" onClick={() => setStep(steps.length - 1)} data-testid="button-skip-onboarding">تجاوز الشرح <ArrowLeft size={14} /></button>
       </header>
       <section className="onboarding-layout">
-        <div className="onboarding-owl" aria-label="بومة توجيه الشارحة">
-          <div className="owl-pose-frame"><img src={owlGuidingPose} alt="بومة توجيه تشرح لك الطريق" className="companion-owl" /></div>
+        <div className="onboarding-owl" aria-label="المساعدة التعليمية">
+          <div className="owl-pose-frame"><img src={owlAgentTeal} alt="مساعد تعليمي يشرح لك الطريق" className="companion-owl" /></div>
           <span className="onboarding-spark one">خطوة واحدة الآن</span>
           <span className="onboarding-spark two">كل تقدمك محفوظ</span>
         </div>
         <div className="onboarding-copy">
           <span className="onboarding-step"><i /> الشارحة · {step + 1} من {steps.length}</span>
           <h1>مرحبًا بك في<br /><strong>مساحتك.</strong></h1>
-          <p>أنا بومة توجيه، رفيقتك الزرقاء في رحلة البكالوريا الجزائرية. لا أشرح كل شيء دفعة واحدة؛ نبدأ بما تحتاجه اليوم.</p>
+          <p>توجيه مساحة تعليمية لرحلة البكالوريا الجزائرية. لا نعرض كل شيء دفعة واحدة؛ نبدأ بما تحتاجه اليوم.</p>
           <div className="onboarding-bubble" aria-live="polite" data-testid="status-onboarding-message">
-            <strong>بومة توجيه تقول</strong>
+            <strong>معلومة من النظام</strong>
             <span>{steps[step].title} {steps[step].body}</span>
           </div>
           <div className="onboarding-dots" aria-label="مراحل الشرح">
@@ -326,13 +319,13 @@ function AuthWelcome() {
           </div>
           <div className="onboarding-actions">
             {isLast ? (
-              <Link href={isSignedIn ? '/program' : '/sign-in'} className="onboarding-next" data-testid="link-onboarding-continue">إلى وكيل البرنامج <ArrowLeft size={17} /></Link>
+              <Link href={isSignedIn ? '/profile' : '/sign-in'} className="onboarding-next" data-testid="link-onboarding-continue">إلى مساحتك <ArrowLeft size={17} /></Link>
             ) : (
               <button type="button" className="onboarding-next" onClick={() => setStep((current) => current + 1)} data-testid="button-next-onboarding">تابع الشرح <ArrowLeft size={17} /></button>
             )}
             {!isSignedIn && <Link href="/sign-up" className="onboarding-login" data-testid="link-onboarding-signup">إنشاء حساب جديد</Link>}
           </div>
-          <p className="onboarding-note">لا تحتاج إلى مشاهدة فيديو للوصول إلى التطبيق. أنت من يختار الإيقاع.</p>
+           <p className="onboarding-note">حفاظًا على خصوصية التطبيق، نعرض لك المعلومة المطلوبة فقط. وأنت من يختار الإيقاع.</p>
         </div>
       </section>
     </main>
@@ -342,7 +335,7 @@ function AuthWelcome() {
 function HomeRedirect() {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return <AuthLoading />;
-  return isSignedIn ? <Redirect to="/program" /> : <AuthWelcome />;
+  return isSignedIn ? <Redirect to="/profile" /> : <AuthWelcome />;
 }
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -362,7 +355,7 @@ function AuthStory({ mode }: { mode: 'login' | 'register' }) {
       </div>
       <div className="auth-story-mark">
          <div className="auth-story-mark-image"><img src={owlLogoPath} alt="" /></div>
-        <span>بومة توجيه معك في كل خطوة</span>
+        <span>مساعدة واضحة في كل خطوة</span>
       </div>
       <div className="auth-story-copy">
         <span className="auth-story-eyebrow">{isRegister ? 'خطوتك الأولى نحو الوضوح' : 'مرحبًا بعودتك إلى مساحتك'}</span>
@@ -402,7 +395,7 @@ function AuthPageFrame({
 
 function SignInPage() {
   const { isSignedIn } = useAuth();
-  if (isSignedIn) return <Redirect to="/dashboard" />;
+  if (isSignedIn) return <Redirect to="/profile" />;
   return (
     <AuthPageFrame mode="login">
       <SignIn
@@ -416,7 +409,7 @@ function SignInPage() {
 
 function SignUpPage() {
   const { isSignedIn } = useAuth();
-  if (isSignedIn) return <Redirect to="/dashboard" />;
+  if (isSignedIn) return <Redirect to="/profile" />;
   return (
     <AuthPageFrame mode="register">
       <SignUp
@@ -478,27 +471,10 @@ function EmptyState({ title, body, action }: { title: string; body: string; acti
   );
 }
 
-function MetricCard({ label, value, detail, tone }: { label: string; value: string; detail: string; tone: string }) {
-  const palette: Record<string, string> = { sky: 'bg-[#e6f6fb] text-[#005689]', gold: 'bg-[#e8f8f5] text-[#2e8b7b]', coral: 'bg-[#e6f6fb] text-[#005689]' };
-  return (
-    <div className="surface fade-up p-5" data-testid={`card-metric-${label}`}>
-      <div className="mb-5 flex items-start justify-between gap-2">
-         <span className="text-xs font-bold text-[#64748b]">{label}</span>
-        <span className={`grid h-8 w-8 place-items-center rounded-xl ${palette[tone] ?? palette.sky}`}>
-          {tone === 'gold' ? <Flame size={16} /> : tone === 'coral' ? <Target size={16} /> : <Zap size={16} />}
-        </span>
-      </div>
-      <div className="flex items-end justify-between gap-2">
-        <strong className="display text-[28px]" data-testid={`text-metric-value-${label}`}>{value}</strong>
-         <span className="pb-1 text-[11px] font-semibold text-[#64748b]">{detail}</span>
-      </div>
-    </div>
-  );
-}
-
 function DashboardPage() {
   const dashboardQuery = useGetDashboard({ query: { queryKey: getGetDashboardQueryKey() } });
   const dashboard = dashboardQuery.data as Dashboard | undefined;
+  const { user } = useUser();
   const [completed, setCompleted] = useState<string[]>([]);
   const [startedId, setStartedId] = useState<string | null>(null);
   useEffect(() => {
@@ -515,51 +491,28 @@ function DashboardPage() {
   if (!dashboard) return <Shell title="مساحتي"><EmptyState title="لم تصل خطتك بعد" body="ستظهر هنا أولويات يومك بمجرد تجهيز مساحة الدراسة." /></Shell>;
 
   const today = dashboard.today ?? [];
-  const metrics = dashboard.metrics ?? [];
-  const mastery = dashboard.mastery ?? [];
   const profile = dashboard.profile;
+   const displayName = user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress?.split('@')[0] || profile?.name || 'الطالب';
 
   return (
-    <Shell title={`صباح الخير، ${profile?.name ?? 'ياسين'}`}>
-      <section className="hero-grid mb-5 grid grid-cols-[1.55fr_.9fr] gap-5">
+     <Shell title={`صباح الخير، ${displayName}`}>
+       <section className="hero-grid mb-5">
         <div className="relative overflow-hidden rounded-[1.35rem] bg-[#004b75] px-6 py-7 text-white shadow-[0_16px_38px_rgba(0,86,137,.16)] md:px-8">
           <div className="absolute -left-10 -top-16 h-44 w-44 rounded-full border-[22px] border-[#b3e5fc] opacity-40" />
           <div className="absolute bottom-[-60px] right-[-28px] h-44 w-44 rounded-full border-[24px] border-[#b3e5fc] opacity-50" />
           <div className="relative z-[1] flex items-start justify-between gap-4">
             <div className="max-w-[500px]">
-               <div className="mb-4 flex items-center gap-3"><AgentAvatar size="sm" pose={today.length > 0 && today.every((block) => block.completed || completed.includes(block.id)) ? 'success' : 'guiding'} /><span className="text-xs font-bold text-[#b3e5fc]">بومة توجيه معك اليوم</span></div>
+                <div className="mb-4 flex items-center gap-3"><AgentAvatar size="sm" pose={today.length > 0 && today.every((block) => block.completed || completed.includes(block.id)) ? 'success' : 'guiding'} /><span className="text-xs font-bold text-[#b3e5fc]">مساعدتك التعليمية اليوم</span></div>
               <h2 className="display mb-3 text-[27px] md:text-[34px]" data-testid="text-dashboard-focus">{dashboard.focus || 'نحو فهمٍ أعمق، خطوة واحدة كل مرة.'}</h2>
               <p className="mb-6 max-w-md text-sm leading-7 text-[#e6f6fb]">خطة صغيرة وواضحة الآن أفضل من ساعات طويلة مشتتة. لنبدأ من حيث أنت.</p>
-              <Link href="/chat" className="primary-button bg-[#e6f6fb] text-[#005689]" data-testid="link-ask-owl"><MessageCircle size={16} /> اسأل بومة توجيه</Link>
-            </div>
-            <div className="focus-ring hidden h-[112px] w-[112px] shrink-0 sm:grid">
-               <div className="text-center"><strong className="mono block text-[24px] text-white">72%</strong><span className="text-[10px] text-[#b3e5fc]">تركيز اليوم</span></div>
-            </div>
+               <Link href="/chat" className="primary-button bg-[#e6f6fb] text-[#005689]" data-testid="link-ask-owl"><MessageCircle size={16} /> ابدأ التفاعل</Link>
+             </div>
           </div>
-        </div>
-        <div className="surface flex flex-col justify-between p-6">
-           <div className="flex items-start justify-between"><span className="eyebrow">مؤشر المسار</span><Compass size={20} className="text-[#005689]" /></div>
-          <div>
-             <p className="mb-2 mt-7 text-sm font-bold text-[#64748b]">ثباتك هذا الأسبوع</p>
-            <div className="mb-3 progress-track"><div className="progress-fill" style={{ width: '68%' }} /></div>
-             <div className="flex items-end justify-between"><strong className="display text-[26px]">متقدم</strong><span className="text-xs font-semibold text-[#64748b]">٤ من ٦ أيام</span></div>
-          </div>
-           <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-[#2e8b7b]"><CheckCircle2 size={16} /> بقيت لك جلسة واحدة لتغلق يومك</div>
         </div>
       </section>
 
-      <section className="mb-7 grid grid-cols-3 gap-4 three-col">
-        {metrics.length ? metrics.slice(0, 3).map((metric) => <MetricCard key={metric.label} {...metric} />) : (
-          <>
-            <MetricCard label="وقت التعلّم" value="٤٥ د" detail="اليوم" tone="sky" />
-            <MetricCard label="سلسلة الالتزام" value={`${profile?.streak ?? 0} أيام`} detail="استمر" tone="gold" />
-            <MetricCard label="أسئلة أُتقنت" value="١٢" detail="هذا الأسبوع" tone="coral" />
-          </>
-        )}
-      </section>
-
-      <section className="grid grid-cols-[1.35fr_.8fr] gap-5 two-col">
-        <div className="surface p-5 md:p-6">
+       <section>
+         <div className="surface p-5 md:p-6">
           <div className="mb-5 flex items-end justify-between">
             <div><p className="eyebrow mb-1">خريطة اليوم</p><h2 className="display text-xl">خطتك الدراسية</h2></div>
              <span className="rounded-full bg-[#e8f8f5] px-3 py-1.5 text-[11px] font-bold text-[#2e8b7b]">{today.length} جلسات</span>
@@ -579,25 +532,6 @@ function DashboardPage() {
                 </div>
               );
             })}
-          </div>
-        </div>
-        <div className="space-y-5">
-          <div className="surface p-5">
-             <div className="mb-5 flex items-center justify-between"><div><p className="eyebrow mb-1">لمحة سريعة</p><h2 className="display text-lg">مستوى الإتقان</h2></div><Trophy size={20} className="text-[#005689]" /></div>
-            <div className="space-y-4">
-               {mastery.length === 0 ? <p className="text-sm text-[#64748b]">ستظهر المواد التي راجعتها هنا.</p> : mastery.slice(0, 3).map((item) => (
-                <div key={item.subject} data-testid={`row-mastery-${item.subject}`}>
-                   <div className="mb-1.5 flex justify-between text-xs font-bold"><span>{item.subject}</span><span className="mono text-[#005689]">{item.percent}%</span></div>
-                   <div className="progress-track"><div className="progress-fill" style={{ width: `${item.percent}%`, background: '#005689' }} /></div>
-                   <p className="mt-1 text-[10px] text-[#64748b]">{item.note}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-           <div className="surface-soft bg-[#e8f8f5] p-5">
-             <div className="mb-3 flex items-center gap-2 text-[#2e8b7b]"><Sparkles size={17} /><span className="text-xs font-extrabold">اقتراح بومة توجيه</span></div>
-            <p className="text-sm font-bold leading-7">راجع مفهومًا واحدًا من الفيزياء قبل أن تنهي اليوم.</p>
-             <Link href="/library" className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold text-[#005689]" data-testid="link-discover-knowledge">اكتشف ملخصاتك <ArrowLeft size={14} /></Link>
           </div>
         </div>
       </section>
@@ -641,7 +575,7 @@ function ProfilePage() {
           <UserRound size={24} />
         </div>
         <div className="profile-actions">
-          <Link href="/program" className="primary-button"><CalendarDays size={16} /> افتح وكيل البرنامج</Link>
+          <Link href="/program" className="primary-button"><CalendarDays size={16} /> افتح برنامجك الدراسي</Link>
           <Link href="/chat" className="secondary-button"><MessageCircle size={16} /> اذهب إلى التفاعل</Link>
         </div>
         <div className="profile-learning-grid">
@@ -760,9 +694,10 @@ function QuizAttempt({ quiz, onExit }: { quiz: Quiz; onExit: () => void }) {
 }
 
 function QuizCard({ quiz, onStart }: { quiz: Quiz; onStart: () => void }) {
+  const isWeekly = quiz.id === 'weekly-physics';
   return (
     <article className="surface flex flex-col p-5" data-testid={`card-quiz-${quiz.id}`}>
-       <div className="mb-5 flex items-start justify-between"><span className="tag bg-[#e8f8f5] text-[#2e8b7b]">{quiz.subject}</span><span className="text-[11px] font-bold text-[#64748b]">{quiz.status}</span></div>
+       <div className="mb-5 flex items-start justify-between gap-2"><span className="tag bg-[#e8f8f5] text-[#2e8b7b]">{isWeekly ? 'مخصص لمستواك' : 'تحدّي صعب'}</span><span className="text-[11px] font-bold text-[#64748b]">{quiz.status}</span></div>
        <h3 className="mb-2 text-lg font-extrabold">{quiz.title}</h3><p className="mb-6 min-h-[48px] text-sm leading-7 text-[#64748b]">{quiz.description}</p>
        <div className="mb-5 flex items-center gap-4 text-[11px] font-bold text-[#64748b]"><span className="flex items-center gap-1"><Clock3 size={14} /> {quiz.duration}</span><span className="flex items-center gap-1"><CircleHelp size={14} /> {quiz.questions?.length ?? 0} أسئلة</span><span className="flex items-center gap-1"><Zap size={14} /> {quiz.points} نقطة</span></div>
       <button className="primary-button mt-auto w-full" onClick={onStart} data-testid={`button-start-quiz-${quiz.id}`}><Play size={15} fill="currentColor" /> ابدأ التدريب</button>
@@ -774,11 +709,20 @@ function QuizzesPage() {
   const quizzesQuery = useListQuizzes({ query: { queryKey: getListQuizzesQueryKey() } });
   const quizzes = (quizzesQuery.data as Quiz[] | undefined) ?? [];
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [mistakeCount, setMistakeCount] = useState(0);
+  useEffect(() => {
+    try {
+      const attempts = JSON.parse(localStorage.getItem('tawjeeh.attempt.bank.v1') || '[]');
+      setMistakeCount(Array.isArray(attempts) ? attempts.length : 0);
+    } catch {
+      setMistakeCount(0);
+    }
+  }, []);
   if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} onExit={() => setSelectedQuiz(null)} /></Shell>;
   return (
-    <Shell title="الاختبارات والتدريب">
+    <Shell title="الاختبارات الأسبوعية">
        <section className="mb-5 flex items-end justify-between gap-4 rounded-[1.35rem] border border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">
-         <div><p className="eyebrow mb-2 text-[#2e8b7b]">تعلّم من إجابتك</p><h2 className="display text-[26px] md:text-[34px]">اختبر فهمك، بهدوء.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-[#64748b]">اختبارات قصيرة تتبع ما تدرسه، وتترك لك إشارة واضحة لما يستحق جلسة أخرى.</p></div>
+         <div><p className="eyebrow mb-2 text-[#2e8b7b]">كويزاتك الأسبوعية</p><h2 className="display text-[26px] md:text-[34px]">اختبر فهمك، بهدوء.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-[#64748b]">الأول يتابع مستواك وما ظهر في محاولاتك، والثاني تحدٍّ عام صعب بعد إتمام الوحدة.</p><p className="mt-2 text-xs font-bold text-[#2e8b7b]">{mistakeCount ? `تم رصد ${mistakeCount} محاولات للمراجعة هذا الأسبوع.` : 'ستتكوّن مراجعتك من إجاباتك ومحاولاتك القادمة.'}</p></div>
          <div className="hidden rounded-2xl bg-[#e6f6fb] p-4 text-[#005689] sm:block"><Target size={32} strokeWidth={1.5} /></div>
       </section>
       {quizzesQuery.isLoading ? <LoadingState label="نحضّر تمارين مناسبة لك..." /> : quizzesQuery.isError ? <ErrorState onRetry={() => quizzesQuery.refetch()} /> : quizzes.length === 0 ? <EmptyState title="لا توجد اختبارات بعد" body="ستجد هنا تدريبات الوحدات والاختبار الأسبوعي عند توفرها." /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} onStart={() => setSelectedQuiz(quiz)} />)}</div>}
@@ -788,11 +732,11 @@ function QuizzesPage() {
 
 type ChatMessage = { id: number; from: 'student' | 'agent'; text: string };
 const agentOptions = [
-  { id: 'host', name: 'بومة توجيه', role: 'المضيف' },
+  { id: 'host', name: 'توجيه', role: 'محادثة عامة' },
   { id: 'fahim', name: 'فَهيم', role: 'تشخيص الفجوات' },
   { id: 'dalil', name: 'دليل', role: 'شرح المفاهيم' },
 ];
-const starterMessages: ChatMessage[] = [{ id: 1, from: 'agent', text: 'أهلًا بك. أنا بومة توجيه، وسأوصلك إلى الوكيل المناسب. ماذا يشغلك الآن؟' }];
+const starterMessages: ChatMessage[] = [{ id: 1, from: 'agent', text: 'أهلًا بك. اكتب ما يشغلك الآن، وسأساعدك في الوصول إلى الشرح أو التدريب المناسب.' }];
 
 function ChatPage() {
   const [agent, setAgent] = useState('host');
@@ -809,9 +753,9 @@ function ChatPage() {
     <Shell title="اسأل توجيه">
       <div className="grid grid-cols-[.75fr_1.5fr] gap-5 two-col">
          <aside className="surface order-2 border-[#b3e5fc] p-5 lg:order-1">
-          <p className="eyebrow mb-1">اختر رفيقك</p><h2 className="display mb-5 text-xl">المساعدة المناسبة</h2>
+           <p className="eyebrow mb-1">اختر نوع المساعدة</p><h2 className="display mb-5 text-xl">المساعدة المناسبة</h2>
            <div className="space-y-2">{agentOptions.map((item) => { const active = item.id === agent; return <button key={item.id} onClick={() => setAgent(item.id)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-right transition ${active ? 'border-[#2e8b7b] bg-[#e8f8f5]' : 'border-transparent bg-[#f7fcfe] hover:border-[#b3e5fc]'}`} data-testid={`button-agent-${item.id}`}>{item.id === 'host' ? <AgentAvatar size="sm" /> : <span className={`grid h-11 w-11 place-items-center rounded-[26%] ${active ? 'bg-[#e6f6fb] text-[#005689]' : 'bg-[#f7fcfe] text-[#64748b]'}`}>{item.id === 'fahim' ? <BrainCircuit size={20} /> : <BookOpen size={20} />}</span>}<span><strong className="block text-sm font-extrabold">{item.name}</strong><small className="mt-0.5 block text-[10px] text-[#64748b]">{item.role}</small></span>{active && <CheckCircle2 className="mr-auto text-[#2e8b7b]" size={17} />}</button>; })}</div>
-           <div className="mt-5 rounded-2xl bg-[#e8f8f5] p-4"><div className="mb-2 flex items-center gap-2 text-[#005689]"><Sparkles size={15} /><span className="text-xs font-extrabold">اقتراح سريع</span></div><p className="text-xs font-bold leading-6 text-[#64748b]">لا تعرف من تختار؟ ابدأ ببومة توجيه وسنجد الطريق معًا.</p></div>
+           <div className="mt-5 rounded-2xl bg-[#e8f8f5] p-4"><div className="mb-2 flex items-center gap-2 text-[#005689]"><Sparkles size={15} /><span className="text-xs font-extrabold">اقتراح سريع</span></div><p className="text-xs font-bold leading-6 text-[#64748b]">إن لم تعرف من تختار، ابدأ بالمحادثة العامة وسنحدد الخطوة التالية.</p></div>
         </aside>
         <section className="surface order-1 flex min-h-[570px] flex-col overflow-hidden lg:order-2">
            <div className="flex items-center gap-3 border-b border-[#b3e5fc] bg-[#f7fcfe] px-5 py-4"><div className="relative">{selectedAgent.id === 'host' ? <AgentAvatar size="sm" /> : <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#e6f6fb] text-[#005689]">{selectedAgent.id === 'fahim' ? <BrainCircuit size={17} /> : <BookOpen size={17} />}</span>}<i className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f7fcfe] bg-[#2e8b7b]" /></div><div><strong className="block text-sm font-extrabold">{selectedAgent.name}</strong><span className="text-[10px] text-[#64748b]">{selectedAgent.role} · متصل الآن</span></div><MoreHorizontal className="mr-auto text-[#64748b]" size={19} /></div>
@@ -825,7 +769,7 @@ function ChatPage() {
 
 function NotFoundArabic() {
    return <div className="app-shell flex min-h-[100dvh] items-center justify-center p-6"><div className="surface max-w-md p-9 text-center"><div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#e8f8f5] text-[#2e8b7b]"><Compass size={28} /></div><h1 className="display mb-3 text-2xl">هذه الصفحة خارج الخريطة</h1><p className="mb-6 text-sm leading-7 text-[#64748b]">لنعد إلى مساحة الدراسة ونكمل من حيث توقفت.</p><Link href="/" className="primary-button" data-testid="link-not-found-home">العودة إلى مساحتي <ArrowLeft size={16} /></Link></div></div>;
-   return <div className="app-shell flex min-h-[100dvh] items-center justify-center p-6"><div className="surface max-w-md p-9 text-center"><div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#e8f8f5] text-[#2e8b7b]"><Compass size={28} /></div><h1 className="display mb-3 text-2xl">هذه الصفحة خارج الخريطة</h1><p className="mb-6 text-sm leading-7 text-[#64748b]">لنعد إلى البرنامج ونكمل من حيث توقفت.</p><Link href="/program" className="primary-button" data-testid="link-not-found-home">العودة إلى وكيل البرنامج <ArrowLeft size={16} /></Link></div></div>;
+   return <div className="app-shell flex min-h-[100dvh] items-center justify-center p-6"><div className="surface max-w-md p-9 text-center"><div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-[#e8f8f5] text-[#2e8b7b]"><Compass size={28} /></div><h1 className="display mb-3 text-2xl">هذه الصفحة خارج الخريطة</h1><p className="mb-6 text-sm leading-7 text-[#64748b]">لنعد إلى البرنامج ونكمل من حيث توقفت.</p><Link href="/program" className="primary-button" data-testid="link-not-found-home">العودة إلى البرنامج الدراسي <ArrowLeft size={16} /></Link></div></div>;
 }
 
 function Router() {
@@ -838,7 +782,7 @@ function Router() {
         <Route path="/sign-up/*?" component={SignUpPage} />
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/profile" component={() => <ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/program" component={() => <ProtectedRoute><Shell title="وكيل البرنامج"><ProgramAgent /></Shell></ProtectedRoute>} />
+         <Route path="/program" component={() => <ProtectedRoute><Shell title="البرنامج الدراسي"><ProgramAgent /></Shell></ProtectedRoute>} />
         <Route path="/lesson/:id" component={() => <ProtectedRoute><Shell title="جلسة فهيم"><LessonWorkspace /></Shell></ProtectedRoute>} />
         <Route path="/library" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
         <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />

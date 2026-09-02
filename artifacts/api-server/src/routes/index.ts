@@ -6,6 +6,7 @@ import learningRouter from "./learning";
 import knowledgeRouter from "./knowledge";
 import quizzesRouter from "./quizzes";
 import fahimRouter from "./fahim";
+import lessonRouter from "./lesson";
 
 const router: IRouter = Router();
 
@@ -23,5 +24,6 @@ router.use(learningRouter);
 router.use(knowledgeRouter);
 router.use(quizzesRouter);
 router.use(fahimRouter);
+router.use(lessonRouter);
 
 export default router;

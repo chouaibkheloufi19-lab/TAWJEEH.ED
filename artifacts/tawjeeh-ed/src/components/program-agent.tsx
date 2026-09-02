@@ -10,7 +10,6 @@ import {
   ClipboardPenLine,
   Clock3,
   FilePlus2,
-  GraduationCap,
   Plus,
   Search,
   Sparkles,
@@ -19,9 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
-import owlCreationPose from '@assets/owl-creation-pose.png';
-import owlSuccessPose from '@assets/owl-success-pose.png';
-import owlThinkingPose from '@assets/owl-thinking-pose.png';
+import owlAgentTeal from '@assets/owl-agent-fahim-teal_1788382004393.png';
 
 type ProgramKind = 'مكتسبات' | 'حصة تطبيقية' | 'مراجعة' | 'اختبار' | 'فرض' | 'بحث' | 'عطلة';
 
@@ -29,6 +26,7 @@ type ProgramEntry = {
   id: string;
   date: string;
   time: string;
+  duration?: string;
   title: string;
   subject: string;
   kind: ProgramKind;
@@ -42,11 +40,11 @@ type ProgramAgentProps = {
 
 const today = '2024-06-12';
 const initialEntries: ProgramEntry[] = [
-  { id: 'program-1', date: today, time: '08:30', title: 'قوانين نيوتن والحركة', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', completed: true },
-  { id: 'program-2', date: today, time: '10:00', title: 'تطبيقات على الحركة', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false },
-  { id: 'program-3', date: today, time: '17:30', title: 'كويز تثبيت المكتسبات', subject: 'الفيزياء', kind: 'اختبار', agent: 'تمارين', completed: false },
-  { id: 'program-4', date: '2024-06-14', time: '16:00', title: 'فرض قصير في الدوال', subject: 'الرياضيات', kind: 'فرض', agent: 'تمارين', completed: false },
-  { id: 'program-5', date: '2024-06-15', time: '11:00', title: 'بحث: تطبيقات الطاقة في الحياة', subject: 'العلوم الطبيعية', kind: 'بحث', agent: 'دليل', completed: false },
+  { id: 'program-1', date: today, time: '08:30', duration: '45 دقيقة', title: 'الدوال', subject: 'الرياضيات', kind: 'مكتسبات', agent: 'فهيم', completed: true },
+  { id: 'program-2', date: today, time: '10:00', duration: '35 دقيقة', title: 'التحولات الكيميائية', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false },
+  { id: 'program-3', date: today, time: '17:30', duration: '20 دقيقة', title: 'مراجعة عامة', subject: 'الرياضيات', kind: 'اختبار', agent: 'تمارين', completed: false },
+  { id: 'program-4', date: '2024-06-14', time: '16:00', duration: '45 دقيقة', title: 'الميكانيك', subject: 'الفيزياء', kind: 'فرض', agent: 'تمارين', completed: false },
+  { id: 'program-5', date: '2024-06-15', time: '11:00', duration: '30 دقيقة', title: 'الدوال العددية', subject: 'الرياضيات', kind: 'بحث', agent: 'دليل', completed: false },
 ];
 
 const kindStyles: Record<ProgramKind, { tone: string; icon: typeof BookOpenCheck }> = {
@@ -57,12 +55,6 @@ const kindStyles: Record<ProgramKind, { tone: string; icon: typeof BookOpenCheck
   فرض: { tone: 'program-tone-rose', icon: ClipboardPenLine },
   بحث: { tone: 'program-tone-blue', icon: FilePlus2 },
   عطلة: { tone: 'program-tone-sand', icon: CalendarDays },
-};
-
-const agentLabels = {
-  فهيم: 'يثبّت المفاهيم',
-  دليل: 'يشرح لك بهدوء',
-  تمارين: 'يدرّبك بذكاء',
 };
 
 function readEntries(): ProgramEntry[] {
@@ -86,7 +78,7 @@ function ProgramAgentAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const dimensions = size === 'lg' ? 'program-avatar-lg' : size === 'sm' ? 'program-avatar-sm' : 'program-avatar-md';
   return (
     <span className={`program-agent-avatar ${dimensions}`}>
-      <img src={owlCreationPose} alt="مِيزان، وكيل البرنامج" />
+      <img src={owlAgentTeal} alt="مساعد ترتيب البرنامج" />
       <i />
     </span>
   );
@@ -107,7 +99,7 @@ function ProgramEntryCard({
       <div className="program-entry-time">
         <span>تبدأ</span>
         <strong>{entry.time}</strong>
-        <small><Timer size={12} /> بلا نهاية محددة</small>
+        <small><Timer size={12} /> {entry.duration ?? 'المدة من اختيارك'}</small>
       </div>
       <div className={`program-entry-icon ${tone}`}><Icon size={19} /></div>
       <div className="program-entry-content">
@@ -116,7 +108,7 @@ function ProgramEntryCard({
           <span>{entry.subject}</span>
         </div>
         <h3>{entry.title}</h3>
-        <p>{entry.agent} · {agentLabels[entry.agent]}</p>
+        <p>موعد من برنامجك الدراسي</p>
       </div>
       <div className="program-entry-actions">
         <button
@@ -149,6 +141,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [newEntry, setNewEntry] = useState({
     date: today,
     time: '18:00',
+    duration: '45 دقيقة',
     title: '',
     subject: 'الفيزياء',
     kind: 'اختبار' as ProgramKind,
@@ -178,9 +171,6 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     [entries],
   );
 
-  const completedCount = entries.filter((entry) => entry.completed).length;
-  const commitment = entries.length ? Math.round((completedCount / entries.length) * 100) : 0;
-
   const toggleEntry = (id: string) => {
     setEntries((current) => current.map((entry) => entry.id === id ? { ...entry, completed: !entry.completed } : entry));
   };
@@ -208,6 +198,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
       id: `program-${Date.now()}`,
       date: newEntry.date,
       time: newEntry.time,
+      duration: newEntry.duration,
       title: newEntry.title.trim(),
       subject: newEntry.subject,
       kind: newEntry.kind,
@@ -228,9 +219,9 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           <div className="program-agent-heading">
             <ProgramAgentAvatar size="lg" />
             <div>
-              <div className="program-agent-status"><span /> وكيل البرنامج · متصل الآن</div>
-              <h2>أنا مِيزان، أرتّب يومك الدراسي.</h2>
-              <p>أبني لك برنامجًا واقعيًا حسب وقت دخولك، وأربط كل حصة بالوكيل المناسب دون أن تضيع منك الخطوة التالية.</p>
+               <div className="program-agent-status"><span /> برنامجك الدراسي</div>
+               <h2>رتّب يومك الدراسي بطريقتك.</h2>
+               <p>اختر الدرس من مستنداتك، وحدد وقت الحصة ومدتها. يبقى القرار لك، ويعرض لك البرنامج الخطوة التالية بوضوح.</p>
             </div>
           </div>
           <div className="program-agent-actions">
@@ -242,11 +233,6 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
               <Plus size={17} /> إضافة موعد
             </button>
           </div>
-        </div>
-        <div className="program-agent-stats">
-          <div><span>مرحلة المكتسبات</span><strong>اليوم ٤ <small>/ ١٠</small></strong><em>فهيم يقود البداية</em></div>
-          <div><span>نسبة الالتزام</span><strong>{commitment}%</strong><em>تتغير مع كل حصة</em></div>
-          <div><span>حصص اليوم</span><strong>{entries.filter((entry) => entry.date === today).length}</strong><em>تبدأ حسب توقيتك</em></div>
         </div>
       </section>
 
@@ -260,18 +246,12 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
             <div className="program-progress"><span style={{ width: '40%' }} /></div>
             <div className="program-phase-days">{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day) => <span key={day} className={day < 4 ? 'done' : day === 4 ? 'current' : ''}>{day < 4 ? <Check size={11} /> : day}</span>)}</div>
           </div>
-          <div className="program-side-card">
-            <div className="program-card-kicker"><GraduationCap size={14} /> الوكلاء المتصلون</div>
-           <div className="program-connected-agent"><span className="program-mini-avatar fahim"><img src={owlThinkingPose} alt="فهيم" /></span><div><strong>فَهيم</strong><small>المكتسبات والفجوات</small></div><i /></div>
-           <div className="program-connected-agent"><span className="program-mini-avatar dalil"><img src={owlCreationPose} alt="دليل" /></span><div><strong>دليل</strong><small>الشرح والملخصات</small></div><i /></div>
-           <div className="program-connected-agent"><span className="program-mini-avatar exercises"><img src={owlSuccessPose} alt="التمارين" /></span><div><strong>التمارين</strong><small>التطبيق والكويزات</small></div><i /></div>
-          </div>
-          <div className="program-side-note"><CalendarClock size={18} /><p>أضف موعد فرض أو اختبار، وسأضعه في البرنامج وأرفع كثافة التدريب قبله.</p></div>
+           <div className="program-side-note"><CalendarClock size={18} /><p>أضف موعدًا من مستنداتك وحدد وقته بنفسك؛ لن نختار عنوانًا أو وقتًا بدلًا منك.</p></div>
         </aside>
 
         <section className="program-agent-workspace">
           <div className="program-workspace-toolbar">
-            <div className="program-tabs" role="tablist" aria-label="واجهة وكيل البرنامج">
+            <div className="program-tabs" role="tablist" aria-label="واجهة البرنامج الدراسي">
               <button type="button" className={activeTab === 'schedule' ? 'active' : ''} onClick={() => setActiveTab('schedule')} role="tab" aria-selected={activeTab === 'schedule'} data-testid="tab-program-schedule"><CalendarDays size={16} /> البرنامج اليومي</button>
               <button type="button" className={activeTab === 'events' ? 'active' : ''} onClick={() => setActiveTab('events')} role="tab" aria-selected={activeTab === 'events'} data-testid="tab-program-events"><ClipboardPenLine size={16} /> الاختبارات والمواعيد</button>
               <button type="button" className={activeTab === 'notifications' ? 'active' : ''} onClick={() => setActiveTab('notifications')} role="tab" aria-selected={activeTab === 'notifications'} data-testid="tab-program-notifications"><Bell size={16} /> التنبيهات</button>
@@ -293,7 +273,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
                 {visibleEntries.length ? visibleEntries.map((entry) => (
                   <div key={entry.id} className={activeEntry === entry.id ? 'program-active-entry' : ''}>
                     <ProgramEntryCard entry={entry} onToggle={() => toggleEntry(entry.id)} onStart={() => startEntry(entry)} />
-                    {activeEntry === entry.id && <div className="program-active-message"><CheckCircle2 size={15} /> الحصة مفتوحة. تواصل مع {entry.agent} عند بدء وقتها.</div>}
+                    {activeEntry === entry.id && <div className="program-active-message"><CheckCircle2 size={15} /> الحصة مفتوحة. ابدأها عندما يحين الوقت الذي حددته.</div>}
                   </div>
                 )) : <div className="program-empty"><CalendarDays size={22} /><strong>لا توجد حصة في هذا اليوم.</strong><span>أضف موعدًا جديدًا ليبقى برنامجك محدثًا.</span></div>}
               </div>
@@ -302,7 +282,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
 
           {activeTab === 'events' && (
             <div className="program-events-content">
-              <div className="program-schedule-intro"><div><span className="program-card-kicker"><ClipboardPenLine size={14} /> ما يجب ألا يفوتك</span><h3>الاختبارات والمهام القادمة.</h3><p>أخبرني بمواعيدك، وسأربطها مع التمارين وبقية الوكلاء.</p></div><button type="button" className="program-inline-add" onClick={() => setShowAddForm(true)}><Plus size={15} /> إضافة موعد</button></div>
+               <div className="program-schedule-intro"><div><span className="program-card-kicker"><ClipboardPenLine size={14} /> ما يجب ألا يفوتك</span><h3>الاختبارات والمهام القادمة.</h3><p>أضف مواعيدك كما هي في مستنداتك، وسنتركها واضحة داخل برنامجك.</p></div><button type="button" className="program-inline-add" onClick={() => setShowAddForm(true)}><Plus size={15} /> إضافة موعد</button></div>
               <div className="program-event-list">
                 {extraEvents.map((entry) => {
                   const { tone, icon: Icon } = kindStyles[entry.kind];
@@ -325,10 +305,11 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         <div className="program-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowAddForm(false); }}>
           <form className="program-add-modal" onSubmit={addEntry} onMouseDown={(event) => event.stopPropagation()} data-testid="form-add-program-event">
             <div className="program-modal-header"><div><span className="program-card-kicker"><Plus size={14} /> موعد جديد</span><h3>أضف شيئًا إلى برنامجك</h3></div><button type="button" className="program-modal-close" onClick={() => setShowAddForm(false)} aria-label="إغلاق"><X size={18} /></button></div>
-            <label>اسم الموعد<input required value={newEntry.title} onChange={(event) => setNewEntry((current) => ({ ...current, title: event.target.value }))} placeholder="مثال: اختبار قوانين الحركة" autoFocus /></label>
+             <label>اسم الدرس أو الموعد<input required value={newEntry.title} onChange={(event) => setNewEntry((current) => ({ ...current, title: event.target.value }))} placeholder="اكتب الاسم كما ورد في مستنداتك" autoFocus /></label>
             <div className="program-form-grid"><label>النوع<select value={newEntry.kind} onChange={(event) => setNewEntry((current) => ({ ...current, kind: event.target.value as ProgramKind }))}><option>اختبار</option><option>فرض</option><option>بحث</option><option>عطلة</option><option>مراجعة</option></select></label><label>المادة<select value={newEntry.subject} onChange={(event) => setNewEntry((current) => ({ ...current, subject: event.target.value }))}><option>الفيزياء</option><option>الرياضيات</option><option>العلوم الطبيعية</option><option>اللغة العربية</option></select></label></div>
-            <div className="program-form-grid"><label>التاريخ<input type="date" value={newEntry.date} onChange={(event) => setNewEntry((current) => ({ ...current, date: event.target.value }))} /></label><label>وقت البداية<input type="time" value={newEntry.time} onChange={(event) => setNewEntry((current) => ({ ...current, time: event.target.value }))} /></label></div>
-            <p className="program-modal-hint"><CalendarClock size={14} /> نحدد وقت البداية فقط، وتنتقل للخطوة التالية عندما تنتهي أنت.</p>
+             <div className="program-form-grid"><label>التاريخ<input type="date" value={newEntry.date} onChange={(event) => setNewEntry((current) => ({ ...current, date: event.target.value }))} /></label><label>وقت البداية<input type="time" value={newEntry.time} onChange={(event) => setNewEntry((current) => ({ ...current, time: event.target.value }))} /></label></div>
+             <label>مدة الحصة<select value={newEntry.duration} onChange={(event) => setNewEntry((current) => ({ ...current, duration: event.target.value }))}><option>20 دقيقة</option><option>30 دقيقة</option><option>45 دقيقة</option><option>60 دقيقة</option><option>90 دقيقة</option></select></label>
+             <p className="program-modal-hint"><CalendarClock size={14} /> أنت من يحدد وقت الحصة ومدتها، ولا نضع عنوانًا تلقائيًا.</p>
             <div className="program-modal-actions"><button type="button" className="secondary-button" onClick={() => setShowAddForm(false)}>إلغاء</button><button type="submit" className="primary-button"><Plus size={16} /> إضافة إلى البرنامج</button></div>
           </form>
         </div>

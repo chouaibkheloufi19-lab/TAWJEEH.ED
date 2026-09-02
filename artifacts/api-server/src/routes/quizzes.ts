@@ -11,9 +11,9 @@ const router: IRouter = Router();
 const quizzes = [
   {
     id: "weekly-physics",
-    title: "مراجعة الفيزياء الأسبوعية",
+    title: "الكويز الأسبوعي المخصص — الفيزياء",
     subject: "الفيزياء",
-    description: "اختبر فهمك لما راجعته هذا الأسبوع",
+    description: "أسئلة تتبع مستواك وتركّز على المفاهيم التي تحتاج مراجعة بعد محاولاتك.",
     duration: "20 دقيقة",
     status: "متاح الآن",
     points: 120,
@@ -25,9 +25,9 @@ const quizzes = [
   },
   {
     id: "mechanics-unit",
-    title: "كويز وحدة الميكانيك",
+    title: "تحدّي نهاية الوحدة — الميكانيك",
     subject: "الفيزياء",
-    description: "تقييم قصير بعد إتمام الوحدة",
+    description: "اختبار عام صعب يفتح بعد إتمام الوحدة لقياس الفهم الكامل.",
     duration: "12 دقيقة",
     status: "جاهز للبدء",
     points: 80,

@@ -13,14 +13,14 @@ router.get("/dashboard", (req, res): void => {
       avatar: "ي",
     },
     metrics: [
-      { label: "نسبة الإنجاز", value: "68%", detail: "+12% هذا الأسبوع", tone: "teal" },
-      { label: "ساعات التركيز", value: "12.5", detail: "من أصل 18 ساعة", tone: "blue" },
-      { label: "النقاط", value: "2,480", detail: "ترتيبك: 14 هذا الأسبوع", tone: "amber" },
+       { label: "المراجعات المكتملة", value: "6", detail: "هذا الأسبوع", tone: "teal" },
+       { label: "المحاولات المحفوظة", value: "4", detail: "في بنك الأخطاء", tone: "blue" },
+       { label: "الكويزات المنجزة", value: "2", detail: "هذا الأسبوع", tone: "amber" },
     ],
     today: [
-      { id: "study-1", time: "08:30", title: "قوانين نيوتن والحركة", subject: "الفيزياء", duration: "45 دقيقة", kind: "درس مع دليل", completed: true },
-      { id: "study-2", time: "10:00", title: "تطبيقات على الحركة", subject: "الفيزياء", duration: "35 دقيقة", kind: "تمارين", completed: false },
-      { id: "study-3", time: "17:30", title: "كويز المراجعة الأسبوعية", subject: "الفيزياء", duration: "20 دقيقة", kind: "تقييم", completed: false },
+       { id: "study-1", time: "08:30", title: "الدوال", subject: "الرياضيات", duration: "45 دقيقة", kind: "درس من المكتبة", completed: true },
+       { id: "study-2", time: "10:00", title: "التحولات الكيميائية", subject: "الفيزياء", duration: "35 دقيقة", kind: "تمارين", completed: false },
+       { id: "study-3", time: "17:30", title: "مراجعة عامة", subject: "الرياضيات", duration: "20 دقيقة", kind: "تقييم", completed: false },
     ],
     activities: [
       { id: "activity-1", title: "أكملت درس الحركة المستقيمة", description: "أضاف دليل ملخصًا جديدًا إلى بنك المعرفة", time: "منذ ساعتين", icon: "book" },

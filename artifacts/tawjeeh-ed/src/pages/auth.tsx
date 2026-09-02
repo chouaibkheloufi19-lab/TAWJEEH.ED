@@ -65,7 +65,7 @@ export default function AuthPage({ mode: initialMode = 'login' }: { mode?: AuthM
       <div className="auth-orb auth-orb-two" />
       <header className="auth-header">
         <Link href="/" className="auth-brand" data-testid="link-auth-home">
-          <img src={logoPath} alt="بومة توجيه" />
+          <img src={logoPath} alt="شعار توجيه" />
           <span><strong>TAWJEEH</strong><small>مساحة التعلّم</small></span>
         </Link>
         <Link href="/" className="auth-back-link"><ArrowRight size={16} /> العودة للرئيسية</Link>
