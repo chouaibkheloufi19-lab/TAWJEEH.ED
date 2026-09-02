@@ -11,7 +11,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
-import logoPath from '@assets/Gemini_Generated_Image_exgepoexgepoexge_1788335808418.jpg';
+import logoPath from '@assets/tawjeeh-owl-transparent.png';
 
 const tracks = [
   { value: 'experimental-sciences', label: 'علوم تجريبية', english: 'Experimental Sciences' },

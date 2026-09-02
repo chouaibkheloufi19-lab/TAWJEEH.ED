@@ -54,9 +54,9 @@ import {
 } from '@workspace/api-client-react';
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
-import logoPath from '@assets/Gemini_Generated_Image_exgepoexgepoexge_1788335808418.jpg';
+import logoPath from '@assets/tawjeeh-logo-transparent.png';
 import welcomeVideo from '@assets/Gemini_Generated_Image_697ml8697ml8697m_1788300867064.mp4';
-import owlLogoPath from '@assets/Screenshot_2026-08-14_111104_1788301581503.png';
+import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -82,7 +82,7 @@ const clerkAppearance = {
   options: {
     logoPlacement: 'inside' as const,
     logoLinkUrl: basePath || '/',
-    logoImageUrl: `${window.location.origin}${basePath}/tawjeeh-logo.jpg`,
+    logoImageUrl: `${window.location.origin}${basePath}/tawjeeh-logo-transparent.png`,
     socialButtonsPlacement: 'top' as const,
     socialButtonsVariant: 'blockButton' as const,
   },
@@ -114,7 +114,7 @@ const clerkAppearance = {
     formFieldSuccessText: '!text-[#8fe5cd]',
     alertText: '!text-[#ffb0b0]',
     logoBox: 'h-12',
-    logoImage: 'max-h-12',
+    logoImage: 'max-h-16 w-auto object-contain',
     socialButtonsBlockButton: 'min-h-12 rounded-xl border-[#2d5770] !bg-[#153950] shadow-[0_8px_20px_rgba(0,0,0,.12)] transition-all hover:!border-[#26c6da] hover:!bg-[#1b4861] hover:!shadow-[0_12px_26px_rgba(0,0,0,.2)]',
     socialButtonsProviderIcon: 'h-5 w-5',
     formButtonPrimary: 'min-h-12 rounded-xl !bg-[#26c6da] !text-[#062033] shadow-[0_9px_20px_rgba(38,198,218,.2)] transition-all hover:!bg-[#6fe7ee] hover:!shadow-[0_12px_28px_rgba(38,198,218,.3)] font-extrabold',
@@ -139,7 +139,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" className="flex items-center gap-3" data-testid="link-brand">
       <img
-        src={logoPath}
+        src={owlLogoPath}
         alt="بومة توجيه"
         data-testid="img-brand-logo"
         className={compact ? 'h-10 w-10 rounded-xl object-cover object-[50%_30%]' : 'h-11 w-11 rounded-xl object-cover object-[50%_30%]'}
@@ -158,7 +158,7 @@ function AgentAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const dimensions = size === 'lg' ? 'h-20 w-20' : size === 'sm' ? 'h-9 w-9' : 'h-12 w-12';
   return (
     <img
-      src={logoPath}
+      src={owlLogoPath}
       alt="بومة توجيه"
       data-testid="img-owl-avatar"
       className={`${dimensions} rounded-[28%] object-cover object-[50%_28%]`}
@@ -254,7 +254,7 @@ function AuthLoading() {
   return (
     <main className="auth-gate" aria-busy="true">
       <div className="auth-gate-card auth-loading-card">
-        <img src={logoPath} alt="" className="auth-gate-logo" />
+        <img src={owlLogoPath} alt="" className="auth-gate-logo" />
         <p>جاري تجهيز الدخول إلى توجيه...</p>
       </div>
     </main>
@@ -264,7 +264,7 @@ function AuthLoading() {
 function AuthBrand() {
   return (
     <div className="auth-gate-brand">
-      <img src={logoPath} alt="شعار توجيه" />
+      <img src={owlLogoPath} alt="شعار توجيه" />
       <div>
         <strong>TAWJEEH</strong>
         <span>مساحة التعلّم</span>
@@ -354,7 +354,7 @@ function AuthStory({ mode }: { mode: 'login' | 'register' }) {
         <span className="auth-story-status"><span /> مساحة تعلّم هادئة</span>
       </div>
       <div className="auth-story-mark">
-        <div className="auth-story-mark-image"><img src={logoPath} alt="" /></div>
+         <div className="auth-story-mark-image"><img src={owlLogoPath} alt="" /></div>
         <span>بومة توجيه معك في كل خطوة</span>
       </div>
       <div className="auth-story-copy">
@@ -782,16 +782,40 @@ function App() {
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}
       localization={{
+        locale: 'ar-SA',
+        socialButtonsBlockButton: 'المتابعة باستخدام Google',
+        dividerText: 'أو',
+        formFieldLabel__emailAddress: 'البريد الإلكتروني',
+        formFieldLabel__password: 'كلمة المرور',
+        formFieldLabel__firstName: 'الاسم الأول',
+        formFieldLabel__lastName: 'اسم العائلة',
+        formFieldInputPlaceholder__emailAddress: 'أدخل بريدك الإلكتروني',
+        formFieldInputPlaceholder__password: 'أدخل كلمة المرور',
+        formFieldInputPlaceholder__signUpPassword: 'أنشئ كلمة مرور قوية',
+        formFieldInputPlaceholder__firstName: 'أدخل اسمك الأول',
+        formFieldInputPlaceholder__lastName: 'أدخل اسم عائلتك',
+        formFieldAction__forgotPassword: 'هل نسيت كلمة المرور؟',
+        formButtonPrimary: 'المتابعة',
+        formButtonPrimary__verify: 'تأكيد',
         signIn: {
           start: {
             title: 'مرحبًا بعودتك',
             subtitle: 'سجّل دخولك لتواصل التعلّم',
+            actionText: 'ليس لديك حساب؟',
+            actionLink: 'إنشاء حساب',
+          },
+          password: {
+            title: 'أدخل كلمة المرور',
+            subtitle: 'أدخل كلمة المرور للمتابعة إلى مساحتك.',
+            actionLink: 'هل نسيت كلمة المرور؟',
           },
         },
         signUp: {
           start: {
             title: 'أنشئ حسابك في توجيه',
             subtitle: 'خطوتك الأولى نحو تعلّم أكثر وضوحًا',
+            actionText: 'لديك حساب بالفعل؟',
+            actionLink: 'تسجيل الدخول',
           },
         },
       }}

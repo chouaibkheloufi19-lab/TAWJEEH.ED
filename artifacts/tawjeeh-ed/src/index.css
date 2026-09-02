@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 @layer theme, base, clerk, components, utilities;
 @import 'tailwindcss';
 @import '@clerk/themes/shadcn.css';
@@ -60,7 +60,7 @@
   --sidebar-primary-foreground: 200 100% 23%;
   --sidebar-accent: 164 50% 94%;
   --sidebar-accent-foreground: 166 51% 36%;
-  --app-font-sans: 'Cairo', sans-serif;
+  --app-font-sans: 'IBM Plex Sans Arabic', sans-serif;
   --app-font-mono: 'Space Mono', monospace;
   --radius: 1.05rem;
   --shadow-soft: 0 16px 36px rgba(22, 40, 70, .07);
@@ -909,17 +909,22 @@ button { cursor: pointer; }
   overflow: hidden;
   padding: 48px 24px;
   background:
-    linear-gradient(rgba(38, 198, 218, .08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(38, 198, 218, .08) 1px, transparent 1px),
-    #061827;
-  background-size: 56px 56px;
+    radial-gradient(circle at 14% 18%, rgba(38, 198, 218, .18), transparent 28rem),
+    radial-gradient(circle at 88% 82%, rgba(143, 229, 205, .1), transparent 25rem),
+    linear-gradient(145deg, #061827 0%, #0b263b 52%, #081d30 100%);
 }
 .clerk-auth-page::before,
 .clerk-auth-page::after {
-  display: none;
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border: 1px solid rgba(143, 229, 205, .12);
+  border-radius: 50%;
+  filter: blur(.2px);
 }
-.clerk-auth-page::before { width: 520px; height: 520px; top: -310px; left: -170px; }
-.clerk-auth-page::after { width: 420px; height: 420px; right: -240px; bottom: -270px; }
+.clerk-auth-page::before { width: 620px; height: 620px; top: -380px; left: -220px; box-shadow: 0 0 0 34px rgba(38, 198, 218, .035), 0 0 0 68px rgba(38, 198, 218, .025); }
+.clerk-auth-page::after { width: 520px; height: 520px; right: -290px; bottom: -330px; box-shadow: 0 0 0 28px rgba(143, 229, 205, .03), 0 0 0 56px rgba(143, 229, 205, .02); }
 .auth-story {
   width: min(100%, 520px);
   color: #f4fbff;
@@ -927,7 +932,7 @@ button { cursor: pointer; }
 .auth-story .auth-gate-brand { color: #f4fbff; }
 .auth-story .auth-gate-brand strong { color: #f4fbff; }
 .auth-story .auth-gate-brand span { color: #9bb3c2; }
-.auth-story .auth-gate-brand img { border-color: #2d5770; box-shadow: 0 8px 20px rgba(0, 0, 0, .2); }
+.auth-story .auth-gate-brand img { border-color: rgba(143, 229, 205, .35); background: transparent; box-shadow: 0 8px 20px rgba(0, 0, 0, .2); }
 .auth-story-topline {
   display: flex;
   align-items: center;
@@ -966,15 +971,21 @@ button { cursor: pointer; }
   place-items: center;
   border: 1px solid #2d5770;
   border-radius: 25px;
-  background: #102c43;
+  background: rgba(16, 44, 67, .7);
   box-shadow: 0 14px 30px rgba(0, 0, 0, .24);
 }
 .auth-story-mark-image img {
   width: 65px;
   height: 65px;
   border-radius: 20px;
-  object-fit: cover;
-  object-position: 50% 30%;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+}
+.auth-gate-brand img,
+.auth-gate-logo {
+  background: transparent;
+  object-fit: contain;
 }
 .auth-video-shell {
   position: relative;
@@ -1076,8 +1087,9 @@ button { cursor: pointer; }
   max-width: 460px;
   border: 1px solid #2d5770;
   border-radius: 24px;
-  background: #102c43;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, .3);
+  background: rgba(16, 44, 67, .86);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .04);
+  backdrop-filter: blur(18px);
 }
 .clerk-auth-page .cl-socialButtonsBlockButton {
   min-height: 49px;
@@ -1112,6 +1124,10 @@ button { cursor: pointer; }
   border-radius: 13px;
   background: #0a2235;
   box-shadow: none;
+}
+.clerk-auth-page .cl-formFieldInput::placeholder {
+  color: #7894a3;
+  opacity: 1;
 }
 .clerk-auth-page .cl-formFieldInput:focus {
   border-color: #26c6da;
