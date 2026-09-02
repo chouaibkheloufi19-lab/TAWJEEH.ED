@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import Sequence
 
+from .catalog import index_assets
 from .ingest import ingest_pdf
 from .schema import DIFFICULTY_LEVELS, KnowledgeMetadata
 from .server import serve
@@ -66,6 +67,20 @@ def _build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("collections", help="Show collection counts.")
 
+    index_parser = subparsers.add_parser(
+        "index-assets", help="OCR and index all educational uploads in a directory."
+    )
+    index_parser.add_argument("--directory", default="attached_assets", type=Path)
+    index_parser.add_argument(
+        "--catalog", default="knowledge_base/catalog.json", type=Path
+    )
+    index_parser.add_argument("--verbose", action="store_true")
+    index_parser.add_argument(
+        "--no-ocr",
+        action="store_true",
+        help="Catalog scanned pages as pending instead of running OCR.",
+    )
+
     serve_parser = subparsers.add_parser(
         "serve", help="Run the read-only agent query service."
     )
@@ -98,6 +113,14 @@ def main(argv: Sequence[str] | None = None) -> None:
         }
     elif args.command == "collections":
         result = {"collections": store.collections()}
+    elif args.command == "index-assets":
+        result = index_assets(
+            args.directory,
+            catalog_path=args.catalog,
+            store=store,
+            verbose=args.verbose,
+            ocr_empty_pages=not args.no_ocr,
+        )
     elif args.command == "serve":
         serve(args.host, args.port)
         return

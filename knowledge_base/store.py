@@ -32,7 +32,7 @@ class KnowledgeStore:
             name=collection_name,
             metadata={
                 "description": "Tawjeeh educational knowledge chunks",
-                "schema_version": "1",
+                "schema_version": "2",
                 "hnsw:space": "cosine",
             },
         )
@@ -52,6 +52,26 @@ class KnowledgeStore:
             documents=[chunk.document for chunk in chunks],
             metadatas=[chunk.metadata.as_chroma_metadata() for chunk in chunks],
         )
+        return len(chunks)
+
+    def replace_source(self, source_file: str, chunks: list[KnowledgeChunk]) -> int:
+        """Upsert a source and remove stale chunks from an earlier revision."""
+
+        existing = self.collection.get(
+            where={"source_file": source_file},
+            include=["metadatas"],
+        )
+        old_ids = existing.get("ids", [])
+        old_metadatas = existing.get("metadatas", [])
+        new_hash = chunks[0].metadata.source_hash if chunks else ""
+        self.upsert(chunks)
+        stale_ids = [
+            item_id
+            for item_id, metadata in zip(old_ids, old_metadatas)
+            if metadata and metadata.get("source_hash") != new_hash
+        ]
+        if stale_ids:
+            self.collection.delete(ids=stale_ids)
         return len(chunks)
 
     def query(

@@ -7,8 +7,9 @@ import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
+from .catalog import load_catalog
 from .store import KnowledgeStore
 
 
@@ -75,6 +76,57 @@ class KnowledgeRequestHandler(BaseHTTPRequestHandler):
                 )
             elif route == "/v1/collections":
                 self._send(HTTPStatus.OK, {"collections": store.collections()})
+            elif route == "/v1/catalog":
+                catalog = load_catalog()
+                params = parse_qs(urlparse(self.path).query)
+                requested_subject = params.get("subject", [None])[0]
+                requested_year = params.get("curriculum_year", [None])[0]
+                source_records = [
+                    item
+                    for item in catalog.get("sources", [])
+                    if item.get("status") == "indexed"
+                ]
+                if requested_subject:
+                    source_records = [
+                        item
+                        for item in source_records
+                        if item.get("subject") == requested_subject
+                    ]
+                if requested_year:
+                    source_records = [
+                        item
+                        for item in source_records
+                        if item.get("curriculum_year") == requested_year
+                    ]
+                sources = [
+                    {
+                        "id": item["source_id"],
+                        "title": item["title"],
+                        "summary": item["summary"],
+                        "subject": item["subject"],
+                        "unit": item["unit"],
+                        "lesson": item["lesson"],
+                        "type": item["content_type"],
+                        "difficulty": item["difficulty"],
+                        "source": item["source_file"],
+                        "page": item["first_page"],
+                        "tags": item["tags"],
+                    }
+                    for item in source_records
+                ]
+                if requested_subject:
+                    sources = [
+                        item for item in sources if item.get("subject") == requested_subject
+                    ]
+                self._send(
+                    HTTPStatus.OK,
+                    {
+                        "version": catalog.get("version", 1),
+                        "stats": catalog.get("stats", {}),
+                        "sources": sources,
+                        "count": len(sources),
+                    },
+                )
             else:
                 self._send(HTTPStatus.NOT_FOUND, {"error": "route_not_found"})
         except Exception as error:
