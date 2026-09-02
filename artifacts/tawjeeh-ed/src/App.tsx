@@ -143,7 +143,7 @@ const navItems = [
   { href: '/dashboard', label: 'مساحتي', icon: LayoutDashboard },
   { href: '/program', label: 'وكيل البرنامج', icon: CalendarDays },
   { href: '/profile', label: 'الملف الشخصي', icon: UserRound },
-  { href: '/knowledge', label: 'المعرفة', icon: Library },
+  { href: '/library', label: 'المعرفة', icon: Library },
   { href: '/chat', label: 'التفاعل', icon: MessageCircle },
   { href: '/quizzes', label: 'الاختبارات والنقاط', icon: BrainCircuit },
 ];
@@ -597,7 +597,7 @@ function DashboardPage() {
            <div className="surface-soft bg-[#e8f8f5] p-5">
              <div className="mb-3 flex items-center gap-2 text-[#2e8b7b]"><Sparkles size={17} /><span className="text-xs font-extrabold">اقتراح بومة توجيه</span></div>
             <p className="text-sm font-bold leading-7">راجع مفهومًا واحدًا من الفيزياء قبل أن تنهي اليوم.</p>
-             <Link href="/knowledge" className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold text-[#005689]" data-testid="link-discover-knowledge">اكتشف ملخصاتك <ArrowLeft size={14} /></Link>
+             <Link href="/library" className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold text-[#005689]" data-testid="link-discover-knowledge">اكتشف ملخصاتك <ArrowLeft size={14} /></Link>
           </div>
         </div>
       </section>
@@ -840,7 +840,7 @@ function Router() {
         <Route path="/profile" component={() => <ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/program" component={() => <ProtectedRoute><Shell title="وكيل البرنامج"><ProgramAgent /></Shell></ProtectedRoute>} />
         <Route path="/lesson/:id" component={() => <ProtectedRoute><Shell title="جلسة فهيم"><LessonWorkspace /></Shell></ProtectedRoute>} />
-        <Route path="/knowledge" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
+        <Route path="/library" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
         <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
         <Route path="/chat" component={() => <ProtectedRoute><ChatPage /></ProtectedRoute>} />
         <Route component={NotFoundArabic} />

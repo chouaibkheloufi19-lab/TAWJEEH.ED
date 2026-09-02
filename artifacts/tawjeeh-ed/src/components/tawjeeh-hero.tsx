@@ -19,7 +19,7 @@ export default function TawjeehHero() {
           <span><b>TAWJEEH</b><small>نتعلّم بذكاء، نتقدّم بثقة</small></span>
         </Link>
         <nav className="hero-nav" aria-label="التنقل الرئيسي">
-          <Link href="/knowledge">المعرفة</Link>
+          <Link href="/library">المعرفة</Link>
           <Link href="/quizzes">الاختبارات</Link>
           <Link href="/chat">اسأل توجيه</Link>
         </nav>
