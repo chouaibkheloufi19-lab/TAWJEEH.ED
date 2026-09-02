@@ -54,6 +54,15 @@ class KnowledgeStore:
         )
         return len(chunks)
 
+    def replace_source(self, source_file: str, chunks: list[KnowledgeChunk]) -> int:
+        """Replace all chunks for one source without leaving stale pages behind."""
+
+        existing = self.collection.get(where={"source_file": source_file})
+        existing_ids = existing.get("ids", [])
+        if existing_ids:
+            self.collection.delete(ids=existing_ids)
+        return self.upsert(chunks)
+
     def query(
         self,
         query: str,

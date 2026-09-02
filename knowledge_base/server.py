@@ -17,6 +17,72 @@ def _json_bytes(payload: Any) -> bytes:
     return json.dumps(payload, ensure_ascii=False).encode("utf-8")
 
 
+def _catalog_cards(
+    *,
+    subject: str | None = None,
+    curriculum_year: str | None = None,
+) -> list[dict[str, Any]]:
+    payload = load_catalog()
+    cards = payload.get("cards", [])
+    if not isinstance(cards, list):
+        return []
+
+    normalized_subject = (subject or "").strip()
+    subject_aliases = {
+        "العلوم": {"العلوم", "العلوم الفيزيائية", "الفيزياء"},
+        "الفيزياء": {"العلوم", "العلوم الفيزيائية", "الفيزياء"},
+    }
+    allowed_subjects = subject_aliases.get(
+        normalized_subject,
+        {normalized_subject} if normalized_subject else None,
+    )
+    filtered: list[dict[str, Any]] = []
+    for card in cards:
+        if not isinstance(card, dict):
+            continue
+        if allowed_subjects is not None and card.get("subject") not in allowed_subjects:
+            continue
+        if curriculum_year and card.get("curriculum_year") not in {
+            curriculum_year,
+            "unspecified",
+        }:
+            continue
+        filtered.append(card)
+    return filtered
+
+
+def _catalog_search(query: str, cards: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
+    terms = [term.casefold() for term in query.split() if term.strip()]
+    ranked: list[tuple[int, dict[str, Any]]] = []
+    for card in cards:
+        haystack = " ".join(
+            str(card.get(key, ""))
+            for key in ("title", "summary", "subject", "unit", "lesson", "tags")
+        ).casefold()
+        score = sum(1 for term in terms if term in haystack)
+        if score:
+            ranked.append((score, card))
+    ranked.sort(key=lambda item: (-item[0], str(item[1].get("title", ""))))
+    results: list[dict[str, Any]] = []
+    for _, card in ranked[:limit]:
+        results.append(
+            {
+                "id": str(card.get("id", "")),
+                "document": str(card.get("summary", "")),
+                "metadata": {
+                    "subject": str(card.get("subject", "")),
+                    "unit": str(card.get("unit", "")),
+                    "lesson": str(card.get("lesson", "")),
+                    "content_type": str(card.get("type", "reference")),
+                    "source_file": str(card.get("source", "")),
+                    "source_page": str(card.get("page", 0)),
+                    "concepts": ",".join(str(tag) for tag in card.get("tags", [])),
+                },
+            }
+        )
+    return results
+
+
 class KnowledgeRequestHandler(BaseHTTPRequestHandler):
     server_version = "TawjeehKnowledge/1.0"
 
@@ -76,6 +142,21 @@ class KnowledgeRequestHandler(BaseHTTPRequestHandler):
                 )
             elif route == "/v1/collections":
                 self._send(HTTPStatus.OK, {"collections": store.collections()})
+            elif route == "/v1/catalog":
+                query = parse_qs(urlparse(self.path).query)
+                subject = query.get("subject", [None])[0]
+                curriculum_year = query.get("curriculum_year", [None])[0]
+                cards = _catalog_cards(
+                    subject=subject,
+                    curriculum_year=curriculum_year,
+                )
+                self._send(
+                    HTTPStatus.OK,
+                    {
+                        "sources": cards,
+                        "stats": load_catalog().get("stats", {}),
+                    },
+                )
             else:
                 self._send(HTTPStatus.NOT_FOUND, {"error": "route_not_found"})
         except Exception as error:
@@ -97,11 +178,20 @@ class KnowledgeRequestHandler(BaseHTTPRequestHandler):
                 raise ValueError("query must be a string")
             if not isinstance(n_results, int):
                 raise ValueError("n_results must be an integer")
-            results = self._store().query(
-                query,
-                n_results=n_results,
-                where=where,
-            )
+            store = self._store()
+            if store.count():
+                results = store.query(
+                    query,
+                    n_results=n_results,
+                    where=where,
+                )
+            else:
+                subject = where.get("subject") if isinstance(where, dict) else None
+                results = _catalog_search(
+                    query,
+                    _catalog_cards(subject=subject),
+                    n_results,
+                )
             self._send(
                 HTTPStatus.OK,
                 {

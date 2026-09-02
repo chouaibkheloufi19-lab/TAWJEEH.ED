@@ -37,12 +37,12 @@ name = "Knowledge Base"
 paths = ["/knowledge"]
 
 [services.development]
-run = "cd ../.. && python3 -m knowledge_base.cli serve --port 8001"
+run = "cd ../.. && uv run python3 -m knowledge_base.cli serve --port 8001"
 
 [services.production]
 
 [services.production.run]
-args = ["python3", "-m", "knowledge_base.cli", "serve", "--host", "0.0.0.0", "--port", "8001"]
+args = ["uv", "run", "python3", "-m", "knowledge_base.cli", "serve", "--host", "0.0.0.0", "--port", "8001"]
 
 [services.production.health.startup]
 path = "/knowledge/healthz"

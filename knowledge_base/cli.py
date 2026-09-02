@@ -105,3 +105,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     else:
         raise RuntimeError(f"Unsupported command: {args.command}")
 
+
+if __name__ == "__main__":
+    main()
+

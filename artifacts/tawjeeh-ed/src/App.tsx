@@ -686,7 +686,7 @@ function KnowledgePage() {
   const knowledgeQuery = useListKnowledge(knowledgeParams, { query: { queryKey: getListKnowledgeQueryKey(knowledgeParams) } });
   const searchMutation = useQueryKnowledge();
   const baseCards = (knowledgeQuery.data as KnowledgeCard[] | undefined) ?? [];
-  const resultCards = searchMutation.data?.results ?? (searched ? [] : baseCards);
+  const resultCards = searched ? (searchMutation.data?.results ?? []) : baseCards;
   const submitSearch = (event: React.FormEvent) => {
     event.preventDefault();
     if (term.trim().length < 2) return;
