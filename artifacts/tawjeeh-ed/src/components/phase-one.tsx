@@ -16,12 +16,7 @@ import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 export type PlannerIntakeValues = {
   name: string;
   branch: string;
-  dailyMinutes: number;
-  preferredTime: string;
-  priority: string;
-  testSchedule: string;
-  homework: string;
-  holidayAssignments: string;
+  phone: string;
 };
 
 export type PhaseOneOnboardingProps = {
@@ -75,12 +70,7 @@ const branchOptions = [
 const defaultValues: PlannerIntakeValues = {
   name: '',
   branch: '',
-  dailyMinutes: 45,
-  preferredTime: 'evening',
-  priority: 'foundation',
-  testSchedule: '',
-  homework: '',
-  holidayAssignments: '',
+  phone: '',
 };
 
 function OwlVideo({ src, alt, className = '', testId }: OwlVideoProps) {
@@ -285,8 +275,8 @@ export function PlannerIntakeCard({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!values.name.trim() || !values.branch) {
-      setError('أضف اسمك وشعبتك حتى يكون المخطّط قريبًا منك.');
+    if (!values.name.trim() || !values.branch || !values.phone.trim()) {
+      setError('أضف اسمك وشعبتك ورقم هاتفك حتى نكمل بياناتك.');
       return;
     }
     setSubmitted(true);
@@ -327,8 +317,8 @@ export function PlannerIntakeCard({
       <form className="phase-one-intake-card" onSubmit={handleSubmit} noValidate>
         <div className="phase-one-intake-header">
           <div>
-            <span className="phase-one-form-label">لنبدأ من الأساس</span>
-            <h2 data-testid="heading-planner-form">كيف تحب أن تتقدّم؟</h2>
+            <span className="phase-one-form-label">بيانات البداية فقط</span>
+            <h2 data-testid="heading-planner-form">ابدأ بما تعرفه الآن</h2>
           </div>
           <div className="phase-one-intake-seal" aria-hidden="true">
             <CalendarDays size={20} />
@@ -359,48 +349,28 @@ export function PlannerIntakeCard({
           </select>
         </label>
 
-        <div className="phase-one-intake-divider">
-          <span>وماذا ينتظرك؟</span>
-          <small>اختياري الآن، ويمكنك تعديله لاحقًا</small>
+        <label className="phase-one-field">
+          <span>رقم الهاتف</span>
+          <input
+            type="tel"
+            value={values.phone}
+            onChange={(event) => update('phone', event.target.value)}
+            placeholder="أدخل رقم هاتفك"
+            autoComplete="tel"
+            inputMode="tel"
+            data-testid="input-planner-phone"
+          />
+        </label>
+
+        <div className="phase-one-later-note" role="note" data-testid="text-planner-later-note">
+          <strong>لا تحتاج إلى معرفة جدولك الآن.</strong>
+          <span>عندما تعرف اختبارًا أو فرضًا أو بحثًا لاحقًا، أضفه من داخل المخطّط فقط.</span>
         </div>
-
-        <label className="phase-one-field">
-          <span>مواعيد الاختبارات</span>
-          <textarea
-            value={values.testSchedule}
-            onChange={(event) => update('testSchedule', event.target.value)}
-            placeholder="مثال: اختبار فيزياء يوم الخميس"
-            rows={2}
-            data-testid="textarea-planner-tests"
-          />
-        </label>
-
-        <label className="phase-one-field">
-          <span>الواجبات الحالية</span>
-          <textarea
-            value={values.homework}
-            onChange={(event) => update('homework', event.target.value)}
-            placeholder="مثال: حل تمارين الدوال 1–4"
-            rows={2}
-            data-testid="textarea-planner-homework"
-          />
-        </label>
-
-        <label className="phase-one-field">
-          <span>واجبات العطلة</span>
-          <textarea
-            value={values.holidayAssignments}
-            onChange={(event) => update('holidayAssignments', event.target.value)}
-            placeholder="أضف ما تريد ألا تنساه"
-            rows={2}
-            data-testid="textarea-planner-holidays"
-          />
-        </label>
 
         {error && <p className="phase-one-form-error" role="alert" data-testid="status-planner-error">{error}</p>}
 
         <button className="phase-one-submit-button" type="submit" data-testid="button-submit-planner">
-          {submitted ? 'تم حفظ إشارتك' : 'ابنِ لي نقطة البداية'}
+          {submitted ? 'تم حفظ بيانات البداية' : 'ابدأ الآن'}
           {submitted ? <Check size={18} aria-hidden="true" /> : <ArrowLeft size={18} aria-hidden="true" />}
         </button>
       </form>
