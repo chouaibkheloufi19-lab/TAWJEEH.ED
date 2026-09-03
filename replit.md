@@ -4,21 +4,25 @@
 
 ## Run & Operate
 
+- `pnpm install --frozen-lockfile` — install the locked workspace dependencies
 - `pnpm --filter @workspace/tawjeeh-ed run dev` — run the web app (Vite uses the workflow-provided `PORT`)
 - `pnpm --filter @workspace/api-server run dev` — run the API server (workflow port 8080)
+- `cd ../.. && uv run python3 -m knowledge_base.cli serve --port 8001` — run the knowledge-base service
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Replit workflows: `artifacts/tawjeeh-ed: web`, `artifacts/api-server: API Server`, and `artifacts/api-server: Knowledge Base`
+- Required setup: Replit PostgreSQL (`DATABASE_URL` is managed automatically), `DEEPSEEK_API_KEY` in Secrets, the connected xAI integration for Grok Vision, and Replit-managed Clerk Auth
+- Optional env: `KNOWLEDGE_BASE_URL` (defaults to `http://127.0.0.1:8001/knowledge`) and `DEEPSEEK_MODEL` (defaults to `deepseek-chat`)
 - `python main.py index-assets --directory attached_assets --catalog knowledge_base/catalog.json` — inventory and index the educational library
 - Add `--no-ocr` for a fast, safe catalog pass that marks scanned pages for later OCR
 - `python main.py ingest --file <pdf> --year second_secondary` — import a PDF into ChromaDB
-- `python main.py serve --port 8000` — run the knowledge-base query service on Replit
+- `python main.py serve --port 8001` — run the knowledge-base query service on Replit
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
+- pnpm workspaces, Node.js 20, Python 3.11, TypeScript 5.9
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
