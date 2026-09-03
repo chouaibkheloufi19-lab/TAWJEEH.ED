@@ -534,6 +534,8 @@ function ProfilePage() {
     summary?: string;
     concepts?: Array<{ id: string; title: string; summary: string }>;
     completedAt?: string;
+    officialStamp?: string;
+    logo?: string;
   }>>([]);
   const summaryQuery = useGetSummaryBank({
     query: {
@@ -552,6 +554,8 @@ function ProfilePage() {
       summary: summary.summary as string,
       concepts: summary.concepts ?? [],
       completed_at: summary.completedAt as string,
+      official_stamp: summary.officialStamp ?? 'TAWJEEH.ED · OFFICIAL',
+      logo: summary.logo ?? 'tawjeeh-owl-transparent.png',
     }));
   const serverSummaries = summaryBank?.summaries ?? [];
   const summaries = [...serverSummaries, ...localSummaryCards.filter((local) => !serverSummaries.some((item) => item.lesson_id === local.lesson_id))];

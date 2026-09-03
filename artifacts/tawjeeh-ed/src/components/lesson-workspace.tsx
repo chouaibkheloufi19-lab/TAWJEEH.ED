@@ -108,6 +108,8 @@ type AttemptBankItem = AttemptAnalysis & {
 type LessonSession = {
   activeConcept: LessonSectionId;
   completedExamples: string[];
+  exampleAnswers: Record<string, string>;
+  gradedExamples: Record<string, 'correct' | 'incorrect'>;
   note: string;
   attachment: string | null;
   attachmentName: string | null;
@@ -117,6 +119,7 @@ type LessonSession = {
   evaluationMode: EvaluationMode;
   activeAgent: ActiveAgent;
   evaluationCompletedAt: string | null;
+  pausedMoment: { second: number; lessonTitle: string; explanation: string } | null;
 };
 
 type LocalSummary = {
@@ -186,26 +189,26 @@ const lessonSections: LessonSection[] = [
   },
 ];
 
-const exampleDetails: Record<LessonSectionId, { id: string; title: string; detail: string }[]> = {
+const exampleDetails: Record<LessonSectionId, { id: string; title: string; detail: string; expectedKeywords: string[] }[]> = {
   definition: [
-    { id: 'definition-1', title: 'عرّفي القصور الذاتي', detail: 'مقاومة الجسم لتغيير حالته الحركية.' },
-    { id: 'definition-2', title: 'اربطيه بالحياة اليومية', detail: 'جسم الراكب يميل إلى الاستمرار في الحركة.' },
+    { id: 'definition-1', title: 'عرّفي القصور الذاتي', detail: 'اكتبي المعنى بكلماتك.', expectedKeywords: ['مقاومة', 'تغيير'] },
+    { id: 'definition-2', title: 'اربطيه بالحياة اليومية', detail: 'فسّري ما يحدث للراكب عند توقف الحافلة.', expectedKeywords: ['استمرار', 'حركة'] },
   ],
   'worked-example': [
-    { id: 'worked-example-1', title: 'حددي الحالة قبل التوقف', detail: 'الراكب والحافلة يتحركان في الاتجاه نفسه.' },
-    { id: 'worked-example-2', title: 'فسّري اتجاه الميل', detail: 'يحافظ الجسم على الحركة إلى الأمام.' },
+    { id: 'worked-example-1', title: 'حددي الحالة قبل التوقف', detail: 'ما اتجاه حركة الراكب والحافلة قبل التوقف؟', expectedKeywords: ['نفس', 'اتجاه'] },
+    { id: 'worked-example-2', title: 'فسّري اتجاه الميل', detail: 'لماذا يميل الجسم إلى الأمام؟', expectedKeywords: ['يحافظ', 'حركة'] },
   ],
   graph: [
-    { id: 'graph-1', title: 'اقرئي الميل', detail: 'الميل الأكبر يعني سرعة أكبر في الاتجاه نفسه.' },
-    { id: 'graph-2', title: 'قارني مقطعين', detail: 'تغير الميل يدل على تغير السرعة.' },
+    { id: 'graph-1', title: 'اقرئي الميل', detail: 'ماذا يعني الميل الأكبر على منحنى الموضع والزمن؟', expectedKeywords: ['سرعة'] },
+    { id: 'graph-2', title: 'قارني مقطعين', detail: 'ماذا يدل تغير الميل؟', expectedKeywords: ['تغير', 'سرعة'] },
   ],
   practice: [
-    { id: 'practice-1', title: 'اكتبي المعطيات', detail: 'رتبي القوة والكتلة والاتجاه قبل التعويض.' },
-    { id: 'practice-2', title: 'احسبي التسارع', detail: 'نقسم القوة المحصلة على الكتلة.' },
+    { id: 'practice-1', title: 'اكتبي المعطيات', detail: 'ما الذي ترتبينه قبل التعويض في العلاقة؟', expectedKeywords: ['قوة', 'كتلة'] },
+    { id: 'practice-2', title: 'احسبي التسارع', detail: 'كيف نستخرج التسارع من القوة والكتلة؟', expectedKeywords: ['نقسم', 'قوة'] },
   ],
   recap: [
-    { id: 'recap-1', title: 'اكتبي العلاقة الرمزية', detail: 'القوة المحصلة تساوي الكتلة مضروبة في التسارع.' },
-    { id: 'recap-2', title: 'استخرجي المجهول', detail: 'اختاري العملية العكسية المناسبة للمعطى.' },
+    { id: 'recap-1', title: 'اكتبي العلاقة الرمزية', detail: 'اكتبي العلاقة الرمزية للقانون الثاني لنيوتن.', expectedKeywords: ['f', 'm', 'a'] },
+    { id: 'recap-2', title: 'استخرجي المجهول', detail: 'ما العملية العكسية المناسبة لاستخراج التسارع؟', expectedKeywords: ['قس', 'قوة'] },
   ],
 };
 
@@ -218,6 +221,8 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
   const fallback: LessonSession = {
     activeConcept: 'definition',
     completedExamples: [],
+    exampleAnswers: {},
+    gradedExamples: {},
     note: '',
     attachment: null,
     attachmentName: null,
@@ -227,6 +232,7 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
     evaluationMode: defaultEvaluationMode,
     activeAgent: 'faheem',
     evaluationCompletedAt: null,
+    pausedMoment: null,
   };
   if (typeof window === 'undefined') return fallback;
   try {
@@ -237,6 +243,12 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
     return {
       activeConcept: active,
       completedExamples: Array.isArray(parsed.completedExamples) ? parsed.completedExamples.filter((id): id is string => typeof id === 'string') : [],
+      exampleAnswers: parsed.exampleAnswers && typeof parsed.exampleAnswers === 'object'
+        ? Object.fromEntries(Object.entries(parsed.exampleAnswers).filter((entry): entry is [string, string] => typeof entry[1] === 'string'))
+        : {},
+      gradedExamples: parsed.gradedExamples && typeof parsed.gradedExamples === 'object'
+        ? Object.fromEntries(Object.entries(parsed.gradedExamples).filter((entry): entry is [string, 'correct' | 'incorrect'] => entry[1] === 'correct' || entry[1] === 'incorrect'))
+        : {},
       note: typeof parsed.note === 'string' ? parsed.note : '',
       attachment: typeof parsed.attachment === 'string' ? parsed.attachment : null,
       attachmentName: typeof parsed.attachmentName === 'string' ? parsed.attachmentName : null,
@@ -250,6 +262,12 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
         : fallback.evaluationMode,
       activeAgent: parsed.activeAgent === 'dalil-exercises' ? 'dalil-exercises' : 'faheem',
       evaluationCompletedAt: typeof parsed.evaluationCompletedAt === 'string' ? parsed.evaluationCompletedAt : null,
+      pausedMoment: parsed.pausedMoment && typeof parsed.pausedMoment === 'object'
+        && typeof parsed.pausedMoment.second === 'number'
+        && typeof parsed.pausedMoment.lessonTitle === 'string'
+        && typeof parsed.pausedMoment.explanation === 'string'
+        ? parsed.pausedMoment
+        : null,
     };
   } catch {
     return fallback;
@@ -258,6 +276,16 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
 
 function formatSessionTime(isoDate: string) {
   return new Intl.DateTimeFormat('ar-DZ', { hour: '2-digit', minute: '2-digit' }).format(new Date(isoDate));
+}
+
+function normalizeAnswer(value: string) {
+  return value
+    .toLocaleLowerCase('ar')
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/[^a-z0-9\u0600-\u06ff]+/gi, ' ')
+    .trim();
 }
 
 function saveSummaryToProfile(summary: LocalSummary) {
@@ -442,9 +470,9 @@ export function LessonWorkspace() {
   const displayedTitle = generatedLesson?.lessonTitle ?? activeSection.title;
   const displayedExplanation = generatedLesson?.explanation ?? activeSection.explanation;
   const displayedHighlight = generatedLesson?.highlight || activeSection.highlight;
-  const completedCount = activeExamples.filter((example) => session.completedExamples.includes(example.id)).length;
+  const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
   const totalExamples = lessonSections.reduce((total, section) => total + exampleDetails[section.id].length, 0);
-  const totalCompleted = lessonSections.reduce((total, section) => total + exampleDetails[section.id].filter((example) => session.completedExamples.includes(example.id)).length, 0);
+  const totalCompleted = lessonSections.reduce((total, section) => total + exampleDetails[section.id].filter((example) => session.gradedExamples[example.id] === 'correct').length, 0);
   const progress = Math.round((totalCompleted / totalExamples) * 100);
   const hotspots = useMemo(() => boardRegions(activeSection.id), [activeSection.id]);
   const evaluationDay = getEvaluationDay(session.startedAt);
@@ -471,7 +499,7 @@ export function LessonWorkspace() {
       summary: `خلاصة جلسة فهيم: ثبّتِ ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعتِ الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
       concepts: lessonSections.map((section) => {
         const examples = exampleDetails[section.id];
-        const mastered = examples.filter((example) => session.completedExamples.includes(example.id)).length;
+        const mastered = examples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
         return {
           id: section.id,
           title: section.title,
@@ -501,10 +529,11 @@ export function LessonWorkspace() {
         lesson_title: localSummary.lessonTitle,
         subject: localSummary.subject,
         summary: localSummary.summary,
-        concepts: localSummary.concepts.map(({ id, title, summary: conceptSummary }) => ({
+        concepts: localSummary.concepts.map(({ id, title, summary: conceptSummary, mastery }) => ({
           id,
           title,
           summary: conceptSummary,
+          mastery,
         })),
       },
     }, {
@@ -515,6 +544,12 @@ export function LessonWorkspace() {
       onError: () => setSummarySaveState('error'),
     });
   };
+
+  useEffect(() => {
+    if (progress === 100 && !session.concludedAt && summarySaveState === 'idle') {
+      concludeSession();
+    }
+  }, [progress, session.concludedAt, summarySaveState]);
 
   useEffect(() => {
     try {
@@ -579,13 +614,26 @@ export function LessonWorkspace() {
     setMessages((current) => [...current, { id: `section-${section.id}-${Date.now()}`, role: 'assistant', text: `انتقلنا إلى «${section.label}». ${section.prompt}` }]);
   };
 
-  const toggleExample = (exampleId: string) => {
+  const gradeExample = (exampleId: string) => {
+    const example = activeExamples.find((item) => item.id === exampleId);
+    if (!example) return;
+    const answer = session.exampleAnswers[exampleId] ?? '';
+    const normalized = normalizeAnswer(answer);
+    const isCorrect = answer.trim().length > 0 && example.expectedKeywords.every((keyword) => normalized.includes(normalizeAnswer(keyword)));
     setSession((current) => ({
       ...current,
-      completedExamples: current.completedExamples.includes(exampleId)
-        ? current.completedExamples.filter((id) => id !== exampleId)
-        : [...current.completedExamples, exampleId],
+      completedExamples: isCorrect
+        ? [...current.completedExamples.filter((id) => id !== exampleId), exampleId]
+        : current.completedExamples.filter((id) => id !== exampleId),
+      gradedExamples: { ...current.gradedExamples, [exampleId]: isCorrect ? 'correct' : 'incorrect' },
     }));
+    setMessages((current) => [...current, {
+      id: `example-${exampleId}-${Date.now()}`,
+      role: 'assistant',
+      text: isCorrect
+        ? `أحسنتِ. إجابتك تثبت «${example.title}». انتقلي للخطوة التالية عندما تكونين جاهزة.`
+        : `اقتربتِ. أعيدي النظر في المطلوب داخل «${example.title}»، ثم اكتبي إجابة تتضمن الفكرة الأساسية.`,
+    }]);
   };
 
   const generateLesson = async () => {
@@ -630,6 +678,9 @@ export function LessonWorkspace() {
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: 'user', text: cleanText }]);
     setQuestion('');
     setIsThinking(true);
+    const pausedContext = session.pausedMoment
+      ? `توقف الشرح عند الثانية ${Math.round(session.pausedMoment.second)} من عرض «${session.pausedMoment.lessonTitle}». المقطع الموقوف: ${session.pausedMoment.explanation}`
+      : '';
     try {
       const response = await fetch('/api/fahim/message', {
         method: 'POST',
@@ -639,9 +690,12 @@ export function LessonWorkspace() {
           question: cleanText,
           lesson: 'قوانين نيوتن والحركة',
           concept: activeSection.title,
-          context: analysis
-            ? `${analysis.lastCorrectStep} — ${analysis.firstError}`
-            : highlightedPart || displayedExplanation,
+            context: [
+              analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}` : '',
+              highlightedPart ? `الجزء المحدد على اللوح: ${highlightedPart}` : '',
+              pausedContext,
+              !pausedContext && !highlightedPart ? displayedExplanation : '',
+            ].filter(Boolean).join('\n'),
         }),
       });
       const payload = await response.json() as { answer?: string; message?: string };
@@ -739,7 +793,11 @@ export function LessonWorkspace() {
 
   const resetToLastCorrect = () => {
     if (!analysis) return;
-    setSession((current) => ({ ...current, completedExamples: current.completedExamples.filter((id) => !id.startsWith(`${activeSection.id}-`)) }));
+    setSession((current) => ({
+      ...current,
+      completedExamples: current.completedExamples.filter((id) => !id.startsWith(`${activeSection.id}-`)),
+      gradedExamples: Object.fromEntries(Object.entries(current.gradedExamples).filter(([id]) => !id.startsWith(`${activeSection.id}-`))),
+    }));
     setGeneratedExercise('');
     setMessages((current) => [...current, { id: `recovery-${Date.now()}`, role: 'assistant', text: `ثبتنا آخر خطوة صحيحة: «${analysis.lastCorrectStep}». سنبني هذا المفهوم من جديد.` }]);
   };
@@ -806,6 +864,15 @@ export function LessonWorkspace() {
   };
 
   const pauseNarration = () => {
+    const second = owlVideoRef.current?.currentTime ?? 0;
+    setSession((current) => ({
+      ...current,
+      pausedMoment: {
+        second: Number.isFinite(second) ? second : 0,
+        lessonTitle: displayedTitle,
+        explanation: displayedExplanation,
+      },
+    }));
     owlVideoRef.current?.pause();
     window.speechSynthesis?.cancel();
     setIsPlaying(false);
@@ -817,7 +884,7 @@ export function LessonWorkspace() {
         <div className="lesson-title-block">
           <span className="lesson-kicker"><Sparkles size={13} /> جلسة تثبيت · علوم فيزيائية</span>
           <h1>قوانين نيوتن والحركة</h1>
-          <p>ثلاث نوافذ فقط: مسار واضح، تفاعل فعلي، وشرح على اللوح.</p>
+          <p>فكرة واحدة، محاولة قصيرة، ثم علامة واضحة على ما فهمتِه.</p>
         </div>
         <div className="lesson-header-controls">
           <div className="lesson-header-status" role="status" data-testid="status-lesson-progress">
@@ -842,7 +909,7 @@ export function LessonWorkspace() {
 
       <div className={`lesson-evaluation-banner ${session.concludedAt ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
         <div>
-          <span className="lesson-panel-kicker"><Sparkles size={13} /> منطق التقييم حسب توقيت التسجيل</span>
+          <span className="lesson-panel-kicker"><Sparkles size={13} /> إيقاع جلسة اليوم</span>
           <strong>{evaluationPlan.title}</strong>
           <p>{evaluationPlan.description}</p>
         </div>
@@ -858,8 +925,8 @@ export function LessonWorkspace() {
           <div className="lesson-panel-heading">
             <div>
                <span className="lesson-panel-kicker"><BookOpen size={13} /> خريطة الإتقان</span>
-               <h2>مسار الطالب</h2>
-               <p>نقيس الفهم قبل أن ننتقل للخطوة التالية.</p>
+               <h2>طريق الفهم</h2>
+               <p>نثبت خطوة قبل أن نفتح التي بعدها.</p>
             </div>
             <span className="lesson-rail-count">{progress}٪</span>
           </div>
@@ -870,7 +937,7 @@ export function LessonWorkspace() {
           <div className="lesson-path-list">
             {lessonSections.map((section, index) => {
               const active = section.id === activeSection.id;
-              const done = exampleDetails[section.id].every((example) => session.completedExamples.includes(example.id));
+              const done = exampleDetails[section.id].every((example) => session.gradedExamples[example.id] === 'correct');
               const source = sourceForSection(section, knowledgeCards);
               return (
                 <button
@@ -893,7 +960,7 @@ export function LessonWorkspace() {
           {knowledgeQuery.isError && <p className="lesson-source-status is-error">تعذر تحميل الإحالات؛ بقيت أدوات الجلسة متاحة.</p>}
         </aside>
 
-         <section className="lesson-panel lesson-conversation-panel" aria-label="منطقة التفاعل والتغذية الراجعة">
+         <section className="lesson-panel lesson-conversation-panel" aria-label="حديثك مع فهيم">
            <div className="lesson-panel-heading lesson-conversation-heading">
             <div className="lesson-fahim-chip">
               <span className="lesson-fahim-avatar"><img src={isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal} alt="فهيم، مساعد تثبيت المفاهيم" /></span>
@@ -942,7 +1009,7 @@ export function LessonWorkspace() {
          <section className="lesson-panel lesson-teaching-panel" aria-label="السبورة الذكية لفهيم">
           <div className="lesson-teaching-header">
             <div>
-               <span className="lesson-panel-kicker"><Volume2 size={13} /> سبورة فهيم الذكية</span>
+               <span className="lesson-panel-kicker"><Volume2 size={13} /> لوح فهيم</span>
                <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
                <p>إيقاع مقترح · {activeSection.duration} · {activeSection.label}</p>
             </div>
@@ -971,6 +1038,8 @@ export function LessonWorkspace() {
                        setNarrationProgress((video.currentTime / video.duration) * 100);
                      }
                    }}
+                   onPlay={() => setIsPlaying(true)}
+                   onPause={() => setIsPlaying(false)}
                    aria-label="فيديو فهيم أثناء الشرح"
                    data-testid="video-fahim-blackboard"
                  />
@@ -1076,10 +1145,39 @@ export function LessonWorkspace() {
           </div>
           <div className="lesson-examples">
             <div className="lesson-examples-heading"><h3>تثبيت سريع</h3><span>{completedCount} / {activeExamples.length}</span></div>
-            <div className="lesson-example-list">
+             <p className="lesson-examples-hint">اكتبي إجابة قصيرة لكل مثال، ثم تحققي منها. لا نحتسب الفهم إلا بعد إجابة صحيحة.</p>
+             <div className="lesson-example-list">
               {activeExamples.map((example) => {
-                const done = session.completedExamples.includes(example.id);
-                return <button key={example.id} type="button" className={`lesson-example ${done ? 'is-done' : ''}`} onClick={() => toggleExample(example.id)} aria-pressed={done} data-testid={`button-complete-example-${example.id}`}><span className="lesson-example-check">{done && <Check size={13} />}</span><span className="lesson-example-copy"><strong>{example.title}</strong><small>{example.detail}</small></span></button>;
+                const status = session.gradedExamples[example.id];
+                const done = status === 'correct';
+                return (
+                  <div key={example.id} className={`lesson-example ${done ? 'is-done' : status === 'incorrect' ? 'is-incorrect' : ''}`} data-testid={`card-practical-example-${example.id}`}>
+                    <div className="lesson-example-heading">
+                      <span className="lesson-example-check">{done ? <Check size={13} /> : status === 'incorrect' ? <X size={13} /> : <span>{activeExamples.indexOf(example) + 1}</span>}</span>
+                      <span className="lesson-example-copy"><strong>{example.title}</strong><small>{example.detail}</small></span>
+                    </div>
+                    <textarea
+                      value={session.exampleAnswers[example.id] ?? ''}
+                      onChange={(event) => setSession((current) => ({
+                        ...current,
+                        exampleAnswers: { ...current.exampleAnswers, [example.id]: event.target.value },
+                      }))}
+                      placeholder="اكتبي إجابتك هنا..."
+                      aria-label={`إجابة ${example.title}`}
+                      rows={2}
+                      disabled={session.concludedAt !== null}
+                      data-testid={`input-example-answer-${example.id}`}
+                    />
+                    <div className="lesson-example-footer">
+                      <small className={`lesson-example-status ${status === 'incorrect' ? 'is-incorrect' : done ? 'is-correct' : ''}`}>
+                        {done ? 'إجابة صحيحة · أُضيفت للإتقان' : status === 'incorrect' ? 'راجعي الفكرة وحاولي مرة أخرى' : 'بانتظار إجابتك'}
+                      </small>
+                      <button type="button" onClick={() => gradeExample(example.id)} disabled={session.concludedAt !== null || !session.exampleAnswers[example.id]?.trim()} data-testid={`button-complete-example-${example.id}`}>
+                        {status ? 'تحققي مجددًا' : 'تحققي من الإجابة'}
+                      </button>
+                    </div>
+                  </div>
+                );
               })}
             </div>
             {generatedExercise && <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise"><span>تمرين يعالج نفس الخطأ</span><p>{generatedExercise}</p></div>}

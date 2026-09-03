@@ -12,6 +12,11 @@ export interface LessonCompletionInput {
   lesson_title: string;
   subject: string;
   summary: string;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  mastery?: number;
   /** @minItems 1 */
   concepts: SummaryConcept[];
 }

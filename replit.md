@@ -4,7 +4,8 @@
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/tawjeeh-ed run dev` — run the web app (Vite uses the workflow-provided `PORT`)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (workflow port 8080)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -44,6 +45,15 @@
 ## Product
 
 The knowledge base will support Fahim's diagnostic evaluation, concept mastery tracking, lesson guidance, exercise generation, weekly quizzes, and error-stack remediation for Tawjeeh.
+
+## Phase 2 lesson room
+
+- `/lesson/:id` is the protected Faheem foundational lesson room with a three-panel layout: mastery roadmap, Arabic chat/evidence workspace, and the animated owl blackboard.
+- Sessions persist their first `startedAt` and remain open-ended; completion is mastery-based rather than time-based.
+- Practical examples require a written answer and are graded against the expected concept keywords before they count toward mastery.
+- A fully mastered session auto-generates and saves an official structured summary to the authenticated user's summary bank. The explicit “إنهاء وحفظ الملخص” control remains available as a review fallback.
+- Pausing the owl preserves the current teaching moment; the next Faheem question includes the paused timestamp and explanation.
+- Summary-bank rows persist concept mastery plus the official Tawjeeh stamp and owl logo reference.
 
 ## User preferences
 

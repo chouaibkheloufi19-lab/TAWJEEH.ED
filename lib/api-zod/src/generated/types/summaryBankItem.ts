@@ -15,4 +15,6 @@ export interface SummaryBankItem {
   summary: string;
   concepts: SummaryConcept[];
   completed_at: string;
+  official_stamp: string;
+  logo: string;
 }

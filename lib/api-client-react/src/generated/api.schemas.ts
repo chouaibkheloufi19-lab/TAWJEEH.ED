@@ -71,6 +71,8 @@ export interface SummaryBankItem {
   summary: string;
   concepts: SummaryConcept[];
   completed_at: string;
+  official_stamp: string;
+  logo: string;
 }
 
 export interface ConceptMetric {
@@ -94,6 +96,11 @@ export interface LessonCompletionInput {
   lesson_title: string;
   subject: string;
   summary: string;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  mastery?: number;
   /** @minItems 1 */
   concepts: SummaryConcept[];
 }

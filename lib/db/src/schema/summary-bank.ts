@@ -6,6 +6,7 @@ export type SummaryConcept = {
   id: string;
   title: string;
   summary: string;
+  mastery?: number;
 };
 
 export const summaryBankTable = pgTable("summary_bank", {
@@ -16,6 +17,8 @@ export const summaryBankTable = pgTable("summary_bank", {
   subject: text("subject").notNull(),
   summary: text("summary").notNull(),
   concepts: jsonb("concepts").$type<SummaryConcept[]>().notNull(),
+  officialStamp: text("official_stamp").notNull().default("TAWJEEH.ED · OFFICIAL"),
+  logo: text("logo").notNull().default("tawjeeh-owl-transparent.png"),
   completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -10,11 +10,14 @@ import {
 
 export const EMERGENCY_REMEDIATION_LABEL = "غرفة إنعاش مستعجلة";
 export const ERROR_RATE_THRESHOLD = 0.5;
+export const OFFICIAL_SUMMARY_STAMP = "TAWJEEH.ED · OFFICIAL";
+export const OFFICIAL_SUMMARY_LOGO = "tawjeeh-owl-transparent.png";
 
 export type SummaryConcept = {
   id: string;
   title: string;
   summary: string;
+  mastery?: number;
 };
 
 export type SummaryBankItem = {
@@ -25,6 +28,8 @@ export type SummaryBankItem = {
   summary: string;
   concepts: SummaryConcept[];
   completed_at: string;
+  official_stamp: string;
+  logo: string;
 };
 
 export type ConceptMetric = {
@@ -67,6 +72,8 @@ export function toSummaryBankItem(row: typeof summaryBankTable.$inferSelect): Su
     summary: row.summary,
     concepts: row.concepts,
     completed_at: row.completedAt.toISOString(),
+    official_stamp: row.officialStamp,
+    logo: row.logo,
   };
 }
 
@@ -153,6 +160,8 @@ export async function saveLessonSummary(
             subject: input.subject,
             summary: input.summary,
             concepts: input.concepts,
+            officialStamp: OFFICIAL_SUMMARY_STAMP,
+            logo: OFFICIAL_SUMMARY_LOGO,
             completedAt: new Date(),
           })
           .where(eq(summaryBankTable.id, existing[0].id))
@@ -168,6 +177,8 @@ export async function saveLessonSummary(
             subject: input.subject,
             summary: input.summary,
             concepts: input.concepts,
+            officialStamp: OFFICIAL_SUMMARY_STAMP,
+            logo: OFFICIAL_SUMMARY_LOGO,
           })
           .returning()
       )[0];
