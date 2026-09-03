@@ -3742,3 +3742,271 @@ button { cursor: pointer; }
     height: 58px;
   }
 }
+
+/* Phase 4 handoff — the studio reads left-to-right as a calm workbench:
+   lesson / practice / solution on the left, focused partners on the right. */
+.lesson-workspace {
+  --lesson-ink: #193c4a;
+  --lesson-muted: #70858a;
+  --lesson-line: #d5e6e3;
+  --lesson-paper: #fffdf8;
+  --lesson-mist: #f1f7f4;
+  --lesson-aqua: #e1f2ef;
+  --lesson-teal: #167b78;
+  --lesson-navy: #164b61;
+  --lesson-blue: #257ea2;
+  --lesson-gold: #b98939;
+}
+.lesson-phase4-map {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 0 5px 14px;
+  padding: 8px 12px;
+  border: 1px solid rgba(37, 126, 162, .14);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, .68);
+}
+.lesson-phase4-side {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.lesson-phase4-side span {
+  color: var(--lesson-blue);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+.lesson-phase4-side strong {
+  color: var(--lesson-navy);
+  font-size: 10px;
+  font-weight: 900;
+}
+.lesson-phase4-side small {
+  overflow: hidden;
+  color: var(--lesson-muted);
+  font-size: 8px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson-phase4-right {
+  text-align: right;
+}
+.lesson-phase4-right span,
+.lesson-phase4-right strong {
+  color: var(--lesson-teal);
+}
+.lesson-phase4-bridge {
+  position: relative;
+  height: 1px;
+  background: #c9dedb;
+}
+.lesson-phase4-bridge::before,
+.lesson-phase4-bridge::after {
+  position: absolute;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #c9dedb;
+  border-radius: 50%;
+  content: '';
+  background: var(--lesson-paper);
+}
+.lesson-phase4-bridge::before { left: 0; }
+.lesson-phase4-bridge::after { right: 0; }
+.lesson-phase4-bridge span {
+  position: absolute;
+  top: -4px;
+  left: calc(50% - 4px);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--lesson-gold);
+  box-shadow: 0 0 0 4px rgba(185, 137, 57, .12);
+}
+.lesson-grid {
+  grid-template-columns: minmax(0, 1.62fr) minmax(350px, .88fr);
+  grid-template-areas:
+    'teaching convo'
+    'path convo';
+  gap: 14px;
+  direction: ltr;
+}
+.lesson-grid > .lesson-panel {
+  direction: rtl;
+}
+.lesson-path-panel { grid-area: path; }
+.lesson-conversation-panel {
+  grid-area: convo;
+  min-height: 100%;
+  border-top: 3px solid var(--lesson-blue);
+  background:
+    linear-gradient(180deg, rgba(244, 249, 250, .96), rgba(255, 253, 248, .96) 56%),
+    var(--lesson-paper);
+}
+.lesson-teaching-panel {
+  grid-area: teaching;
+  border-top: 3px solid var(--lesson-gold);
+}
+.lesson-conversation-heading {
+  padding: 15px 16px 12px;
+  background: linear-gradient(100deg, #eff8f6, #f3f6f8);
+}
+.lesson-conversation-heading .lesson-fahim-avatar.is-handoff {
+  border-color: rgba(185, 137, 57, .38);
+  background: #fff4d7;
+  box-shadow: 0 0 0 4px rgba(185, 137, 57, .08);
+}
+.lesson-agent-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  padding: 10px 12px 11px;
+  border-bottom: 1px solid #dce9e6;
+  background: rgba(250, 252, 248, .82);
+}
+.lesson-agent-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 54px;
+  padding: 7px 8px;
+  border: 1px solid #d8e7e3;
+  border-radius: 12px;
+  color: var(--lesson-muted);
+  text-align: right;
+  background: rgba(255, 253, 248, .82);
+  transition: transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease;
+}
+.lesson-agent-option:hover {
+  border-color: #9ecdc5;
+  transform: translateY(-1px);
+}
+.lesson-agent-option:focus-visible,
+.lesson-path-item:focus-visible,
+.lesson-composer-box:focus-within,
+.lesson-board-question:focus-within {
+  outline: 3px solid rgba(37, 126, 162, .2);
+  outline-offset: 2px;
+}
+.lesson-agent-option.is-active {
+  border-color: var(--lesson-teal);
+  color: var(--lesson-navy);
+  background: #e8f5ef;
+  box-shadow: 0 7px 15px rgba(22, 123, 120, .1);
+}
+.lesson-agent-option.is-exercises.is-active {
+  border-color: var(--lesson-gold);
+  background: #fff5dc;
+}
+.lesson-agent-option > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.lesson-agent-option strong {
+  overflow: hidden;
+  color: var(--lesson-navy);
+  font-size: 10px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson-agent-option small {
+  color: var(--lesson-muted);
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lesson-agent-option > svg {
+  margin-right: auto;
+  flex: 0 0 auto;
+  color: var(--lesson-teal);
+}
+.lesson-agent-option.is-exercises > svg,
+.lesson-agent-option.is-exercises .lesson-agent-option-icon {
+  color: var(--lesson-gold);
+}
+.lesson-agent-option-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--lesson-teal);
+  background: #dcefe9;
+}
+.lesson-agent-option.is-exercises .lesson-agent-option-icon {
+  background: #f8e9bf;
+}
+.lesson-conversation-panel .lesson-messages {
+  min-height: 300px;
+  max-height: 520px;
+}
+.lesson-composer:not(.is-disabled) {
+  background: #f7fbf5;
+}
+.lesson-composer:not(.is-disabled) .lesson-composer-box {
+  border-color: #b9d9d1;
+}
+.lesson-evaluation-banner.is-handed-off {
+  box-shadow: 0 12px 26px rgba(185, 137, 57, .1);
+}
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .lesson-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, .9fr);
+  }
+}
+@media (max-width: 900px) {
+  .lesson-phase4-map {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  .lesson-phase4-bridge {
+    width: 44px;
+    margin: 2px 0;
+    transform: rotate(90deg);
+    transform-origin: center;
+  }
+  .lesson-phase4-left,
+  .lesson-phase4-right {
+    text-align: right;
+  }
+  .lesson-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'path'
+      'convo'
+      'teaching';
+  }
+  .lesson-conversation-panel .lesson-messages {
+    min-height: 240px;
+    max-height: 360px;
+  }
+}
+@media (max-width: 580px) {
+  .lesson-phase4-map {
+    margin-inline: 0;
+  }
+  .lesson-phase4-side small {
+    white-space: normal;
+  }
+  .lesson-agent-switcher {
+    padding-inline: 10px;
+  }
+  .lesson-agent-option {
+    min-height: 58px;
+    padding-inline: 7px;
+  }
+  .lesson-agent-option small {
+    font-size: 7px;
+  }
+}
