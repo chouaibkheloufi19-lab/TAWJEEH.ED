@@ -1,16 +1,12 @@
-import { type FormEvent, useMemo, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
   Check,
-  Clock3,
-  Compass,
   GraduationCap,
   Moon,
   Sparkles,
-  Target,
-  TimerReset,
 } from 'lucide-react';
 import owlGuidingVideo from '@assets/Owl_mascot_leaning_forward_202609022335_1788425680409.mp4';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
@@ -60,7 +56,7 @@ const onboardingSteps = [
   {
     eyebrow: 'التحوّل الهادئ',
     title: 'ثم يظهر المخطّط، بعينٍ أهدأ.',
-    body: 'عندما أعرف وقتك وهدفك، أتحول إلى مخطّط حكيم: يوزّع الجهد، يترك مساحة للراحة، ويقترح خطوة يمكن إنجازها.',
+    body: 'عندما أعرف دراستك وما تريد إنجازه، أتحول إلى مخطّط حكيم: يوزّع الجهد، يترك مساحة للراحة، ويقترح خطوة يمكن إنجازها.',
     note: 'مخطّطك الشخصي',
     video: owlThinkingVideo,
     accent: 'gold',
@@ -74,18 +70,6 @@ const branchOptions = [
   'تسيير واقتصاد',
   'آداب وفلسفة',
   'لغات أجنبية',
-];
-
-const timeOptions = [
-  { value: 'morning', label: 'الصباح الهادئ', detail: 'قبل أن يبدأ اليوم' },
-  { value: 'afternoon', label: 'بعد الظهيرة', detail: 'بين الحصص والمهام' },
-  { value: 'evening', label: 'المساء', detail: 'حين يهدأ البيت' },
-];
-
-const priorityOptions = [
-  { value: 'foundation', label: 'تثبيت الأساسيات', icon: Compass },
-  { value: 'practice', label: 'حل تمارين أكثر', icon: Target },
-  { value: 'revision', label: 'مراجعة ما سبق', icon: TimerReset },
 ];
 
 const defaultValues: PlannerIntakeValues = {
@@ -284,31 +268,6 @@ export function OwlOnboarding({
   );
 }
 
-function RangeChoice({
-  value,
-  label,
-  selected,
-  onSelect,
-}: {
-  value: number;
-  label: string;
-  selected: boolean;
-  onSelect: (value: number) => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`phase-one-range-choice ${selected ? 'is-selected' : ''}`}
-      onClick={() => onSelect(value)}
-      aria-pressed={selected}
-      data-testid={`button-study-time-${value}`}
-    >
-      <strong>{value}</strong>
-      <small>{label}</small>
-    </button>
-  );
-}
-
 export function PlannerIntakeCard({
   initialValues,
   onSubmit,
@@ -317,15 +276,6 @@ export function PlannerIntakeCard({
   const [values, setValues] = useState<PlannerIntakeValues>({ ...defaultValues, ...initialValues });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-
-  const selectedTime = useMemo(
-    () => timeOptions.find((option) => option.value === values.preferredTime) ?? timeOptions[2],
-    [values.preferredTime],
-  );
-  const selectedPriority = useMemo(
-    () => priorityOptions.find((option) => option.value === values.priority) ?? priorityOptions[0],
-    [values.priority],
-  );
 
   const update = <Key extends keyof PlannerIntakeValues>(key: Key, value: PlannerIntakeValues[Key]) => {
     setSubmitted(false);
@@ -409,56 +359,6 @@ export function PlannerIntakeCard({
           </select>
         </label>
 
-        <fieldset className="phase-one-fieldset">
-          <legend>كم تستطيع أن تهب اليوم؟</legend>
-          <div className="phase-one-range-grid">
-            <RangeChoice value={25} label="بداية خفيفة" selected={values.dailyMinutes === 25} onSelect={(value) => update('dailyMinutes', value)} />
-            <RangeChoice value={45} label="جلسة مركّزة" selected={values.dailyMinutes === 45} onSelect={(value) => update('dailyMinutes', value)} />
-            <RangeChoice value={70} label="وقت ممتد" selected={values.dailyMinutes === 70} onSelect={(value) => update('dailyMinutes', value)} />
-          </div>
-        </fieldset>
-
-        <fieldset className="phase-one-fieldset">
-          <legend>متى يكون ذهنك أقرب للفهم؟</legend>
-          <div className="phase-one-time-grid">
-            {timeOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`phase-one-time-choice ${option.value === values.preferredTime ? 'is-selected' : ''}`}
-                onClick={() => update('preferredTime', option.value)}
-                aria-pressed={option.value === values.preferredTime}
-                data-testid={`button-preferred-time-${option.value}`}
-              >
-                <Clock3 size={16} aria-hidden="true" />
-                <span><strong>{option.label}</strong><small>{option.detail}</small></span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        <fieldset className="phase-one-fieldset">
-          <legend>ما الذي نضعه أولًا؟</legend>
-          <div className="phase-one-priority-grid">
-            {priorityOptions.map((option) => {
-              const Icon = option.icon;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`phase-one-priority-choice ${option.value === values.priority ? 'is-selected' : ''}`}
-                  onClick={() => update('priority', option.value)}
-                  aria-pressed={option.value === values.priority}
-                  data-testid={`button-priority-${option.value}`}
-                >
-                  <Icon size={17} aria-hidden="true" />
-                  <span>{option.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-
         <div className="phase-one-intake-divider">
           <span>وماذا ينتظرك؟</span>
           <small>اختياري الآن، ويمكنك تعديله لاحقًا</small>
@@ -503,13 +403,6 @@ export function PlannerIntakeCard({
           {submitted ? 'تم حفظ إشارتك' : 'ابنِ لي نقطة البداية'}
           {submitted ? <Check size={18} aria-hidden="true" /> : <ArrowLeft size={18} aria-hidden="true" />}
         </button>
-        <p className="phase-one-form-footnote" data-testid="text-planner-summary">
-          <span>{values.dailyMinutes} دقيقة</span>
-          <i />
-          <span>{selectedTime.label}</span>
-          <i />
-          <span>{selectedPriority.label}</span>
-        </p>
       </form>
     </section>
   );
