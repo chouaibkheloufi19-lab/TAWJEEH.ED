@@ -4835,3 +4835,111 @@ button { cursor: pointer; }
     display: none;
   }
 }
+
+/* Final lesson studio layout: use the available canvas instead of allowing the
+   three panels to collapse into a narrow RTL column. */
+.lesson-shell .content-wrap {
+  width: 100%;
+  max-width: 1600px;
+}
+
+.lesson-shell .lesson-workspace {
+  width: 100%;
+}
+
+.lesson-grid,
+.lesson-grid.has-collapsed-rail {
+  width: 100%;
+  direction: ltr;
+  align-items: stretch;
+}
+
+.lesson-grid > .lesson-panel {
+  min-width: 0;
+}
+
+.lesson-teaching-panel,
+.lesson-conversation-panel {
+  min-width: 0;
+}
+
+@media (min-width: 1181px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    grid-template-columns: minmax(240px, .72fr) minmax(360px, 1fr) minmax(520px, 1.5fr);
+    grid-template-areas: 'path convo teaching';
+    gap: 16px;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    grid-template-columns: minmax(260px, .78fr) minmax(0, 1.45fr);
+    grid-template-areas:
+      'path teaching'
+      'convo teaching';
+    gap: 14px;
+  }
+
+  .lesson-path-panel {
+    grid-area: path;
+  }
+
+  .lesson-conversation-panel {
+    grid-area: convo;
+  }
+
+  .lesson-teaching-panel {
+    grid-area: teaching;
+  }
+}
+
+.lesson-teaching-actions {
+  min-width: 0;
+}
+
+.lesson-generate-button {
+  white-space: nowrap;
+  box-shadow: 0 5px 14px rgba(22, 123, 120, .09);
+}
+
+.lesson-generation-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 15px 0;
+  padding: 10px 12px;
+  border: 1px solid #efcfb5;
+  border-radius: 11px;
+  background: #fff8ef;
+  line-height: 1.7;
+}
+
+.lesson-generation-error span {
+  min-width: 0;
+}
+
+.lesson-generation-error button {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e1b995;
+  border-radius: 8px;
+  color: #985d3e;
+  background: #fff;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+@media (max-width: 900px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'teaching'
+      'path'
+      'convo';
+  }
+}
