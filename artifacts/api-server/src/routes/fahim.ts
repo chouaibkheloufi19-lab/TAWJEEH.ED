@@ -1,6 +1,26 @@
 import { Router, type IRouter } from "express";
+import { ReplitConnectors } from "@replit/connectors-sdk";
 
 const router: IRouter = Router();
+const connectors = new ReplitConnectors();
+
+function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`Provider request timed out after ${milliseconds}ms`));
+    }, milliseconds);
+    promise.then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
+}
 
 type AttemptAnalysis = {
   status: "analyzed";
@@ -31,39 +51,37 @@ function extractJson(text: string): AttemptAnalysis {
 }
 
 async function callVisionModel(imageDataUrl: string, lesson: string, concept: string) {
-  const key = process.env.GROK_API_KEY;
-  if (!key) throw new Error("GROK_API_KEY is not configured");
-
-  const response = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: process.env.GROK_VISION_MODEL ?? "grok-2-vision-1212",
-      temperature: 0,
-      max_tokens: 1200,
-      messages: [
-        {
-          role: "system",
-          content:
-            "أنت فهيم، مساعد تربوي يقرأ محاولات الطلاب. أجب بالعربية الواضحة. لا تخمّن ما لا يظهر في الصورة، واذكر أن الصورة غير كافية إذا لزم.",
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `حلّل محاولة الطالب المصورة في درس "${lesson}" ومفهوم "${concept}". حدد أول خطوة خاطئة فقط، وآخر خطوة صحيحة قبلها، ثم اقترح تمرينًا واحدًا يعالج نفس الخطأ. أعد JSON فقط بهذه المفاتيح: firstError, firstErrorStep, lastCorrectStep, feedback, nextExercise, summaryAnchor.`,
-            },
-            { type: "image_url", image_url: { url: imageDataUrl } },
-          ],
-        },
-      ],
+  const response = await withTimeout(
+    connectors.proxy("xai", "/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.GROK_VISION_MODEL ?? "grok-2-vision-1212",
+        temperature: 0,
+        max_tokens: 1200,
+        messages: [
+          {
+            role: "system",
+            content:
+              "أنت فهيم، مساعد تربوي يقرأ محاولات الطلاب. أجب بالعربية الواضحة. لا تخمّن ما لا يظهر في الصورة، واذكر أن الصورة غير كافية إذا لزم.",
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `حلّل محاولة الطالب المصورة في درس "${lesson}" ومفهوم "${concept}". حدد أول خطوة خاطئة فقط، وآخر خطوة صحيحة قبلها، ثم اقترح تمرينًا واحدًا يعالج نفس الخطأ. أعد JSON فقط بهذه المفاتيح: firstError, firstErrorStep, lastCorrectStep, feedback, nextExercise, summaryAnchor.`,
+              },
+              { type: "image_url", image_url: { url: imageDataUrl } },
+            ],
+          },
+        ],
+      }),
     }),
-    signal: AbortSignal.timeout(30000),
-  });
+    30000,
+  );
   if (!response.ok) throw new Error(`Vision provider responded with ${response.status}`);
   const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const content = payload.choices?.[0]?.message?.content;
