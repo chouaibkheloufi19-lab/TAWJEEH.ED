@@ -4603,3 +4603,106 @@ button { cursor: pointer; }
     align-items: flex-start;
   }
 }
+
+/* Keep the mastery map beside the work area on compact screens.
+   The map is the left rail; conversation and the board share the right column. */
+@media (max-width: 900px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    grid-template-columns: minmax(138px, .42fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 9px;
+  }
+  .lesson-path-panel {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: 12px;
+  }
+  .lesson-conversation-panel {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .lesson-teaching-panel {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .lesson-path-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 580px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    grid-template-columns: minmax(116px, .38fr) minmax(0, 1fr);
+    gap: 7px;
+  }
+  .lesson-path-panel {
+    border-radius: 15px;
+  }
+  .lesson-path-panel .lesson-panel-heading {
+    gap: 5px;
+    padding: 12px 8px 10px;
+  }
+  .lesson-path-panel .lesson-panel-heading h2 {
+    font-size: 14px;
+  }
+  .lesson-path-panel .lesson-panel-heading p {
+    font-size: 8px;
+    line-height: 1.5;
+  }
+  .lesson-path-panel .lesson-rail-tools {
+    gap: 3px;
+  }
+  .lesson-path-panel .lesson-rail-count {
+    min-width: 30px;
+    min-height: 30px;
+    font-size: 8px;
+  }
+  .lesson-path-panel .lesson-rail-toggle {
+    width: 25px;
+    min-height: 25px;
+  }
+  .lesson-path-panel .lesson-progress-meter {
+    padding: 9px 8px 8px;
+  }
+  .lesson-path-panel .lesson-progress-label {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 5px;
+    font-size: 8px;
+  }
+  .lesson-path-panel .lesson-progress-track {
+    height: 5px;
+  }
+  .lesson-path-panel .lesson-path-list {
+    gap: 4px;
+    padding: 6px 5px 8px;
+  }
+  .lesson-path-panel .lesson-path-item {
+    min-height: 50px;
+    gap: 5px;
+    padding: 5px;
+  }
+  .lesson-path-panel .lesson-path-node {
+    width: 24px;
+    height: 24px;
+    font-size: 8px;
+  }
+  .lesson-path-panel .lesson-path-copy strong {
+    font-size: 9px;
+  }
+  .lesson-path-panel .lesson-path-copy small {
+    font-size: 7px;
+  }
+  .lesson-path-panel .lesson-path-copy em,
+  .lesson-path-panel .lesson-path-note,
+  .lesson-path-panel .lesson-source-status {
+    display: none;
+  }
+  .lesson-conversation-panel,
+  .lesson-teaching-panel {
+    border-radius: 15px;
+  }
+}
