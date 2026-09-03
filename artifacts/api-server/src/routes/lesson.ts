@@ -152,7 +152,12 @@ async function generateLesson(
     }),
     signal: AbortSignal.timeout(30000),
   });
-  if (!response.ok) throw new Error(`Lesson generator responded with ${response.status}`);
+  if (!response.ok) {
+    const providerError = (await response.text().catch(() => "")).replace(/\s+/g, " ").trim().slice(0, 320);
+    throw new Error(
+      `Lesson generator responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
+    );
+  }
   const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const content = payload.choices?.[0]?.message?.content;
   if (!content) throw new Error("Lesson generator returned no content");
@@ -207,7 +212,12 @@ async function generateExercise(
     }),
     signal: AbortSignal.timeout(30000),
   });
-  if (!response.ok) throw new Error(`Exercise generator responded with ${response.status}`);
+  if (!response.ok) {
+    const providerError = (await response.text().catch(() => "")).replace(/\s+/g, " ").trim().slice(0, 320);
+    throw new Error(
+      `Exercise generator responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
+    );
+  }
   const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const content = payload.choices?.[0]?.message?.content;
   if (!content) throw new Error("Exercise generator returned no content");
@@ -264,10 +274,16 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     );
     res.json(generated);
   } catch (error) {
-    req.log.error({ error }, "Lesson generation failed");
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    req.log.error({ error: errorMessage }, "Lesson generation failed");
+    const message = errorMessage.includes("DEEPSEEK_API_KEY")
+      ? "لم يتم إعداد مزود الذكاء الاصطناعي بعد."
+      : errorMessage.startsWith("Lesson generator responded with")
+        ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
+        : "تعذر توليد شرح الدرس من المصادر حاليًا. أعد المحاولة بعد قليل.";
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error: error instanceof KnowledgeGroundingError ? error.code : "lesson_generation_failed",
-      message: "لا يمكن توليد الدرس قبل نجاح استرجاع عقد المعرفة من ChromaDB.",
+      message,
     });
   }
 });
@@ -307,10 +323,16 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     );
     res.json(generated);
   } catch (error) {
-    req.log.error({ error }, "Exercise generation failed");
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    req.log.error({ error: errorMessage }, "Exercise generation failed");
+    const message = errorMessage.includes("DEEPSEEK_API_KEY")
+      ? "لم يتم إعداد مزود الذكاء الاصطناعي بعد."
+      : errorMessage.startsWith("Exercise generator responded with")
+        ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
+        : "تعذر توليد التمرين من المصادر حاليًا. أعد المحاولة بعد قليل.";
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error: error instanceof KnowledgeGroundingError ? error.code : "exercise_generation_failed",
-      message: "لا يمكن توليد التمرين قبل نجاح استرجاع عقد المعرفة وسجل الأخطاء.",
+      message,
     });
   }
 });
