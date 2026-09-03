@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Bell,
   BellOff,
@@ -82,18 +83,27 @@ function normalizeProgramSubject(subject?: string) {
   return subject === 'الرياضيات' ? 'الرياضيات' : 'الفيزياء';
 }
 
-const initialEntries: ProgramEntry[] = [
-  { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرح الفكرة بكلماتك' },
-  { id: 'program-2', date: today, time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false, slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
-  { id: 'program-3', date: today, time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'الفيزياء', kind: 'مراجعة', agent: 'دليل', completed: false, slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
-  { id: 'program-4', date: addDays(today, 2), time: '16:00', duration: '45 دقيقة', title: 'الميكانيك', subject: 'الفيزياء', kind: 'فرض', agent: 'تمارين', completed: false },
-];
+type FoundationalModule = {
+  nodeId: string;
+  title: string;
+  summary: string;
+  source: string;
+  page: number;
+};
 
-const smartSlots: Omit<ProgramEntry, 'id' | 'date' | 'completed'>[] = [
-  { time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرح الفكرة بكلماتك' },
-  { time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
-  { time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'الفيزياء', kind: 'مراجعة', agent: 'دليل', slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
-];
+function createGroundedSlots(modules: FoundationalModule[]): Omit<ProgramEntry, 'id' | 'date' | 'completed'>[] {
+  if (modules.length < 3) return [];
+  const tracks = [
+    { time: '08:30', duration: '25–40 دقيقة', kind: 'مكتسبات' as const, agent: 'فهيم' as const, slot: 1 as const, track: 'theory' as const, endRule: 'تنتهي عندما تشرح الفكرة بكلماتك' },
+    { time: '12:00', duration: 'حتى حل تمرينين', kind: 'حصة تطبيقية' as const, agent: 'تمارين' as const, slot: 2 as const, track: 'application' as const, endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
+    { time: '17:30', duration: 'حتى إجابة التحقق', kind: 'مراجعة' as const, agent: 'دليل' as const, slot: 3 as const, track: 'application' as const, endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
+  ];
+  return tracks.map((track, index) => ({
+    ...track,
+    title: modules[index].title,
+    subject: 'الفيزياء',
+  }));
+}
 
 const kindStyles: Record<ProgramKind, { tone: string; icon: typeof BookOpenCheck }> = {
   مكتسبات: { tone: 'program-tone-sky', icon: BookOpenCheck },
@@ -104,15 +114,15 @@ const kindStyles: Record<ProgramKind, { tone: string; icon: typeof BookOpenCheck
   بحث: { tone: 'program-tone-blue', icon: FilePlus2 },
 };
 
-function readEntries(): ProgramEntry[] {
+function readEntries(groundedSlots: Omit<ProgramEntry, 'id' | 'date' | 'completed'>[]): ProgramEntry[] {
   try {
     const saved = localStorage.getItem('tawjeeh.program.entries');
-    if (!saved) return initialEntries;
+    if (!saved) return [];
     const parsed = JSON.parse(saved);
-    if (!Array.isArray(parsed)) return initialEntries;
+    if (!Array.isArray(parsed)) return [];
     const legacyToday = parsed.filter((entry): entry is ProgramEntry => entry?.date === today && !entry?.slot).slice(0, 3);
     const savedSessions = parsed.filter((entry): entry is ProgramEntry => entry?.slot && entry?.date);
-    const todaySessions = smartSlots.map((slot, index) => ({
+    const todaySessions = groundedSlots.map((slot, index) => ({
       ...slot,
       id: `program-${index + 1}`,
       date: today,
@@ -129,7 +139,7 @@ function readEntries(): ProgramEntry[] {
     const nonSessionEntries = parsed.filter((entry): entry is ProgramEntry => entry?.date && !entry?.slot);
     return [...todaySessions, ...nonSessionEntries];
   } catch {
-    return initialEntries;
+    return [];
   }
 }
 
@@ -145,8 +155,8 @@ function entryStartTime(entry: ProgramEntry) {
   return new Date(`${entry.date}T${entry.time}:00`).getTime();
 }
 
-function createDailySessions(date: string, seed?: ProgramEntry): ProgramEntry[] {
-  return smartSlots.map((slot, index) => ({
+function createDailySessions(date: string, groundedSlots: Omit<ProgramEntry, 'id' | 'date' | 'completed'>[], seed?: ProgramEntry): ProgramEntry[] {
+  return groundedSlots.map((slot, index) => ({
     ...slot,
     id: `smart-${date}-${index + 1}`,
     date,
@@ -313,7 +323,7 @@ function ProgramPlanSession({
 
 export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [, setLocation] = useLocation();
-  const [entries, setEntries] = useState<ProgramEntry[]>(initialEntries);
+  const [entries, setEntries] = useState<ProgramEntry[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'notifications'>('overview');
   const [showAllPlanDays, setShowAllPlanDays] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -338,6 +348,21 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
       refetchInterval: 10_000,
     },
   });
+  const readinessQuery = useQuery<{ status: string; foundationalModules: FoundationalModule[] }>({
+    queryKey: ['program-agent-readiness'],
+    queryFn: async () => {
+      const response = await fetch('/api/agents/readiness', { credentials: 'include' });
+      const payload = await response.json() as { status?: string; foundationalModules?: FoundationalModule[]; message?: string };
+      if (!response.ok) throw new Error(payload.message || 'تعذر تحميل وحدات المنهاج');
+      return { status: payload.status ?? 'unavailable', foundationalModules: payload.foundationalModules ?? [] };
+    },
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
+  const groundedSlots = useMemo(
+    () => createGroundedSlots(readinessQuery.data?.foundationalModules ?? []),
+    [readinessQuery.data?.foundationalModules],
+  );
   const updateScheduleMutation = useUpdateLearningSchedule();
   const examModeQuery = useGetExamMode(
     { exam_date: examDate },
@@ -363,11 +388,11 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   );
 
   useEffect(() => {
-    setEntries(readEntries());
+    if (groundedSlots.length) setEntries((current) => current.length ? current : readEntries(groundedSlots));
     setNotificationsEnabled(localStorage.getItem('tawjeeh.program.notifications') !== 'off');
     const savedEntryDate = localStorage.getItem('tawjeeh.phase1.entryDate');
     if (savedEntryDate) setEntryDate(savedEntryDate);
-  }, []);
+  }, [groundedSlots]);
 
   useEffect(() => {
     if (!examMode || !notificationsEnabled || typeof Notification === 'undefined' || notificationPermission !== 'granted') return;
@@ -411,6 +436,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   }, [entries]);
 
   useEffect(() => {
+    if (!groundedSlots.length) return;
     setEntries((current) => {
       const tenDayDates = Array.from({ length: 10 }, (_, index) => addDays(entryDate, index));
       const planKeys = new Set(tenDayDates.flatMap((date) => [1, 2, 3].map((slot) => `${date}-${slot}`)));
@@ -420,12 +446,12 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           .map((entry) => [`${entry.date}-${entry.slot}`, entry]),
       );
       const planSessions = tenDayDates.flatMap((date) =>
-        createDailySessions(date).map((session) => savedSessions.get(`${date}-${session.slot}`) ?? session),
+        createDailySessions(date, groundedSlots).map((session) => savedSessions.get(`${date}-${session.slot}`) ?? session),
       );
       const nonPlanEntries = current.filter((entry) => !entry.slot || !planKeys.has(`${entry.date}-${entry.slot}`));
       return [...planSessions, ...nonPlanEntries];
     });
-  }, [entryDate]);
+  }, [entryDate, groundedSlots]);
 
   const tenDayPlan = useMemo(() => {
     return Array.from({ length: 10 }, (_, dayIndex) => {
@@ -435,7 +461,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         dayNumber: dayIndex + 1,
         sessions: [1, 2, 3].map((slot) =>
           (() => {
-            const fallbackEntry = createDailySessions(date)[slot - 1];
+            const fallbackEntry = createDailySessions(date, groundedSlots)[slot - 1];
             const localEntry = entries.find((entry) => entry.date === date && entry.slot === slot)
               ?? fallbackEntry;
             const typedSlot = slot as 1 | 2 | 3;
@@ -490,7 +516,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
       if (exists) {
         return current.map((entry) => entry.date === date && entry.slot === slot ? { ...entry, ...updates } : entry);
       }
-      const fallback = createDailySessions(date)[slot - 1];
+      const fallback = createDailySessions(date, groundedSlots)[slot - 1];
       return [...current, { ...fallback, ...updates }];
     });
   };

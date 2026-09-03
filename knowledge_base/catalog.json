@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "generated_at": "2026-09-03T15:04:26.600103+00:00",
+  "generated_at": "2026-09-03T15:34:32.752987+00:00",
   "assets_root": "attached_assets",
   "stats": {
     "needs_review": 238,
-    "indexed": 46,
+    "indexed": 47,
     "excluded_media": 9,
     "duplicate_source": 32,
     "excluded_reference": 1,
-    "total_assets": 326,
-    "indexed_chunks": 666
+    "total_assets": 327,
+    "indexed_chunks": 668
   },
   "sources": [
     {
@@ -3527,6 +3527,48 @@
       "status": "duplicate_source",
       "canonical_source": "Pasted---1787910632969_1787910632971.txt",
       "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
+    },
+    {
+      "source_id": "7662cf5d232782cc8c4771f634042c524da034477154e3b695459911c3fb3fcb",
+      "source_file": "Pasted-SYSTEM-INSTRUCTION-STRICT-COLOR-OVERHAUL-KNOWLEDGE-BASE_1788449045674.txt",
+      "asset_path": "attached_assets/Pasted-SYSTEM-INSTRUCTION-STRICT-COLOR-OVERHAUL-KNOWLEDGE-BASE_1788449045674.txt",
+      "source_type": "txt",
+      "bytes": 2093,
+      "sha256": "7662cf5d232782cc8c4771f634042c524da034477154e3b695459911c3fb3fcb",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "third_secondary",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "lesson_key": "general",
+      "content_type": "reference",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "مراجعة عامة",
+      "concepts": "مراجعة عامة",
+      "prerequisites": "",
+      "lesson_keys": "general",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "Pasted SYSTEM INSTRUCTION STRICT COLOR OVERHAUL KNOWLEDGE BASE",
+      "status": "indexed",
+      "review_reason": "",
+      "pages": 1,
+      "chunks": 2,
+      "first_page": 1,
+      "extraction_method": "text",
+      "extraction_methods": {
+        "text": 1
+      },
+      "summary": "SYSTEM INSTRUCTION: STRICT COLOR OVERHAUL & KNOWLEDGE BASE EXECUTION ENGINE",
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "reference"
+      ],
+      "indexed_source_hash": "7662cf5d232782cc8c4771f634042c524da034477154e3b695459911c3fb3fcb"
     },
     {
       "source_id": "73f7f1074bcf9f6044872ef7ae621af9b8a14fbc5f063c128424e197d36b5154",
@@ -12940,6 +12982,24 @@
         "الدوال",
         "الدوال العددية",
         "assessment"
+      ]
+    },
+    {
+      "id": "7662cf5d232782cc8c4771f634042c524da034477154e3b695459911c3fb3fcb",
+      "title": "Pasted SYSTEM INSTRUCTION STRICT COLOR OVERHAUL KNOWLEDGE BASE",
+      "summary": "SYSTEM INSTRUCTION: STRICT COLOR OVERHAUL & KNOWLEDGE BASE EXECUTION ENGINE",
+      "subject": "غير محدد",
+      "curriculum_year": "third_secondary",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "type": "reference",
+      "difficulty": "mixed",
+      "source": "Pasted-SYSTEM-INSTRUCTION-STRICT-COLOR-OVERHAUL-KNOWLEDGE-BASE_1788449045674.txt",
+      "page": 1,
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "reference"
       ]
     },
     {

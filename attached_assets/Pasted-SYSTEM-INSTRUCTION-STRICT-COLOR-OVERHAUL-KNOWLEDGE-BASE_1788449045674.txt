@@ -1,0 +1,23 @@
+SYSTEM INSTRUCTION: STRICT COLOR OVERHAUL & KNOWLEDGE BASE EXECUTION ENGINE
+
+Role: Lead UI/UX Engineer & AI Core Architect
+Task: Execute a complete purge of green design elements and force full runtime activation of the ChromaDB Knowledge Base for live app generation.
+
+1. COMPLETE PURGE OF GREEN & STRICT COLOR PALETTE (مسخ اللون الأخضر وتوحيد الأزرق):
+   - ABSOLUTE RULE: Scan and purge every instance of green styling, green badges, green text, green borders, and green buttons across all components, Tailwind classes, and CSS files in `artifacts/tawjeeh-ed`.
+   - Primary Color Palette: Enforce strictly the official Logo/Brand theme:
+     * Deep Petroleum Blue / Teal (#005F73 / #0A9396 / #0F4C81)
+     * Electric / Navy Blue (#1E3A8A / #2563EB)
+     * Neutral Light Gray/Slate for background readability.
+   - Replace any green success/active status indicators with petroleum/electric blue accents or high-contrast subtle badges.
+
+2. MANDATORY KNOWLEDGE BASE GENERATION ENGINE (تطبيق واستغلال القاعدة المعرفية):
+   - Force the application runtime to actively query and utilize the embedded ChromaDB Knowledge Base (RAG Pipeline).
+   - Agent "Faheem", Agent "Dalil", and the "Exercises Agent" MUST generate lessons, interactive blackboard diagrams, and exercise sets strictly pulled from and grounded in the Knowledge Base vector embeddings.
+   - Do NOT display static placeholder content. The initial study session and onboarding exercises must be dynamically retrieved and rendered from the curriculum database.
+
+3. APP EXECUTION & WORKFLOW VERIFICATION:
+   - Configure the workspace startup scripts so that the React/Vite Frontend, Express API, and Python ChromaDB Knowledge Base service run seamlessly in parallel.
+   - Address the user exclusively in correct masculine/neutral Arabic grammar ("أخبرني", "لكَ").
+
+STRICT CONDITION: Execute these updates immediately, ensure all green code/CSS is completely purged, and confirm that the live app preview is functioning using Knowledge Base generation.

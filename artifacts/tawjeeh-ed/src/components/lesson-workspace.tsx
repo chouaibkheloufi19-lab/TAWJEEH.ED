@@ -212,7 +212,7 @@ const lessonSections: LessonSection[] = [
   {
     id: 'practice',
     label: 'تدريب',
-    shortLabel: 'أجربي بنفسك',
+    shortLabel: 'جرّب بنفسك',
     duration: '١٠ دقائق',
     title: 'قوة محصلة، خطوة خطوة',
     explanation: 'القوة المحصلة هي مجموع القوى المؤثرة، واتجاهها هو الذي يحدد تغير الحركة.',
@@ -230,29 +230,6 @@ const lessonSections: LessonSection[] = [
     prompt: 'لخّص العلاقة في سطر واحد، ثم قارنها بما كتبته في ملاحظتك.',
   },
 ];
-
-const exampleDetails: Record<LessonSectionId, { id: string; title: string; detail: string; expectedKeywords: string[] }[]> = {
-  definition: [
-    { id: 'definition-1', title: 'عرّف القصور الذاتي', detail: 'اكتب المعنى بكلماتك.', expectedKeywords: ['مقاومة', 'تغيير'] },
-    { id: 'definition-2', title: 'اربطه بالحياة اليومية', detail: 'فسّر ما يحدث للراكب عند توقف الحافلة.', expectedKeywords: ['استمرار', 'حركة'] },
-  ],
-  'worked-example': [
-    { id: 'worked-example-1', title: 'حدّد الحالة قبل التوقف', detail: 'ما اتجاه حركة الراكب والحافلة قبل التوقف؟', expectedKeywords: ['نفس', 'اتجاه'] },
-    { id: 'worked-example-2', title: 'فسّر اتجاه الميل', detail: 'لماذا يميل الجسم إلى الأمام؟', expectedKeywords: ['يحافظ', 'حركة'] },
-  ],
-  graph: [
-    { id: 'graph-1', title: 'اقرئي الميل', detail: 'ماذا يعني الميل الأكبر على منحنى الموضع والزمن؟', expectedKeywords: ['سرعة'] },
-    { id: 'graph-2', title: 'قارن مقطعين', detail: 'ماذا يدل تغير الميل؟', expectedKeywords: ['تغير', 'سرعة'] },
-  ],
-  practice: [
-    { id: 'practice-1', title: 'اكتب المعطيات', detail: 'ما الذي ترتبه قبل التعويض في العلاقة؟', expectedKeywords: ['قوة', 'كتلة'] },
-    { id: 'practice-2', title: 'احسب التسارع', detail: 'كيف نستخرج التسارع من القوة والكتلة؟', expectedKeywords: ['نقسم', 'قوة'] },
-  ],
-  recap: [
-    { id: 'recap-1', title: 'اكتب العلاقة الرمزية', detail: 'اكتب العلاقة الرمزية للقانون الثاني لنيوتن.', expectedKeywords: ['f', 'm', 'a'] },
-    { id: 'recap-2', title: 'استخرج المجهول', detail: 'ما العملية العكسية المناسبة لاستخراج التسارع؟', expectedKeywords: ['قس', 'قوة'] },
-  ],
-};
 
 const sessionKey = 'tawjeeh.lesson.workspace.v1';
 const attemptBankKey = 'tawjeeh.attempt.bank.v1';
@@ -413,6 +390,14 @@ function sourceForSection(
     ?? cards.find((card) => card.lesson?.includes('نيوتن') || card.title?.includes('نيوتن'));
 }
 
+function elementKindForSection(sectionId: LessonSectionId): string {
+  if (sectionId === 'definition') return 'definition';
+  if (sectionId === 'worked-example') return 'example';
+  if (sectionId === 'graph') return 'graph';
+  if (sectionId === 'practice') return 'practice';
+  return 'recap';
+}
+
 function normalizeGraphPoints(points: GeneratedGraphPoint[]) {
   if (!points.length) return [];
   const xValues = points.map((point) => point.x);
@@ -464,14 +449,14 @@ function drawBoard(
     ctx.font = '600 12px IBM Plex Sans Arabic, sans-serif';
     ctx.fillText('الزمن', right - 32, bottom + 25);
     ctx.fillText('الموضع', left + 8, top - 9);
-    ctx.strokeStyle = '#2e8b7b';
+    ctx.strokeStyle = '#005f73';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(left + 8, bottom - 10);
     ctx.bezierCurveTo(width * .34, height * .67, width * .48, height * .56, width * .63, height * .43);
     ctx.bezierCurveTo(width * .71, height * .36, width * .77, height * .29, right - 3, top + 8);
     ctx.stroke();
-    ctx.fillStyle = '#2e8b7b';
+    ctx.fillStyle = '#005f73';
     ctx.beginPath(); ctx.arc(width * .63, height * .43, 5, 0, Math.PI * 2); ctx.fill();
   }
   const selectedRegion = boardRegions(sectionId).find((region) => region.label === highlightedPart);
@@ -518,10 +503,7 @@ export function LessonWorkspace() {
   );
   const examMode = examModeQuery.data as ExamMode | undefined;
   const [session, setSession] = useState<LessonSession>(() => readSession(evaluationPlan.mode));
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 'welcome', role: 'assistant', text: 'أهلًا، أنا فهيم. سنمشي في العناصر الخمسة بهدوء، ونثبت كل فكرة بخطوة صغيرة.' },
-    { id: 'prompt', role: 'assistant', text: 'اختر عنصرًا من المسار، أو اكتب سؤالك، أو أرفق صورة محاولتك.' },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState('');
   const [highlightedPart, setHighlightedPart] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -616,29 +598,27 @@ export function LessonWorkspace() {
     && agentReadinessQuery.data.retrieval.status === 'ready';
   const activeSection = useMemo(() => lessonSections.find((section) => section.id === session.activeConcept) ?? lessonSections[0], [session.activeConcept]);
   const activeSource = useMemo(() => sourceForSection(activeSection, foundationalSources), [activeSection, foundationalSources]);
-  const activeExamples = useMemo(
-    () => ragReady && activeSource
-      ? exampleDetails[activeSection.id].map((example) => ({
-        ...example,
-        title: `تطبيق مستخرج من ${activeSource.title}`,
-        detail: activeSource.summary.replace(/\s+/g, ' ').trim().slice(0, 220),
-        expectedKeywords: [
-          ...activeSource.tags.map((concept) => concept.trim().toLowerCase()).filter(Boolean),
-          activeSource.title.trim().toLowerCase(),
-        ],
-      }))
-      : [],
-    [activeSection.id, activeSource, ragReady],
-  );
-  const displayedTitle = generatedLesson?.lessonTitle ?? activeSection.title;
+  const activeExamples = useMemo(() => {
+    if (!ragReady || !activeSource || !generatedLesson) return [];
+    const element = generatedLesson.elements.find((item) => item.kind === elementKindForSection(activeSection.id));
+    if (!element) return [];
+    return [{
+      id: `${activeSection.id}-grounded`,
+      title: element.title,
+      detail: element.summary.replace(/\s+/g, ' ').trim().slice(0, 320),
+      expectedKeywords: activeSource.tags.map((concept) => concept.trim()).filter(Boolean).slice(0, 3),
+    }];
+  }, [activeSection.id, activeSource, generatedLesson, ragReady]);
+  const displayedElement = generatedLesson?.elements.find((item) => item.kind === elementKindForSection(activeSection.id));
+  const displayedTitle = displayedElement?.title ?? (generatedLesson?.lessonTitle ?? 'يُحمّل عنوان الدرس من المصدر');
   const sourceExcerpt = activeSource?.summary?.replace(/\s+/g, ' ').trim().slice(0, 520) ?? '';
   const displayedExplanation = ragReady && generatedLesson
     ? generatedLesson.explanation
     : 'تتصل مساحة الدرس بقاعدة المعرفة قبل عرض أي شرح. انتظر اكتمال اتصال RAG.';
   const displayedHighlight = ragReady && generatedLesson ? generatedLesson.highlight : 'اتصال قاعدة المعرفة';
   const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
-  const totalExamples = lessonSections.reduce((total, section) => total + exampleDetails[section.id].length, 0);
-  const totalCompleted = lessonSections.reduce((total, section) => total + exampleDetails[section.id].filter((example) => session.gradedExamples[example.id] === 'correct').length, 0);
+  const totalExamples = lessonSections.length;
+  const totalCompleted = lessonSections.filter((section) => session.gradedExamples[`${section.id}-grounded`] === 'correct').length;
   const progress = Math.round((totalCompleted / totalExamples) * 100);
   const hotspots = useMemo(() => boardRegions(activeSection.id), [activeSection.id]);
   const evaluationDay = getEvaluationDay(session.startedAt);
@@ -684,6 +664,17 @@ export function LessonWorkspace() {
         }]);
   }, [foundationExpired, session.activeAgent, session.concludedAt]);
 
+  useEffect(() => {
+    if (!ragReady || !activeSource) return;
+    setMessages((current) => current.some((message) => message.id === 'grounded-welcome')
+      ? current
+      : [...current, {
+          id: 'grounded-welcome',
+          role: 'assistant',
+          text: `أهلًا، أنا فهيم. بدأت الجلسة من «${activeSource.title}» في ${activeSource.source}، وسأبني الشرح والتمارين من العقد المسترجعة فقط.`,
+        }]);
+  }, [activeSource, ragReady]);
+
   const concludeSession = (retry = false) => {
     if (retry && !session.concludedAt) return;
     if (!ragReady) {
@@ -699,13 +690,12 @@ export function LessonWorkspace() {
       subject: 'العلوم الفيزيائية',
       summary: `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّت ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعت الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
       concepts: lessonSections.map((section) => {
-        const examples = exampleDetails[section.id];
-        const mastered = examples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
+        const mastered = session.gradedExamples[`${section.id}-grounded`] === 'correct' ? 1 : 0;
         return {
           id: section.id,
-          title: section.title,
-           summary: sourceForSection(section, foundationalSources)?.summary || 'لا يوجد مقتطف مسترجع لهذا المفهوم بعد.',
-          mastery: Math.round((mastered / examples.length) * 100),
+          title: generatedLesson?.elements.find((item) => item.kind === elementKindForSection(section.id))?.title ?? section.label,
+          summary: sourceForSection(section, foundationalSources)?.summary || 'لا يوجد مقتطف مسترجع لهذا المفهوم بعد.',
+          mastery: mastered * 100,
         };
       }),
       startedAt: session.startedAt,
@@ -969,7 +959,7 @@ export function LessonWorkspace() {
       if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
       setMessages((current) => [...current, { id: `answer-${Date.now()}`, role: 'assistant', text: payload.answer as string }]);
     } catch {
-      setMessages((current) => [...current, { id: `answer-error-${Date.now()}`, role: 'assistant', text: 'تعذر الوصول إلى فهيم الآن. احتفظت بسؤالك؛ حاولي الإرسال مرة أخرى بعد لحظات.' }]);
+      setMessages((current) => [...current, { id: `answer-error-${Date.now()}`, role: 'assistant', text: 'تعذر الوصول إلى فهيم الآن. احتفظت بسؤالك؛ حاول الإرسال مرة أخرى بعد لحظات.' }]);
     } finally {
       setIsThinking(false);
     }
@@ -982,7 +972,7 @@ export function LessonWorkspace() {
     setMessages((current) => [...current, {
       id: `partner-switch-${partner}-${Date.now()}`,
       role: 'assistant',
-      text: `أصبحتِ الآن مع ${partnerDetails[partner].name}. ${partnerDetails[partner].prompt}`,
+      text: `أصبحت الآن مع ${partnerDetails[partner].name}. ${partnerDetails[partner].prompt}`,
     }]);
   };
 
@@ -1115,7 +1105,7 @@ export function LessonWorkspace() {
     setAttachmentError('');
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setAttachmentError('اختاري صورة بصيغة مناسبة.');
+      setAttachmentError('اختر صورة بصيغة مناسبة.');
       event.target.value = '';
       return;
     }
@@ -1179,7 +1169,7 @@ export function LessonWorkspace() {
       setMessages((current) => [...current, {
         id: `exercise-${Date.now()}`,
         role: 'assistant',
-        text: 'بنيت لك تمرينًا يعالج موضع الخطأ من عقد المعرفة وسجل محاولاتك. ابدئي بكتابة المعطيات والخطوة الأولى.',
+        text: 'بنيت لك تمرينًا يعالج موضع الخطأ من عقد المعرفة وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.',
       }]);
     } catch (error) {
       setMessages((current) => [...current, {
@@ -1203,8 +1193,8 @@ export function LessonWorkspace() {
       id: `exercise-review-${Date.now()}`,
       role: 'assistant',
       text: isCorrect
-        ? 'حلّك صحيح. ثبّتِ العلاقة الأساسية، ويمكنك الآن الانتقال إلى المثال التالي.'
-        : 'نحتاج خطوة أخرى قبل اعتماد الحل. افتحي تلميح الحل، ثم أعيدي كتابة المعطيات والعلاقة.',
+        ? 'حلّك صحيح. ثبّت العلاقة الأساسية، ويمكنك الآن الانتقال إلى المثال التالي.'
+        : 'نحتاج خطوة أخرى قبل اعتماد الحل. افتح تلميح الحل، ثم أعد كتابة المعطيات والعلاقة.',
     }]);
   };
 
@@ -1227,7 +1217,7 @@ export function LessonWorkspace() {
     setMessages((current) => [...current, {
       id: `highlight-${Date.now()}`,
       role: 'assistant',
-      text: `حددتِ «${region.label}». اسأليني عنه وسأشرح الجزء نفسه خطوة خطوة.`,
+      text: `حددت «${region.label}». اسألني عنه وسأشرح الجزء نفسه خطوة خطوة.`,
     }]);
   };
 
@@ -1293,7 +1283,7 @@ export function LessonWorkspace() {
         <div className="lesson-title-block">
           <span className="lesson-kicker"><Sparkles size={13} /> جلسة تثبيت · علوم فيزيائية</span>
           <h1>قوانين نيوتن والحركة</h1>
-          <p>فكرة واحدة، محاولة قصيرة، ثم علامة واضحة على ما فهمتِه.</p>
+          <p>فكرة واحدة، محاولة قصيرة، ثم علامة واضحة على ما فهمته.</p>
         </div>
         <div className="lesson-header-controls">
           <div className="lesson-header-status" role="status" data-testid="status-lesson-progress">
@@ -1333,8 +1323,8 @@ export function LessonWorkspace() {
        <div className={`lesson-evaluation-banner ${phase4Active ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
         <div>
             <span className="lesson-panel-kicker"><Sparkles size={13} /> {phase4Active ? 'اكتمل التشخيص · بداية المرحلة الرابعة' : 'المصادر والوكلاء جاهزون'}</span>
-            <strong>{phase4Active ? 'انتقلتِ من فهيم إلى شريكين للتركيز' : 'ابدئي الدراسة الآن من المصدر'}</strong>
-            <p>{phase4Active ? 'فهيم أغلق الحلقة التأسيسية. دليل للشرح، ووكيل التمارين للتطبيق — وأنتِ تختارين من يقود الخطوة التالية.' : 'فتحت لك مساحة شرح كاملة، ومصدرًا حقيقيًا من قاعدة المعرفة، ووكلاء يربطون السؤال بالدرس بدل تشتيتك بين الشاشات.'}</p>
+            <strong>{phase4Active ? 'انتقلت من فهيم إلى شريكين للتركيز' : 'ابدأ الدراسة الآن من المصدر'}</strong>
+            <p>{phase4Active ? 'فهيم أغلق الحلقة التأسيسية. دليل للشرح، ووكيل التمارين للتطبيق — وأنت تختار من يقود الخطوة التالية.' : 'فتحت لك مساحة شرح كاملة، ومصدرًا حقيقيًا من قاعدة المعرفة، ووكلاء يربطون السؤال بالدرس بدل تشتيتك بين الشاشات.'}</p>
         </div>
          <div className="lesson-evaluation-meta">
             <span>{phase4Active ? 'الحالة: تم التسليم' : 'الحالة: دراسة مباشرة'}</span>
@@ -1354,13 +1344,13 @@ export function LessonWorkspace() {
          <div className="lesson-phase4-side lesson-phase4-left">
            <span>يسار الشاشة</span>
            <strong>الدرس · التمرين · الحل</strong>
-           <small>اقرئي، جرّبي، واكتبي فوق اللوح.</small>
+           <small>اقرأ، جرّب، واكتب فوق اللوح.</small>
          </div>
          <div className="lesson-phase4-bridge" aria-hidden="true"><span /></div>
          <div className="lesson-phase4-side lesson-phase4-right">
            <span>يمين الشاشة</span>
            <strong>مساحة الشركاء</strong>
-           <small>بدّلي بين الشرح والتطبيق متى احتجتِ.</small>
+           <small>بدّل بين الشرح والتطبيق متى احتجت.</small>
          </div>
        </div>
 
@@ -1393,7 +1383,7 @@ export function LessonWorkspace() {
           <div className="lesson-path-list">
             {lessonSections.map((section, index) => {
               const active = section.id === activeSection.id;
-              const done = exampleDetails[section.id].every((example) => session.gradedExamples[example.id] === 'correct');
+              const done = session.gradedExamples[`${section.id}-grounded`] === 'correct';
               const source = sourceForSection(section, foundationalSources);
               return (
                 <button
@@ -1406,7 +1396,7 @@ export function LessonWorkspace() {
                   data-testid={`button-lesson-section-${section.id}`}
                 >
                   <span className="lesson-path-node">{done ? <Check size={15} /> : `٠${index + 1}`}</span>
-                  <span className="lesson-path-copy"><strong>{section.label}</strong><small>{active ? section.title : section.shortLabel}</small>{source && <em>من {source.source}</em>}</span>
+                  <span className="lesson-path-copy"><strong>{section.label}</strong><small>{active ? displayedTitle : section.shortLabel}</small>{source && <em>من {source.source}</em>}</span>
                   {active && <span className="lesson-path-current" aria-hidden="true" />}
                 </button>
               );
@@ -1458,7 +1448,7 @@ export function LessonWorkspace() {
             ))}
           </div>
             <form className={`lesson-composer ${!faheemActive && !handoffComplete ? 'is-disabled' : ''}`} onSubmit={handleQuestionSubmit}>
-             <label className="lesson-composer-label" htmlFor="lesson-question"><span>{handoffComplete ? `اكتبي إلى ${activePartnerDetails.name}` : 'سؤال أو ملاحظة'}</span><span>العنصر الحالي: {activeSection.label}</span></label>
+            <label className="lesson-composer-label" htmlFor="lesson-question"><span>{handoffComplete ? `اكتب إلى ${activePartnerDetails.name}` : 'سؤال أو ملاحظة'}</span><span>العنصر الحالي: {activeSection.label}</span></label>
             <div className="lesson-composer-box">
                 <textarea id="lesson-question" value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!faheemActive && !handoffComplete} placeholder={handoffComplete ? activePartnerDetails.prompt : faheemActive ? 'مثال: لماذا يستمر الراكب في الحركة؟' : 'اكتمل التسليم إلى دليل ووكيل التمارين'} rows={2} data-testid="input-lesson-question" />
                 <button type="button" className="lesson-icon-button" onClick={() => attachmentInputRef.current?.click()} disabled={!lessonToolsActive} aria-label="إرفاق صورة الحل" data-testid="button-attach-handwritten"><ImagePlus size={17} /></button>
@@ -1601,7 +1591,7 @@ export function LessonWorkspace() {
             <span className="lesson-explanation-label">فكرة مركزيّة</span>
              <p>{displayedExplanation.replace(`${displayedHighlight} `, '')} <button type="button" className={`lesson-highlight-part ${highlightedPart === displayedHighlight ? 'is-selected' : ''}`} onClick={() => { pauseNarration(); setHighlightedPart(displayedHighlight); }} aria-pressed={highlightedPart === displayedHighlight} data-testid="button-highlight-concept">{displayedHighlight}</button></p>
             {activeSource && <div className="lesson-source-line"><BookOpen size={13} /><span>{activeSource.title}</span><small>{activeSource.source} · ص {activeSource.page}</small></div>}
-              <button type="button" className="lesson-ask-highlight" onClick={() => { if (highlightedPart) void (handoffComplete ? askPartner(`اشرح لي الجزء المحدد: ${highlightedPart}`) : askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`)); }} disabled={!lessonToolsActive || !highlightedPart} data-testid="button-ask-highlighted"><Highlighter size={13} /> اسألي عن الجزء المحدد</button>
+              <button type="button" className="lesson-ask-highlight" onClick={() => { if (highlightedPart) void (handoffComplete ? askPartner(`اشرح لي الجزء المحدد: ${highlightedPart}`) : askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`)); }} disabled={!lessonToolsActive || !highlightedPart} data-testid="button-ask-highlighted"><Highlighter size={13} /> اسأل عن الجزء المحدد</button>
           </div>
           <div className="lesson-whiteboard-wrap">
             <div className="lesson-whiteboard-toolbar">
@@ -1631,19 +1621,19 @@ export function LessonWorkspace() {
                    </button>
                  ))}
                </div>
-              <span className="lesson-canvas-hint">{activeSection.id === 'graph' ? 'الميل يروي قصة الحركة' : 'اكتبي أو ارسمِي فوق اللوح'}</span>
+              <span className="lesson-canvas-hint">{activeSection.id === 'graph' ? 'الميل يروي قصة الحركة' : 'اكتب أو ارسم فوق اللوح'}</span>
             </div>
           </div>
           <div className="lesson-teaching-footer">
             <div className="lesson-narration" role="status" aria-live="polite">
                 <button type="button" className="lesson-play-button" onClick={toggleNarration} disabled={!lessonToolsActive} aria-label={isPlaying ? 'إيقاف الشرح الصوتي' : 'تشغيل الشرح الصوتي'} data-testid="button-toggle-narration">{isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
-                 <div className="lesson-narration-copy"><strong>{isPlaying ? `${handoffComplete ? activePartnerDetails.name : 'فهيم'} يشرح لك بالصوت...` : 'الشرح الصوتي جاهز'}</strong><span>{isPlaying ? displayedExplanation : 'شغّلي العرض وصوته، ثم أوقفيه واسألي عن أي لحظة.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
+                 <div className="lesson-narration-copy"><strong>{isPlaying ? `${handoffComplete ? activePartnerDetails.name : 'فهيم'} يشرح لك بالصوت...` : 'الشرح الصوتي جاهز'}</strong><span>{isPlaying ? displayedExplanation : 'شغّل العرض وصوته، ثم أوقفه واسأل عن أي لحظة.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
             </div>
-              <form className={`lesson-board-question ${!lessonToolsActive ? 'is-disabled' : ''}`} onSubmit={(event) => { event.preventDefault(); void (handoffComplete ? askPartner(question || `ساعديني في فهم ${activeSection.label}`) : askFahim(question || `ساعدني في فهم ${activeSection.label}`)); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!lessonToolsActive} placeholder={handoffComplete ? `اكتبي إلى ${activePartnerDetails.name} عن اللوح` : faheemActive ? 'اسألي فهيم عن اللوح' : 'اكتمل التسليم إلى الشريكين'} aria-label={`سؤال ${handoffComplete ? activePartnerDetails.name : 'فهيم'} عن اللوح`} data-testid="input-board-question" /><button type="submit" disabled={!lessonToolsActive} aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
+              <form className={`lesson-board-question ${!lessonToolsActive ? 'is-disabled' : ''}`} onSubmit={(event) => { event.preventDefault(); void (handoffComplete ? askPartner(question || `ساعدني في فهم ${activeSection.label}`) : askFahim(question || `ساعدني في فهم ${activeSection.label}`)); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!lessonToolsActive} placeholder={handoffComplete ? `اكتب إلى ${activePartnerDetails.name} عن اللوح` : faheemActive ? 'اسأل فهيم عن اللوح' : 'اكتمل التسليم إلى الشريكين'} aria-label={`سؤال ${handoffComplete ? activePartnerDetails.name : 'فهيم'} عن اللوح`} data-testid="input-board-question" /><button type="submit" disabled={!lessonToolsActive} aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
           </div>
           <div className="lesson-examples">
             <div className="lesson-examples-heading"><h3>تثبيت سريع</h3><span>{completedCount} / {activeExamples.length}</span></div>
-             <p className="lesson-examples-hint">اكتبي إجابة قصيرة لكل مثال، ثم تحققي منها. لا نحتسب الفهم إلا بعد إجابة صحيحة.</p>
+             <p className="lesson-examples-hint">اكتب إجابة قصيرة لكل مثال، ثم تحقق منها. لا نحتسب الفهم إلا بعد إجابة صحيحة.</p>
              <div className="lesson-example-list">
               {activeExamples.map((example) => {
                 const status = session.gradedExamples[example.id];
@@ -1660,7 +1650,7 @@ export function LessonWorkspace() {
                         ...current,
                         exampleAnswers: { ...current.exampleAnswers, [example.id]: event.target.value },
                       }))}
-                      placeholder="اكتبي إجابتك هنا..."
+                      placeholder="اكتب إجابتك هنا..."
                       aria-label={`إجابة ${example.title}`}
                       rows={2}
                        disabled={!lessonToolsActive}
@@ -1668,10 +1658,10 @@ export function LessonWorkspace() {
                     />
                     <div className="lesson-example-footer">
                       <small className={`lesson-example-status ${status === 'incorrect' ? 'is-incorrect' : done ? 'is-correct' : ''}`}>
-                        {done ? 'إجابة صحيحة · أُضيفت للإتقان' : status === 'incorrect' ? 'راجعي الفكرة وحاولي مرة أخرى' : 'بانتظار إجابتك'}
+                        {done ? 'إجابة صحيحة · أُضيفت للإتقان' : status === 'incorrect' ? 'راجع الفكرة وحاول مرة أخرى' : 'بانتظار إجابتك'}
                       </small>
                        <button type="button" onClick={() => gradeExample(example.id)} disabled={!lessonToolsActive || !session.exampleAnswers[example.id]?.trim()} data-testid={`button-complete-example-${example.id}`}>
-                        {status ? 'تحققي مجددًا' : 'تحققي من الإجابة'}
+                        {status ? 'تحقق مجددًا' : 'تحقق من الإجابة'}
                       </button>
                     </div>
                   </div>
@@ -1693,7 +1683,7 @@ export function LessonWorkspace() {
           </div>
           <div className="lesson-note-card">
             <div className="lesson-note-header"><strong><Save size={13} /> ملاحظتك</strong><span>{noteStatus}</span></div>
-            <textarea value={session.note} onChange={(event) => { setNoteStatus('يُحفظ الآن'); setSession((current) => ({ ...current, note: event.target.value })); }} placeholder="اكتبي علاقة تريدين تذكرها..." aria-label="ملاحظة الدرس" data-testid="input-lesson-note" />
+            <textarea value={session.note} onChange={(event) => { setNoteStatus('يُحفظ الآن'); setSession((current) => ({ ...current, note: event.target.value })); }} placeholder="اكتب علاقة تريد تذكرها..." aria-label="ملاحظة الدرس" data-testid="input-lesson-note" />
              <button type="button" className="lesson-save-note" onClick={() => { try { window.localStorage.setItem(sessionKey, JSON.stringify({ ...session, attachment: null })); setNoteStatus('حُفظت الملاحظة'); } catch { setNoteStatus('تعذر حفظ الملاحظة'); } }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
               {(session.concludedAt || summarySaveState !== 'idle') && <div className="lesson-summary-status" role="status" data-testid="status-summary-bank">
                 <span>{summarySaveState === 'saved' ? 'حُفظ الملخص في ملفك وبنك الملخصات.' : summarySaveState === 'saving' ? 'نحفظ ملخص الجلسة في ملفك...' : summarySaveState === 'error' ? 'حُفظ محليًا، وتعذر مزامنة بنك الملخصات.' : 'سيُحفظ ملخص الجلسة تلقائيًا.'}</span>
@@ -1707,7 +1697,7 @@ export function LessonWorkspace() {
                <p>{summaryPreview.summary}</p>
                <div className="lesson-summary-concepts">{summaryPreview.concepts.map((concept) => <span key={concept.id}><strong>{concept.mastery}٪</strong>{concept.title}</span>)}</div>
                <div className="lesson-summary-times"><span>بدأت {formatSessionTime(summaryPreview.startedAt)}</span><span>اكتملت {formatSessionTime(summaryPreview.completedAt)}</span></div>
-               {summaryPreview.progress === 100 && summarySaveState === 'saved' && <button type="button" className="lesson-unit-quiz-button" onClick={() => setLocation('/quizzes?quiz=mechanics-unit')} data-testid="button-start-unit-assessment"><Sparkles size={14} /> افتحي تقييم الوحدة عالي الصعوبة</button>}
+               {summaryPreview.progress === 100 && summarySaveState === 'saved' && <button type="button" className="lesson-unit-quiz-button" onClick={() => setLocation('/quizzes?quiz=mechanics-unit')} data-testid="button-start-unit-assessment"><Sparkles size={14} /> افتح تقييم الوحدة عالي الصعوبة</button>}
              </div>}
             {attemptBank.length > 0 && <div className="lesson-bank"><div className="lesson-bank-heading"><strong>بنك الأخطاء</strong><span>{attemptBank.length} محاولات</span></div>{attemptBank.slice(0, 2).map((item) => <button type="button" key={item.id} className="lesson-bank-item" onClick={() => { setAnalysis(item); setAnalysisState('ready'); }} data-testid={`button-open-attempt-${item.id}`}><span>{item.fileName}</span><small>{item.createdAt} · {item.summaryAnchor}</small></button>)}</div>}
           </div>
