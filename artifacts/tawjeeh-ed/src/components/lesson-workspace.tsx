@@ -26,10 +26,10 @@ import {
   useListKnowledge,
   type KnowledgeCard,
 } from '@workspace/api-client-react';
-import owlAgentGold from '@assets/owl-agent-fahim-gold_1788382004394.png';
-import owlAgentMint from '@assets/owl-agent-fahim-mint_1788382004392.png';
-import owlAgentTeal from '@assets/owl-agent-fahim-teal_1788382004393.png';
-import owlAgentViolet from '@assets/owl-agent-fahim-violet_1788382004393.png';
+import owlAgentGold from '@assets/agent-success-cropped.png';
+import owlAgentMint from '@assets/agent-guiding-cropped.png';
+import owlAgentTeal from '@assets/agent-creation-cropped.png';
+import owlAgentViolet from '@assets/agent-thinking-cropped.png';
 
 type LessonSectionId = 'definition' | 'worked-example' | 'graph' | 'practice' | 'recap';
 type BoardMode = 'pen' | 'highlight';
@@ -576,12 +576,12 @@ export function LessonWorkspace() {
       </header>
 
       <div className="lesson-grid">
-        <aside className="lesson-panel lesson-path-panel" aria-label="مسار عناصر الدرس">
+         <aside className="lesson-panel lesson-path-panel" aria-label="مسار إتقان الطالب">
           <div className="lesson-panel-heading">
             <div>
-              <span className="lesson-panel-kicker"><BookOpen size={13} /> المسار الأول</span>
-              <h2>عناصر الدرس</h2>
-              <p>اختاري موضعك، والباقي يبقى هادئًا.</p>
+               <span className="lesson-panel-kicker"><BookOpen size={13} /> خريطة الإتقان</span>
+               <h2>مسار الطالب</h2>
+               <p>نقيس الفهم قبل أن ننتقل للخطوة التالية.</p>
             </div>
             <span className="lesson-rail-count">{progress}٪</span>
           </div>
@@ -615,11 +615,11 @@ export function LessonWorkspace() {
           {knowledgeQuery.isError && <p className="lesson-source-status is-error">تعذر تحميل الإحالات؛ بقيت أدوات الجلسة متاحة.</p>}
         </aside>
 
-        <section className="lesson-panel lesson-conversation-panel" aria-label="منطقة تفاعل الطالب">
+         <section className="lesson-panel lesson-conversation-panel" aria-label="منطقة التفاعل والتغذية الراجعة">
           <div className="lesson-panel-heading lesson-conversation-heading">
             <div className="lesson-fahim-chip">
               <span className="lesson-fahim-avatar"><img src={isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal} alt="فهيم، مساعد تثبيت المفاهيم" /></span>
-              <span><strong>فهيم</strong><small>تفاعل الطالب</small></span>
+               <span><strong>فهيم</strong><small>تفاعل وتغذية راجعة</small></span>
             </div>
             <span className={`lesson-live-state ${isThinking || analysisState === 'analyzing' ? 'is-working' : ''}`}><i />{analysisState === 'analyzing' ? 'يحلل الصورة' : isThinking ? 'يكتب الآن' : 'جاهز'}</span>
           </div>
@@ -661,10 +661,10 @@ export function LessonWorkspace() {
           </form>
         </section>
 
-        <section className="lesson-panel lesson-teaching-panel" aria-label="منطقة شرح فهيم واللوح">
+         <section className="lesson-panel lesson-teaching-panel" aria-label="السبورة الذكية لفهيم">
           <div className="lesson-teaching-header">
             <div>
-              <span className="lesson-panel-kicker"><Volume2 size={13} /> يشرح الآن</span>
+               <span className="lesson-panel-kicker"><Volume2 size={13} /> سبورة فهيم الذكية</span>
                <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
               <p>{activeSection.duration} · {activeSection.label}</p>
             </div>

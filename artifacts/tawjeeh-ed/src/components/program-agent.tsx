@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  ChevronDown,
   ClipboardPenLine,
   Clock3,
   FilePlus2,
@@ -18,9 +19,12 @@ import {
   X,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
-import owlAgentTeal from '@assets/owl-agent-fahim-teal_1788382004393.png';
+import owlAgentTeal from '@assets/agent-guiding-cropped.png';
+import owlAgentThinking from '@assets/agent-thinking-cropped.png';
+import owlAgentSuccess from '@assets/agent-success-cropped.png';
 
 type ProgramKind = 'مكتسبات' | 'حصة تطبيقية' | 'مراجعة' | 'اختبار' | 'فرض' | 'بحث' | 'عطلة';
+type SessionTrack = 'theory' | 'application';
 
 type ProgramEntry = {
   id: string;
@@ -32,6 +36,9 @@ type ProgramEntry = {
   kind: ProgramKind;
   agent: 'فهيم' | 'دليل' | 'تمارين';
   completed: boolean;
+  slot?: 1 | 2 | 3;
+  track?: SessionTrack;
+  endRule?: string;
 };
 
 type ProgramAgentProps = {
@@ -40,11 +47,17 @@ type ProgramAgentProps = {
 
 const today = '2024-06-12';
 const initialEntries: ProgramEntry[] = [
-  { id: 'program-1', date: today, time: '08:30', duration: '45 دقيقة', title: 'الدوال', subject: 'الرياضيات', kind: 'مكتسبات', agent: 'فهيم', completed: true },
-  { id: 'program-2', date: today, time: '10:00', duration: '35 دقيقة', title: 'التحولات الكيميائية', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false },
-  { id: 'program-3', date: today, time: '17:30', duration: '20 دقيقة', title: 'مراجعة عامة', subject: 'الرياضيات', kind: 'اختبار', agent: 'تمارين', completed: false },
+  { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'العلوم الفيزيائية', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
+  { id: 'program-2', date: today, time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'العلوم الفيزيائية', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false, slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
+  { id: 'program-3', date: today, time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'العلوم الفيزيائية', kind: 'مراجعة', agent: 'دليل', completed: false, slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
   { id: 'program-4', date: '2024-06-14', time: '16:00', duration: '45 دقيقة', title: 'الميكانيك', subject: 'الفيزياء', kind: 'فرض', agent: 'تمارين', completed: false },
   { id: 'program-5', date: '2024-06-15', time: '11:00', duration: '30 دقيقة', title: 'الدوال العددية', subject: 'الرياضيات', kind: 'بحث', agent: 'دليل', completed: false },
+];
+
+const smartSlots: Omit<ProgramEntry, 'id' | 'date' | 'completed'>[] = [
+  { time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'العلوم الفيزيائية', kind: 'مكتسبات', agent: 'فهيم', slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
+  { time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'العلوم الفيزيائية', kind: 'حصة تطبيقية', agent: 'تمارين', slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
+  { time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'العلوم الفيزيائية', kind: 'مراجعة', agent: 'دليل', slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
 ];
 
 const kindStyles: Record<ProgramKind, { tone: string; icon: typeof BookOpenCheck }> = {
@@ -62,7 +75,25 @@ function readEntries(): ProgramEntry[] {
     const saved = localStorage.getItem('tawjeeh.program.entries');
     if (!saved) return initialEntries;
     const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : initialEntries;
+    if (!Array.isArray(parsed)) return initialEntries;
+    const legacyToday = parsed.filter((entry): entry is ProgramEntry => entry?.date === today && !entry?.slot).slice(0, 3);
+    const savedSessions = parsed.filter((entry): entry is ProgramEntry => entry?.slot && entry?.date);
+    const todaySessions = smartSlots.map((slot, index) => ({
+      ...slot,
+      id: `program-${index + 1}`,
+      date: today,
+      completed: savedSessions.find((entry) => entry.date === today && entry.slot === slot.slot)?.completed
+        ?? legacyToday[index]?.completed
+        ?? false,
+      title: savedSessions.find((entry) => entry.date === today && entry.slot === slot.slot)?.title
+        ?? legacyToday[index]?.title
+        ?? slot.title,
+      subject: savedSessions.find((entry) => entry.date === today && entry.slot === slot.slot)?.subject
+        ?? legacyToday[index]?.subject
+        ?? slot.subject,
+    }));
+    const nonSessionEntries = parsed.filter((entry): entry is ProgramEntry => entry?.date && !entry?.slot);
+    return [...todaySessions, ...nonSessionEntries];
   } catch {
     return initialEntries;
   }
@@ -72,6 +103,31 @@ function formatDate(date: string) {
   if (date === today) return 'اليوم · الأربعاء ١٢ جوان';
   const [, month, day] = date.split('-');
   return `${Number(day)} جوان`;
+}
+
+function createDailySessions(date: string, seed?: ProgramEntry): ProgramEntry[] {
+  return smartSlots.map((slot, index) => ({
+    ...slot,
+    id: `smart-${date}-${index + 1}`,
+    date,
+    subject: seed?.subject ?? slot.subject,
+    completed: false,
+  }));
+}
+
+const agentProfiles = {
+  فهيم: { image: owlAgentTeal, role: 'يفتح الفكرة', tone: 'fahim' },
+  دليل: { image: owlAgentThinking, role: 'يثبت الفهم', tone: 'dalil' },
+  تمارين: { image: owlAgentSuccess, role: 'يحوّلها إلى تطبيق', tone: 'exercises' },
+} as const;
+
+function ProgramMiniAgent({ agent }: { agent: ProgramEntry['agent'] }) {
+  const profile = agentProfiles[agent];
+  return (
+    <span className={`program-mini-avatar ${profile.tone}`} title={`${agent} · ${profile.role}`}>
+      <img src={profile.image} alt={agent} />
+    </span>
+  );
 }
 
 function ProgramAgentAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
@@ -97,19 +153,20 @@ function ProgramEntryCard({
   return (
     <article className={`program-entry-card ${entry.completed ? 'is-complete' : ''}`} data-testid={`card-program-entry-${entry.id}`}>
       <div className="program-entry-time">
-        <span>تبدأ</span>
+        <span>تبدأ · يحددها البرنامج</span>
         <strong>{entry.time}</strong>
         <small><Timer size={12} /> {entry.duration ?? 'المدة من اختيارك'}</small>
       </div>
       <div className={`program-entry-icon ${tone}`}><Icon size={19} /></div>
       <div className="program-entry-content">
         <div className="program-entry-meta">
-          <span className={`program-kind ${tone}`}>{entry.kind}</span>
+          <span className={`program-kind ${tone}`}>{entry.slot ? `الحصة ${entry.slot} من ٣` : entry.kind}</span>
           <span>{entry.subject}</span>
         </div>
         <h3>{entry.title}</h3>
-        <p>موعد من برنامجك الدراسي</p>
+        <p>{entry.track === 'theory' ? 'نظرية · فهيم يشرح ويستمع لإجابتك' : `${entry.agent} · ${entry.endRule ?? 'التقدم يحدد نهاية الحصة'}`}</p>
       </div>
+      {entry.slot && <ProgramMiniAgent agent={entry.agent} />}
       <div className="program-entry-actions">
         <button
           type="button"
@@ -156,18 +213,26 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     localStorage.setItem('tawjeeh.program.entries', JSON.stringify(entries));
   }, [entries]);
 
+  useEffect(() => {
+    setEntries((current) => {
+      if (current.some((entry) => entry.date === selectedDate && entry.slot)) return current;
+      const seed = current.find((entry) => entry.date === selectedDate && !entry.slot);
+      return [...current, ...createDailySessions(selectedDate, seed)];
+    });
+  }, [selectedDate]);
+
   const dates = useMemo(() => {
     const uniqueDates = Array.from(new Set(entries.map((entry) => entry.date)));
     return uniqueDates.sort();
   }, [entries]);
 
   const visibleEntries = useMemo(
-    () => entries.filter((entry) => entry.date === selectedDate).sort((a, b) => a.time.localeCompare(b.time)),
+    () => entries.filter((entry) => entry.date === selectedDate && entry.slot).sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0)),
     [entries, selectedDate],
   );
 
   const extraEvents = useMemo(
-    () => entries.filter((entry) => ['اختبار', 'فرض', 'بحث', 'عطلة'].includes(entry.kind)).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)),
+    () => entries.filter((entry) => !entry.slot && ['اختبار', 'فرض', 'بحث', 'عطلة'].includes(entry.kind)).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)),
     [entries],
   );
 
@@ -221,7 +286,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
             <div>
                <div className="program-agent-status"><span /> برنامجك الدراسي</div>
                <h2>رتّب يومك الدراسي بطريقتك.</h2>
-               <p>اختر الدرس من مستنداتك، وحدد وقت الحصة ومدتها. يبقى القرار لك، ويعرض لك البرنامج الخطوة التالية بوضوح.</p>
+                <p>البرنامج يرتّب لك ثلاث حصص يوميًا: نبدأ بالفكرة، ثم نحولها إلى تطبيقين. يحدد وقت البداية، أما النهاية فتأتي مع تجاوبك الحقيقي.</p>
             </div>
           </div>
           <div className="program-agent-actions">
@@ -234,6 +299,14 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
             </button>
           </div>
         </div>
+          <div className="program-rhythm-strip" aria-label="إيقاع البرنامج اليومي">
+            <div><strong>٣</strong><span>حصص يومية</span></div>
+            <i />
+            <div><strong>١</strong><span>نظرية أولًا</span></div>
+            <i />
+            <div><strong>٢</strong><span>تطبيقات متدرجة</span></div>
+            <span className="program-rhythm-note"><Clock3 size={13} /> الوقت من البرنامج، النهاية من إجابتك</span>
+          </div>
       </section>
 
       <div className="program-agent-layout">
@@ -246,7 +319,24 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
             <div className="program-progress"><span style={{ width: '40%' }} /></div>
             <div className="program-phase-days">{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day) => <span key={day} className={day < 4 ? 'done' : day === 4 ? 'current' : ''}>{day < 4 ? <Check size={11} /> : day}</span>)}</div>
           </div>
-           <div className="program-side-note"><CalendarClock size={18} /><p>أضف موعدًا من مستنداتك وحدد وقته بنفسك؛ لن نختار عنوانًا أو وقتًا بدلًا منك.</p></div>
+           <div className="program-side-card program-network-card">
+             <div className="program-card-kicker"><Sparkles size={14} /> شبكة المساعدة</div>
+             <h3>ثلاثة وكلاء، مسار واحد.</h3>
+             <div className="program-agent-network">
+               {(['فهيم', 'تمارين', 'دليل'] as const).map((agent, index) => {
+                 const profile = agentProfiles[agent];
+                 return (
+                   <div className="program-network-agent" key={agent}>
+                     <ProgramMiniAgent agent={agent} />
+                     <div><strong>{agent}</strong><small>{profile.role}</small></div>
+                     {index < 2 && <ChevronDown size={13} className="program-network-link" />}
+                   </div>
+                 );
+               })}
+             </div>
+             <p className="program-network-caption">فهيم يشرح، تمارين يختبر، ودليل يثبت ما تعلمته.</p>
+           </div>
+            <div className="program-side-note"><CalendarClock size={18} /><p>أضف هدفًا أو اختبارًا فقط؛ البرنامج يوزّع التوقيت تلقائيًا حول حصصك الثلاث.</p></div>
         </aside>
 
         <section className="program-agent-workspace">
@@ -266,7 +356,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           {activeTab === 'schedule' && (
             <div className="program-schedule-content">
               <div className="program-schedule-intro">
-                <div><span className="program-card-kicker"><Clock3 size={14} /> {formatDate(selectedDate)}</span><h3>خطوتك التالية واضحة.</h3><p>كل حصة لها بداية، وعندما تنتهي منها ننتقل للخطوة التي بعدها.</p></div>
+                <div><span className="program-card-kicker"><Clock3 size={14} /> {formatDate(selectedDate)} · إيقاع ذكي</span><h3>ثلاث خطوات تكفي لليوم.</h3><p>الأولى نظرية، والحصتان بعدها تطبيق. ننتقل فقط عندما يثبت تفاعلك الفهم.</p></div>
                 <div className="program-today-progress"><strong>{visibleEntries.filter((entry) => entry.completed).length}/{visibleEntries.length}</strong><span>حصص مكتملة</span></div>
               </div>
               <div className="program-entries">
@@ -309,7 +399,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
             <div className="program-form-grid"><label>النوع<select value={newEntry.kind} onChange={(event) => setNewEntry((current) => ({ ...current, kind: event.target.value as ProgramKind }))}><option>اختبار</option><option>فرض</option><option>بحث</option><option>عطلة</option><option>مراجعة</option></select></label><label>المادة<select value={newEntry.subject} onChange={(event) => setNewEntry((current) => ({ ...current, subject: event.target.value }))}><option>الفيزياء</option><option>الرياضيات</option><option>العلوم الطبيعية</option><option>اللغة العربية</option></select></label></div>
              <div className="program-form-grid"><label>التاريخ<input type="date" value={newEntry.date} onChange={(event) => setNewEntry((current) => ({ ...current, date: event.target.value }))} /></label><label>وقت البداية<input type="time" value={newEntry.time} onChange={(event) => setNewEntry((current) => ({ ...current, time: event.target.value }))} /></label></div>
              <label>مدة الحصة<select value={newEntry.duration} onChange={(event) => setNewEntry((current) => ({ ...current, duration: event.target.value }))}><option>20 دقيقة</option><option>30 دقيقة</option><option>45 دقيقة</option><option>60 دقيقة</option><option>90 دقيقة</option></select></label>
-             <p className="program-modal-hint"><CalendarClock size={14} /> أنت من يحدد وقت الحصة ومدتها، ولا نضع عنوانًا تلقائيًا.</p>
+             <p className="program-modal-hint"><CalendarClock size={14} /> سيضع البرنامج الموعد الأنسب، وتبقى نهاية الحصة مرتبطة بتجاوبك لا بساعة ثابتة.</p>
             <div className="program-modal-actions"><button type="button" className="secondary-button" onClick={() => setShowAddForm(false)}>إلغاء</button><button type="submit" className="primary-button"><Plus size={16} /> إضافة إلى البرنامج</button></div>
           </form>
         </div>

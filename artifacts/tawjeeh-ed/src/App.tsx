@@ -60,10 +60,10 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { LessonWorkspace } from '@/components/lesson-workspace';
 import { ProgramAgent } from '@/components/program-agent';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
-import owlAgentMint from '@assets/owl-agent-fahim-mint_1788382004392.png';
-import owlAgentTeal from '@assets/owl-agent-fahim-teal_1788382004393.png';
-import owlAgentViolet from '@assets/owl-agent-fahim-violet_1788382004393.png';
-import owlAgentGold from '@assets/owl-agent-fahim-gold_1788382004394.png';
+import owlAgentMint from '@assets/agent-guiding-cropped.png';
+import owlAgentTeal from '@assets/agent-creation-cropped.png';
+import owlAgentViolet from '@assets/agent-thinking-cropped.png';
+import owlAgentGold from '@assets/agent-success-cropped.png';
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
