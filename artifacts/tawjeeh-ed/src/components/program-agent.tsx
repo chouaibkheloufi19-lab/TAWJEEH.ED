@@ -454,6 +454,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   }, [entryDate, groundedSlots]);
 
   const tenDayPlan = useMemo(() => {
+    if (groundedSlots.length < 3) return [];
     return Array.from({ length: 10 }, (_, dayIndex) => {
       const date = addDays(entryDate, dayIndex);
       return {
@@ -481,7 +482,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         ),
       };
     });
-  }, [entries, entryDate, serverEntriesBySlot]);
+  }, [entries, entryDate, groundedSlots, serverEntriesBySlot]);
 
   const extraEvents = useMemo(
     () => entries.filter((entry) => !entry.slot && ['اختبار', 'فرض', 'بحث'].includes(entry.kind)).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)),
@@ -719,7 +720,11 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
                  </div>
               </div>
                <div className="program-ten-day-list">
-                {visiblePlan.map(({ date, dayNumber, sessions }) => (
+                 {readinessQuery.isLoading ? (
+                   <div className="program-empty-state" role="status">نحضّر وحدات المنهاج لبناء برنامجك...</div>
+                 ) : readinessQuery.isError || groundedSlots.length < 3 ? (
+                   <div className="program-empty-state" role="alert">تعذر تحميل وحدات المنهاج الآن. أعد المحاولة بعد قليل.</div>
+                 ) : visiblePlan.map(({ date, dayNumber, sessions }) => (
                    <section className="program-day-card" key={date} data-testid={`card-program-day-${dayNumber}`}>
                      <div className="program-day-heading">
                        <div><span className="program-day-number">اليوم {dayNumber}</span><h4>{formatDate(date)}</h4></div>
@@ -732,7 +737,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
                            entry={entry}
                            dayNumber={dayNumber}
                            onUpdate={(updates) => updatePlanSession(date, entry.slot as 1 | 2 | 3, updates)}
-                            onToggle={() => toggleEntry(entry)}
+                           onToggle={() => toggleEntry(entry)}
                            onStart={() => startEntry(entry)}
                          />
                        ))}
