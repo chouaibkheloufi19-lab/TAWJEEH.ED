@@ -17,7 +17,7 @@ router.get("/agents/readiness", async (req, res): Promise<void> => {
       error: error instanceof KnowledgeGroundingError
         ? error.code
         : "knowledge_service_unavailable",
-      message: "لا يمكن تفعيل الوكلاء قبل نجاح استرجاع الوحدات التأسيسية من ChromaDB.",
+      message: "لا تتوفر مواد الدرس الآن. أعد المحاولة بعد قليل.",
     });
   }
 });

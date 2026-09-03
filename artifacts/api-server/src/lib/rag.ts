@@ -30,6 +30,7 @@ export type AgentReadiness = {
   foundationalModules: Array<{
     nodeId: string;
     title: string;
+    studyTitle: string;
     summary: string;
     source: string;
     page: number;
@@ -92,7 +93,7 @@ export function sourceDocumentsFrom(
     const metadata = item.metadata ?? {};
     return {
       nodeId: item.id,
-      title: String(metadata.lesson || metadata.unit || "مصدر تعليمي"),
+      title: "مرجع دراسي",
       source: String(metadata.source_file || "مصدر غير محدد"),
       page: Number(metadata.source_page || 0),
       quote: (item.document ?? "").trim().replace(/\s+/g, " ").slice(0, 320),
@@ -193,6 +194,7 @@ export async function provisionLearningAgents(): Promise<AgentReadiness> {
     return {
       nodeId: document.id,
       title: String(metadata.lesson || metadata.unit || "مفهوم تأسيسي"),
+      studyTitle: String(metadata.unit || metadata.lesson || "محور دراسي"),
       summary: String(document.document || "").trim(),
       source: String(metadata.source_file || "مصدر غير محدد"),
       page: Number(metadata.source_page || 0),

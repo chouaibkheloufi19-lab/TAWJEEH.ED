@@ -86,21 +86,25 @@ function normalizeProgramSubject(subject?: string) {
 type FoundationalModule = {
   nodeId: string;
   title: string;
+  studyTitle: string;
   summary: string;
   source: string;
   page: number;
 };
 
-function createGroundedSlots(modules: FoundationalModule[]): Omit<ProgramEntry, 'id' | 'date' | 'completed'>[] {
+function createGroundedSlots(
+  modules: FoundationalModule[],
+  phase: 'foundation' | 'actual',
+): Omit<ProgramEntry, 'id' | 'date' | 'completed'>[] {
   if (modules.length < 3) return [];
   const tracks = [
-    { time: '08:30', duration: '25–40 دقيقة', kind: 'مكتسبات' as const, agent: 'فهيم' as const, slot: 1 as const, track: 'theory' as const, endRule: 'تنتهي عندما تشرح الفكرة بكلماتك' },
-    { time: '12:00', duration: 'حتى حل تمرينين', kind: 'حصة تطبيقية' as const, agent: 'تمارين' as const, slot: 2 as const, track: 'application' as const, endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
-    { time: '17:30', duration: 'حتى إجابة التحقق', kind: 'مراجعة' as const, agent: 'دليل' as const, slot: 3 as const, track: 'application' as const, endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
+    { time: '08:30', duration: '25–40 دقيقة', kind: 'مكتسبات' as const, foundationTitle: 'تثبيت أساسيات الحركة', agent: 'فهيم' as const, slot: 1 as const, track: 'theory' as const, endRule: 'تنتهي عندما تشرح الفكرة بكلماتك' },
+    { time: '12:00', duration: 'حتى حل تمرينين', kind: 'حصة تطبيقية' as const, foundationTitle: 'تطبيق على القوى والتسارع', agent: 'تمارين' as const, slot: 2 as const, track: 'application' as const, endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
+    { time: '17:30', duration: 'حتى إجابة التحقق', kind: 'مراجعة' as const, foundationTitle: 'مراجعة ما تم فهمه', agent: 'دليل' as const, slot: 3 as const, track: 'application' as const, endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
   ];
   return tracks.map((track, index) => ({
     ...track,
-    title: modules[index].title,
+    title: phase === 'actual' ? modules[index].studyTitle : track.foundationTitle,
     subject: 'الفيزياء',
   }));
 }
@@ -359,9 +363,18 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     staleTime: 5 * 60_000,
     retry: 1,
   });
+  const foundationWindowActive = useMemo(() => {
+    const start = new Date(`${entryDate}T12:00:00`);
+    const current = new Date(`${today}T12:00:00`);
+    const dayDifference = Math.floor((current.getTime() - start.getTime()) / 86_400_000);
+    return dayDifference >= 0 && dayDifference < 10;
+  }, [entryDate]);
   const groundedSlots = useMemo(
-    () => createGroundedSlots(readinessQuery.data?.foundationalModules ?? []),
-    [readinessQuery.data?.foundationalModules],
+    () => createGroundedSlots(
+      readinessQuery.data?.foundationalModules ?? [],
+      foundationWindowActive ? 'foundation' : 'actual',
+    ),
+    [foundationWindowActive, readinessQuery.data?.foundationalModules],
   );
   const updateScheduleMutation = useUpdateLearningSchedule();
   const examModeQuery = useGetExamMode(
@@ -446,7 +459,10 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           .map((entry) => [`${entry.date}-${entry.slot}`, entry]),
       );
       const planSessions = tenDayDates.flatMap((date) =>
-        createDailySessions(date, groundedSlots).map((session) => savedSessions.get(`${date}-${session.slot}`) ?? session),
+        createDailySessions(date, groundedSlots).map((session) => {
+          const savedSession = savedSessions.get(`${date}-${session.slot}`);
+          return savedSession ? { ...savedSession, title: session.title } : session;
+        }),
       );
       const nonPlanEntries = current.filter((entry) => !entry.slot || !planKeys.has(`${entry.date}-${entry.slot}`));
       return [...planSessions, ...nonPlanEntries];
@@ -666,8 +682,8 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         <aside className="program-agent-aside">
           <div className="program-side-card program-phase-card">
             <div className="program-card-kicker"><Sparkles size={14} /> المسار الحالي</div>
-            <h3>{plannerWindow.inFoundation ? 'المكتسبات الأساسية' : 'المراجعة المركّزة'}</h3>
-            <p>{plannerWindow.inFoundation ? `فهيم يقودك في اليوم ${Math.min(plannerWindow.day, 10)} من ١٠ لتثبيت المفاهيم السابقة.` : 'اكتملت نافذة prior knowledge. يمكنك الآن رفع كثافة المراجعة المركّزة.'}</p>
+            <h3>{plannerWindow.inFoundation ? 'المكتسبات الأساسية' : 'الدراسة الفعلية'}</h3>
+            <p>{plannerWindow.inFoundation ? `فهيم يقودك في اليوم ${Math.min(plannerWindow.day, 10)} من ١٠ لتثبيت المفاهيم السابقة.` : 'اكتملت المرحلة التأسيسية. تظهر هنا محاور المنهاج للدراسة الفعلية خطوةً خطوة.'}</p>
             <div className="program-progress-label"><span>التقدم</span><strong>{plannerWindow.progress}٪</strong></div>
             <div className="program-progress"><span style={{ width: `${plannerWindow.progress}%` }} /></div>
             <div className="program-phase-days">{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day) => <span key={day} className={day < plannerWindow.day ? 'done' : day === plannerWindow.day ? 'current' : ''}>{day < plannerWindow.day ? <Check size={11} /> : day}</span>)}</div>

@@ -488,6 +488,7 @@ function drawBoard(
 }
 
 export function LessonWorkspace() {
+  const fixedLessonTitle = 'قوانين نيوتن والحركة';
   const [, setLocation] = useLocation();
   const { user } = useUser();
   const registrationAt = user?.createdAt ?? null;
@@ -535,17 +536,6 @@ export function LessonWorkspace() {
   const knowledgeParams = useMemo(() => ({ subject: 'العلوم الفيزيائية', curriculum_year: '3AS' }), []);
   const knowledgeQuery = useListKnowledge(knowledgeParams, { query: { queryKey: getListKnowledgeQueryKey(knowledgeParams), staleTime: 5 * 60 * 1000 } });
   const knowledgeCards = useMemo(() => (knowledgeQuery.data as KnowledgeCard[] | undefined) ?? [], [knowledgeQuery.data]);
-  const knowledgeStatusQuery = useQuery({
-    queryKey: ['knowledge-status'],
-    queryFn: async () => {
-      const response = await fetch('/api/knowledge/status', { credentials: 'include' });
-      const payload = await response.json() as { status?: string; indexedNodes?: number; message?: string };
-      if (!response.ok) throw new Error(payload.message || 'تعذر التحقق من اتصال قاعدة المعرفة');
-      return payload;
-    },
-    staleTime: 60_000,
-    retry: 1,
-  });
   const agentReadinessQuery = useQuery<{
     status: 'ready';
     retrieval: {
@@ -561,7 +551,7 @@ export function LessonWorkspace() {
     queryFn: async () => {
       const response = await fetch('/api/agents/readiness', { credentials: 'include' });
       const payload = await response.json() as { message?: string };
-      if (!response.ok) throw new Error(payload.message || 'تعذر تفعيل وكلاء التعلّم');
+      if (!response.ok) throw new Error(payload.message || 'لا تتوفر مواد الدرس الآن. أعد المحاولة بعد قليل.');
       return payload as {
         status: 'ready';
         retrieval: {
@@ -610,12 +600,12 @@ export function LessonWorkspace() {
     }];
   }, [activeSection.id, activeSource, generatedLesson, ragReady]);
   const displayedElement = generatedLesson?.elements.find((item) => item.kind === elementKindForSection(activeSection.id));
-  const displayedTitle = displayedElement?.title ?? (generatedLesson?.lessonTitle ?? 'يُحمّل عنوان الدرس من المصدر');
+  const displayedTitle = fixedLessonTitle;
   const sourceExcerpt = activeSource?.summary?.replace(/\s+/g, ' ').trim().slice(0, 520) ?? '';
   const displayedExplanation = ragReady && generatedLesson
     ? generatedLesson.explanation
-    : 'تتصل مساحة الدرس بقاعدة المعرفة قبل عرض أي شرح. انتظر اكتمال اتصال RAG.';
-  const displayedHighlight = ragReady && generatedLesson ? generatedLesson.highlight : 'اتصال قاعدة المعرفة';
+    : 'يُحضّر شرح الدرس من محتوى المنهاج، وسيظهر هنا بعد اكتمال التحضير.';
+  const displayedHighlight = ragReady && generatedLesson ? generatedLesson.highlight : 'فكرة الدرس';
   const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
   const totalExamples = lessonSections.length;
   const totalCompleted = lessonSections.filter((section) => session.gradedExamples[`${section.id}-grounded`] === 'correct').length;
@@ -671,9 +661,9 @@ export function LessonWorkspace() {
       : [...current, {
           id: 'grounded-welcome',
           role: 'assistant',
-          text: `أهلًا، أنا فهيم. بدأت الجلسة من «${activeSource.title}» في ${activeSource.source}، وسأبني الشرح والتمارين من العقد المسترجعة فقط.`,
+          text: `أهلًا، أنا فهيم. سنعمل الآن على درس «${fixedLessonTitle}» من محتوى المنهاج، خطوةً خطوة.`,
         }]);
-  }, [activeSource, ragReady]);
+  }, [activeSource, fixedLessonTitle, ragReady]);
 
   const concludeSession = (retry = false) => {
     if (retry && !session.concludedAt) return;
@@ -718,7 +708,7 @@ export function LessonWorkspace() {
     setMessages((current) => [...current, {
       id: `handoff-${Date.now()}`,
       role: 'assistant',
-      text: 'اكتمل التشخيص التأسيسي. فهيم سلّم لك المساحة بهدوء: دليل يشرح عندما تتعقد الفكرة، ووكيل التمارين يدرّبك عندما تكون جاهزًا للتطبيق.',
+      text: 'اكتملت الخطوة التأسيسية. فهيم سلّم لك المساحة بهدوء: دليل يشرح عندما تتعقد الفكرة، وتمارين تساعدك عندما تكون جاهزًا للتطبيق.',
     }]);
     completeLessonMutation.mutate({
       lessonId,
@@ -872,7 +862,7 @@ export function LessonWorkspace() {
   const generateLesson = async () => {
     if (!ragReady) {
       setLessonGenerationState('error');
-      setLessonGenerationError('لا يمكن بدء الدرس قبل اتصال RAG ووجود عقد معرفة مفهرسة.');
+      setLessonGenerationError('لم يكتمل تحضير محتوى الدرس بعد. أعد المحاولة بعد قليل.');
       return;
     }
     setLessonGenerationState('generating');
@@ -895,13 +885,17 @@ export function LessonWorkspace() {
        if (!response.ok || typeof payload.lessonTitle !== 'string' || !Array.isArray(payload.elements) || !Array.isArray(payload.sourceNodeIds)) {
         throw new Error(payload.message || 'تعذر توليد شرح الدرس من المصادر.');
       }
-      setGeneratedLesson({ ...(payload as Omit<GeneratedLesson, 'concept'>), concept: activeSection.id });
+       setGeneratedLesson({
+         ...(payload as Omit<GeneratedLesson, 'concept'>),
+         lessonTitle: fixedLessonTitle,
+         concept: activeSection.id,
+       });
       setLessonGenerationState('ready');
       setHighlightedPart(typeof payload.highlight === 'string' ? payload.highlight : '');
       setMessages((current) => [...current, {
         id: `generated-lesson-${Date.now()}`,
         role: 'assistant',
-         text: `حضّرت لك شرحًا مخصصًا عن «${payload.lessonTitle}». ابدأ بالهدف ثم اختر عنصرًا واحدًا للتثبيت.`,
+          text: `حضّرت لك شرحًا مخصصًا في «${fixedLessonTitle}». ابدأ بالهدف ثم اختر عنصرًا واحدًا للتثبيت.`,
       }]);
     } catch (error) {
       setLessonGenerationState('error');
@@ -922,7 +916,7 @@ export function LessonWorkspace() {
           id: 'knowledge-ready',
           role: 'assistant',
           text: activeSource
-            ? `فتحت لك المصدر الحقيقي «${activeSource.title}» من ${activeSource.source} · ص ${activeSource.page}. يمكنك البدء من اللوح أو سؤال دليل عن أي خطوة.`
+            ? 'فتحت لك مرجعًا من المنهاج لدرس «قوانين نيوتن والحركة». يمكنك البدء من اللوح أو سؤال دليل عن أي خطوة.'
             : 'فتحت لك بطاقات المعرفة الحقيقية. ابدأ من الفكرة الحالية، وسأربط كل سؤال بالمصادر المتاحة.',
         }]);
   }, [agentsAvailable, activeSource]);
@@ -947,7 +941,7 @@ export function LessonWorkspace() {
           lesson: 'قوانين نيوتن والحركة',
           concept: activeSection.title,
             context: [
-               activeSource ? `المصدر الحالي: ${activeSource.title} — ${activeSource.source} ص ${activeSource.page}\nمقتطف المصدر: ${sourceExcerpt}` : '',
+               activeSource ? `مرجع الدرس الحالي: قوانين نيوتن والحركة — ${activeSource.source} ص ${activeSource.page}\nمقتطف المصدر: ${sourceExcerpt}` : '',
               analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}` : '',
               highlightedPart ? `الجزء المحدد على اللوح: ${highlightedPart}` : '',
               pausedContext,
@@ -997,7 +991,7 @@ export function LessonWorkspace() {
       });
       const source = response.results?.[0];
       if (activePartner === 'dalil' && !source) {
-        throw new Error('لم تُسترجع عقدة معرفة مطابقة؛ لم يُعرض شرح غير مؤسس.');
+        throw new Error('لم أعثر على مادة مطابقة لهذا الجزء؛ لم أعرض شرحًا غير موثوق.');
       }
       const targetedConcept = examMode?.error_concepts[0]?.concept_title;
        const sourceContext = source
@@ -1005,7 +999,7 @@ export function LessonWorkspace() {
         : `مرجع الدرس الحالي: ${sourceExcerpt}`;
       let reply = activePartner === 'dalil'
         ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source?.title}»`}: ${source?.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقل إلى التطبيق.' : 'ابدأ من هذه الفكرة، ثم قارنها بما يظهر على اللوح.'}`
-        : `جهزت لك تدريبًا مرتبطًا بالعقد المسترجعة.`;
+        : 'جهزت لك تدريبًا مرتبطًا بدرس قوانين نيوتن والحركة.';
       if (activePartner === 'exercises') {
         const response = await fetch('/api/lesson/exercise', {
           method: 'POST',
@@ -1028,7 +1022,7 @@ export function LessonWorkspace() {
         setExerciseAnswer('');
         setExerciseFeedback(null);
         setShowExerciseSolution(false);
-        reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من العقد المسترجعة. ابدأ بكتابة المعطيات والخطوة الأولى.`;
+        reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من محتوى الدرس. ابدأ بكتابة المعطيات والخطوة الأولى.`;
       }
       setMessages((current) => [...current, {
         id: `partner-answer-${Date.now()}`,
@@ -1169,7 +1163,7 @@ export function LessonWorkspace() {
       setMessages((current) => [...current, {
         id: `exercise-${Date.now()}`,
         role: 'assistant',
-        text: 'بنيت لك تمرينًا يعالج موضع الخطأ من عقد المعرفة وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.',
+        text: 'بنيت لك تمرينًا يعالج موضع الخطأ من الدرس وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.',
       }]);
     } catch (error) {
       setMessages((current) => [...current, {
@@ -1306,29 +1300,15 @@ export function LessonWorkspace() {
         </div>
       </header>
 
-      <div className={`lesson-rag-status ${ragReady ? 'is-ready' : 'is-error'}`} role="status" data-testid="status-rag-readiness">
-        <span className="lesson-status-dot" aria-hidden="true" />
-        <strong>{ragReady ? 'RAG متصل قبل بدء الدرس' : 'ننتظر اتصال RAG قبل عرض الدرس'}</strong>
-        <span>
-          {ragReady
-            ? `${knowledgeStatusQuery.data?.indexedNodes ?? 0} عقدة متجهية جاهزة لفهيم ودليل والتمارين.`
-            : knowledgeStatusQuery.isLoading
-              ? 'يجري التحقق من خدمة ChromaDB...'
-              : knowledgeStatusQuery.error instanceof Error
-                ? 'خدمة المعرفة غير متاحة؛ لم نعرض محتوى مولّدًا.'
-                : 'لا توجد عقد متجهية مفهرسة؛ شغّل فهرسة المصادر ثم أعد المحاولة.'}
-        </span>
-      </div>
-
        <div className={`lesson-evaluation-banner ${phase4Active ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
         <div>
-            <span className="lesson-panel-kicker"><Sparkles size={13} /> {phase4Active ? 'اكتمل التشخيص · بداية المرحلة الرابعة' : 'المصادر والوكلاء جاهزون'}</span>
-            <strong>{phase4Active ? 'انتقلت من فهيم إلى شريكين للتركيز' : 'ابدأ الدراسة الآن من المصدر'}</strong>
-            <p>{phase4Active ? 'فهيم أغلق الحلقة التأسيسية. دليل للشرح، ووكيل التمارين للتطبيق — وأنت تختار من يقود الخطوة التالية.' : 'فتحت لك مساحة شرح كاملة، ومصدرًا حقيقيًا من قاعدة المعرفة، ووكلاء يربطون السؤال بالدرس بدل تشتيتك بين الشاشات.'}</p>
+            <span className="lesson-panel-kicker"><Sparkles size={13} /> {phase4Active ? 'اكتملت المرحلة التأسيسية' : 'محتوى الدرس جاهز'}</span>
+            <strong>{phase4Active ? 'تابع الشرح والتطبيق بتركيز' : 'ابدأ الدراسة الآن'}</strong>
+            <p>{phase4Active ? 'يمكنك متابعة الشرح مع دليل ثم الانتقال إلى التمارين لتثبيت ما تعلمته.' : 'شرح وتمارين مرتبطة بدرس قوانين نيوتن والحركة، دون عناوين تقنية تربك مسارك.'}</p>
         </div>
          <div className="lesson-evaluation-meta">
-            <span>{phase4Active ? 'الحالة: تم التسليم' : 'الحالة: دراسة مباشرة'}</span>
-            <strong>{phase4Active ? 'دليل + تمارين' : `${knowledgeCards.length} مصدرًا متاحًا`}</strong>
+            <span>{phase4Active ? 'المرحلة التالية' : 'الحالة: دراسة مباشرة'}</span>
+            <strong>{phase4Active ? 'شرح + تمارين' : 'المحتوى الدراسي'}</strong>
              <small>{phase4Active ? `اكتمل ${formatSessionTime(session.concludedAt ?? session.startedAt)}` : `${evaluationPlan.windowLabel} · الوقت مفتوح`}</small>
         </div>
       </div>
@@ -1339,20 +1319,6 @@ export function LessonWorkspace() {
            <div className="lesson-exam-mode-meta"><strong>×{examMode.exercise_density}</strong><span>كثافة التمارين</span><small>{Math.max(0, examMode.days_until)} يومًا متبقيًا</small></div>
          </div>
        )}
-
-       <div className="lesson-phase4-map" aria-label="توزيع مساحة الجلسة">
-         <div className="lesson-phase4-side lesson-phase4-left">
-           <span>يسار الشاشة</span>
-           <strong>الدرس · التمرين · الحل</strong>
-           <small>اقرأ، جرّب، واكتب فوق اللوح.</small>
-         </div>
-         <div className="lesson-phase4-bridge" aria-hidden="true"><span /></div>
-         <div className="lesson-phase4-side lesson-phase4-right">
-           <span>يمين الشاشة</span>
-           <strong>مساحة الشركاء</strong>
-           <small>بدّل بين الشرح والتطبيق متى احتجت.</small>
-         </div>
-       </div>
 
        <div className={`lesson-grid ${isLessonRailCollapsed ? 'has-collapsed-rail' : ''}`}>
           <aside className={`lesson-panel lesson-path-panel ${isLessonRailCollapsed ? 'is-collapsed' : ''}`} aria-label="مسار إتقان الطالب">
@@ -1546,7 +1512,7 @@ export function LessonWorkspace() {
                <div className="lesson-generated-lesson-head">
                  <div>
                    <span className="lesson-explanation-label">شرح مخصص من مصادر المنهاج</span>
-                   <h3>{generatedLesson.lessonTitle}</h3>
+                    <h3>{fixedLessonTitle}</h3>
                  </div>
                  <span className="lesson-generated-badge"><CheckCircle2 size={12} /> جاهز</span>
                </div>
@@ -1581,7 +1547,7 @@ export function LessonWorkspace() {
                  {generatedLesson.sourceDocuments.length > 0 && (
                    <div className="lesson-generated-sources">
                      <BookOpen size={12} />
-                     <span>المصادر: {generatedLesson.sourceDocuments.slice(0, 3).map((source) => `${source.title} · ص ${source.page}`).join('، ')}</span>
+                     <span>المراجع: {generatedLesson.sourceDocuments.slice(0, 3).map((source) => `${source.source} · ص ${source.page}`).join('، ')}</span>
                    </div>
                  )}
                </div>
@@ -1590,7 +1556,7 @@ export function LessonWorkspace() {
            <div className="lesson-explanation">
             <span className="lesson-explanation-label">فكرة مركزيّة</span>
              <p>{displayedExplanation.replace(`${displayedHighlight} `, '')} <button type="button" className={`lesson-highlight-part ${highlightedPart === displayedHighlight ? 'is-selected' : ''}`} onClick={() => { pauseNarration(); setHighlightedPart(displayedHighlight); }} aria-pressed={highlightedPart === displayedHighlight} data-testid="button-highlight-concept">{displayedHighlight}</button></p>
-            {activeSource && <div className="lesson-source-line"><BookOpen size={13} /><span>{activeSource.title}</span><small>{activeSource.source} · ص {activeSource.page}</small></div>}
+            {activeSource && <div className="lesson-source-line"><BookOpen size={13} /><span>مرجع هذا الجزء</span><small>{activeSource.source} · ص {activeSource.page}</small></div>}
               <button type="button" className="lesson-ask-highlight" onClick={() => { if (highlightedPart) void (handoffComplete ? askPartner(`اشرح لي الجزء المحدد: ${highlightedPart}`) : askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`)); }} disabled={!lessonToolsActive || !highlightedPart} data-testid="button-ask-highlighted"><Highlighter size={13} /> اسأل عن الجزء المحدد</button>
           </div>
           <div className="lesson-whiteboard-wrap">
@@ -1670,10 +1636,10 @@ export function LessonWorkspace() {
             </div>
            {generatedExercise && (
              <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
-               <span>تمرين يعالج نفس الخطأ · مؤسس على RAG</span>
+               <span>تمرين إضافي يعالج نفس الخطأ</span>
                <h4>{generatedExercise.title}</h4>
                <p>{generatedExercise.prompt}</p>
-               <small>العقد المستخدمة: {generatedExercise.grounding.retrievedNodeIds.slice(0, 3).join('، ')}</small>
+               <small>بُني من محتوى درس قوانين نيوتن والحركة</small>
                <button type="button" onClick={() => setShowExerciseSolution((visible) => !visible)} data-testid="button-toggle-generated-solution">
                  {showExerciseSolution ? 'إخفاء الحل' : 'إظهار الحل خطوة خطوة'}
                </button>

@@ -4706,3 +4706,132 @@ button { cursor: pointer; }
     border-radius: 15px;
   }
 }
+
+/* Responsive lesson layout: give the board room before stacking on phones. */
+.lesson-workspace {
+  --lesson-teal: #2f728d;
+  --lesson-blue: #3e8eaa;
+  --lesson-aqua: #e5f2f7;
+  --lesson-mist: #f2f8fa;
+  --lesson-line: #c8dce6;
+}
+.lesson-path-panel {
+  background: linear-gradient(160deg, #eaf5f8, #fffdf8 58%);
+  border-top-color: #5d9ab0;
+}
+.lesson-conversation-panel {
+  background: linear-gradient(180deg, rgba(242, 248, 250, .98), rgba(255, 253, 248, .98) 56%), var(--lesson-paper);
+}
+.lesson-teaching-panel {
+  background: linear-gradient(160deg, #eef7fa, #fffdf8 62%);
+  border-top-color: #5d9ab0;
+}
+.lesson-conversation-heading {
+  background: linear-gradient(100deg, #e8f3f7, #f3f8fa);
+}
+.lesson-conclude-button,
+.lesson-agent-option.is-active,
+.lesson-composer:not(.is-disabled),
+.lesson-composer:not(.is-disabled) .lesson-composer-box {
+  border-color: #bdd6e1;
+  background: #edf6f9;
+}
+.lesson-conclude-button:hover,
+.lesson-agent-option.is-active:hover {
+  border-color: #5d9ab0;
+  background: #e2f0f5;
+}
+.lesson-agent-option-icon {
+  color: var(--lesson-teal);
+  background: #dcecf2;
+}
+.lesson-path-item.is-active {
+  border-color: #8cbccc;
+  background: #e8f3f7;
+}
+.lesson-path-item.is-done .lesson-path-node {
+  border-color: var(--lesson-teal);
+  background: var(--lesson-teal);
+}
+.lesson-progress-track span,
+.lesson-live-state i,
+.lesson-status-dot {
+  background: var(--lesson-teal);
+}
+.lesson-phase4-map,
+.lesson-rag-status {
+  display: none;
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    direction: ltr;
+    grid-template-columns: minmax(240px, .75fr) minmax(0, 1.25fr);
+    grid-template-areas:
+      'path teaching'
+      'convo teaching';
+    align-items: stretch;
+    gap: 10px;
+  }
+  .lesson-path-panel {
+    grid-area: path;
+    position: static;
+  }
+  .lesson-conversation-panel {
+    grid-area: convo;
+    min-height: 0;
+  }
+  .lesson-teaching-panel {
+    grid-area: teaching;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    direction: ltr;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'teaching'
+      'path'
+      'convo';
+    gap: 10px;
+  }
+  .lesson-path-panel,
+  .lesson-conversation-panel,
+  .lesson-teaching-panel {
+    grid-column: auto;
+    grid-row: auto;
+    position: static;
+  }
+  .lesson-path-panel.is-collapsed {
+    width: 100%;
+  }
+  .lesson-path-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 580px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    gap: 8px;
+  }
+  .lesson-path-panel .lesson-path-list {
+    gap: 5px;
+    padding-inline: 8px;
+  }
+  .lesson-path-panel .lesson-path-item {
+    min-height: 54px;
+    justify-content: center;
+  }
+  .lesson-path-panel .lesson-path-copy {
+    text-align: center;
+  }
+  .lesson-path-panel .lesson-path-copy small,
+  .lesson-path-panel .lesson-path-copy em {
+    display: none;
+  }
+}
