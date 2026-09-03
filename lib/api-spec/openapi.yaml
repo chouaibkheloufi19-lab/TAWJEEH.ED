@@ -66,6 +66,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorBankResponse"
+  /learning/exam-mode:
+    get:
+      operationId: getExamMode
+      tags: [learning]
+      summary: Get the active baccalaureate preparation mode
+      parameters:
+        - name: exam_date
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Target baccalaureate date in YYYY-MM-DD format
+      responses:
+        "200":
+          description: Active exam preparation mode and high-error concepts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamMode"
   /learning/lessons/{lessonId}/complete:
     post:
       operationId: completeLesson
@@ -198,6 +217,13 @@ paths:
       operationId: listQuizzes
       tags: [quizzes]
       summary: List available quizzes
+      parameters:
+        - name: exam_date
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Target baccalaureate date in YYYY-MM-DD format
       responses:
         "200":
           description: Available quizzes
@@ -525,6 +551,30 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ErrorBankItem"
+    ExamMode:
+      type: object
+      required: [mode, label, description, exam_date, days_until, exercise_density, reduce_passive_explanation, error_concepts]
+      properties:
+        mode:
+          type: string
+          enum: [standard, pre_exam, error_stack]
+        label:
+          type: string
+        description:
+          type: string
+        exam_date:
+          type: string
+        days_until:
+          type: integer
+        exercise_density:
+          type: integer
+          minimum: 1
+        reduce_passive_explanation:
+          type: boolean
+        error_concepts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConceptMetric"
     ScheduleUpdateInput:
       type: object
       required: [completed]
@@ -598,7 +648,7 @@ components:
             type: string
     Quiz:
       type: object
-      required: [id, title, subject, description, duration, questions, status, points, is_high_difficulty, unit_id, score_threshold]
+      required: [id, title, subject, description, duration, questions, status, points, is_high_difficulty, unit_id, score_threshold, mode, exercise_density, reduce_passive_explanation, linked_concepts]
       properties:
         id:
           type: string
@@ -624,6 +674,18 @@ components:
           type: string
         score_threshold:
           type: number
+        mode:
+          type: string
+          enum: [standard, pre_exam, error_stack]
+        exercise_density:
+          type: integer
+          minimum: 1
+        reduce_passive_explanation:
+          type: boolean
+        linked_concepts:
+          type: array
+          items:
+            type: string
     QuizAttemptInput:
       type: object
       required: [answers]
@@ -632,9 +694,12 @@ components:
           type: object
           additionalProperties:
             type: string
+        exam_date:
+          type: string
+          description: Target baccalaureate date used to resolve adaptive exam content
     QuizResult:
       type: object
-      required: [quiz_id, score, correct, total, message, points_earned, attempt_id, passed, is_high_difficulty]
+      required: [quiz_id, score, correct, total, message, points_earned, attempt_id, passed, is_high_difficulty, mode, linked_concepts]
       properties:
         quiz_id:
           type: string
@@ -654,6 +719,13 @@ components:
           type: boolean
         is_high_difficulty:
           type: boolean
+        mode:
+          type: string
+          enum: [standard, pre_exam, error_stack]
+        linked_concepts:
+          type: array
+          items:
+            type: string
     QuizAttemptRecord:
       type: object
       required: [id, quiz_id, quiz_title, score, correct, total, points_earned, is_high_difficulty, passed, completed_at]

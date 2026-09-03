@@ -115,6 +115,37 @@ export const GetErrorBankResponse = zod.object({
 
 
 /**
+ * @summary Get the active baccalaureate preparation mode
+ */
+export const GetExamModeQueryParams = zod.object({
+  "exam_date": zod.coerce.string().optional()
+})
+
+
+
+
+export const GetExamModeResponse = zod.object({
+  "mode": zod.enum(['standard', 'pre_exam', 'error_stack']),
+  "label": zod.string(),
+  "description": zod.string(),
+  "exam_date": zod.string(),
+  "days_until": zod.int(),
+  "exercise_density": zod.int().min(1),
+  "reduce_passive_explanation": zod.boolean(),
+  "error_concepts": zod.array(zod.object({
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "concept_id": zod.string(),
+  "concept_title": zod.string(),
+  "attempts": zod.int(),
+  "errors_count": zod.int(),
+  "error_rate": zod.number(),
+  "last_error_tag": zod.string()
+}))
+})
+
+
+/**
  * @summary Save a completed lesson summary to the student's profile
  */
 export const CompleteLessonParams = zod.object({
@@ -322,6 +353,13 @@ export const QueryKnowledgeResponse = zod.object({
 /**
  * @summary List available quizzes
  */
+export const ListQuizzesQueryParams = zod.object({
+  "exam_date": zod.coerce.string().optional()
+})
+
+
+
+
 export const ListQuizzesResponseItem = zod.object({
   "id": zod.string(),
   "title": zod.string(),
@@ -337,7 +375,11 @@ export const ListQuizzesResponseItem = zod.object({
   "points": zod.number(),
   "is_high_difficulty": zod.boolean(),
   "unit_id": zod.string(),
-  "score_threshold": zod.number()
+  "score_threshold": zod.number(),
+  "mode": zod.enum(['standard', 'pre_exam', 'error_stack']),
+  "exercise_density": zod.int().min(1),
+  "reduce_passive_explanation": zod.boolean(),
+  "linked_concepts": zod.array(zod.string())
 })
 export const ListQuizzesResponse = zod.array(ListQuizzesResponseItem)
 
@@ -369,7 +411,8 @@ export const SubmitQuizAttemptParams = zod.object({
 })
 
 export const SubmitQuizAttemptBody = zod.object({
-  "answers": zod.record(zod.string(), zod.string())
+  "answers": zod.record(zod.string(), zod.string()),
+  "exam_date": zod.string().optional().describe('Target baccalaureate date used to resolve adaptive exam content')
 })
 
 export const SubmitQuizAttemptResponse = zod.object({
@@ -381,7 +424,9 @@ export const SubmitQuizAttemptResponse = zod.object({
   "points_earned": zod.number(),
   "attempt_id": zod.int(),
   "passed": zod.boolean(),
-  "is_high_difficulty": zod.boolean()
+  "is_high_difficulty": zod.boolean(),
+  "mode": zod.enum(['standard', 'pre_exam', 'error_stack']),
+  "linked_concepts": zod.array(zod.string())
 })
 
 

@@ -22,6 +22,8 @@ import type {
 import type {
   Dashboard,
   ErrorBankResponse,
+  ExamMode,
+  GetExamModeParams,
   HealthStatus,
   KnowledgeCard,
   KnowledgeQueryInput,
@@ -30,6 +32,7 @@ import type {
   LearningAttemptResponse,
   LessonCompletionInput,
   ListKnowledgeParams,
+  ListQuizzesParams,
   Quiz,
   QuizAttemptInput,
   QuizAttemptsResponse,
@@ -364,6 +367,90 @@ export function useGetErrorBank<TData = Awaited<ReturnType<typeof getErrorBank>>
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetErrorBankQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetExamModeUrl = (params?: GetExamModeParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/learning/exam-mode?${stringifiedParams}` : `/api/learning/exam-mode`
+}
+
+/**
+ * @summary Get the active baccalaureate preparation mode
+ */
+export const getExamMode = async (params?: GetExamModeParams, options?: Parameters<typeof customFetch>[1]): Promise<ExamMode> => {
+
+  return customFetch<ExamMode>(getGetExamModeUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExamModeQueryKey = (params?: GetExamModeParams,) => {
+    return [
+    `/api/learning/exam-mode`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetExamModeQueryOptions = <TData = Awaited<ReturnType<typeof getExamMode>>, TError = ErrorType<unknown>>(params?: GetExamModeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExamMode>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExamModeQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExamMode>>> = ({ signal }) => getExamMode(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExamMode>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExamModeQueryResult = NonNullable<Awaited<ReturnType<typeof getExamMode>>>
+export type GetExamModeQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the active baccalaureate preparation mode
+ */
+
+export function useGetExamMode<TData = Awaited<ReturnType<typeof getExamMode>>, TError = ErrorType<unknown>>(
+ params?: GetExamModeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExamMode>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExamModeQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -823,20 +910,27 @@ export const useQueryKnowledge = <TError = ErrorType<void>,
       return useMutation(getQueryKnowledgeMutationOptions(options));
     }
 
-export const getListQuizzesUrl = () => {
+export const getListQuizzesUrl = (params?: ListQuizzesParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/quizzes`
+  return stringifiedParams.length > 0 ? `/api/quizzes?${stringifiedParams}` : `/api/quizzes`
 }
 
 /**
  * @summary List available quizzes
  */
-export const listQuizzes = async ( options?: Parameters<typeof customFetch>[1]): Promise<Quiz[]> => {
+export const listQuizzes = async (params?: ListQuizzesParams, options?: Parameters<typeof customFetch>[1]): Promise<Quiz[]> => {
 
-  return customFetch<Quiz[]>(getListQuizzesUrl(),
+  return customFetch<Quiz[]>(getListQuizzesUrl(params),
   {
     ...options,
     method: 'GET'
@@ -849,23 +943,23 @@ export const listQuizzes = async ( options?: Parameters<typeof customFetch>[1]):
 
 
 
-export const getListQuizzesQueryKey = () => {
+export const getListQuizzesQueryKey = (params?: ListQuizzesParams,) => {
     return [
-    `/api/quizzes`
+    `/api/quizzes`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListQuizzesQueryOptions = <TData = Awaited<ReturnType<typeof listQuizzes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuizzes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListQuizzesQueryOptions = <TData = Awaited<ReturnType<typeof listQuizzes>>, TError = ErrorType<unknown>>(params?: ListQuizzesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuizzes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListQuizzesQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListQuizzesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuizzes>>> = ({ signal }) => listQuizzes({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuizzes>>> = ({ signal }) => listQuizzes(params, { signal, ...requestOptions });
 
 
 
@@ -883,11 +977,11 @@ export type ListQuizzesQueryError = ErrorType<unknown>
  */
 
 export function useListQuizzes<TData = Awaited<ReturnType<typeof listQuizzes>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuizzes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ListQuizzesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuizzes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListQuizzesQueryOptions(options)
+  const queryOptions = getListQuizzesQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

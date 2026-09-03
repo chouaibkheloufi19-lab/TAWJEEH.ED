@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import {
   ClerkProvider,
   Show,
@@ -43,6 +43,7 @@ import {
 import {
   getGetDashboardQueryKey,
   getGetErrorBankQueryKey,
+  getGetExamModeQueryKey,
   getGetSummaryBankQueryKey,
   getHealthCheckQueryKey,
   getListKnowledgeQueryKey,
@@ -50,6 +51,7 @@ import {
   getListQuizzesQueryKey,
   useGetDashboard,
   useGetErrorBank,
+  useGetExamMode,
   useGetSummaryBank,
   useHealthCheck,
   useListKnowledge,
@@ -59,6 +61,7 @@ import {
   useSubmitQuizAttempt,
   type Dashboard,
   type ErrorBankItem,
+  type ExamMode,
   type KnowledgeCard,
   type Quiz,
   type QuizAttemptRecord,
@@ -83,6 +86,8 @@ const clerkPubKey = publishableKeyFromHost(
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
 );
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+const examDateKey = 'tawjeeh.exam.baccalaureate-date';
+const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
 
 if (!clerkPubKey) {
   throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in environment');
@@ -717,8 +722,9 @@ function QuizResultCard({ result, onAgain }: { result: QuizResult; onAgain: () =
   return (
     <div className="surface mx-auto max-w-xl p-8 text-center" data-testid="card-quiz-result">
        <div className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-[28px] bg-[#e6f6fb] text-[#005689]"><Trophy size={37} strokeWidth={1.5} /></div>
-       <p className="eyebrow mb-2">{result.is_high_difficulty ? 'تقييم الوحدة عالي الصعوبة' : 'اكتملت المحاولة'}</p><h2 className="display mb-2 text-3xl">{result.message || 'عمل جميل، واصل التقدم.'}</h2>
+       <p className="eyebrow mb-2">{result.mode === 'error_stack' ? 'مكدسات الأخطاء · ربط بالمفاهيم' : result.mode === 'pre_exam' ? 'محاكاة البكالوريا · ورقة متنوعة' : result.is_high_difficulty ? 'تقييم الوحدة عالي الصعوبة' : 'اكتملت المحاولة'}</p><h2 className="display mb-2 text-3xl">{result.message || 'عمل جميل، واصل التقدم.'}</h2>
        <p className="mb-7 text-sm text-[#64748b]">هذه النتيجة نقطة بداية ذكية لجلسة المراجعة القادمة.</p>
+       {result.linked_concepts.length > 0 && <div className="quiz-result-links" data-testid="text-quiz-linked-concepts"><span>المفاهيم المرتبطة:</span>{result.linked_concepts.map((concept) => <b key={concept}>{concept}</b>)}</div>}
        <div className="mb-7 grid grid-cols-3 divide-x divide-x-reverse divide-[#b3e5fc] rounded-2xl bg-[#e6f6fb] p-4">
          <div><strong className="mono block text-2xl text-[#005689]">{percentage}%</strong><span className="text-[10px] font-bold text-[#64748b]">النتيجة</span></div>
          <div><strong className="mono block text-2xl text-[#2e8b7b]">{result.correct}</strong><span className="text-[10px] font-bold text-[#64748b]">صحيح</span></div>
@@ -729,7 +735,7 @@ function QuizResultCard({ result, onAgain }: { result: QuizResult; onAgain: () =
   );
 }
 
-function QuizAttempt({ quiz, onExit, onScore }: { quiz: Quiz; onExit: () => void; onScore: (points: number) => void }) {
+function QuizAttempt({ quiz, examDate, onExit, onScore }: { quiz: Quiz; examDate?: string; onExit: () => void; onScore: (result: QuizResult) => void }) {
   const submitMutation = useSubmitQuizAttempt();
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -739,10 +745,10 @@ function QuizAttempt({ quiz, onExit, onScore }: { quiz: Quiz; onExit: () => void
   if (!question) return <EmptyState title="لا توجد أسئلة" body="هذا الاختبار لا يحتوي على أسئلة قابلة للعرض حاليًا." action={<button className="secondary-button" onClick={onExit} data-testid="button-exit-empty-quiz">العودة</button>} />;
   const isLast = questionIndex === quiz.questions.length - 1;
   const choose = (option: string) => setAnswers((current) => ({ ...current, [question.id]: option }));
-  const submit = () => submitMutation.mutate({ quizId: quiz.id, data: { answers } }, {
+   const submit = () => submitMutation.mutate({ quizId: quiz.id, data: { answers, exam_date: examDate } }, {
     onSuccess: (data) => {
       setResult(data);
-      onScore(data.points_earned);
+       onScore(data);
     },
   });
   return (
@@ -763,11 +769,12 @@ function QuizAttempt({ quiz, onExit, onScore }: { quiz: Quiz; onExit: () => void
 function QuizCard({ quiz, onStart }: { quiz: Quiz; onStart: () => void }) {
   const isWeekly = quiz.id === 'weekly-physics';
   const locked = quiz.is_high_difficulty && quiz.status.startsWith('يفتح');
+  const modeLabel = quiz.mode === 'error_stack' ? 'مكدسات الأخطاء' : quiz.mode === 'pre_exam' ? 'محاكاة البكالوريا' : isWeekly ? 'مخصص لمستواك' : 'تحدّي صعب';
   return (
     <article className="surface flex flex-col p-5" data-testid={`card-quiz-${quiz.id}`}>
-       <div className="mb-5 flex items-start justify-between gap-2"><span className="tag bg-[#e8f8f5] text-[#2e8b7b]">{isWeekly ? 'مخصص لمستواك' : 'تحدّي صعب'}</span><span className="text-[11px] font-bold text-[#64748b]">{quiz.status}</span></div>
+       <div className="mb-5 flex items-start justify-between gap-2"><span className={`tag ${quiz.mode === 'error_stack' ? 'bg-[#fff1d5] text-[#a46618]' : quiz.mode === 'pre_exam' ? 'bg-[#f0eaff] text-[#6d4b9a]' : 'bg-[#e8f8f5] text-[#2e8b7b]'}`}>{modeLabel}</span><span className="text-[11px] font-bold text-[#64748b]">{quiz.status}</span></div>
        <h3 className="mb-2 text-lg font-extrabold">{quiz.title}</h3><p className="mb-6 min-h-[48px] text-sm leading-7 text-[#64748b]">{quiz.description}</p>
-       <div className="mb-5 flex items-center gap-4 text-[11px] font-bold text-[#64748b]"><span className="flex items-center gap-1"><Clock3 size={14} /> {quiz.duration}</span><span className="flex items-center gap-1"><CircleHelp size={14} /> {quiz.questions?.length ?? 0} أسئلة</span><span className="flex items-center gap-1"><Zap size={14} /> {quiz.points} نقطة</span></div>
+        <div className="mb-5 flex flex-wrap items-center gap-4 text-[11px] font-bold text-[#64748b]"><span className="flex items-center gap-1"><Clock3 size={14} /> {quiz.duration}</span><span className="flex items-center gap-1"><CircleHelp size={14} /> {quiz.questions?.length ?? 0} أسئلة</span><span className="flex items-center gap-1"><Zap size={14} /> كثافة ×{quiz.exercise_density}</span><span className="flex items-center gap-1"><Zap size={14} /> {quiz.points} نقطة</span></div>
        <button className="primary-button mt-auto w-full" disabled={locked} onClick={onStart} data-testid={`button-start-quiz-${quiz.id}`}><Play size={15} fill="currentColor" /> {locked ? 'أكملي الوحدة أولًا' : quiz.is_high_difficulty ? 'ابدئي التقييم' : 'ابدأ التدريب'}</button>
     </article>
   );
@@ -775,8 +782,14 @@ function QuizCard({ quiz, onStart }: { quiz: Quiz; onStart: () => void }) {
 
 function QuizzesPage() {
   const [location, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const [examDate] = useState(() => localStorage.getItem(examDateKey) || defaultExamDate);
   const attemptsQuery = useListQuizAttempts({ query: { queryKey: getListQuizAttemptsQueryKey() } });
-  const quizzesQuery = useListQuizzes({ query: { queryKey: getListQuizzesQueryKey() } });
+  const examModeQuery = useGetExamMode(
+    { exam_date: examDate },
+    { query: { queryKey: getGetExamModeQueryKey({ exam_date: examDate }), staleTime: 60_000 } },
+  );
+  const quizzesQuery = useListQuizzes({ exam_date: examDate }, { query: { queryKey: getListQuizzesQueryKey({ exam_date: examDate }) } });
   const quizzes = (quizzesQuery.data as Quiz[] | undefined) ?? [];
   const hardAttempts = (attemptsQuery.data?.attempts ?? []).filter((attempt: QuizAttemptRecord) => attempt.is_high_difficulty);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
@@ -800,13 +813,14 @@ function QuizzesPage() {
   const dailyScore = (attemptsQuery.data?.attempts ?? [])
     .filter((attempt: QuizAttemptRecord) => attempt.completed_at.slice(0, 10) === today)
     .reduce((total, attempt: QuizAttemptRecord) => total + attempt.points_earned, 0);
-  if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} onExit={() => { setSelectedQuiz(null); setLocation('/quizzes'); }} onScore={() => void attemptsQuery.refetch()} /></Shell>;
+  if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} examDate={examDate} onExit={() => { setSelectedQuiz(null); setLocation('/quizzes'); }} onScore={(result) => { void attemptsQuery.refetch(); void queryClient.invalidateQueries({ queryKey: getGetErrorBankQueryKey() }); void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() }); if (result.mode !== 'standard') void quizzesQuery.refetch(); }} /></Shell>;
   return (
     <Shell title="الاختبارات الأسبوعية">
        <section className="mb-5 flex items-end justify-between gap-4 rounded-[1.35rem] border border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">
          <div><p className="eyebrow mb-2 text-[#2e8b7b]">كويزاتك الأسبوعية</p><h2 className="display text-[26px] md:text-[34px]">اختبر فهمك، بهدوء.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-[#64748b]">الأول يتابع مستواك وما ظهر في محاولاتك، والثاني تحدٍّ عام صعب بعد إتمام الوحدة.</p><p className="mt-2 text-xs font-bold text-[#2e8b7b]">{mistakeCount ? `تم رصد ${mistakeCount} محاولات للمراجعة هذا الأسبوع.` : 'ستتكوّن مراجعتك من إجاباتك ومحاولاتك القادمة.'}</p></div>
          <div className="hidden rounded-2xl bg-[#e6f6fb] p-4 text-[#005689] sm:block"><Target size={32} strokeWidth={1.5} /></div>
       </section>
+       {examModeQuery.data && examModeQuery.data.mode !== 'standard' && <section className={`quiz-exam-mode-banner ${examModeQuery.data.mode === 'error_stack' ? 'is-error-stack' : ''}`} data-testid="card-quiz-exam-mode"><div><span className="eyebrow">{examModeQuery.data.label}</span><h3>{examModeQuery.data.mode === 'error_stack' ? 'نحوّل أخطاءك المتكررة إلى نقاط قوة.' : 'أوراق محاكاة متنوعة ترفع جاهزيتك.'}</h3><p>{examModeQuery.data.description}</p></div><div className="quiz-exam-mode-stat"><strong>{Math.max(0, examModeQuery.data.days_until)}</strong><span>يومًا حتى الموعد</span><b>كثافة ×{examModeQuery.data.exercise_density}</b></div></section>}
        <section className="phase-one-score-card" data-testid="card-daily-score-threshold">
          <div className="phase-one-score-heading">
            <div><span className="eyebrow">مقياس التقدم اليومي</span><h2 className="display">نقطة اليوم تربطنا بالنجاح.</h2></div>
@@ -817,7 +831,7 @@ function QuizzesPage() {
        </section>
        {hardAttempts.length > 0 && <section className="quiz-attempt-history" data-testid="card-unit-assessment-history"><div><span className="eyebrow">سجل تقييم الوحدة</span><h3 className="display text-lg">نتائج التحدّي عالي الصعوبة</h3></div><div className="quiz-attempt-history-list">{hardAttempts.slice(0, 5).map((attempt: QuizAttemptRecord) => <div className="quiz-attempt-history-row" key={attempt.id}><span><strong>{attempt.score}%</strong><small>{attempt.correct} من {attempt.total} · {attempt.completed_at.slice(0, 10)}</small></span><b className={attempt.passed ? 'passed' : 'retry'}>{attempt.passed ? 'اجتاز' : 'يحتاج محاولة أخرى'}</b></div>)}</div></section>}
       {quizzesQuery.isLoading ? <LoadingState label="نحضّر تمارين مناسبة لك..." /> : quizzesQuery.isError ? <ErrorState onRetry={() => quizzesQuery.refetch()} /> : quizzes.length === 0 ? <EmptyState title="لا توجد اختبارات بعد" body="ستجد هنا تدريبات الوحدات والاختبار الأسبوعي عند توفرها." /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} onStart={() => setSelectedQuiz(quiz)} />)}</div>}
-    </Shell>
+     </Shell>
   );
 }
 

@@ -9,4 +9,6 @@ import type { QuizAttemptInputAnswers } from './quizAttemptInputAnswers';
 
 export interface QuizAttemptInput {
   answers: QuizAttemptInputAnswers;
+  /** Target baccalaureate date used to resolve adaptive exam content */
+  exam_date?: string;
 }

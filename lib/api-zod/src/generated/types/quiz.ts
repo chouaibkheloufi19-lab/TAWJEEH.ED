@@ -5,6 +5,7 @@
  * Tawjeeh adaptive learning API
  * OpenAPI spec version: 0.1.0
  */
+import type { QuizMode } from './quizMode';
 import type { QuizQuestion } from './quizQuestion';
 
 export interface Quiz {
@@ -19,4 +20,9 @@ export interface Quiz {
   is_high_difficulty: boolean;
   unit_id: string;
   score_threshold: number;
+  mode: QuizMode;
+  /** @minimum 1 */
+  exercise_density: number;
+  reduce_passive_explanation: boolean;
+  linked_concepts: string[];
 }

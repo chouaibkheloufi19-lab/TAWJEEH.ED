@@ -21,9 +21,12 @@ import {
 import { useLocation } from 'wouter';
 import { PlannerIntakeCard, type PlannerIntakeValues } from '@/components/phase-one';
 import {
+  getGetExamModeQueryKey,
   getGetLearningScheduleQueryKey,
+  useGetExamMode,
   useGetLearningSchedule,
   useUpdateLearningSchedule,
+  type ExamMode,
   type ScheduleEntry,
 } from '@workspace/api-client-react';
 import owlAgentTeal from '@assets/agent-guiding-cropped.png';
@@ -71,6 +74,8 @@ function addDays(dateValue: string, days: number) {
 }
 
 const today = localDate();
+const examDateKey = 'tawjeeh.exam.baccalaureate-date';
+const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
 const subjectOptions = ['الفيزياء', 'الرياضيات', 'العلوم الطبيعية', 'اللغة العربية'];
 const initialEntries: ProgramEntry[] = [
   { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'العلوم الفيزيائية', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
@@ -129,6 +134,10 @@ function formatDate(date: string) {
     day: 'numeric',
     month: 'long',
   }).format(new Date(`${date}T12:00:00`));
+}
+
+function entryStartTime(entry: ProgramEntry) {
+  return new Date(`${entry.date}T${entry.time}:00`).getTime();
 }
 
 function createDailySessions(date: string, seed?: ProgramEntry): ProgramEntry[] {
@@ -307,6 +316,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
     typeof Notification === 'undefined' ? 'default' : Notification.permission,
   );
+  const [examDate, setExamDate] = useState(() => localStorage.getItem(examDateKey) || defaultExamDate);
   const [entryDate, setEntryDate] = useState(() => localStorage.getItem('tawjeeh.phase1.entryDate') || today);
   const [newEntry, setNewEntry] = useState({
     date: today,
@@ -323,6 +333,16 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     },
   });
   const updateScheduleMutation = useUpdateLearningSchedule();
+  const examModeQuery = useGetExamMode(
+    { exam_date: examDate },
+    {
+      query: {
+        queryKey: getGetExamModeQueryKey({ exam_date: examDate }),
+        staleTime: 60_000,
+      },
+    },
+  );
+  const examMode = examModeQuery.data as ExamMode | undefined;
   const remediationEntries = useMemo(
     () => (scheduleQuery.data ?? []).map(toProgramEntry),
     [scheduleQuery.data],
@@ -342,6 +362,43 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     const savedEntryDate = localStorage.getItem('tawjeeh.phase1.entryDate');
     if (savedEntryDate) setEntryDate(savedEntryDate);
   }, []);
+
+  useEffect(() => {
+    if (!examMode || !notificationsEnabled || typeof Notification === 'undefined' || notificationPermission !== 'granted') return;
+    const notificationKey = `tawjeeh.exam.notification.${examMode.mode}.${examMode.exam_date}.${examMode.error_concepts.length}`;
+    if (localStorage.getItem(notificationKey)) return;
+    const body = examMode.mode === 'error_stack'
+      ? `بدأت مكدسات الأخطاء حول ${examMode.error_concepts.length} مفاهيم عالية الخطأ.`
+      : examMode.mode === 'pre_exam'
+        ? `بقي ${Math.max(0, examMode.days_until)} يومًا. أوراق المحاكاة المتنوعة جاهزة.`
+        : '';
+    if (!body) return;
+    new Notification(examMode.label, { body, lang: 'ar' });
+    localStorage.setItem(notificationKey, '1');
+  }, [examMode, notificationPermission, notificationsEnabled]);
+
+  useEffect(() => {
+    if (!notificationsEnabled || typeof Notification === 'undefined' || notificationPermission !== 'granted') return;
+    const notifyUpcomingEntries = () => {
+      const now = Date.now();
+      [...entries, ...remediationEntries].forEach((entry) => {
+        if (entry.completed) return;
+        const minutesUntilStart = Math.round((entryStartTime(entry) - now) / 60_000);
+        if (minutesUntilStart < 0 || minutesUntilStart > 30) return;
+        const notificationKey = `tawjeeh.program.notification.${entry.id}.${entry.date}.${entry.time}`;
+        if (localStorage.getItem(notificationKey)) return;
+        const timing = minutesUntilStart === 0 ? 'تبدأ الآن' : `تبدأ خلال ${minutesUntilStart} دقيقة`;
+        new Notification(`اقتربت ${entry.kind}`, {
+          body: `${entry.title} · ${timing}. افتحي برنامجك وابدئي بخطوة واحدة.`,
+          lang: 'ar',
+        });
+        localStorage.setItem(notificationKey, '1');
+      });
+    };
+    notifyUpcomingEntries();
+    const timer = window.setInterval(notifyUpcomingEntries, 60_000);
+    return () => window.clearInterval(timer);
+  }, [entries, notificationPermission, notificationsEnabled, remediationEntries]);
 
   useEffect(() => {
     localStorage.setItem('tawjeeh.program.entries', JSON.stringify(entries));
@@ -463,6 +520,11 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     setActiveTab('overview');
   };
 
+  const updateExamDate = (value: string) => {
+    setExamDate(value || defaultExamDate);
+    localStorage.setItem(examDateKey, value || defaultExamDate);
+  };
+
   const addEntry = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!newEntry.title.trim()) return;
@@ -516,6 +578,26 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
              <div><strong>٢</strong><span>مادتان أو أكثر</span></div>
              <span className="program-rhythm-note"><Clock3 size={13} /> عدّل الوقت والمادة كما يناسبك</span>
           </div>
+      </section>
+
+      <section className={`program-exam-mode-card ${examMode?.mode === 'error_stack' ? 'is-error-stack' : examMode?.mode === 'pre_exam' ? 'is-pre-exam' : ''}`} role="status" data-testid="card-exam-mode">
+        <div className="program-exam-mode-icon"><Sparkles size={19} /></div>
+        <div className="program-exam-mode-copy">
+          <span className="program-card-kicker">الاستعداد للبكالوريا</span>
+          <h3>{examMode?.label ?? 'نحدد إيقاع الاستعداد...'}</h3>
+          <p>{examMode?.description ?? 'حددي تاريخ البكالوريا ليضبط توجيه كثافة التمارين تلقائيًا.'}</p>
+          {examMode && examMode.mode !== 'standard' && (
+            <div className="program-exam-mode-meta">
+              <strong>{examMode.days_until >= 0 ? `بقي ${examMode.days_until} يومًا` : 'انتهى الموعد المحدد'}</strong>
+              <span>كثافة التمارين ×{examMode.exercise_density}</span>
+              {examMode.error_concepts.length > 0 && <span>{examMode.error_concepts.length} مفاهيم في بنك الأخطاء</span>}
+            </div>
+          )}
+        </div>
+        <label className="program-exam-date-control">
+          <span>موعد البكالوريا</span>
+          <input type="date" value={examDate} onChange={(event) => updateExamDate(event.target.value)} aria-label="موعد البكالوريا" data-testid="input-baccalaureate-date" />
+        </label>
       </section>
 
       <div className="program-agent-layout">
@@ -620,7 +702,12 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           {activeTab === 'notifications' && (
             <div className="program-notifications-content">
               <div className="program-notification-cover"><span className="program-notification-big-icon"><Bell size={22} /></span><div><span className="program-card-kicker">مراقبة هادئة</span><h3>مِيزان يذكّرك قبل أن تتشتت.</h3><p>ستصلك تنبيهات الحصص، الاختبارات، والمهام التي أضفتها إلى برنامجك.</p></div><button type="button" className={`program-toggle ${notificationsEnabled ? 'is-on' : ''}`} onClick={toggleNotifications} aria-label="تفعيل أو إيقاف التنبيهات" data-testid="toggle-program-notifications"><span /></button></div>
-            <div className="program-notification-list"><div><Clock3 size={16} /><span><strong>قبل بداية الحصة</strong><small>تنبيه عند اقتراب موعد البداية</small></span><b>مفعّل</b></div><div><ClipboardPenLine size={16} /><span><strong>قبل الاختبار أو الفرض أو البحث</strong><small>رفع كثافة المراجعة قبل الموعد</small></span><b>مفعّل</b></div><div><Sparkles size={16} /><span><strong>بعد التأخر</strong><small>اقتراح حصة تعويضية في البرنامج</small></span><b>مفعّل</b></div></div>
+             <div className="program-notification-list">
+               <div><Clock3 size={16} /><span><strong>قبل بداية الحصة</strong><small>تنبيه عند اقتراب موعد البداية</small></span><b>{notificationsEnabled ? 'مفعّل' : 'متوقف'}</b></div>
+               <div><ClipboardPenLine size={16} /><span><strong>قبل الاختبار أو الفرض أو البحث</strong><small>رفع كثافة المراجعة قبل الموعد</small></span><b>{notificationsEnabled ? 'مفعّل' : 'متوقف'}</b></div>
+               <div><Sparkles size={16} /><span><strong>{examMode?.label ?? 'وضع الاستعداد'}</strong><small>{examMode?.mode === 'error_stack' ? 'إشعار عند تفعيل مكدسات الأخطاء وربطها بمفاهيمك' : 'يتغير تلقائيًا حسب قرب موعد البكالوريا'}</small></span><b>{examMode?.mode === 'standard' ? 'مراقبة' : 'مفعّل'}</b></div>
+               <div><CheckCircle2 size={16} /><span><strong>بعد التأخر</strong><small>اقتراح حصة تعويضية في البرنامج</small></span><b>{notificationsEnabled ? 'مفعّل' : 'متوقف'}</b></div>
+             </div>
             </div>
           )}
         </section>

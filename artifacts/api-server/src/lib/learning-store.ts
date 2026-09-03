@@ -13,6 +13,8 @@ export const EMERGENCY_REMEDIATION_LABEL = "غرفة إنعاش مستعجلة";
 export const ERROR_RATE_THRESHOLD = 0.5;
 export const OFFICIAL_SUMMARY_STAMP = "TAWJEEH.ED · OFFICIAL";
 export const OFFICIAL_SUMMARY_LOGO = "tawjeeh-owl-transparent.png";
+const DEFAULT_BACCALAUREATE_MONTH = 5;
+const DEFAULT_BACCALAUREATE_DAY = 7;
 
 export type SummaryConcept = {
   id: string;
@@ -70,6 +72,17 @@ export type ErrorBankItem = {
   error_tag: string;
   summary_id: number | null;
   created_at: string;
+};
+
+export type ExamMode = {
+  mode: "standard" | "pre_exam" | "error_stack";
+  label: string;
+  description: string;
+  exam_date: string;
+  days_until: number;
+  exercise_density: number;
+  reduce_passive_explanation: boolean;
+  error_concepts: ConceptMetric[];
 };
 
 export function getUserId(req: Request): string | null {
@@ -151,6 +164,67 @@ export async function listSummaryBank(userId: string) {
   return {
     summaries: summaries.map(toSummaryBankItem),
     metrics: Array.from(metrics.values()),
+  };
+}
+
+function defaultBaccalaureateDate() {
+  const year = new Date().getUTCFullYear() + 1;
+  return `${year}-${String(DEFAULT_BACCALAUREATE_MONTH + 1).padStart(2, "0")}-${String(DEFAULT_BACCALAUREATE_DAY).padStart(2, "0")}`;
+}
+
+function daysUntilDate(dateValue: string) {
+  const target = new Date(`${dateValue}T00:00:00Z`);
+  const today = new Date();
+  const todayUtc = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  return Math.ceil((target.getTime() - todayUtc.getTime()) / 86_400_000);
+}
+
+export async function getExamMode(userId: string, requestedExamDate?: string): Promise<ExamMode> {
+  const examDate = requestedExamDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedExamDate)
+    ? requestedExamDate
+    : process.env.BACCALAUREATE_DATE ?? defaultBaccalaureateDate();
+  const daysUntil = daysUntilDate(examDate);
+  const { metrics } = await listSummaryBank(userId);
+  const errorConcepts = metrics
+    .filter((metric) => metric.errors_count > 0 && metric.error_rate >= ERROR_RATE_THRESHOLD)
+    .sort((a, b) => b.errors_count - a.errors_count || b.error_rate - a.error_rate)
+    .slice(0, 8);
+  const isPreExam = daysUntil >= 0 && daysUntil <= 56;
+  const isErrorStack = isPreExam && daysUntil <= 42 && errorConcepts.length > 0;
+
+  if (isErrorStack) {
+    return {
+      mode: "error_stack",
+      label: "وضع مكدسات الأخطاء",
+      description: "تدريبات مكثفة مبنية على المفاهيم التي تتكرر فيها أخطاؤك، مع شرح مختصر من دليل.",
+      exam_date: examDate,
+      days_until: daysUntil,
+      exercise_density: 3,
+      reduce_passive_explanation: true,
+      error_concepts: errorConcepts,
+    };
+  }
+  if (isPreExam) {
+    return {
+      mode: "pre_exam",
+      label: "وضع الاختبارات",
+      description: "فهيم يبني أوراقًا تجريبية متنوعة وعالية التحدي استعدادًا للبكالوريا.",
+      exam_date: examDate,
+      days_until: daysUntil,
+      exercise_density: 2,
+      reduce_passive_explanation: false,
+      error_concepts: errorConcepts,
+    };
+  }
+  return {
+    mode: "standard",
+    label: "الإيقاع الدراسي المعتاد",
+    description: "تعلّم متوازن بين الشرح والتطبيق، ويمكنك تفعيل وضع الاختبارات بتحديد موعد البكالوريا.",
+    exam_date: examDate,
+    days_until: daysUntil,
+    exercise_density: 1,
+    reduce_passive_explanation: false,
+    error_concepts: errorConcepts,
   };
 }
 

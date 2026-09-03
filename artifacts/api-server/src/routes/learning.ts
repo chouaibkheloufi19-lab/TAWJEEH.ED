@@ -5,6 +5,7 @@ import {
   CompleteLessonResponse,
   GetDashboardResponse,
   GetErrorBankResponse,
+  GetExamModeResponse,
   GetLearningScheduleResponse,
   GetSummaryBankResponse,
   RecordLearningAttemptBody,
@@ -15,6 +16,7 @@ import {
 } from "@workspace/api-zod";
 import {
   getUserId,
+  getExamMode,
   listErrorBank,
   listLearningSchedule,
   listSummaryBank,
@@ -76,7 +78,18 @@ router.get("/learning/error-bank", async (req, res): Promise<void> => {
     return;
   }
   const data = await listErrorBank(userId);
-  res.json(data);
+  res.json(GetErrorBankResponse.parse(data));
+});
+
+router.get("/learning/exam-mode", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const requestedExamDate = typeof req.query.exam_date === "string" ? req.query.exam_date : undefined;
+  const data = await getExamMode(userId, requestedExamDate);
+  res.json(GetExamModeResponse.parse(data));
 });
 
 router.post("/learning/lessons/:lessonId/complete", async (req, res): Promise<void> => {

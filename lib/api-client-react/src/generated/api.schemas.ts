@@ -162,6 +162,27 @@ export interface ErrorBankResponse {
   errors: ErrorBankItem[];
 }
 
+export type ExamModeMode = typeof ExamModeMode[keyof typeof ExamModeMode];
+
+
+export const ExamModeMode = {
+  standard: 'standard',
+  pre_exam: 'pre_exam',
+  error_stack: 'error_stack',
+} as const;
+
+export interface ExamMode {
+  mode: ExamModeMode;
+  label: string;
+  description: string;
+  exam_date: string;
+  days_until: number;
+  /** @minimum 1 */
+  exercise_density: number;
+  reduce_passive_explanation: boolean;
+  error_concepts: ConceptMetric[];
+}
+
 export interface ScheduleUpdateInput {
   completed: boolean;
 }
@@ -203,6 +224,15 @@ export interface QuizQuestion {
   options: string[];
 }
 
+export type QuizMode = typeof QuizMode[keyof typeof QuizMode];
+
+
+export const QuizMode = {
+  standard: 'standard',
+  pre_exam: 'pre_exam',
+  error_stack: 'error_stack',
+} as const;
+
 export interface Quiz {
   id: string;
   title: string;
@@ -215,13 +245,29 @@ export interface Quiz {
   is_high_difficulty: boolean;
   unit_id: string;
   score_threshold: number;
+  mode: QuizMode;
+  /** @minimum 1 */
+  exercise_density: number;
+  reduce_passive_explanation: boolean;
+  linked_concepts: string[];
 }
 
 export type QuizAttemptInputAnswers = {[key: string]: string};
 
 export interface QuizAttemptInput {
   answers: QuizAttemptInputAnswers;
+  /** Target baccalaureate date used to resolve adaptive exam content */
+  exam_date?: string;
 }
+
+export type QuizResultMode = typeof QuizResultMode[keyof typeof QuizResultMode];
+
+
+export const QuizResultMode = {
+  standard: 'standard',
+  pre_exam: 'pre_exam',
+  error_stack: 'error_stack',
+} as const;
 
 export interface QuizResult {
   quiz_id: string;
@@ -233,6 +279,8 @@ export interface QuizResult {
   attempt_id: number;
   passed: boolean;
   is_high_difficulty: boolean;
+  mode: QuizResultMode;
+  linked_concepts: string[];
 }
 
 export interface QuizAttemptRecord {
@@ -252,8 +300,22 @@ export interface QuizAttemptsResponse {
   attempts: QuizAttemptRecord[];
 }
 
+export type GetExamModeParams = {
+/**
+ * Target baccalaureate date in YYYY-MM-DD format
+ */
+exam_date?: string;
+};
+
 export type ListKnowledgeParams = {
 subject?: string;
 curriculum_year?: string;
+};
+
+export type ListQuizzesParams = {
+/**
+ * Target baccalaureate date in YYYY-MM-DD format
+ */
+exam_date?: string;
 };
 

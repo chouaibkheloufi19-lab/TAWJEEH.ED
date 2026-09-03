@@ -23,15 +23,18 @@ import {
   X,
 } from 'lucide-react';
 import {
+  getGetExamModeQueryKey,
   getGetLearningScheduleQueryKey,
   getGetErrorBankQueryKey,
   getListQuizzesQueryKey,
   getListKnowledgeQueryKey,
   getGetSummaryBankQueryKey,
   useCompleteLesson,
+  useGetExamMode,
   useListKnowledge,
   useQueryKnowledge,
   useRecordLearningAttempt,
+  type ExamMode,
   type KnowledgeCard,
 } from '@workspace/api-client-react';
 import owlAgentGold from '@assets/agent-success-cropped.png';
@@ -220,6 +223,8 @@ const exampleDetails: Record<LessonSectionId, { id: string; title: string; detai
 const sessionKey = 'tawjeeh.lesson.workspace.v1';
 const attemptBankKey = 'tawjeeh.attempt.bank.v1';
 const profileKey = 'user.profile';
+const examDateKey = 'tawjeeh.exam.baccalaureate-date';
+const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
 const lessonId = 'newton-motion';
 const partnerDetails: Record<ActivePartner, {
   name: string;
@@ -460,6 +465,12 @@ export function LessonWorkspace() {
   const completeLessonMutation = useCompleteLesson();
   const recordAttemptMutation = useRecordLearningAttempt();
   const queryKnowledgeMutation = useQueryKnowledge();
+  const examDate = useMemo(() => window.localStorage.getItem(examDateKey) || defaultExamDate, []);
+  const examModeQuery = useGetExamMode(
+    { exam_date: examDate },
+    { query: { queryKey: getGetExamModeQueryKey({ exam_date: examDate }), staleTime: 60_000 } },
+  );
+  const examMode = examModeQuery.data as ExamMode | undefined;
   const [session, setSession] = useState<LessonSession>(() => readSession(evaluationPlan.mode));
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome', role: 'assistant', text: 'أهلًا، أنا فهيم. سنمشي في العناصر الخمسة بهدوء، ونثبت كل فكرة بخطوة صغيرة.' },
@@ -513,7 +524,18 @@ export function LessonWorkspace() {
   const handoffComplete = phase4Active;
   const faheemActive = !phase4Active && session.activeAgent === 'faheem';
   const lessonToolsActive = faheemActive || phase4Active;
-  const activePartnerDetails = partnerDetails[activePartner];
+  const activePartnerDetails = useMemo(() => {
+    const details = partnerDetails[activePartner];
+    if (activePartner === 'dalil' && examMode?.reduce_passive_explanation) {
+      return {
+        ...details,
+        description: 'شرح سريع يوصلك إلى الخطوة التالية.',
+        prompt: 'اكتبي موضع التعثر، وسأعطيك خلاصة قصيرة ثم تمرينًا مباشرًا.',
+      };
+    }
+    return details;
+  }, [activePartner, examMode?.reduce_passive_explanation]);
+  const intensiveExamMode = examMode?.mode === 'pre_exam' || examMode?.mode === 'error_stack';
 
   useEffect(() => {
     setSession((current) => {
@@ -801,20 +823,23 @@ export function LessonWorkspace() {
     setQuestion('');
     setIsThinking(true);
     try {
-      const response = await queryKnowledgeMutation.mutateAsync({
+       const response = await queryKnowledgeMutation.mutateAsync({
         data: {
           query: cleanText,
-          n_results: 3,
+           n_results: intensiveExamMode ? 1 : 3,
           subject: 'العلوم الفيزيائية',
         },
       });
       const source = response.results?.[0];
-      const exercisePrompt = analysis?.nextExercise
-        ?? `تمرين تطبيقي في «${activeSection.title}»: ${activeExamples[0]?.detail ?? 'اكتبي المعطيات أولًا، ثم حددي العلاقة المناسبة.'}`;
+       const targetedConcept = examMode?.error_concepts[0]?.concept_title;
+       const exercisePrompt = analysis?.nextExercise
+         ?? (targetedConcept
+           ? `تمرين مكدس أخطاء في «${targetedConcept}»: اكتبي المعطيات، حددي العلاقة، ثم تحققي من الوحدة.`
+           : `تمرين تطبيقي في «${activeSection.title}»: ${activeExamples[0]?.detail ?? 'اكتبي المعطيات أولًا، ثم حددي العلاقة المناسبة.'}`);
       const reply = activePartner === 'dalil'
         ? source
-          ? `من «${source.title}»: ${source.summary} ابدئي من هذه الفكرة، ثم قارنيها بما يظهر على اللوح.`
-          : `لنثبتها بهدوء: ${displayedExplanation} هل تريدين ربطها بالمثال أم بالرسم؟`
+           ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source.title}»`}: ${source.summary} ${intensiveExamMode ? 'والآن انتقلي إلى التطبيق.' : 'ابدئي من هذه الفكرة، ثم قارنيها بما يظهر على اللوح.'}`
+           : `${intensiveExamMode ? 'خلاصة سريعة' : 'لنثبتها بهدوء'}: ${displayedExplanation} ${intensiveExamMode ? 'اكتبي خطوة الحل التالية.' : 'هل تريدين ربطها بالمثال أم بالرسم؟'}`
         : `جهزت لك تدريبًا قصيرًا على «${activeSection.title}». افتحي بطاقة التمرين في مساحة الحل، واكتبي خطوتك الأولى وسأراجعها معك.`;
       setMessages((current) => [...current, {
         id: `partner-answer-${Date.now()}`,
@@ -937,11 +962,15 @@ export function LessonWorkspace() {
 
   const buildExercise = () => {
     if (!analysis) return;
-    setGeneratedExercise(analysis.nextExercise);
+    const density = examMode?.exercise_density ?? 1;
+    const exerciseSet = Array.from({ length: density }, (_, index) => (
+      `${index + 1}. ${analysis.nextExercise}${density > 1 ? ` — غيّري المعطى أو التمثيل في المحاولة ${index + 1}، ثم تحققي من الوحدة.` : ''}`
+    ));
+    setGeneratedExercise(exerciseSet.join('\n\n'));
     setExerciseAnswer('');
     setExerciseFeedback(null);
     setShowExerciseSolution(false);
-    setMessages((current) => [...current, { id: `exercise-${Date.now()}`, role: 'assistant', text: 'بنيت لك تمرينًا على نفس موضع الخطأ. اكتبي أول خطوة فقط ثم أرسليها لي.' }]);
+    setMessages((current) => [...current, { id: `exercise-${Date.now()}`, role: 'assistant', text: density > 1 ? `بنيت لك ${density} تمارين متدرجة على نفس موضع الخطأ. ابدئي بالأولى ثم أرسلي خطوتك.` : 'بنيت لك تمرينًا على نفس موضع الخطأ. اكتبي أول خطوة فقط ثم أرسليها لي.' }]);
   };
 
   const reviewGeneratedExercise = () => {
@@ -1071,6 +1100,13 @@ export function LessonWorkspace() {
             <small>{handoffComplete ? `اكتمل ${formatSessionTime(session.concludedAt ?? session.startedAt)}` : `بدأت ${formatSessionTime(session.startedAt)} · الوقت مفتوح`}</small>
         </div>
       </div>
+
+       {examMode && examMode.mode !== 'standard' && (
+         <div className={`lesson-exam-mode-strip ${examMode.mode === 'error_stack' ? 'is-error-stack' : ''}`} role="status" data-testid="card-lesson-exam-mode">
+           <div><span className="lesson-panel-kicker"><Sparkles size={13} /> {examMode.label}</span><strong>{examMode.mode === 'error_stack' ? 'التمرين التالي يستهدف موضع الخطأ الأعلى.' : 'كثافة أعلى قبل موعد البكالوريا.'}</strong><p>{examMode.description}</p></div>
+           <div className="lesson-exam-mode-meta"><strong>×{examMode.exercise_density}</strong><span>كثافة التمارين</span><small>{Math.max(0, examMode.days_until)} يومًا متبقيًا</small></div>
+         </div>
+       )}
 
        <div className="lesson-phase4-map" aria-label="توزيع مساحة الجلسة">
          <div className="lesson-phase4-side lesson-phase4-left">
