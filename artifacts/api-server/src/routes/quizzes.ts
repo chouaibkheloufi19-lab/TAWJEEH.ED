@@ -14,6 +14,8 @@ import {
   recordLearningAttempt,
   recordQuizAttempt,
 } from "../lib/learning-store";
+import { generateGroundedQuizQuestions, type GroundedQuizQuestion } from "../lib/quiz-generator";
+import { KnowledgeGroundingError } from "../lib/rag";
 
 const router: IRouter = Router();
 
@@ -131,11 +133,111 @@ function daysUntilExam(examDate: string) {
   return Math.ceil((target.getTime() - today.getTime()) / 86_400_000);
 }
 
-async function getAvailableQuizzes(userId: string | null, requestedExamDate?: string) {
-  if (!userId) return quizzes;
+type GroundedQuiz = {
+  id: string;
+  title: string;
+  subject: string;
+  description: string;
+  duration: string;
+  status: string;
+  points: number;
+  is_high_difficulty: boolean;
+  unit_id: string;
+  score_threshold: number;
+  mode: QuizMode;
+  exercise_density: number;
+  reduce_passive_explanation: boolean;
+  linked_concepts: string[];
+  questions: GroundedQuizQuestion[];
+};
+
+const groundedQuizCache = new Map<string, Promise<GroundedQuiz[]>>();
+
+async function buildGroundedQuizzes(
+  userId: string,
+  requestedExamDate?: string,
+): Promise<GroundedQuiz[]> {
   const mode = await getExamMode(userId, requestedExamDate);
-  if (mode.mode === "standard") return quizzes;
-  return [...quizzes, adaptiveQuiz(mode.mode, mode.exam_date, mode.error_concepts)];
+  const errorContext = mode.error_concepts
+    .map((concept) => `${concept.concept_title}: ${concept.last_error_tag}`)
+    .join(" | ");
+  const cacheKey = [userId, mode.mode, mode.exam_date, errorContext].join("::");
+  const cached = groundedQuizCache.get(cacheKey);
+  if (cached) return cached;
+  const generation = generateGroundedQuizQuestions({
+    lesson: "قوانين نيوتن والحركة",
+    mode: mode.mode,
+    level: "3AS",
+    errorContext,
+  }).then(({ questions }) => {
+    const weeklyQuestions = questions.slice(0, 3);
+    const unitQuestions = questions.slice(0, 6);
+    const common = {
+      subject: "الفيزياء",
+      unit_id: "mechanics",
+      exercise_density: mode.exercise_density,
+      reduce_passive_explanation: mode.reduce_passive_explanation,
+    };
+    const result: GroundedQuiz[] = [
+      {
+        ...common,
+        id: "weekly-physics",
+        title: "الكويز الأسبوعي المخصص — مؤسس على المعرفة",
+        description: "أسئلة مستخرجة من عقد المنهاج وسجل أخطائك الحالي.",
+        duration: "20 دقيقة",
+        status: "متاح الآن",
+        points: 120,
+        is_high_difficulty: false,
+        score_threshold: 70,
+        mode: "standard",
+        linked_concepts: [...new Set(weeklyQuestions.map((question) => question.conceptId))],
+        questions: weeklyQuestions,
+      },
+      {
+        ...common,
+        id: "mechanics-unit",
+        title: "تحدّي نهاية الوحدة — مؤسس على المعرفة",
+        description: "تقييم وحدة مبني على أسئلة مرتبطة بعقد ChromaDB المسترجعة.",
+        duration: "25 دقيقة",
+        status: "يفتح بعد إتمام الوحدة",
+        points: 180,
+        is_high_difficulty: true,
+        score_threshold: 80,
+        mode: "standard",
+        linked_concepts: [...new Set(unitQuestions.map((question) => question.conceptId))],
+        questions: unitQuestions,
+      },
+    ];
+    if (mode.mode !== "standard") {
+      result.push({
+        ...common,
+        id: mode.mode === "error_stack" ? "baccalaureate-error-stacks" : "baccalaureate-mock-exam",
+        title: mode.mode === "error_stack" ? "مكدسات الأخطاء — مؤسس على المعرفة" : "محاكاة البكالوريا — مؤسس على المعرفة",
+        description: mode.mode === "error_stack"
+          ? "تدريبات مركزة على المفاهيم ذات معدل الخطأ الأعلى."
+          : "ورقة متنوعة مستخرجة من المصادر المناسبة للمستوى.",
+        duration: mode.mode === "error_stack" ? "30 دقيقة" : "45 دقيقة",
+        status: `مفعّل · بقي ${Math.max(0, mode.days_until)} يومًا`,
+        points: mode.mode === "error_stack" ? unitQuestions.length * 30 : 180,
+        is_high_difficulty: true,
+        score_threshold: 80,
+        mode: mode.mode,
+        linked_concepts: [...new Set(unitQuestions.map((question) => question.conceptId))],
+        questions: unitQuestions,
+      });
+    }
+    return result;
+  }).catch((error) => {
+    groundedQuizCache.delete(cacheKey);
+    throw error;
+  });
+  groundedQuizCache.set(cacheKey, generation);
+  return generation;
+}
+
+async function getAvailableQuizzes(userId: string | null, requestedExamDate?: string) {
+  if (!userId) return [];
+  return buildGroundedQuizzes(userId, requestedExamDate);
 }
 
 async function hasCompletedMechanicsUnit(userId: string | null) {
@@ -146,14 +248,23 @@ async function hasCompletedMechanicsUnit(userId: string | null) {
 }
 
 router.get("/quizzes", async (req, res): Promise<void> => {
-  const unitComplete = await hasCompletedMechanicsUnit(getUserId(req));
-  const requestedExamDate = typeof req.query.exam_date === "string" ? req.query.exam_date : undefined;
-  const availableQuizzes = await getAvailableQuizzes(getUserId(req), requestedExamDate);
-  res.json(ListQuizzesResponse.parse(availableQuizzes.map((quiz) => (
-    quiz.is_high_difficulty && quiz.mode === "standard"
-      ? { ...quiz, status: unitComplete ? "مفتوح الآن — تقييم عالي الصعوبة" : "يفتح بعد إتمام الوحدة" }
-      : quiz
-  ))));
+  try {
+    const userId = getUserId(req);
+    const unitComplete = await hasCompletedMechanicsUnit(userId);
+    const requestedExamDate = typeof req.query.exam_date === "string" ? req.query.exam_date : undefined;
+    const availableQuizzes = await getAvailableQuizzes(userId, requestedExamDate);
+    res.json(ListQuizzesResponse.parse(availableQuizzes.map((quiz) => (
+      quiz.is_high_difficulty && quiz.mode === "standard"
+        ? { ...quiz, status: unitComplete ? "مفتوح الآن — تقييم عالي الصعوبة" : "يفتح بعد إتمام الوحدة" }
+        : quiz
+    ))));
+  } catch (error) {
+    req.log.error({ error }, "Grounded quiz generation failed");
+    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
+      error: error instanceof KnowledgeGroundingError ? error.code : "grounded_quiz_generation_failed",
+      message: "لا يمكن تجهيز الاختبار قبل نجاح استرجاع عقد المعرفة من ChromaDB.",
+    });
+  }
 });
 
 router.get("/quizzes/attempts", async (req, res): Promise<void> => {
@@ -181,7 +292,17 @@ router.post("/quizzes/:quizId/attempt", async (req, res): Promise<void> => {
     res.status(400).json({ error: body.error.message });
     return;
   }
-  const availableQuizzes = await getAvailableQuizzes(userId, body.data.exam_date);
+  let availableQuizzes: GroundedQuiz[];
+  try {
+    availableQuizzes = await getAvailableQuizzes(userId, body.data.exam_date) as GroundedQuiz[];
+  } catch (error) {
+    req.log.error({ error }, "Grounded quiz retrieval failed during submission");
+    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
+      error: error instanceof KnowledgeGroundingError ? error.code : "grounded_quiz_unavailable",
+      message: "لا يمكن تصحيح الاختبار قبل التحقق من مصادر ChromaDB.",
+    });
+    return;
+  }
   const quiz = availableQuizzes.find((item) => item.id === params.data.quizId);
   if (!quiz) {
     res.status(404).json({ error: "Quiz not found" });
@@ -191,20 +312,9 @@ router.post("/quizzes/:quizId/attempt", async (req, res): Promise<void> => {
     res.status(403).json({ error: "Complete the mechanics unit before starting the high-difficulty assessment" });
     return;
   }
-  const correctAnswers: Record<string, string> =
-    quiz.mode === "error_stack"
-      ? Object.fromEntries(quiz.questions.map((question) => [question.id, question.options[0]]))
-      : quiz.mode === "pre_exam"
-        ? Object.fromEntries(preExamQuestionBank.map((question) => [question.id, question.options[0]]))
-        : quiz.id === "weekly-physics"
-          ? { q1: "F = m × a", q2: "تزداد بانتظام", q3: "الجول" }
-          : {
-              q1: "منعدمًا",
-              q2: "مجموع القوى المؤثرة",
-              q3: "يتضاعف",
-              q4: "السرعة",
-              q5: "a = F ÷ m",
-            };
+  const correctAnswers: Record<string, string> = Object.fromEntries(
+    quiz.questions.map((question) => [question.id, question.correctOption]),
+  );
   const correct = quiz.questions.reduce(
     (total, question) => total + (body.data.answers[question.id] === correctAnswers[question.id] ? 1 : 0),
     0,

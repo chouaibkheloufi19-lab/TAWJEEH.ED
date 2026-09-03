@@ -24,6 +24,24 @@ export type RetrievalContext = {
   };
 };
 
+export type AgentReadiness = {
+  status: "ready";
+  retrieval: RetrievalContext["grounding"];
+  foundationalModules: Array<{
+    nodeId: string;
+    title: string;
+    summary: string;
+    source: string;
+    page: number;
+    concepts: string;
+  }>;
+  agents: {
+    faheem: { status: "ready"; role: "diagnostic"; nodeIds: string[] };
+    dalil: { status: "ready"; role: "explanation"; nodeIds: string[] };
+    exercises: { status: "ready"; role: "practice"; nodeIds: string[] };
+  };
+};
+
 export class KnowledgeGroundingError extends Error {
   readonly code = "knowledge_retrieval_empty";
 
@@ -97,6 +115,25 @@ export function formatRetrievedContext(documents: KnowledgeDocument[]): string {
     .join("\n\n");
 }
 
+export function assertGroundedNodeIds(
+  sourceNodeIds: unknown,
+  retrieval: RetrievalContext,
+): string[] {
+  if (!Array.isArray(sourceNodeIds)) {
+    throw new KnowledgeGroundingError(
+      "Generated content must cite the retrieved ChromaDB node IDs",
+    );
+  }
+  const cited = [...new Set(sourceNodeIds.filter((id): id is string => typeof id === "string" && Boolean(id.trim())))];
+  const allowed = new Set(retrieval.documents.map((document) => document.id));
+  if (!cited.length || cited.some((nodeId) => !allowed.has(nodeId))) {
+    throw new KnowledgeGroundingError(
+      "Generated content cited a node that was not retrieved for this request",
+    );
+  }
+  return cited;
+}
+
 export async function retrieveGroundedKnowledge(
   query: string,
   options: {
@@ -136,6 +173,41 @@ export async function retrieveGroundedKnowledge(
       query: payload.query || cleanQuery,
       retrievedNodeIds: documents.map((document) => document.id),
       sources,
+    },
+  };
+}
+
+export async function provisionLearningAgents(): Promise<AgentReadiness> {
+  const retrieval = await retrieveGroundedKnowledge(
+    "المفاهيم الأساسية في قوانين نيوتن والحركة: القصور الذاتي، القوة المحصلة، التسارع، الحركة، الأمثلة والتمارين",
+    {
+      nResults: 12,
+      where: {
+        curriculum_year: "third_secondary",
+        subject: "العلوم الفيزيائية",
+      },
+    },
+  );
+  const foundationalModules = retrieval.documents.map((document) => {
+    const metadata = document.metadata ?? {};
+    return {
+      nodeId: document.id,
+      title: String(metadata.lesson || metadata.unit || "مفهوم تأسيسي"),
+      summary: String(document.document || "").trim(),
+      source: String(metadata.source_file || "مصدر غير محدد"),
+      page: Number(metadata.source_page || 0),
+      concepts: String(metadata.concepts || ""),
+    };
+  });
+  const nodeIds = retrieval.grounding.retrievedNodeIds;
+  return {
+    status: "ready",
+    retrieval: retrieval.grounding,
+    foundationalModules,
+    agents: {
+      faheem: { status: "ready", role: "diagnostic", nodeIds },
+      dalil: { status: "ready", role: "explanation", nodeIds },
+      exercises: { status: "ready", role: "practice", nodeIds },
     },
   };
 }

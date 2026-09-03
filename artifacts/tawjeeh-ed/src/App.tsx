@@ -549,6 +549,8 @@ function ProfilePage() {
     completedAt?: string;
     officialStamp?: string;
     logo?: string;
+     groundingQuery?: string;
+     groundingNodeIds?: string[];
   }>>([]);
   const summaryQuery = useGetSummaryBank({
     query: {
@@ -576,6 +578,8 @@ function ProfilePage() {
       completed_at: summary.completedAt as string,
       official_stamp: summary.officialStamp ?? 'TAWJEEH.ED · OFFICIAL',
       logo: summary.logo ?? 'tawjeeh-owl-transparent.png',
+       grounding_query: summary.groundingQuery ?? '',
+       grounding_node_ids: summary.groundingNodeIds ?? [],
     }));
   const serverSummaries = summaryBank?.summaries ?? [];
   const summaries = [...serverSummaries, ...localSummaryCards.filter((local) => !serverSummaries.some((item) => item.lesson_id === local.lesson_id))];
@@ -644,13 +648,13 @@ function ProfilePage() {
           <section className="surface profile-bank-card">
             <div className="profile-bank-heading"><div><p className="eyebrow mb-1">أثر جلساتك</p><div className="flex flex-wrap items-center gap-2"><h3 className="display text-lg">بنك الملخصات</h3><span className="profile-official-stamp" data-testid="stamp-official-summary">TAWJEEH.ED · OFFICIAL</span></div></div></div>
             <div className="profile-bank-list">
-               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.map((summary: SummaryBankItem) => <div className={`profile-summary-item ${focusedConcept?.summaryId === summary.id ? 'is-focused' : ''}`} ref={(element) => { summaryRefs.current[String(summary.id)] = element; }} key={summary.id} data-testid={`card-summary-${summary.id}`}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.map((concept) => <span ref={(element) => { conceptRefs.current[`${summary.id}:${concept.id}`] = element; }} className={focusedConcept?.summaryId === summary.id && focusedConcept.conceptId === concept.id ? 'is-focused' : ''} key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكملي عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعودي إليه قبل المراجعة.</p>}
+               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.map((summary: SummaryBankItem) => <div className={`profile-summary-item ${focusedConcept?.summaryId === summary.id ? 'is-focused' : ''}`} ref={(element) => { summaryRefs.current[String(summary.id)] = element; }} key={summary.id} data-testid={`card-summary-${summary.id}`}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.map((concept) => <span ref={(element) => { conceptRefs.current[`${summary.id}:${concept.id}`] = element; }} className={focusedConcept?.summaryId === summary.id && focusedConcept.conceptId === concept.id ? 'is-focused' : ''} key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكمل عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعود إليه قبل المراجعة.</p>}
             </div>
           </section>
           <section className="surface profile-bank-card">
             <div className="profile-bank-heading"><div><p className="eyebrow mb-1">نتعلّم من المحاولة</p><h3 className="display text-lg">بنك الأخطاء</h3></div></div>
             <div className="profile-bank-list">
-               {errorBankQuery.isLoading ? <p className="profile-bank-empty">نسترجع مواضع الأخطاء...</p> : errorBank.length ? errorBank.map((error: ErrorBankItem) => <button type="button" className="profile-error-item" key={error.id} disabled={error.summary_id === null} onClick={() => { if (error.summary_id !== null) setLocation(`/profile?summary=${error.summary_id}&concept=${encodeURIComponent(error.concept_id)}`); }} data-testid={`button-error-bank-${error.id}`}><RotateCcw size={15} /><span><strong>{error.concept_title}</strong><small>{error.error_tag} · {error.summary_id === null ? 'بانتظار ملخص الدرس' : 'افتحي موضعه في الملخص'}</small></span><ChevronLeft size={15} /></button>) : savedAttempts.length ? savedAttempts.map((attempt, index) => <div className="profile-bank-item" key={`${attempt}-${index}`}><RotateCcw size={15} /><span>{attempt}</span></div>) : <p className="profile-bank-empty">ارفقي صورة حل أو أجيبي عن تمرين في جلسة فهيم. سنحفظ كل موضع خطأ لتعودي إليه.</p>}
+               {errorBankQuery.isLoading ? <p className="profile-bank-empty">نسترجع مواضع الأخطاء...</p> : errorBank.length ? errorBank.map((error: ErrorBankItem) => <button type="button" className="profile-error-item" key={error.id} disabled={error.summary_id === null} onClick={() => { if (error.summary_id !== null) setLocation(`/profile?summary=${error.summary_id}&concept=${encodeURIComponent(error.concept_id)}`); }} data-testid={`button-error-bank-${error.id}`}><RotateCcw size={15} /><span><strong>{error.concept_title}</strong><small>{error.error_tag} · {error.summary_id === null ? 'بانتظار ملخص الدرس' : 'افتح موضعه في الملخص'}</small></span><ChevronLeft size={15} /></button>) : savedAttempts.length ? savedAttempts.map((attempt, index) => <div className="profile-bank-item" key={`${attempt}-${index}`}><RotateCcw size={15} /><span>{attempt}</span></div>) : <p className="profile-bank-empty">أرفق صورة حل أو أجب عن تمرين في جلسة فهيم. سنحفظ كل موضع خطأ لتعود إليه.</p>}
              </div>
            </section>
           <section className="surface profile-metrics-card">
@@ -776,7 +780,7 @@ function QuizCard({ quiz, onStart }: { quiz: Quiz; onStart: () => void }) {
        <div className="mb-5 flex items-start justify-between gap-2"><span className={`tag ${quiz.mode === 'error_stack' ? 'bg-[#fff1d5] text-[#a46618]' : quiz.mode === 'pre_exam' ? 'bg-[#f0eaff] text-[#6d4b9a]' : 'bg-[#e8f8f5] text-[#2e8b7b]'}`}>{modeLabel}</span><span className="text-[11px] font-bold text-[#64748b]">{quiz.status}</span></div>
        <h3 className="mb-2 text-lg font-extrabold">{quiz.title}</h3><p className="mb-6 min-h-[48px] text-sm leading-7 text-[#64748b]">{quiz.description}</p>
         <div className="mb-5 flex flex-wrap items-center gap-4 text-[11px] font-bold text-[#64748b]"><span className="flex items-center gap-1"><Clock3 size={14} /> {quiz.duration}</span><span className="flex items-center gap-1"><CircleHelp size={14} /> {quiz.questions?.length ?? 0} أسئلة</span><span className="flex items-center gap-1"><Zap size={14} /> كثافة ×{quiz.exercise_density}</span><span className="flex items-center gap-1"><Zap size={14} /> {quiz.points} نقطة</span></div>
-       <button className="primary-button mt-auto w-full" disabled={locked} onClick={onStart} data-testid={`button-start-quiz-${quiz.id}`}><Play size={15} fill="currentColor" /> {locked ? 'أكملي الوحدة أولًا' : quiz.is_high_difficulty ? 'ابدئي التقييم' : 'ابدأ التدريب'}</button>
+       <button className="primary-button mt-auto w-full" disabled={locked} onClick={onStart} data-testid={`button-start-quiz-${quiz.id}`}><Play size={15} fill="currentColor" /> {locked ? 'أكمل الوحدة أولًا' : quiz.is_high_difficulty ? 'ابدأ التقييم' : 'ابدأ التدريب'}</button>
     </article>
   );
 }

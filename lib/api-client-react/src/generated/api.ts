@@ -20,11 +20,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AgentReadiness,
   Dashboard,
   ErrorBankResponse,
   ExamMode,
   GetExamModeParams,
   GetKnowledgeStatus503,
+  GroundedError,
   HealthStatus,
   KnowledgeCard,
   KnowledgeQueryInput,
@@ -988,6 +990,83 @@ export const useQueryKnowledge = <TError = ErrorType<void>,
       > => {
       return useMutation(getQueryKnowledgeMutationOptions(options));
     }
+
+export const getGetAgentReadinessUrl = () => {
+
+
+
+
+  return `/api/agents/readiness`
+}
+
+/**
+ * @summary Provision the learning agents from foundational ChromaDB nodes
+ */
+export const getAgentReadiness = async ( options?: Parameters<typeof customFetch>[1]): Promise<AgentReadiness> => {
+
+  return customFetch<AgentReadiness>(getGetAgentReadinessUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAgentReadinessQueryKey = () => {
+    return [
+    `/api/agents/readiness`
+    ] as const;
+    }
+
+
+export const getGetAgentReadinessQueryOptions = <TData = Awaited<ReturnType<typeof getAgentReadiness>>, TError = ErrorType<GroundedError>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgentReadiness>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAgentReadinessQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAgentReadiness>>> = ({ signal }) => getAgentReadiness({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAgentReadiness>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAgentReadinessQueryResult = NonNullable<Awaited<ReturnType<typeof getAgentReadiness>>>
+export type GetAgentReadinessQueryError = ErrorType<GroundedError>
+
+
+/**
+ * @summary Provision the learning agents from foundational ChromaDB nodes
+ */
+
+export function useGetAgentReadiness<TData = Awaited<ReturnType<typeof getAgentReadiness>>, TError = ErrorType<GroundedError>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgentReadiness>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAgentReadinessQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListQuizzesUrl = (params?: ListQuizzesParams,) => {
   const normalizedParams = new URLSearchParams();

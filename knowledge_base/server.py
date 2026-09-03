@@ -248,20 +248,18 @@ class KnowledgeRequestHandler(BaseHTTPRequestHandler):
             if not isinstance(n_results, int):
                 raise ValueError("n_results must be an integer")
             store = self._store()
-            if store.count():
-                results = _query_store(
+            # Agent retrieval must come from ChromaDB vector nodes. The catalog
+            # remains available for browsing, but it is not a grounding source.
+            results = (
+                _query_store(
                     store,
                     query,
                     n_results=n_results,
                     where=where,
                 )
-            else:
-                subject = where.get("subject") if isinstance(where, dict) else None
-                results = _catalog_search(
-                    query,
-                    _catalog_cards(subject=subject),
-                    n_results,
-                )
+                if store.count()
+                else []
+            )
             self._send(
                 HTTPStatus.OK,
                 {

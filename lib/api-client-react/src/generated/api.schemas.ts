@@ -75,6 +75,8 @@ export interface SummaryBankItem {
   subject: string;
   summary: string;
   concepts: SummaryConcept[];
+  grounding_query: string;
+  grounding_node_ids: string[];
   completed_at: string;
   official_stamp: string;
   logo: string;
@@ -108,6 +110,10 @@ export interface LessonCompletionInput {
   mastery?: number;
   /** @minItems 1 */
   concepts: SummaryConcept[];
+  /** @minLength 2 */
+  grounding_query: string;
+  /** @minItems 1 */
+  grounding_node_ids: string[];
 }
 
 export interface LearningAttemptInput {
@@ -235,10 +241,96 @@ export interface KnowledgeStatus {
   message: string;
 }
 
+export interface GroundedError {
+  error: string;
+  message: string;
+}
+
+export interface GroundingSource {
+  nodeId: string;
+  title: string;
+  source: string;
+  page: number;
+  quote: string;
+}
+
+export type GroundingStatus = typeof GroundingStatus[keyof typeof GroundingStatus];
+
+
+export const GroundingStatus = {
+  ready: 'ready',
+} as const;
+
+export interface Grounding {
+  status: GroundingStatus;
+  query: string;
+  /** @minItems 1 */
+  retrievedNodeIds: string[];
+  /** @minItems 1 */
+  sources: GroundingSource[];
+}
+
+export interface AgentModule {
+  nodeId: string;
+  title: string;
+  summary: string;
+  source: string;
+  page: number;
+  concepts: string;
+}
+
+export type AgentRoleReadinessStatus = typeof AgentRoleReadinessStatus[keyof typeof AgentRoleReadinessStatus];
+
+
+export const AgentRoleReadinessStatus = {
+  ready: 'ready',
+} as const;
+
+export type AgentRoleReadinessRole = typeof AgentRoleReadinessRole[keyof typeof AgentRoleReadinessRole];
+
+
+export const AgentRoleReadinessRole = {
+  diagnostic: 'diagnostic',
+  explanation: 'explanation',
+  practice: 'practice',
+} as const;
+
+export interface AgentRoleReadiness {
+  status: AgentRoleReadinessStatus;
+  role: AgentRoleReadinessRole;
+  /** @minItems 1 */
+  nodeIds: string[];
+}
+
+export type AgentReadinessStatus = typeof AgentReadinessStatus[keyof typeof AgentReadinessStatus];
+
+
+export const AgentReadinessStatus = {
+  ready: 'ready',
+} as const;
+
+export type AgentReadinessAgents = {
+  faheem: AgentRoleReadiness;
+  dalil: AgentRoleReadiness;
+  exercises: AgentRoleReadiness;
+};
+
+export interface AgentReadiness {
+  status: AgentReadinessStatus;
+  retrieval: Grounding;
+  /** @minItems 1 */
+  foundationalModules: AgentModule[];
+  agents: AgentReadinessAgents;
+}
+
 export interface QuizQuestion {
   id: string;
   prompt: string;
   options: string[];
+  concept_id: string;
+  concept_title: string;
+  /** @minItems 1 */
+  source_node_ids: string[];
 }
 
 export type QuizMode = typeof QuizMode[keyof typeof QuizMode];

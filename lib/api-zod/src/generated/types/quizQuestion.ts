@@ -10,4 +10,8 @@ export interface QuizQuestion {
   id: string;
   prompt: string;
   options: string[];
+  concept_id: string;
+  concept_title: string;
+  /** @minItems 1 */
+  source_node_ids: string[];
 }

@@ -103,10 +103,18 @@ class KnowledgeStore:
             raise ValueError("n_results must be between 1 and 50")
 
         candidate_count = min(max(n_results * 8, 20), 50)
+        normalized_where = coerce_filter(where)
+        # Chroma's current query validator accepts one equality operator per
+        # filter object. Preserve the public simple-filter API while translating
+        # multiple equality fields to the native conjunction form.
+        if normalized_where and len(normalized_where) > 1:
+            normalized_where = {
+                "$and": [{key: value} for key, value in normalized_where.items()]
+            }
         result = self.collection.query(
             query_texts=[cleaned_query],
             n_results=candidate_count,
-            where=coerce_filter(where),
+            where=normalized_where,
             include=["documents", "metadatas", "distances"],
         )
         ids = result.get("ids", [[]])[0]

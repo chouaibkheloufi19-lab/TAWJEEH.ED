@@ -83,14 +83,14 @@ function normalizeProgramSubject(subject?: string) {
 }
 
 const initialEntries: ProgramEntry[] = [
-  { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
+  { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرح الفكرة بكلماتك' },
   { id: 'program-2', date: today, time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false, slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
   { id: 'program-3', date: today, time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'الفيزياء', kind: 'مراجعة', agent: 'دليل', completed: false, slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
   { id: 'program-4', date: addDays(today, 2), time: '16:00', duration: '45 دقيقة', title: 'الميكانيك', subject: 'الفيزياء', kind: 'فرض', agent: 'تمارين', completed: false },
 ];
 
 const smartSlots: Omit<ProgramEntry, 'id' | 'date' | 'completed'>[] = [
-  { time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
+  { time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرح الفكرة بكلماتك' },
   { time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
   { time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'الفيزياء', kind: 'مراجعة', agent: 'دليل', slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
 ];
@@ -174,7 +174,7 @@ function toProgramEntry(entry: ScheduleEntry): ProgramEntry {
     volumeMultiplier: entry.volume_multiplier,
     penaltyType: entry.penalty_type,
     track: isTheory ? 'theory' : 'application',
-    endRule: isTheory ? 'تنتهي عندما تشرحين الفكرة بكلماتك' : 'تستمر حتى تثبيت المفهوم المرتبط بالخطأ',
+    endRule: isTheory ? 'تنتهي عندما تشرح الفكرة بكلماتك' : 'تستمر حتى تثبيت المفهوم المرتبط بالخطأ',
   };
 }
 
@@ -395,7 +395,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         if (localStorage.getItem(notificationKey)) return;
         const timing = minutesUntilStart === 0 ? 'تبدأ الآن' : `تبدأ خلال ${minutesUntilStart} دقيقة`;
         new Notification(`اقتربت ${entry.kind}`, {
-          body: `${entry.title} · ${timing}. افتحي برنامجك وابدئي بخطوة واحدة.`,
+          body: `${entry.title} · ${timing}. افتح برنامجك وابدأ بخطوة واحدة.`,
           lang: 'ar',
         });
         localStorage.setItem(notificationKey, '1');
@@ -604,7 +604,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         <div className="program-exam-mode-copy">
           <span className="program-card-kicker">الاستعداد للبكالوريا</span>
           <h3>{examMode?.label ?? 'نحدد إيقاع الاستعداد...'}</h3>
-          <p>{examMode?.description ?? 'حددي تاريخ البكالوريا ليضبط توجيه كثافة التمارين تلقائيًا.'}</p>
+          <p>{examMode?.description ?? 'حدد تاريخ البكالوريا ليضبط توجيه كثافة التمارين تلقائيًا.'}</p>
           {examMode && examMode.mode !== 'standard' && (
             <div className="program-exam-mode-meta">
               <strong>{examMode.days_until >= 0 ? `بقي ${examMode.days_until} يومًا` : 'انتهى الموعد المحدد'}</strong>

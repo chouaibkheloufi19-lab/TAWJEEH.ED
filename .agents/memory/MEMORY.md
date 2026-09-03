@@ -5,3 +5,4 @@
 - [Drizzle identity insert schemas](drizzle-identity-inserts.md) — generated identity columns are already non-insertable in current drizzle-zod typing.
 - [Learning penalty state](learning-penalty-state.md) — schedule penalties and quiz attempts are persisted server-side with idempotent penalty keys.
 - [Knowledge filter aliases](knowledge-filter-aliases.md) — normalize learner-facing subject and year labels at the service boundary before retrieval.
+- [Chroma index reload](chroma-index-reload.md) — rebuild and restart the knowledge service before trusting imported vector readiness.

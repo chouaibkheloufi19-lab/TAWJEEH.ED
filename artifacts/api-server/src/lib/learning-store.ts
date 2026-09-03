@@ -33,6 +33,8 @@ export type SummaryBankItem = {
   completed_at: string;
   official_stamp: string;
   logo: string;
+  grounding_query: string;
+  grounding_node_ids: string[];
 };
 
 export type ConceptMetric = {
@@ -102,6 +104,8 @@ export function toSummaryBankItem(row: typeof summaryBankTable.$inferSelect): Su
     completed_at: row.completedAt.toISOString(),
     official_stamp: row.officialStamp,
     logo: row.logo,
+    grounding_query: row.groundingQuery,
+    grounding_node_ids: row.groundingNodeIds,
   };
 }
 
@@ -264,6 +268,8 @@ export async function saveLessonSummary(
     subject: string;
     summary: string;
     concepts: SummaryConcept[];
+    groundingQuery: string;
+    groundingNodeIds: string[];
   },
 ) {
   const existing = await db
@@ -281,6 +287,8 @@ export async function saveLessonSummary(
             subject: input.subject,
             summary: input.summary,
             concepts: input.concepts,
+            groundingQuery: input.groundingQuery,
+            groundingNodeIds: input.groundingNodeIds,
             officialStamp: OFFICIAL_SUMMARY_STAMP,
             logo: OFFICIAL_SUMMARY_LOGO,
             completedAt: new Date(),
@@ -298,6 +306,8 @@ export async function saveLessonSummary(
             subject: input.subject,
             summary: input.summary,
             concepts: input.concepts,
+            groundingQuery: input.groundingQuery,
+            groundingNodeIds: input.groundingNodeIds,
             officialStamp: OFFICIAL_SUMMARY_STAMP,
             logo: OFFICIAL_SUMMARY_LOGO,
           })

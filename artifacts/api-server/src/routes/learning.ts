@@ -24,6 +24,11 @@ import {
   saveLessonSummary,
   updateLearningSchedule,
 } from "../lib/learning-store";
+import {
+  assertGroundedNodeIds,
+  retrieveGroundedKnowledge,
+  KnowledgeGroundingError,
+} from "../lib/rag";
 
 const router: IRouter = Router();
 
@@ -105,14 +110,26 @@ router.post("/learning/lessons/:lessonId/complete", async (req, res): Promise<vo
     res.status(400).json({ error });
     return;
   }
-  const data = await saveLessonSummary(userId, {
-    lessonId: params.data.lessonId,
-    lessonTitle: body.data.lesson_title,
-    subject: body.data.subject,
-    summary: body.data.summary,
-    concepts: body.data.concepts,
-  });
-  res.status(201).json(CompleteLessonResponse.parse(data));
+  try {
+    const retrieval = await retrieveGroundedKnowledge(body.data.grounding_query, { nResults: 12 });
+    const groundingNodeIds = assertGroundedNodeIds(body.data.grounding_node_ids, retrieval);
+    const data = await saveLessonSummary(userId, {
+      lessonId: params.data.lessonId,
+      lessonTitle: body.data.lesson_title,
+      subject: body.data.subject,
+      summary: body.data.summary,
+      concepts: body.data.concepts,
+      groundingQuery: retrieval.query,
+      groundingNodeIds,
+    });
+    res.status(201).json(CompleteLessonResponse.parse(data));
+  } catch (error) {
+    req.log.error({ error }, "Grounded lesson summary could not be saved");
+    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
+      error: error instanceof KnowledgeGroundingError ? error.code : "grounded_summary_save_failed",
+      message: "لا يمكن حفظ الملخص قبل التحقق من عقده المصدرية في ChromaDB.",
+    });
+  }
 });
 
 router.post("/learning/attempts", async (req, res): Promise<void> => {

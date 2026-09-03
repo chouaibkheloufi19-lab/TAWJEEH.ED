@@ -76,6 +76,6 @@ export function getEvaluationBlocker(
   _startedAt: string,
   _now = new Date(),
 ) {
-  if (progress < 100) return 'أكملي عناصر التشخيص العملية أولًا.';
+  if (progress < 100) return 'أكمل عناصر التشخيص العملية أولًا.';
   return '';
 }

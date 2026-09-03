@@ -19,4 +19,8 @@ export interface LessonCompletionInput {
   mastery?: number;
   /** @minItems 1 */
   concepts: SummaryConcept[];
+  /** @minLength 2 */
+  grounding_query: string;
+  /** @minItems 1 */
+  grounding_node_ids: string[];
 }

@@ -14,6 +14,8 @@ export interface SummaryBankItem {
   subject: string;
   summary: string;
   concepts: SummaryConcept[];
+  grounding_query: string;
+  grounding_node_ids: string[];
   completed_at: string;
   official_stamp: string;
   logo: string;

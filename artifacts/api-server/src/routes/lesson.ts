@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { getUserId, listErrorBank } from "../lib/learning-store";
 import {
   formatRetrievedContext,
+  assertGroundedNodeIds,
   retrieveGroundedKnowledge,
   sourceDocumentsFrom,
   type KnowledgeDocument,
@@ -39,6 +40,7 @@ type GeneratedLesson = {
     points: GraphPoint[];
   };
   prompt: string;
+  sourceNodeIds: string[];
   grounding: Grounding;
 };
 
@@ -51,6 +53,7 @@ type GeneratedExercise = {
   hint: string;
   solution: string;
   sourceDocuments: SourceDocument[];
+  sourceNodeIds: string[];
   grounding: Grounding;
 };
 
@@ -66,6 +69,7 @@ function extractGeneratedLesson(
     typeof parsed.explanation !== "string" ||
     typeof parsed.highlight !== "string" ||
     typeof parsed.prompt !== "string" ||
+    !Array.isArray(parsed.sourceNodeIds) ||
     !Array.isArray(parsed.elements) ||
     !parsed.elements.length ||
     !parsed.graph ||
@@ -102,6 +106,7 @@ function extractGeneratedLesson(
         .slice(0, 12),
     },
     prompt: parsed.prompt,
+    sourceNodeIds: parsed.sourceNodeIds.filter((nodeId): nodeId is string => typeof nodeId === "string"),
   };
 }
 
@@ -151,8 +156,10 @@ async function generateLesson(
   const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const content = payload.choices?.[0]?.message?.content;
   if (!content) throw new Error("Lesson generator returned no content");
+  const parsed = extractGeneratedLesson(content);
   return {
-    ...extractGeneratedLesson(content),
+    ...parsed,
+    sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
     sourceDocuments: sourceDocumentsFrom(retrieval.documents),
     grounding: retrieval.grounding,
   };
@@ -214,18 +221,20 @@ async function generateExercise(
     typeof parsed.answer !== "string" ||
     typeof parsed.hint !== "string" ||
     typeof parsed.solution !== "string"
+    || !Array.isArray(parsed.sourceNodeIds)
   ) {
     throw new Error("Exercise generator returned an incomplete exercise");
   }
   return {
     status: "generated",
-    lessonTitle: "قوانين نيوتن والحركة",
+    lessonTitle: parsed.lessonTitle,
     title: parsed.title,
     prompt: parsed.prompt,
     answer: parsed.answer,
     hint: parsed.hint,
     solution: parsed.solution,
     sourceDocuments: sourceDocumentsFrom(retrieval.documents),
+    sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
     grounding: retrieval.grounding,
   };
 }

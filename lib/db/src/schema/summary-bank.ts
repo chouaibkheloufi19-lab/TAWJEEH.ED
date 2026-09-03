@@ -17,6 +17,8 @@ export const summaryBankTable = pgTable("summary_bank", {
   subject: text("subject").notNull(),
   summary: text("summary").notNull(),
   concepts: jsonb("concepts").$type<SummaryConcept[]>().notNull(),
+  groundingQuery: text("grounding_query").notNull().default(""),
+  groundingNodeIds: jsonb("grounding_node_ids").$type<string[]>().notNull().default([]),
   officialStamp: text("official_stamp").notNull().default("TAWJEEH.ED · OFFICIAL"),
   logo: text("logo").notNull().default("tawjeeh-owl-transparent.png"),
   completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),

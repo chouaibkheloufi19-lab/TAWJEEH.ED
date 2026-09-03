@@ -148,9 +148,9 @@ export function OwlOnboarding({
             <i />
             لقاءك الأول مع توجيه
           </div>
-          <h1 data-testid="heading-owl-onboarding">
-            أخبريني عن بدايتك.
-            <strong>وسأبني لكِ الخطوة الأولى.</strong>
+           <h1 data-testid="heading-owl-onboarding">
+             أخبرني عن بدايتك.
+             <strong>وسأبني لك الخطوة الأولى.</strong>
           </h1>
           <p className="phase-one-lead" data-testid="text-onboarding-intro">
             قبل أن نصنع لك خطة، نعرّفك على المساعد الذي سيرافقك. فهيم يضيء لك الفكرة،

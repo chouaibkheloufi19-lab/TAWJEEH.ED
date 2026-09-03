@@ -80,6 +80,8 @@ export const GetSummaryBankResponse = zod.object({
   "summary": zod.string(),
   "mastery": zod.number().min(getSummaryBankResponseSummariesItemConceptsItemMasteryMin).max(getSummaryBankResponseSummariesItemConceptsItemMasteryMax).optional()
 })),
+  "grounding_query": zod.string(),
+  "grounding_node_ids": zod.array(zod.string()),
   "completed_at": zod.string(),
   "official_stamp": zod.string(),
   "logo": zod.string()
@@ -159,6 +161,9 @@ export const completeLessonBodyConceptsItemMasteryMin = 0;
 export const completeLessonBodyConceptsItemMasteryMax = 100;
 
 
+export const completeLessonBodyGroundingQueryMin = 2;
+
+
 
 
 export const CompleteLessonBody = zod.object({
@@ -172,7 +177,9 @@ export const CompleteLessonBody = zod.object({
   "title": zod.string(),
   "summary": zod.string(),
   "mastery": zod.number().min(completeLessonBodyConceptsItemMasteryMin).max(completeLessonBodyConceptsItemMasteryMax).optional()
-})).min(1)
+})).min(1),
+  "grounding_query": zod.string().min(completeLessonBodyGroundingQueryMin),
+  "grounding_node_ids": zod.array(zod.string()).min(1)
 })
 
 export const completeLessonResponseConceptsItemMasteryMin = 0;
@@ -192,6 +199,8 @@ export const CompleteLessonResponse = zod.object({
   "summary": zod.string(),
   "mastery": zod.number().min(completeLessonResponseConceptsItemMasteryMin).max(completeLessonResponseConceptsItemMasteryMax).optional()
 })),
+  "grounding_query": zod.string(),
+  "grounding_node_ids": zod.array(zod.string()),
   "completed_at": zod.string(),
   "official_stamp": zod.string(),
   "logo": zod.string()
@@ -367,11 +376,65 @@ export const QueryKnowledgeResponse = zod.object({
 
 
 /**
+ * @summary Provision the learning agents from foundational ChromaDB nodes
+ */
+
+
+
+
+
+
+
+
+export const GetAgentReadinessResponse = zod.object({
+  "status": zod.enum(['ready']),
+  "retrieval": zod.object({
+  "status": zod.enum(['ready']),
+  "query": zod.string(),
+  "retrievedNodeIds": zod.array(zod.string()).min(1),
+  "sources": zod.array(zod.object({
+  "nodeId": zod.string(),
+  "title": zod.string(),
+  "source": zod.string(),
+  "page": zod.int(),
+  "quote": zod.string()
+})).min(1)
+}),
+  "foundationalModules": zod.array(zod.object({
+  "nodeId": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "source": zod.string(),
+  "page": zod.int(),
+  "concepts": zod.string()
+})).min(1),
+  "agents": zod.object({
+  "faheem": zod.object({
+  "status": zod.enum(['ready']),
+  "role": zod.enum(['diagnostic', 'explanation', 'practice']),
+  "nodeIds": zod.array(zod.string()).min(1)
+}),
+  "dalil": zod.object({
+  "status": zod.enum(['ready']),
+  "role": zod.enum(['diagnostic', 'explanation', 'practice']),
+  "nodeIds": zod.array(zod.string()).min(1)
+}),
+  "exercises": zod.object({
+  "status": zod.enum(['ready']),
+  "role": zod.enum(['diagnostic', 'explanation', 'practice']),
+  "nodeIds": zod.array(zod.string()).min(1)
+})
+})
+})
+
+
+/**
  * @summary List available quizzes
  */
 export const ListQuizzesQueryParams = zod.object({
   "exam_date": zod.coerce.string().optional()
 })
+
 
 
 
@@ -385,7 +448,10 @@ export const ListQuizzesResponseItem = zod.object({
   "questions": zod.array(zod.object({
   "id": zod.string(),
   "prompt": zod.string(),
-  "options": zod.array(zod.string())
+  "options": zod.array(zod.string()),
+  "concept_id": zod.string(),
+  "concept_title": zod.string(),
+  "source_node_ids": zod.array(zod.string()).min(1)
 })),
   "status": zod.string(),
   "points": zod.number(),

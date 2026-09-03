@@ -108,6 +108,7 @@ type GeneratedLesson = {
     points: GeneratedGraphPoint[];
   };
   prompt: string;
+  sourceNodeIds: string[];
   concept: LessonSectionId;
 };
 
@@ -120,6 +121,7 @@ type GeneratedExercise = {
   hint: string;
   solution: string;
   sourceDocuments: { title: string; source: string; page: number }[];
+  sourceNodeIds: string[];
   grounding: {
     status: 'ready';
     query: string;
@@ -163,6 +165,17 @@ type LocalSummary = {
   progress: number;
   officialStamp: string;
   logo: string;
+  groundingQuery: string;
+  groundingNodeIds: string[];
+};
+
+type FoundationalModule = {
+  nodeId: string;
+  title: string;
+  summary: string;
+  source: string;
+  page: number;
+  concepts: string;
 };
 
 const lessonSections: LessonSection[] = [
@@ -174,7 +187,7 @@ const lessonSections: LessonSection[] = [
     title: 'ما الذي يغيّر الحركة؟',
     explanation: 'الجسم يحافظ على حالته من السكون أو الحركة المنتظمة ما لم تؤثر فيه قوة محصلة.',
     highlight: 'يحافظ على حالته',
-    prompt: 'ابدئي بتحديد معنى القصور الذاتي بكلماتك.',
+    prompt: 'ابدأ بتحديد معنى القصور الذاتي بكلماتك.',
   },
   {
     id: 'worked-example',
@@ -184,7 +197,7 @@ const lessonSections: LessonSection[] = [
     title: 'مثال من الحافلة',
     explanation: 'عند توقف الحافلة فجأة يستمر جسم الراكب في الحركة إلى الأمام، لأن حالته الحركية لم تتغير لحظيًا.',
     highlight: 'يستمر جسم الراكب في الحركة',
-    prompt: 'تتبعي الخطوة الأولى في المثال قبل كتابة العلاقة.',
+    prompt: 'تتبع الخطوة الأولى في المثال قبل كتابة العلاقة.',
   },
   {
     id: 'graph',
@@ -194,7 +207,7 @@ const lessonSections: LessonSection[] = [
     title: 'الحركة على الرسم',
     explanation: 'يمثل ميل منحنى الموضع بدلالة الزمن السرعة، بينما يكشف تغير الميل عن تغير الحركة.',
     highlight: 'ميل منحنى الموضع',
-    prompt: 'اختاري نقطة على المنحنى واسألي: ماذا يخبرنا الميل هنا؟',
+    prompt: 'اختر نقطة على المنحنى واسأل: ماذا يخبرنا الميل هنا؟',
   },
   {
     id: 'practice',
@@ -204,7 +217,7 @@ const lessonSections: LessonSection[] = [
     title: 'قوة محصلة، خطوة خطوة',
     explanation: 'القوة المحصلة هي مجموع القوى المؤثرة، واتجاهها هو الذي يحدد تغير الحركة.',
     highlight: 'مجموع القوى المؤثرة',
-    prompt: 'اكتبي القوى المعطاة واتجاه كل قوة قبل الحساب.',
+    prompt: 'اكتب القوى المعطاة واتجاه كل قوة قبل الحساب.',
   },
   {
     id: 'recap',
@@ -214,30 +227,30 @@ const lessonSections: LessonSection[] = [
     title: 'القانون الثاني لنيوتن',
     explanation: 'يتناسب التسارع طرديًا مع القوة المحصلة وعكسيًا مع الكتلة: F = m × a.',
     highlight: 'التسارع طرديًا مع القوة',
-    prompt: 'لخّصي العلاقة في سطر واحد، ثم قارنيها بما كتبتِه في ملاحظتك.',
+    prompt: 'لخّص العلاقة في سطر واحد، ثم قارنها بما كتبته في ملاحظتك.',
   },
 ];
 
 const exampleDetails: Record<LessonSectionId, { id: string; title: string; detail: string; expectedKeywords: string[] }[]> = {
   definition: [
-    { id: 'definition-1', title: 'عرّفي القصور الذاتي', detail: 'اكتبي المعنى بكلماتك.', expectedKeywords: ['مقاومة', 'تغيير'] },
-    { id: 'definition-2', title: 'اربطيه بالحياة اليومية', detail: 'فسّري ما يحدث للراكب عند توقف الحافلة.', expectedKeywords: ['استمرار', 'حركة'] },
+    { id: 'definition-1', title: 'عرّف القصور الذاتي', detail: 'اكتب المعنى بكلماتك.', expectedKeywords: ['مقاومة', 'تغيير'] },
+    { id: 'definition-2', title: 'اربطه بالحياة اليومية', detail: 'فسّر ما يحدث للراكب عند توقف الحافلة.', expectedKeywords: ['استمرار', 'حركة'] },
   ],
   'worked-example': [
-    { id: 'worked-example-1', title: 'حددي الحالة قبل التوقف', detail: 'ما اتجاه حركة الراكب والحافلة قبل التوقف؟', expectedKeywords: ['نفس', 'اتجاه'] },
-    { id: 'worked-example-2', title: 'فسّري اتجاه الميل', detail: 'لماذا يميل الجسم إلى الأمام؟', expectedKeywords: ['يحافظ', 'حركة'] },
+    { id: 'worked-example-1', title: 'حدّد الحالة قبل التوقف', detail: 'ما اتجاه حركة الراكب والحافلة قبل التوقف؟', expectedKeywords: ['نفس', 'اتجاه'] },
+    { id: 'worked-example-2', title: 'فسّر اتجاه الميل', detail: 'لماذا يميل الجسم إلى الأمام؟', expectedKeywords: ['يحافظ', 'حركة'] },
   ],
   graph: [
     { id: 'graph-1', title: 'اقرئي الميل', detail: 'ماذا يعني الميل الأكبر على منحنى الموضع والزمن؟', expectedKeywords: ['سرعة'] },
-    { id: 'graph-2', title: 'قارني مقطعين', detail: 'ماذا يدل تغير الميل؟', expectedKeywords: ['تغير', 'سرعة'] },
+    { id: 'graph-2', title: 'قارن مقطعين', detail: 'ماذا يدل تغير الميل؟', expectedKeywords: ['تغير', 'سرعة'] },
   ],
   practice: [
-    { id: 'practice-1', title: 'اكتبي المعطيات', detail: 'ما الذي ترتبينه قبل التعويض في العلاقة؟', expectedKeywords: ['قوة', 'كتلة'] },
-    { id: 'practice-2', title: 'احسبي التسارع', detail: 'كيف نستخرج التسارع من القوة والكتلة؟', expectedKeywords: ['نقسم', 'قوة'] },
+    { id: 'practice-1', title: 'اكتب المعطيات', detail: 'ما الذي ترتبه قبل التعويض في العلاقة؟', expectedKeywords: ['قوة', 'كتلة'] },
+    { id: 'practice-2', title: 'احسب التسارع', detail: 'كيف نستخرج التسارع من القوة والكتلة؟', expectedKeywords: ['نقسم', 'قوة'] },
   ],
   recap: [
-    { id: 'recap-1', title: 'اكتبي العلاقة الرمزية', detail: 'اكتبي العلاقة الرمزية للقانون الثاني لنيوتن.', expectedKeywords: ['f', 'm', 'a'] },
-    { id: 'recap-2', title: 'استخرجي المجهول', detail: 'ما العملية العكسية المناسبة لاستخراج التسارع؟', expectedKeywords: ['قس', 'قوة'] },
+    { id: 'recap-1', title: 'اكتب العلاقة الرمزية', detail: 'اكتب العلاقة الرمزية للقانون الثاني لنيوتن.', expectedKeywords: ['f', 'm', 'a'] },
+    { id: 'recap-2', title: 'استخرج المجهول', detail: 'ما العملية العكسية المناسبة لاستخراج التسارع؟', expectedKeywords: ['قس', 'قوة'] },
   ],
 };
 
@@ -257,13 +270,13 @@ const partnerDetails: Record<ActivePartner, {
     name: 'دليل',
     role: 'شريك الشرح',
     description: 'يفكك الفكرة ويصلها بمصادر المنهاج.',
-    prompt: 'اكتبي ما تريدين توضيحه، وسأربطه بالجزء الحالي من الدرس.',
+    prompt: 'اكتب ما تريد توضيحه، وسأربطه بالجزء الحالي من الدرس.',
   },
   exercises: {
     name: 'وكيل التمارين',
     role: 'شريك التطبيق',
     description: 'يحوّل الفكرة إلى تدريب قصير على مستواك.',
-    prompt: 'اختاري مفهومًا، وسأعطيك خطوة تدريبية واحدة لتبدئي بها.',
+    prompt: 'اختر مفهومًا، وسأعطيك خطوة تدريبية واحدة لتبدأ بها.',
   },
 };
 
@@ -385,7 +398,10 @@ function getTimeLabel() {
   return new Intl.DateTimeFormat('ar-DZ', { hour: '2-digit', minute: '2-digit' }).format(new Date());
 }
 
-function sourceForSection(section: LessonSection, cards: KnowledgeCard[]) {
+function sourceForSection(
+  section: LessonSection,
+  cards: Array<Pick<KnowledgeCard, 'title' | 'type' | 'tags' | 'lesson' | 'source' | 'summary' | 'page'>>,
+) {
   const terms: Record<LessonSectionId, string[]> = {
     definition: ['تعريف', 'مفهوم', 'definition'],
     'worked-example': ['مثال', 'تطبيق', 'example'],
@@ -414,7 +430,16 @@ function normalizeGraphPoints(points: GeneratedGraphPoint[]) {
   }));
 }
 
-function drawBoard(ctx: CanvasRenderingContext2D, width: number, height: number, sectionId: LessonSectionId, strokes: Point[][], mode: BoardMode, highlightedPart: string) {
+function drawBoard(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  sectionId: LessonSectionId,
+  strokes: Point[][],
+  mode: BoardMode,
+  highlightedPart: string,
+  groundedDiagram: boolean,
+) {
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = '#fbfaf5';
   ctx.fillRect(0, 0, width, height);
@@ -426,7 +451,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, width: number, height: number,
   for (let y = 20; y < height; y += 28) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
   }
-  if (sectionId === 'graph' || sectionId === 'recap' || highlightedPart) {
+  if (groundedDiagram && (sectionId === 'graph' || sectionId === 'recap' || highlightedPart)) {
     const left = width * .16;
     const bottom = height * .78;
     const right = width * .84;
@@ -495,7 +520,7 @@ export function LessonWorkspace() {
   const [session, setSession] = useState<LessonSession>(() => readSession(evaluationPlan.mode));
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome', role: 'assistant', text: 'أهلًا، أنا فهيم. سنمشي في العناصر الخمسة بهدوء، ونثبت كل فكرة بخطوة صغيرة.' },
-    { id: 'prompt', role: 'assistant', text: 'اختاري عنصرًا من المسار، أو اكتبي سؤالك، أو ارفقي صورة محاولتك.' },
+    { id: 'prompt', role: 'assistant', text: 'اختر عنصرًا من المسار، أو اكتب سؤالك، أو أرفق صورة محاولتك.' },
   ]);
   const [question, setQuestion] = useState('');
   const [highlightedPart, setHighlightedPart] = useState('');
@@ -539,16 +564,78 @@ export function LessonWorkspace() {
     staleTime: 60_000,
     retry: 1,
   });
-  const ragReady = knowledgeStatusQuery.data?.status === 'ready' && Number(knowledgeStatusQuery.data.indexedNodes) > 0;
+  const agentReadinessQuery = useQuery<{
+    status: 'ready';
+    retrieval: {
+      status: 'ready';
+      query: string;
+      retrievedNodeIds: string[];
+      sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
+    };
+    foundationalModules: FoundationalModule[];
+    agents: Record<string, { status: 'ready'; role: string; nodeIds: string[] }>;
+  }>({
+    queryKey: ['agent-readiness'],
+    queryFn: async () => {
+      const response = await fetch('/api/agents/readiness', { credentials: 'include' });
+      const payload = await response.json() as { message?: string };
+      if (!response.ok) throw new Error(payload.message || 'تعذر تفعيل وكلاء التعلّم');
+      return payload as {
+        status: 'ready';
+        retrieval: {
+          status: 'ready';
+          query: string;
+          retrievedNodeIds: string[];
+          sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
+        };
+        foundationalModules: FoundationalModule[];
+        agents: Record<string, { status: 'ready'; role: string; nodeIds: string[] }>;
+      };
+    },
+    staleTime: 60_000,
+    retry: 1,
+  });
+  const foundationalSources = useMemo<KnowledgeCard[]>(
+    () => (agentReadinessQuery.data?.foundationalModules ?? []).map((module) => ({
+      id: module.nodeId,
+      title: module.title,
+      summary: module.summary,
+      subject: 'العلوم الفيزيائية',
+      unit: '',
+      lesson: module.title,
+      type: 'reference',
+      difficulty: 'mixed',
+      source: module.source,
+      page: module.page,
+      tags: module.concepts.split(',').map((tag) => tag.trim()).filter(Boolean),
+    })),
+    [agentReadinessQuery.data?.foundationalModules],
+  );
+  const ragReady = agentReadinessQuery.data?.status === 'ready'
+    && agentReadinessQuery.data.foundationalModules.length > 0
+    && agentReadinessQuery.data.retrieval.status === 'ready';
   const activeSection = useMemo(() => lessonSections.find((section) => section.id === session.activeConcept) ?? lessonSections[0], [session.activeConcept]);
-  const activeSource = useMemo(() => sourceForSection(activeSection, knowledgeCards), [activeSection, knowledgeCards]);
-  const activeExamples = exampleDetails[activeSection.id];
+  const activeSource = useMemo(() => sourceForSection(activeSection, foundationalSources), [activeSection, foundationalSources]);
+  const activeExamples = useMemo(
+    () => ragReady && activeSource
+      ? exampleDetails[activeSection.id].map((example) => ({
+        ...example,
+        title: `تطبيق مستخرج من ${activeSource.title}`,
+        detail: activeSource.summary.replace(/\s+/g, ' ').trim().slice(0, 220),
+        expectedKeywords: [
+          ...activeSource.tags.map((concept) => concept.trim().toLowerCase()).filter(Boolean),
+          activeSource.title.trim().toLowerCase(),
+        ],
+      }))
+      : [],
+    [activeSection.id, activeSource, ragReady],
+  );
   const displayedTitle = generatedLesson?.lessonTitle ?? activeSection.title;
   const sourceExcerpt = activeSource?.summary?.replace(/\s+/g, ' ').trim().slice(0, 520) ?? '';
-  const displayedExplanation = ragReady
-    ? generatedLesson?.explanation ?? sourceExcerpt
-    : 'تتصل مساحة الدرس بقاعدة المعرفة قبل عرض أي شرح. انتظري اكتمال اتصال RAG.';
-  const displayedHighlight = ragReady ? generatedLesson?.highlight || activeSection.highlight : 'اتصال قاعدة المعرفة';
+  const displayedExplanation = ragReady && generatedLesson
+    ? generatedLesson.explanation
+    : 'تتصل مساحة الدرس بقاعدة المعرفة قبل عرض أي شرح. انتظر اكتمال اتصال RAG.';
+  const displayedHighlight = ragReady && generatedLesson ? generatedLesson.highlight : 'اتصال قاعدة المعرفة';
   const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
   const totalExamples = lessonSections.reduce((total, section) => total + exampleDetails[section.id].length, 0);
   const totalCompleted = lessonSections.reduce((total, section) => total + exampleDetails[section.id].filter((example) => session.gradedExamples[example.id] === 'correct').length, 0);
@@ -559,7 +646,7 @@ export function LessonWorkspace() {
   const evaluationBlocker = getEvaluationBlocker(evaluationPlan, progress, session.startedAt);
   const foundationExpired = evaluationDay > 10;
   const phase4Active = Boolean(session.concludedAt) || foundationExpired || session.activeAgent === 'dalil-exercises';
-  const agentsAvailable = ragReady;
+  const agentsAvailable = ragReady && Object.values(agentReadinessQuery.data?.agents ?? {}).every((agent) => agent.status === 'ready');
   const handoffComplete = (phase4Active || agentsAvailable) && ragReady;
   const faheemActive = !phase4Active && session.activeAgent === 'faheem';
   const lessonToolsActive = ragReady;
@@ -569,7 +656,7 @@ export function LessonWorkspace() {
       return {
         ...details,
         description: 'شرح سريع يوصلك إلى الخطوة التالية.',
-        prompt: 'اكتبي موضع التعثر، وسأعطيك خلاصة قصيرة ثم تمرينًا مباشرًا.',
+        prompt: 'اكتب موضع التعثر، وسأعطيك خلاصة قصيرة ثم تمرينًا مباشرًا.',
       };
     }
     return details;
@@ -610,14 +697,14 @@ export function LessonWorkspace() {
       lessonId,
       lessonTitle: 'قوانين نيوتن والحركة',
       subject: 'العلوم الفيزيائية',
-      summary: `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّتِ ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعتِ الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
+      summary: `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّت ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعت الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
       concepts: lessonSections.map((section) => {
         const examples = exampleDetails[section.id];
         const mastered = examples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
         return {
           id: section.id,
           title: section.title,
-          summary: sourceForSection(section, knowledgeCards)?.summary || 'لا يوجد مقتطف مسترجع لهذا المفهوم بعد.',
+           summary: sourceForSection(section, foundationalSources)?.summary || 'لا يوجد مقتطف مسترجع لهذا المفهوم بعد.',
           mastery: Math.round((mastered / examples.length) * 100),
         };
       }),
@@ -626,6 +713,8 @@ export function LessonWorkspace() {
       progress,
       officialStamp: 'TAWJEEH.ED · OFFICIAL',
       logo: 'tawjeeh-owl-transparent.png',
+      groundingQuery: agentReadinessQuery.data?.retrieval.query ?? '',
+      groundingNodeIds: agentReadinessQuery.data?.retrieval.retrievedNodeIds ?? [],
     };
     saveSummaryToProfile(localSummary);
     setSummaryPreview(localSummary);
@@ -639,7 +728,7 @@ export function LessonWorkspace() {
     setMessages((current) => [...current, {
       id: `handoff-${Date.now()}`,
       role: 'assistant',
-      text: 'اكتمل التشخيص التأسيسي. فهيم سلّم لك المساحة بهدوء: دليل يشرح عندما تتعقد الفكرة، ووكيل التمارين يدرّبك عندما تصبحين جاهزة للتطبيق.',
+      text: 'اكتمل التشخيص التأسيسي. فهيم سلّم لك المساحة بهدوء: دليل يشرح عندما تتعقد الفكرة، ووكيل التمارين يدرّبك عندما تكون جاهزًا للتطبيق.',
     }]);
     completeLessonMutation.mutate({
       lessonId,
@@ -648,6 +737,8 @@ export function LessonWorkspace() {
         lesson_title: localSummary.lessonTitle,
         subject: localSummary.subject,
         summary: localSummary.summary,
+          grounding_query: localSummary.groundingQuery,
+          grounding_node_ids: localSummary.groundingNodeIds,
         concepts: localSummary.concepts.map(({ id, title, summary: conceptSummary, mastery }) => ({
           id,
           title,
@@ -732,7 +823,16 @@ export function LessonWorkspace() {
     const context = canvas.getContext('2d');
     if (!context) return;
     context.scale(ratio, ratio);
-    drawBoard(context, rect.width, rect.height, activeSection.id, session.whiteboardStrokes, boardMode, highlightedPart);
+     drawBoard(
+       context,
+       rect.width,
+       rect.height,
+       activeSection.id,
+       session.whiteboardStrokes,
+       boardMode,
+       highlightedPart,
+       Boolean(generatedLesson),
+     );
   }, [activeSection.id, boardMode, highlightedPart, session.whiteboardStrokes]);
 
   const selectSection = (section: LessonSection) => {
@@ -774,8 +874,8 @@ export function LessonWorkspace() {
       id: `example-${exampleId}-${Date.now()}`,
       role: 'assistant',
       text: isCorrect
-        ? `أحسنتِ. إجابتك تثبت «${example.title}». انتقلي للخطوة التالية عندما تكونين جاهزة.`
-        : `اقتربتِ. أعيدي النظر في المطلوب داخل «${example.title}»، ثم اكتبي إجابة تتضمن الفكرة الأساسية.`,
+        ? `أحسنت. إجابتك تثبت «${example.title}». انتقل للخطوة التالية عندما تكون جاهزًا.`
+        : `اقتربت. أعد النظر في المطلوب داخل «${example.title}»، ثم اكتب إجابة تتضمن الفكرة الأساسية.`,
     }]);
   };
 
@@ -801,8 +901,8 @@ export function LessonWorkspace() {
             : session.note || '',
         }),
       });
-      const payload = await response.json() as Partial<GeneratedLesson> & { message?: string };
-      if (!response.ok || typeof payload.lessonTitle !== 'string' || !Array.isArray(payload.elements)) {
+       const payload = await response.json() as Partial<GeneratedLesson> & { message?: string };
+       if (!response.ok || typeof payload.lessonTitle !== 'string' || !Array.isArray(payload.elements) || !Array.isArray(payload.sourceNodeIds)) {
         throw new Error(payload.message || 'تعذر توليد شرح الدرس من المصادر.');
       }
       setGeneratedLesson({ ...(payload as Omit<GeneratedLesson, 'concept'>), concept: activeSection.id });
@@ -811,7 +911,7 @@ export function LessonWorkspace() {
       setMessages((current) => [...current, {
         id: `generated-lesson-${Date.now()}`,
         role: 'assistant',
-        text: `حضّرت لك شرحًا مخصصًا عن «${payload.lessonTitle}». ابدئي بالهدف ثم اختاري عنصرًا واحدًا للتثبيت.`,
+         text: `حضّرت لك شرحًا مخصصًا عن «${payload.lessonTitle}». ابدأ بالهدف ثم اختر عنصرًا واحدًا للتثبيت.`,
       }]);
     } catch (error) {
       setLessonGenerationState('error');
@@ -833,7 +933,7 @@ export function LessonWorkspace() {
           role: 'assistant',
           text: activeSource
             ? `فتحت لك المصدر الحقيقي «${activeSource.title}» من ${activeSource.source} · ص ${activeSource.page}. يمكنك البدء من اللوح أو سؤال دليل عن أي خطوة.`
-            : 'فتحت لك بطاقات المعرفة الحقيقية. ابدئي من الفكرة الحالية، وسأربط كل سؤال بالمصادر المتاحة.',
+            : 'فتحت لك بطاقات المعرفة الحقيقية. ابدأ من الفكرة الحالية، وسأربط كل سؤال بالمصادر المتاحة.',
         }]);
   }, [agentsAvailable, activeSource]);
 
@@ -914,7 +1014,7 @@ export function LessonWorkspace() {
          ? `مرجع من «${source.title}» (${source.source} · ص ${source.page}): ${source.summary.slice(0, 360)}`
         : `مرجع الدرس الحالي: ${sourceExcerpt}`;
       let reply = activePartner === 'dalil'
-        ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source?.title}»`}: ${source?.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقلي إلى التطبيق.' : 'ابدئي من هذه الفكرة، ثم قارنيها بما يظهر على اللوح.'}`
+        ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source?.title}»`}: ${source?.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقل إلى التطبيق.' : 'ابدأ من هذه الفكرة، ثم قارنها بما يظهر على اللوح.'}`
         : `جهزت لك تدريبًا مرتبطًا بالعقد المسترجعة.`;
       if (activePartner === 'exercises') {
         const response = await fetch('/api/lesson/exercise', {
@@ -930,15 +1030,15 @@ export function LessonWorkspace() {
               : targetedConcept || cleanText,
           }),
         });
-        const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
-        if (!response.ok || payload.status !== 'generated' || !payload.prompt || payload.grounding?.status !== 'ready') {
+       const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
+       if (!response.ok || payload.status !== 'generated' || !payload.prompt || !Array.isArray(payload.sourceNodeIds) || payload.grounding?.status !== 'ready') {
           throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
         }
         setGeneratedExercise(payload as GeneratedExercise);
         setExerciseAnswer('');
         setExerciseFeedback(null);
         setShowExerciseSolution(false);
-        reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من العقد المسترجعة. ابدئي بكتابة المعطيات والخطوة الأولى.`;
+        reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من العقد المسترجعة. ابدأ بكتابة المعطيات والخطوة الأولى.`;
       }
       setMessages((current) => [...current, {
         id: `partner-answer-${Date.now()}`,
@@ -951,7 +1051,7 @@ export function LessonWorkspace() {
         role: 'assistant',
         text: activePartner === 'dalil'
           ? 'تعذر فتح بطاقة المصدر الآن. بقيت الفكرة على اللوح، ويمكنك إعادة السؤال بعد لحظات.'
-          : 'تعذر تجهيز التدريب الآن. ابدئي بالسؤال الأول في بطاقة التثبيت، وسأتابع معك من هناك.',
+          : 'تعذر تجهيز التدريب الآن. ابدأ بالسؤال الأول في بطاقة التثبيت، وسأتابع معك من هناك.',
       }]);
     } finally {
       setIsThinking(false);
@@ -1068,8 +1168,8 @@ export function LessonWorkspace() {
           attemptContext: `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`,
         }),
       });
-      const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
-      if (!response.ok || payload.status !== 'generated' || !payload.prompt || payload.grounding?.status !== 'ready') {
+       const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
+       if (!response.ok || payload.status !== 'generated' || !payload.prompt || !Array.isArray(payload.sourceNodeIds) || payload.grounding?.status !== 'ready') {
         throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
       }
       setGeneratedExercise(payload as GeneratedExercise);
@@ -1143,7 +1243,16 @@ export function LessonWorkspace() {
     const context = canvas?.getContext('2d');
     if (!canvas || !context) return;
     const rect = canvas.getBoundingClientRect();
-    drawBoard(context, rect.width, rect.height, activeSection.id, [...session.whiteboardStrokes, drawingRef.current], boardMode, highlightedPart);
+    drawBoard(
+      context,
+      rect.width,
+      rect.height,
+      activeSection.id,
+      [...session.whiteboardStrokes, drawingRef.current],
+      boardMode,
+      highlightedPart,
+      Boolean(generatedLesson),
+    );
   };
 
   const finishDrawing = () => {
@@ -1285,7 +1394,7 @@ export function LessonWorkspace() {
             {lessonSections.map((section, index) => {
               const active = section.id === activeSection.id;
               const done = exampleDetails[section.id].every((example) => session.gradedExamples[example.id] === 'correct');
-              const source = sourceForSection(section, knowledgeCards);
+              const source = sourceForSection(section, foundationalSources);
               return (
                 <button
                   key={section.id}
