@@ -60,6 +60,158 @@ export const GetDashboardResponse = zod.object({
 
 
 /**
+ * @summary Get the student's saved lesson summaries and concept metrics
+ */
+export const GetSummaryBankResponse = zod.object({
+  "summaries": zod.array(zod.object({
+  "id": zod.int(),
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "subject": zod.string(),
+  "summary": zod.string(),
+  "concepts": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string()
+})),
+  "completed_at": zod.string()
+})),
+  "metrics": zod.array(zod.object({
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "concept_id": zod.string(),
+  "concept_title": zod.string(),
+  "attempts": zod.int(),
+  "errors_count": zod.int(),
+  "error_rate": zod.number(),
+  "last_error_tag": zod.string()
+}))
+})
+
+
+/**
+ * @summary Save a completed lesson summary to the student's profile
+ */
+export const CompleteLessonParams = zod.object({
+  "lessonId": zod.coerce.string()
+})
+
+
+
+
+export const CompleteLessonBody = zod.object({
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "subject": zod.string(),
+  "summary": zod.string(),
+  "concepts": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string()
+})).min(1)
+})
+
+export const CompleteLessonResponse = zod.object({
+  "id": zod.int(),
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "subject": zod.string(),
+  "summary": zod.string(),
+  "concepts": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string()
+})),
+  "completed_at": zod.string()
+})
+
+
+/**
+ * @summary Record a practical attempt and link errors to a summary concept
+ */
+export const RecordLearningAttemptBody = zod.object({
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "concept_id": zod.string(),
+  "concept_title": zod.string(),
+  "error_tag": zod.string(),
+  "is_correct": zod.boolean()
+})
+
+export const RecordLearningAttemptResponse = zod.object({
+  "attempt_id": zod.int(),
+  "metric": zod.object({
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "concept_id": zod.string(),
+  "concept_title": zod.string(),
+  "attempts": zod.int(),
+  "errors_count": zod.int(),
+  "error_rate": zod.number(),
+  "last_error_tag": zod.string()
+}),
+  "remediation": zod.union([zod.object({
+  "id": zod.int(),
+  "scheduled_date": zod.string(),
+  "time": zod.string(),
+  "duration": zod.string(),
+  "title": zod.string(),
+  "subject": zod.string(),
+  "kind": zod.string(),
+  "remediation_label": zod.string().nullable(),
+  "lesson_id": zod.string().nullable(),
+  "concept_id": zod.string().nullable(),
+  "completed": zod.boolean()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Get generated remediation sessions for the student's schedule
+ */
+export const GetLearningScheduleResponseItem = zod.object({
+  "id": zod.int(),
+  "scheduled_date": zod.string(),
+  "time": zod.string(),
+  "duration": zod.string(),
+  "title": zod.string(),
+  "subject": zod.string(),
+  "kind": zod.string(),
+  "remediation_label": zod.string().nullable(),
+  "lesson_id": zod.string().nullable(),
+  "concept_id": zod.string().nullable(),
+  "completed": zod.boolean()
+})
+export const GetLearningScheduleResponse = zod.array(GetLearningScheduleResponseItem)
+
+
+/**
+ * @summary Mark a generated remediation session complete or incomplete
+ */
+export const UpdateLearningScheduleParams = zod.object({
+  "scheduleId": zod.coerce.number().int()
+})
+
+export const UpdateLearningScheduleBody = zod.object({
+  "completed": zod.boolean()
+})
+
+export const UpdateLearningScheduleResponse = zod.object({
+  "id": zod.int(),
+  "scheduled_date": zod.string(),
+  "time": zod.string(),
+  "duration": zod.string(),
+  "title": zod.string(),
+  "subject": zod.string(),
+  "kind": zod.string(),
+  "remediation_label": zod.string().nullable(),
+  "lesson_id": zod.string().nullable(),
+  "concept_id": zod.string().nullable(),
+  "completed": zod.boolean()
+})
+
+
+/**
  * @summary List source-aware learning cards
  */
 export const ListKnowledgeQueryParams = zod.object({

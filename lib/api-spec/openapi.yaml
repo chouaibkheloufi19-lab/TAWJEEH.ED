@@ -42,6 +42,100 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Dashboard"
+  /learning/summary-bank:
+    get:
+      operationId: getSummaryBank
+      tags: [learning]
+      summary: Get the student's saved lesson summaries and concept metrics
+      responses:
+        "200":
+          description: Summary bank
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SummaryBankResponse"
+  /learning/lessons/{lessonId}/complete:
+    post:
+      operationId: completeLesson
+      tags: [learning]
+      summary: Save a completed lesson summary to the student's profile
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonCompletionInput"
+      responses:
+        "201":
+          description: Saved lesson summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SummaryBankItem"
+  /learning/attempts:
+    post:
+      operationId: recordLearningAttempt
+      tags: [learning]
+      summary: Record a practical attempt and link errors to a summary concept
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LearningAttemptInput"
+      responses:
+        "201":
+          description: Attempt metrics and any generated remediation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningAttemptResponse"
+  /learning/schedule:
+    get:
+      operationId: getLearningSchedule
+      tags: [learning]
+      summary: Get generated remediation sessions for the student's schedule
+      responses:
+        "200":
+          description: Generated schedule entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduleEntry"
+  /learning/schedule/{scheduleId}:
+    patch:
+      operationId: updateLearningSchedule
+      tags: [learning]
+      summary: Mark a generated remediation session complete or incomplete
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleUpdateInput"
+      responses:
+        "200":
+          description: Updated schedule entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduleEntry"
+        "404":
+          description: Schedule entry not found
   /knowledge:
     get:
       operationId: listKnowledge
@@ -228,6 +322,145 @@ components:
             $ref: "#/components/schemas/Mastery"
         focus:
           type: string
+    SummaryConcept:
+      type: object
+      required: [id, title, summary]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+    SummaryBankItem:
+      type: object
+      required: [id, lesson_id, lesson_title, subject, summary, concepts, completed_at]
+      properties:
+        id:
+          type: integer
+        lesson_id:
+          type: string
+        lesson_title:
+          type: string
+        subject:
+          type: string
+        summary:
+          type: string
+        concepts:
+          type: array
+          items:
+            $ref: "#/components/schemas/SummaryConcept"
+        completed_at:
+          type: string
+    SummaryBankResponse:
+      type: object
+      required: [summaries, metrics]
+      properties:
+        summaries:
+          type: array
+          items:
+            $ref: "#/components/schemas/SummaryBankItem"
+        metrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConceptMetric"
+    ConceptMetric:
+      type: object
+      required: [lesson_id, lesson_title, concept_id, concept_title, attempts, errors_count, error_rate, last_error_tag]
+      properties:
+        lesson_id:
+          type: string
+        lesson_title:
+          type: string
+        concept_id:
+          type: string
+        concept_title:
+          type: string
+        attempts:
+          type: integer
+        errors_count:
+          type: integer
+        error_rate:
+          type: number
+        last_error_tag:
+          type: string
+    LessonCompletionInput:
+      type: object
+      required: [lesson_id, lesson_title, subject, summary, concepts]
+      properties:
+        lesson_id:
+          type: string
+        lesson_title:
+          type: string
+        subject:
+          type: string
+        summary:
+          type: string
+        concepts:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/SummaryConcept"
+    LearningAttemptInput:
+      type: object
+      required: [lesson_id, lesson_title, concept_id, concept_title, error_tag, is_correct]
+      properties:
+        lesson_id:
+          type: string
+        lesson_title:
+          type: string
+        concept_id:
+          type: string
+        concept_title:
+          type: string
+        error_tag:
+          type: string
+        is_correct:
+          type: boolean
+    LearningAttemptResponse:
+      type: object
+      required: [attempt_id, metric, remediation]
+      properties:
+        attempt_id:
+          type: integer
+        metric:
+          $ref: "#/components/schemas/ConceptMetric"
+        remediation:
+          oneOf:
+            - $ref: "#/components/schemas/ScheduleEntry"
+            - type: "null"
+    ScheduleEntry:
+      type: object
+      required: [id, scheduled_date, time, duration, title, subject, kind, remediation_label, lesson_id, concept_id, completed]
+      properties:
+        id:
+          type: integer
+        scheduled_date:
+          type: string
+        time:
+          type: string
+        duration:
+          type: string
+        title:
+          type: string
+        subject:
+          type: string
+        kind:
+          type: string
+        remediation_label:
+          type: ["string", "null"]
+        lesson_id:
+          type: ["string", "null"]
+        concept_id:
+          type: ["string", "null"]
+        completed:
+          type: boolean
+    ScheduleUpdateInput:
+      type: object
+      required: [completed]
+      properties:
+        completed:
+          type: boolean
     KnowledgeCard:
       type: object
       required: [id, title, summary, subject, unit, lesson, type, difficulty, source, page, tags]

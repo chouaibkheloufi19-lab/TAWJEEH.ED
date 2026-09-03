@@ -7,12 +7,16 @@
  */
 
 export * from './activity';
+export * from './conceptMetric';
 export * from './dashboard';
 export * from './dashboardMetric';
 export * from './healthStatus';
 export * from './knowledgeCard';
 export * from './knowledgeQueryInput';
 export * from './knowledgeQueryResponse';
+export * from './learningAttemptInput';
+export * from './learningAttemptResponse';
+export * from './lessonCompletionInput';
 export * from './listKnowledgeParams';
 export * from './mastery';
 export * from './quiz';
@@ -20,5 +24,10 @@ export * from './quizAttemptInput';
 export * from './quizAttemptInputAnswers';
 export * from './quizQuestion';
 export * from './quizResult';
+export * from './scheduleEntry';
+export * from './scheduleUpdateInput';
 export * from './studentProfile';
 export * from './studyBlock';
+export * from './summaryBankItem';
+export * from './summaryBankResponse';
+export * from './summaryConcept';

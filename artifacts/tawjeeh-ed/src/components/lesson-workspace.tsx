@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3,
   BookOpen,
@@ -22,8 +23,12 @@ import {
   X,
 } from 'lucide-react';
 import {
+  getGetLearningScheduleQueryKey,
   getListKnowledgeQueryKey,
+  getGetSummaryBankQueryKey,
+  useCompleteLesson,
   useListKnowledge,
+  useRecordLearningAttempt,
   type KnowledgeCard,
 } from '@workspace/api-client-react';
 import owlAgentGold from '@assets/agent-success-cropped.png';
@@ -175,6 +180,7 @@ const exampleDetails: Record<LessonSectionId, { id: string; title: string; detai
 
 const sessionKey = 'tawjeeh.lesson.workspace.v1';
 const attemptBankKey = 'tawjeeh.attempt.bank.v1';
+const lessonId = 'newton-motion';
 
 function readSession(): LessonSession {
   const fallback: LessonSession = {
@@ -298,6 +304,9 @@ function drawBoard(ctx: CanvasRenderingContext2D, width: number, height: number,
 }
 
 export function LessonWorkspace() {
+  const queryClient = useQueryClient();
+  const completeLessonMutation = useCompleteLesson();
+  const recordAttemptMutation = useRecordLearningAttempt();
   const [session, setSession] = useState<LessonSession>(readSession);
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome', role: 'assistant', text: 'أهلًا، أنا فهيم. سنمشي في العناصر الخمسة بهدوء، ونثبت كل فكرة بخطوة صغيرة.' },
@@ -318,6 +327,7 @@ export function LessonWorkspace() {
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
   const [lessonGenerationState, setLessonGenerationState] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
   const [lessonGenerationError, setLessonGenerationError] = useState('');
+  const [summarySaveState, setSummarySaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [boardMode, setBoardMode] = useState<BoardMode>('pen');
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -335,6 +345,31 @@ export function LessonWorkspace() {
   const totalExamples = lessonSections.reduce((total, section) => total + exampleDetails[section.id].length, 0);
   const totalCompleted = lessonSections.reduce((total, section) => total + exampleDetails[section.id].filter((example) => session.completedExamples.includes(example.id)).length, 0);
   const progress = Math.round((totalCompleted / totalExamples) * 100);
+
+  useEffect(() => {
+    if (progress < 100 || summarySaveState !== 'idle') return;
+    setSummarySaveState('saving');
+    completeLessonMutation.mutate({
+      lessonId,
+      data: {
+        lesson_id: lessonId,
+        lesson_title: 'قوانين نيوتن والحركة',
+        subject: 'العلوم الفيزيائية',
+        summary: 'خلاصة الجلسة: فهمنا القصور الذاتي، قرأنا العلاقة بين الموضع والزمن، ثم طبقنا القوة المحصلة والقانون الثاني لنيوتن.',
+        concepts: lessonSections.map((section) => ({
+          id: section.id,
+          title: section.title,
+          summary: section.explanation,
+        })),
+      },
+    }, {
+      onSuccess: () => {
+        setSummarySaveState('saved');
+        void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
+      },
+      onError: () => setSummarySaveState('error'),
+    });
+  }, [completeLessonMutation, progress, queryClient, summarySaveState]);
 
   useEffect(() => {
     window.localStorage.setItem(sessionKey, JSON.stringify(session));
@@ -480,6 +515,28 @@ export function LessonWorkspace() {
       setAnalysis(nextAnalysis);
       setAnalysisState('ready');
       setAttemptBank((current) => [{ ...nextAnalysis, id: `attempt-${Date.now()}`, fileName, createdAt: getTimeLabel() }, ...current].slice(0, 8));
+      recordAttemptMutation.mutate({
+        data: {
+          lesson_id: lessonId,
+          lesson_title: 'قوانين نيوتن والحركة',
+          concept_id: activeSection.id,
+          concept_title: activeSection.title,
+          error_tag: nextAnalysis.summaryAnchor || nextAnalysis.firstErrorStep,
+          is_correct: false,
+        },
+      }, {
+        onSuccess: (result) => {
+          void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
+          void queryClient.invalidateQueries({ queryKey: getGetLearningScheduleQueryKey() });
+          if (result.remediation) {
+            setMessages((current) => [...current, {
+              id: `remediation-${Date.now()}`,
+              role: 'assistant',
+              text: `رصدت فجوة متكررة في «${result.metric.concept_title}». أضفت «غرفة إنعاش مستعجلة» إلى برنامجك لمراجعة هذا المفهوم.`,
+            }]);
+          }
+        },
+      });
       setMessages((current) => [...current, { id: `analysis-${Date.now()}`, role: 'assistant', text: `قرأت محاولتك. توقفت عند «${nextAnalysis.firstErrorStep}»، وسنعود إلى «${nextAnalysis.lastCorrectStep}» قبل أن نبني تمرينًا مشابهًا.` }]);
     } catch (error) {
       setAnalysisState('error');
@@ -651,7 +708,7 @@ export function LessonWorkspace() {
             {analysisState === 'error' && <div className="lesson-analysis-error" role="alert" data-testid="status-attempt-analysis-error"><span>{analysisError}</span><button type="button" onClick={() => { if (session.attachment) void analyzeAttempt(session.attachment, session.attachmentName ?? 'محاولة'); }}>إعادة التحليل</button></div>}
             {analysis && (
               <div className="lesson-analysis-card" data-testid="card-attempt-analysis">
-                <div className="lesson-analysis-header"><strong>قراءة فهيم للمحاولة</strong><span>أضيفت إلى بنك الأخطاء</span></div>
+                <div className="lesson-analysis-header"><strong>قراءة فهيم للمحاولة</strong><span>{recordAttemptMutation.isPending ? 'يحفظ الربط...' : 'أضيفت إلى بنك الأخطاء'}</span></div>
                 <div className="lesson-analysis-row is-correct"><span>آخر خطوة صحيحة</span><strong>{analysis.lastCorrectStep}</strong></div>
                 <div className="lesson-analysis-row is-error"><span>بداية الخطأ</span><strong>{analysis.firstErrorStep}</strong></div>
                 <p>{analysis.feedback}</p>
@@ -775,6 +832,10 @@ export function LessonWorkspace() {
             <div className="lesson-note-header"><strong><Save size={13} /> ملاحظتك</strong><span>{noteStatus}</span></div>
             <textarea value={session.note} onChange={(event) => { setNoteStatus('يُحفظ الآن'); setSession((current) => ({ ...current, note: event.target.value })); }} placeholder="اكتبي علاقة تريدين تذكرها..." aria-label="ملاحظة الدرس" data-testid="input-lesson-note" />
             <button type="button" className="lesson-save-note" onClick={() => { window.localStorage.setItem(sessionKey, JSON.stringify(session)); setNoteStatus('حُفظت الملاحظة'); }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
+             {progress === 100 && <div className="lesson-summary-status" role="status" data-testid="status-summary-bank">
+               <span>{summarySaveState === 'saved' ? 'اكتملت الجلسة وحُفظ ملخصها في بنك الملخصات.' : summarySaveState === 'saving' ? 'نحفظ ملخص الجلسة في ملفك...' : summarySaveState === 'error' ? 'تعذر حفظ الملخص.' : 'سيُحفظ ملخص الجلسة تلقائيًا.'}</span>
+               {summarySaveState === 'error' && <button type="button" onClick={() => setSummarySaveState('idle')}>إعادة الحفظ</button>}
+             </div>}
             {attemptBank.length > 0 && <div className="lesson-bank"><div className="lesson-bank-heading"><strong>بنك الأخطاء</strong><span>{attemptBank.length} محاولات</span></div>{attemptBank.slice(0, 2).map((item) => <button type="button" key={item.id} className="lesson-bank-item" onClick={() => { setAnalysis(item); setAnalysisState('ready'); }} data-testid={`button-open-attempt-${item.id}`}><span>{item.fileName}</span><small>{item.createdAt} · {item.summaryAnchor}</small></button>)}</div>}
           </div>
         </section>

@@ -25,10 +25,17 @@ import type {
   KnowledgeCard,
   KnowledgeQueryInput,
   KnowledgeQueryResponse,
+  LearningAttemptInput,
+  LearningAttemptResponse,
+  LessonCompletionInput,
   ListKnowledgeParams,
   Quiz,
   QuizAttemptInput,
-  QuizResult
+  QuizResult,
+  ScheduleEntry,
+  ScheduleUpdateInput,
+  SummaryBankItem,
+  SummaryBankResponse
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -212,6 +219,375 @@ export function useGetDashboard<TData = Awaited<ReturnType<typeof getDashboard>>
 
 
 
+
+export const getGetSummaryBankUrl = () => {
+
+
+
+
+  return `/api/learning/summary-bank`
+}
+
+/**
+ * @summary Get the student's saved lesson summaries and concept metrics
+ */
+export const getSummaryBank = async ( options?: Parameters<typeof customFetch>[1]): Promise<SummaryBankResponse> => {
+
+  return customFetch<SummaryBankResponse>(getGetSummaryBankUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSummaryBankQueryKey = () => {
+    return [
+    `/api/learning/summary-bank`
+    ] as const;
+    }
+
+
+export const getGetSummaryBankQueryOptions = <TData = Awaited<ReturnType<typeof getSummaryBank>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSummaryBank>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSummaryBankQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSummaryBank>>> = ({ signal }) => getSummaryBank({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSummaryBank>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSummaryBankQueryResult = NonNullable<Awaited<ReturnType<typeof getSummaryBank>>>
+export type GetSummaryBankQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the student's saved lesson summaries and concept metrics
+ */
+
+export function useGetSummaryBank<TData = Awaited<ReturnType<typeof getSummaryBank>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSummaryBank>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSummaryBankQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCompleteLessonUrl = (lessonId: string,) => {
+
+
+
+
+  return `/api/learning/lessons/${lessonId}/complete`
+}
+
+/**
+ * @summary Save a completed lesson summary to the student's profile
+ */
+export const completeLesson = async (lessonId: string,
+    lessonCompletionInput: LessonCompletionInput, options?: Parameters<typeof customFetch>[1]): Promise<SummaryBankItem> => {
+
+  return customFetch<SummaryBankItem>(getCompleteLessonUrl(lessonId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(lessonCompletionInput)
+  }
+);}
+
+
+
+
+
+export const getCompleteLessonMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeLesson>>, TError,{lessonId: string;data: BodyType<LessonCompletionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeLesson>>, TError,{lessonId: string;data: BodyType<LessonCompletionInput>}, TContext> => {
+
+const mutationKey = ['completeLesson'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeLesson>>, {lessonId: string;data: BodyType<LessonCompletionInput>}> = (props) => {
+          const {lessonId,data} = props ?? {};
+
+          return  completeLesson(lessonId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteLessonMutationResult = NonNullable<Awaited<ReturnType<typeof completeLesson>>>
+    export type CompleteLessonMutationBody = BodyType<LessonCompletionInput>
+    export type CompleteLessonMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save a completed lesson summary to the student's profile
+ */
+export const useCompleteLesson = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeLesson>>, TError,{lessonId: string;data: BodyType<LessonCompletionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeLesson>>,
+        TError,
+        {lessonId: string;data: BodyType<LessonCompletionInput>},
+        TContext
+      > => {
+      return useMutation(getCompleteLessonMutationOptions(options));
+    }
+
+export const getRecordLearningAttemptUrl = () => {
+
+
+
+
+  return `/api/learning/attempts`
+}
+
+/**
+ * @summary Record a practical attempt and link errors to a summary concept
+ */
+export const recordLearningAttempt = async (learningAttemptInput: LearningAttemptInput, options?: Parameters<typeof customFetch>[1]): Promise<LearningAttemptResponse> => {
+
+  return customFetch<LearningAttemptResponse>(getRecordLearningAttemptUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(learningAttemptInput)
+  }
+);}
+
+
+
+
+
+export const getRecordLearningAttemptMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningAttempt>>, TError,{data: BodyType<LearningAttemptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordLearningAttempt>>, TError,{data: BodyType<LearningAttemptInput>}, TContext> => {
+
+const mutationKey = ['recordLearningAttempt'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordLearningAttempt>>, {data: BodyType<LearningAttemptInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordLearningAttempt(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordLearningAttemptMutationResult = NonNullable<Awaited<ReturnType<typeof recordLearningAttempt>>>
+    export type RecordLearningAttemptMutationBody = BodyType<LearningAttemptInput>
+    export type RecordLearningAttemptMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record a practical attempt and link errors to a summary concept
+ */
+export const useRecordLearningAttempt = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningAttempt>>, TError,{data: BodyType<LearningAttemptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordLearningAttempt>>,
+        TError,
+        {data: BodyType<LearningAttemptInput>},
+        TContext
+      > => {
+      return useMutation(getRecordLearningAttemptMutationOptions(options));
+    }
+
+export const getGetLearningScheduleUrl = () => {
+
+
+
+
+  return `/api/learning/schedule`
+}
+
+/**
+ * @summary Get generated remediation sessions for the student's schedule
+ */
+export const getLearningSchedule = async ( options?: Parameters<typeof customFetch>[1]): Promise<ScheduleEntry[]> => {
+
+  return customFetch<ScheduleEntry[]>(getGetLearningScheduleUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLearningScheduleQueryKey = () => {
+    return [
+    `/api/learning/schedule`
+    ] as const;
+    }
+
+
+export const getGetLearningScheduleQueryOptions = <TData = Awaited<ReturnType<typeof getLearningSchedule>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningSchedule>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLearningScheduleQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLearningSchedule>>> = ({ signal }) => getLearningSchedule({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLearningSchedule>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLearningScheduleQueryResult = NonNullable<Awaited<ReturnType<typeof getLearningSchedule>>>
+export type GetLearningScheduleQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get generated remediation sessions for the student's schedule
+ */
+
+export function useGetLearningSchedule<TData = Awaited<ReturnType<typeof getLearningSchedule>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningSchedule>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLearningScheduleQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateLearningScheduleUrl = (scheduleId: number,) => {
+
+
+
+
+  return `/api/learning/schedule/${scheduleId}`
+}
+
+/**
+ * @summary Mark a generated remediation session complete or incomplete
+ */
+export const updateLearningSchedule = async (scheduleId: number,
+    scheduleUpdateInput: ScheduleUpdateInput, options?: Parameters<typeof customFetch>[1]): Promise<ScheduleEntry> => {
+
+  return customFetch<ScheduleEntry>(getUpdateLearningScheduleUrl(scheduleId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(scheduleUpdateInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateLearningScheduleMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLearningSchedule>>, TError,{scheduleId: number;data: BodyType<ScheduleUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateLearningSchedule>>, TError,{scheduleId: number;data: BodyType<ScheduleUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateLearningSchedule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLearningSchedule>>, {scheduleId: number;data: BodyType<ScheduleUpdateInput>}> = (props) => {
+          const {scheduleId,data} = props ?? {};
+
+          return  updateLearningSchedule(scheduleId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateLearningScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof updateLearningSchedule>>>
+    export type UpdateLearningScheduleMutationBody = BodyType<ScheduleUpdateInput>
+    export type UpdateLearningScheduleMutationError = ErrorType<void>
+
+    /**
+ * @summary Mark a generated remediation session complete or incomplete
+ */
+export const useUpdateLearningSchedule = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLearningSchedule>>, TError,{scheduleId: number;data: BodyType<ScheduleUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateLearningSchedule>>,
+        TError,
+        {scheduleId: number;data: BodyType<ScheduleUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateLearningScheduleMutationOptions(options));
+    }
 
 export const getListKnowledgeUrl = (params?: ListKnowledgeParams,) => {
   const normalizedParams = new URLSearchParams();

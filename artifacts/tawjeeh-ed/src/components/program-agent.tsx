@@ -19,6 +19,12 @@ import {
   X,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import {
+  getGetLearningScheduleQueryKey,
+  useGetLearningSchedule,
+  useUpdateLearningSchedule,
+  type ScheduleEntry,
+} from '@workspace/api-client-react';
 import owlAgentTeal from '@assets/agent-guiding-cropped.png';
 import owlAgentThinking from '@assets/agent-thinking-cropped.png';
 import owlAgentSuccess from '@assets/agent-success-cropped.png';
@@ -39,6 +45,8 @@ type ProgramEntry = {
   slot?: 1 | 2 | 3;
   track?: SessionTrack;
   endRule?: string;
+  serverId?: number;
+  remediationLabel?: string | null;
 };
 
 type ProgramAgentProps = {
@@ -115,6 +123,24 @@ function createDailySessions(date: string, seed?: ProgramEntry): ProgramEntry[] 
   }));
 }
 
+function toProgramEntry(entry: ScheduleEntry): ProgramEntry {
+  return {
+    id: `remediation-${entry.id}`,
+    serverId: entry.id,
+    date: entry.scheduled_date,
+    time: entry.time,
+    duration: entry.duration,
+    title: entry.title,
+    subject: entry.subject,
+    kind: 'مراجعة',
+    agent: 'دليل',
+    completed: entry.completed,
+    remediationLabel: entry.remediation_label,
+    track: 'application',
+    endRule: 'تستمر حتى تثبيت المفهوم المرتبط بالخطأ',
+  };
+}
+
 const agentProfiles = {
   فهيم: { image: owlAgentTeal, role: 'يفتح الفكرة', tone: 'fahim' },
   دليل: { image: owlAgentThinking, role: 'يثبت الفهم', tone: 'dalil' },
@@ -160,11 +186,11 @@ function ProgramEntryCard({
       <div className={`program-entry-icon ${tone}`}><Icon size={19} /></div>
       <div className="program-entry-content">
         <div className="program-entry-meta">
-          <span className={`program-kind ${tone}`}>{entry.slot ? `الحصة ${entry.slot} من ٣` : entry.kind}</span>
+          <span className={`program-kind ${tone}`}>{entry.remediationLabel ?? (entry.slot ? `الحصة ${entry.slot} من ٣` : entry.kind)}</span>
           <span>{entry.subject}</span>
         </div>
         <h3>{entry.title}</h3>
-        <p>{entry.track === 'theory' ? 'نظرية · فهيم يشرح ويستمع لإجابتك' : `${entry.agent} · ${entry.endRule ?? 'التقدم يحدد نهاية الحصة'}`}</p>
+        <p>{entry.remediationLabel ? 'مراجعة مخصصة لموضع الخطأ · أضيفت تلقائيًا' : entry.track === 'theory' ? 'نظرية · فهيم يشرح ويستمع لإجابتك' : `${entry.agent} · ${entry.endRule ?? 'التقدم يحدد نهاية الحصة'}`}</p>
       </div>
       {entry.slot && <ProgramMiniAgent agent={entry.agent} />}
       <div className="program-entry-actions">
@@ -203,6 +229,17 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     subject: 'الفيزياء',
     kind: 'اختبار' as ProgramKind,
   });
+  const scheduleQuery = useGetLearningSchedule({
+    query: {
+      queryKey: getGetLearningScheduleQueryKey(),
+      refetchInterval: 10_000,
+    },
+  });
+  const updateScheduleMutation = useUpdateLearningSchedule();
+  const remediationEntries = useMemo(
+    () => (scheduleQuery.data ?? []).map(toProgramEntry),
+    [scheduleQuery.data],
+  );
 
   useEffect(() => {
     setEntries(readEntries());
@@ -222,13 +259,15 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   }, [selectedDate]);
 
   const dates = useMemo(() => {
-    const uniqueDates = Array.from(new Set(entries.map((entry) => entry.date)));
+    const uniqueDates = Array.from(new Set([...entries, ...remediationEntries].map((entry) => entry.date)));
     return uniqueDates.sort();
-  }, [entries]);
+  }, [entries, remediationEntries]);
 
   const visibleEntries = useMemo(
-    () => entries.filter((entry) => entry.date === selectedDate && entry.slot).sort((a, b) => (a.slot ?? 0) - (b.slot ?? 0)),
-    [entries, selectedDate],
+    () => [...entries, ...remediationEntries]
+      .filter((entry) => entry.date === selectedDate && (entry.slot || entry.serverId))
+      .sort((a, b) => (a.slot ?? 4) - (b.slot ?? 4) || a.time.localeCompare(b.time)),
+    [entries, remediationEntries, selectedDate],
   );
 
   const extraEvents = useMemo(
@@ -236,8 +275,15 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     [entries],
   );
 
-  const toggleEntry = (id: string) => {
-    setEntries((current) => current.map((entry) => entry.id === id ? { ...entry, completed: !entry.completed } : entry));
+  const toggleEntry = (entry: ProgramEntry) => {
+    if (entry.serverId) {
+      updateScheduleMutation.mutate({
+        scheduleId: entry.serverId,
+        data: { completed: !entry.completed },
+      });
+      return;
+    }
+    setEntries((current) => current.map((currentEntry) => currentEntry.id === entry.id ? { ...currentEntry, completed: !currentEntry.completed } : currentEntry));
   };
 
   const startEntry = (entry: ProgramEntry) => {
@@ -362,7 +408,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
               <div className="program-entries">
                 {visibleEntries.length ? visibleEntries.map((entry) => (
                   <div key={entry.id} className={activeEntry === entry.id ? 'program-active-entry' : ''}>
-                    <ProgramEntryCard entry={entry} onToggle={() => toggleEntry(entry.id)} onStart={() => startEntry(entry)} />
+                    <ProgramEntryCard entry={entry} onToggle={() => toggleEntry(entry)} onStart={() => startEntry(entry)} />
                     {activeEntry === entry.id && <div className="program-active-message"><CheckCircle2 size={15} /> الحصة مفتوحة. ابدأها عندما يحين الوقت الذي حددته.</div>}
                   </div>
                 )) : <div className="program-empty"><CalendarDays size={22} /><strong>لا توجد حصة في هذا اليوم.</strong><span>أضف موعدًا جديدًا ليبقى برنامجك محدثًا.</span></div>}

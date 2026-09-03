@@ -57,6 +57,83 @@ export interface Dashboard {
   focus: string;
 }
 
+export interface SummaryConcept {
+  id: string;
+  title: string;
+  summary: string;
+}
+
+export interface SummaryBankItem {
+  id: number;
+  lesson_id: string;
+  lesson_title: string;
+  subject: string;
+  summary: string;
+  concepts: SummaryConcept[];
+  completed_at: string;
+}
+
+export interface ConceptMetric {
+  lesson_id: string;
+  lesson_title: string;
+  concept_id: string;
+  concept_title: string;
+  attempts: number;
+  errors_count: number;
+  error_rate: number;
+  last_error_tag: string;
+}
+
+export interface SummaryBankResponse {
+  summaries: SummaryBankItem[];
+  metrics: ConceptMetric[];
+}
+
+export interface LessonCompletionInput {
+  lesson_id: string;
+  lesson_title: string;
+  subject: string;
+  summary: string;
+  /** @minItems 1 */
+  concepts: SummaryConcept[];
+}
+
+export interface LearningAttemptInput {
+  lesson_id: string;
+  lesson_title: string;
+  concept_id: string;
+  concept_title: string;
+  error_tag: string;
+  is_correct: boolean;
+}
+
+export interface ScheduleEntry {
+  id: number;
+  scheduled_date: string;
+  time: string;
+  duration: string;
+  title: string;
+  subject: string;
+  kind: string;
+  /** @nullable */
+  remediation_label: string | null;
+  /** @nullable */
+  lesson_id: string | null;
+  /** @nullable */
+  concept_id: string | null;
+  completed: boolean;
+}
+
+export interface LearningAttemptResponse {
+  attempt_id: number;
+  metric: ConceptMetric;
+  remediation: ScheduleEntry | null;
+}
+
+export interface ScheduleUpdateInput {
+  completed: boolean;
+}
+
 export interface KnowledgeCard {
   id: string;
   title: string;

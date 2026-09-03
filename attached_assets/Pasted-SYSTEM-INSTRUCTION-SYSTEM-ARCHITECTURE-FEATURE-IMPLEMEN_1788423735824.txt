@@ -1,0 +1,39 @@
+SYSTEM INSTRUCTION: SYSTEM ARCHITECTURE & FEATURE IMPLEMENTATION
+
+Role: Principal Full-Stack Engineer / AI Agent
+Task: Implement the "Post-Lesson Summary & Error-Linked Remediation System" for the application.
+
+Strictly adhere to the following workflow, business logic, and specifications without omitting any steps.
+
+---
+
+### 1. Post-Lesson Summary Generation & Storage
+- **Trigger:** Immediately upon the completion of a lesson (Theoretical or Practical).
+- **Action:** Automatically generate a structured, concise summary of the session's core concepts.
+- **Storage:** Persist this summary directly into the user's personal profile data structure under a dedicated collection/array named `SummaryBank` (بنك الملخصات).
+
+---
+
+### 2. Practical Session Error-Tracking & Dynamic Mapping
+- **Trigger:** During a Practical/Application session, whenever a student submits an incorrect response.
+- **Action:**
+  1. Identify the specific sub-topic / concept ID associated with the error.
+  2. Create a dynamic relational link (`ErrorTag` -> `SummaryConceptId`) connecting the student's specific error directly to the corresponding section inside the generated Lesson Summary.
+  3. Log the attempt into the user's performance record (`Attempts`, `ErrorsCount`, `ConceptID`).
+
+---
+
+### 3. Error Rate Threshold & Emergency Remediation ("غرفة إنعاش مستعجلة")
+- **Calculation:** Compute the Error Rate for each concept/lesson:
+  $$ErrorRate = \frac{\text{Total Errors}}{\text{Total Attempts}}$$
+- **Condition:** If `ErrorRate` exceeds the defined threshold (e.g., > 50%), indicate a fundamental comprehension gap.
+- **Action:**
+  1. Automatically generate a specialized remedial review course ("دورة تأهيلية") targeted explicitly at that weak concept.
+  2. Inject this emergency session directly into the student's active study schedule/schedule array.
+  3. Label the generated session explicitly as **"غرفة إنعاش مستعجلة"** (Emergency Remediation Room).
+
+---
+
+### Implementation Requirements:
+- Update all corresponding backend services, state management, and schema models (User Profile, Summary, and Schedule components).
+- Ensure UI components in `Profile` (Summary Bank) and `Schedule` reflect these updates dynamically in real-time.

@@ -41,10 +41,12 @@ import {
 } from 'lucide-react';
 import {
   getGetDashboardQueryKey,
+  getGetSummaryBankQueryKey,
   getHealthCheckQueryKey,
   getListKnowledgeQueryKey,
   getListQuizzesQueryKey,
   useGetDashboard,
+  useGetSummaryBank,
   useHealthCheck,
   useListKnowledge,
   useListQuizzes,
@@ -54,6 +56,7 @@ import {
   type KnowledgeCard,
   type Quiz,
   type QuizResult,
+  type SummaryBankItem,
 } from '@workspace/api-client-react';
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -546,6 +549,15 @@ function ProfilePage() {
   const appId = user?.id || 'يظهر بعد اكتمال تسجيل الدخول';
   const [savedNotes, setSavedNotes] = useState<string[]>([]);
   const [savedAttempts, setSavedAttempts] = useState<string[]>([]);
+  const summaryQuery = useGetSummaryBank({
+    query: {
+      queryKey: getGetSummaryBankQueryKey(),
+      refetchInterval: 10_000,
+    },
+  });
+  const summaryBank = summaryQuery.data;
+  const summaries = summaryBank?.summaries ?? [];
+  const weakConcepts = (summaryBank?.metrics ?? []).filter((metric) => metric.error_rate > 0.5);
 
   useEffect(() => {
     try {
@@ -582,14 +594,20 @@ function ProfilePage() {
           <section className="surface profile-bank-card">
             <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">أثر جلساتك</p><h3 className="display text-lg">بنك الملخصات</h3></div><AgentAvatar size="sm" pose="creation" /></div>
             <div className="profile-bank-list">
-              {savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">اكتبي ملاحظة داخل جلسة فهيم، وستظهر هنا لتعودي إليها قبل المراجعة.</p>}
+               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.slice(0, 4).map((summary: SummaryBankItem) => <div className="profile-summary-item" key={summary.id}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.slice(0, 3).map((concept) => <span key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكملي عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعودي إليه قبل المراجعة.</p>}
             </div>
           </section>
           <section className="surface profile-bank-card">
             <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">نتعلّم من المحاولة</p><h3 className="display text-lg">بنك الأخطاء</h3></div><AgentAvatar size="sm" pose="thinking" /></div>
             <div className="profile-bank-list">
               {savedAttempts.length ? savedAttempts.map((attempt, index) => <div className="profile-bank-item" key={`${attempt}-${index}`}><RotateCcw size={15} /><span>{attempt}</span></div>) : <p className="profile-bank-empty">ارفقي صورة حل في جلسة فهيم. سنحفظ نقطة التوقف لتصبحي أقوى في المحاولة التالية.</p>}
-            </div>
+             </div>
+           </section>
+          <section className="surface profile-metrics-card">
+           <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">إشارات الفهم</p><h3 className="display text-lg">المفاهيم التي تحتاج إنعاشًا</h3></div><span className="profile-metric-count">{weakConcepts.length}</span></div>
+           <div className="profile-metrics-list">
+             {summaryQuery.isLoading ? <p className="profile-bank-empty">نحلل محاولاتك...</p> : weakConcepts.length ? weakConcepts.map((metric) => <div className="profile-metric-row" key={`${metric.lesson_id}-${metric.concept_id}`}><div><strong>{metric.concept_title}</strong><span>{metric.errors_count} أخطاء من {metric.attempts} محاولات · {Math.round(metric.error_rate * 100)}٪</span></div><span className="profile-emergency-tag">غرفة إنعاش مستعجلة</span></div>) : <p className="profile-bank-empty">لا توجد فجوة تتجاوز ٥٠٪ بعد. استمري في المحاولة، فكل إجابة تحسّن الخريطة.</p>}
+           </div>
           </section>
         </div>
       </section>
