@@ -1473,9 +1473,33 @@ button { cursor: pointer; }
 .program-tabs button.active { color: #005689; background: #e6f6fb; box-shadow: inset 0 -2px 0 #26c6da; }
 .program-date-select { min-height: 36px; padding: 0 9px; border: 1px solid #cce6e8; border-radius: 10px; color: #456775; font-family: inherit; font-size: 10px; font-weight: 800; background: #fff; outline: none; }
 .program-schedule-content, .program-events-content, .program-notifications-content { padding: 20px; }
+.program-plan-content { padding: 20px; }
 .program-schedule-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 17px; }
 .program-schedule-intro h3 { margin: 7px 0 4px; color: #073b58; font-size: 20px; font-weight: 900; letter-spacing: -.04em; }
 .program-schedule-intro p { margin: 0; color: #78909b; font-size: 11px; font-weight: 600; line-height: 1.8; }
+.program-plan-summary { display: grid; min-width: 84px; padding: 10px; border-radius: 13px; text-align: center; background: #f0f8f8; }
+.program-plan-summary strong { color: #2e8b7b; font-size: 21px; font-weight: 900; }
+.program-plan-summary span { color: #79929a; font-size: 9px; font-weight: 800; }
+.program-ten-day-list { display: grid; gap: 12px; }
+.program-day-card { padding: 13px; border: 1px solid #dceced; border-radius: 17px; background: linear-gradient(135deg, #fff, #fbfefd); }
+.program-day-card:nth-child(2n) { background: linear-gradient(135deg, #fff, #f9fcff); }
+.program-day-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; padding: 0 2px 10px; border-bottom: 1px solid #edf4f4; }
+.program-day-heading h4 { margin: 4px 0 0; color: #264b5c; font-size: 14px; font-weight: 900; }
+.program-day-number { color: #2e8b7b; font-size: 10px; font-weight: 900; }
+.program-day-status { min-height: 24px; padding: 0 8px; border-radius: 999px; color: #6e8b8c; font-size: 9px; font-weight: 850; line-height: 24px; background: #f0f7f7; }
+.program-day-card:has(.program-day-status:is(:first-child)) { border-color: #cce6e8; }
+.program-plan-session-list { display: grid; gap: 7px; }
+.program-plan-session { display: grid; grid-template-columns: 38px minmax(145px, 1.5fr) 104px 145px auto; align-items: center; gap: 10px; padding: 9px; border: 1px solid #e6f0f0; border-radius: 13px; background: #fff; }
+.program-plan-session-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; }
+.program-plan-session-copy { min-width: 0; display: grid; gap: 2px; }
+.program-plan-session-copy span { color: #8aa0a8; font-size: 8px; font-weight: 800; }
+.program-plan-session-copy strong { overflow: hidden; color: #264b5c; font-size: 11px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.program-plan-session-copy small { overflow: hidden; color: #8a9ca4; font-size: 8px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.program-plan-control { display: grid; gap: 4px; color: #7a9299; font-size: 8px; font-weight: 850; }
+.program-plan-control input, .program-plan-control select { width: 100%; min-height: 32px; padding: 0 7px; border: 1px solid #d5e8e8; border-radius: 8px; color: #264b5c; font-family: inherit; font-size: 10px; font-weight: 800; background: #fbfefe; outline: none; }
+.program-plan-control input:focus, .program-plan-control select:focus { border-color: #26c6da; box-shadow: 0 0 0 3px rgba(38, 198, 218, .1); }
+.program-plan-start { min-height: 32px; padding: 0 9px; border: 1px solid #c5e3e5; border-radius: 8px; color: #005689; font-family: inherit; font-size: 9px; font-weight: 900; background: #f4fbfb; }
+.program-plan-start:hover { border-color: #26c6da; background: #e6f6fb; }
 .program-later-card { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; padding: 12px 13px; border: 1px dashed #b9dcd5; border-radius: 13px; color: #426d70; background: #f1faf6; }
 .program-later-icon { display: grid; width: 31px; height: 31px; flex: 0 0 auto; place-items: center; border-radius: 10px; color: #2e8b7b; background: #dff1ee; }
 .program-later-card div { display: grid; gap: 3px; }
@@ -2058,6 +2082,14 @@ button { cursor: pointer; }
   .program-side-note { grid-column: auto; }
   .program-workspace-toolbar { align-items: stretch; flex-direction: column; }
   .program-date-select { width: 100%; }
+  .program-plan-content { padding: 14px; }
+  .program-schedule-intro { flex-direction: column; }
+  .program-plan-summary { align-self: flex-start; }
+  .program-plan-session { grid-template-columns: 38px minmax(0, 1fr); gap: 8px; }
+  .program-plan-session-copy { grid-column: 2; }
+  .program-plan-control:nth-of-type(1) { grid-column: 1; }
+  .program-plan-control:nth-of-type(2) { grid-column: 2; }
+  .program-plan-start { grid-column: 1 / -1; }
   .program-entry-card { grid-template-columns: 58px 38px minmax(0, 1fr) 31px; gap: 8px; padding: 10px; }
   .program-entry-time { padding-left: 7px; }
   .program-entry-time span { font-size: 7px; }

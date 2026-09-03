@@ -68,6 +68,7 @@ function addDays(dateValue: string, days: number) {
 }
 
 const today = localDate();
+const subjectOptions = ['الفيزياء', 'الرياضيات', 'العلوم الطبيعية', 'اللغة العربية'];
 const initialEntries: ProgramEntry[] = [
   { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'العلوم الفيزيائية', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
   { id: 'program-2', date: today, time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'العلوم الفيزيائية', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false, slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
@@ -120,9 +121,11 @@ function readEntries(): ProgramEntry[] {
 }
 
 function formatDate(date: string) {
-  if (date === today) return 'اليوم · الأربعاء ١٢ جوان';
-  const [, month, day] = date.split('-');
-  return `${Number(day)} جوان`;
+  return new Intl.DateTimeFormat('ar-DZ', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date(`${date}T12:00:00`));
 }
 
 function createDailySessions(date: string, seed?: ProgramEntry): ProgramEntry[] {
@@ -225,18 +228,64 @@ function ProgramEntryCard({
   );
 }
 
+function ProgramPlanSession({
+  entry,
+  dayNumber,
+  onUpdate,
+  onStart,
+}: {
+  entry: ProgramEntry;
+  dayNumber: number;
+  onUpdate: (updates: Partial<Pick<ProgramEntry, 'time' | 'subject'>>) => void;
+  onStart: () => void;
+}) {
+  const { tone, icon: Icon } = kindStyles[entry.kind];
+  return (
+    <article className="program-plan-session" data-testid={`card-plan-day-${dayNumber}-slot-${entry.slot}`}>
+      <div className={`program-plan-session-icon ${tone}`}><Icon size={17} /></div>
+      <div className="program-plan-session-copy">
+        <span>الحصة {entry.slot} من ٣</span>
+        <strong>{entry.title}</strong>
+        <small>{entry.agent} · {entry.track === 'theory' ? 'فهم الفكرة' : 'تطبيق وتثبيت'}</small>
+      </div>
+      <label className="program-plan-control">
+        <span>التوقيت</span>
+        <input
+          type="time"
+          value={entry.time}
+          onChange={(event) => onUpdate({ time: event.target.value })}
+          aria-label={`توقيت اليوم ${dayNumber} الحصة ${entry.slot}`}
+          data-testid={`input-plan-day-${dayNumber}-slot-${entry.slot}-time`}
+        />
+      </label>
+      <label className="program-plan-control">
+        <span>المادة</span>
+        <select
+          value={entry.subject}
+          onChange={(event) => onUpdate({ subject: event.target.value })}
+          aria-label={`مادة اليوم ${dayNumber} الحصة ${entry.slot}`}
+          data-testid={`select-plan-day-${dayNumber}-slot-${entry.slot}-subject`}
+        >
+          {subjectOptions.map((subject) => <option key={subject}>{subject}</option>)}
+        </select>
+      </label>
+      <button type="button" className="program-plan-start" onClick={onStart} data-testid={`button-plan-day-${dayNumber}-slot-${entry.slot}-start`}>
+        ابدأ
+      </button>
+    </article>
+  );
+}
+
 export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [, setLocation] = useLocation();
   const [entries, setEntries] = useState<ProgramEntry[]>(initialEntries);
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [activeTab, setActiveTab] = useState<'schedule' | 'events' | 'notifications'>('schedule');
+  const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'notifications'>('overview');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPlannerIntake, setShowPlannerIntake] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
     typeof Notification === 'undefined' ? 'default' : Notification.permission,
   );
-  const [activeEntry, setActiveEntry] = useState<string | null>(null);
   const [entryDate, setEntryDate] = useState(() => localStorage.getItem('tawjeeh.phase1.entryDate') || today);
   const [newEntry, setNewEntry] = useState({
     date: today,
@@ -271,23 +320,34 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
 
   useEffect(() => {
     setEntries((current) => {
-      if (current.some((entry) => entry.date === selectedDate && entry.slot)) return current;
-      const seed = current.find((entry) => entry.date === selectedDate && !entry.slot);
-      return [...current, ...createDailySessions(selectedDate, seed)];
+      const tenDayDates = Array.from({ length: 10 }, (_, index) => addDays(entryDate, index));
+      const planKeys = new Set(tenDayDates.flatMap((date) => [1, 2, 3].map((slot) => `${date}-${slot}`)));
+      const savedSessions = new Map(
+        current
+          .filter((entry) => entry.slot && entry.date)
+          .map((entry) => [`${entry.date}-${entry.slot}`, entry]),
+      );
+      const planSessions = tenDayDates.flatMap((date) =>
+        createDailySessions(date).map((session) => savedSessions.get(`${date}-${session.slot}`) ?? session),
+      );
+      const nonPlanEntries = current.filter((entry) => !entry.slot || !planKeys.has(`${entry.date}-${entry.slot}`));
+      return [...planSessions, ...nonPlanEntries];
     });
-  }, [selectedDate]);
+  }, [entryDate]);
 
-  const dates = useMemo(() => {
-    const uniqueDates = Array.from(new Set([...entries, ...remediationEntries].map((entry) => entry.date)));
-    return uniqueDates.sort();
-  }, [entries, remediationEntries]);
-
-  const visibleEntries = useMemo(
-    () => [...entries, ...remediationEntries]
-      .filter((entry) => entry.date === selectedDate && (entry.slot || entry.serverId))
-      .sort((a, b) => (a.slot ?? 4) - (b.slot ?? 4) || a.time.localeCompare(b.time)),
-    [entries, remediationEntries, selectedDate],
-  );
+  const tenDayPlan = useMemo(() => {
+    return Array.from({ length: 10 }, (_, dayIndex) => {
+      const date = addDays(entryDate, dayIndex);
+      return {
+        date,
+        dayNumber: dayIndex + 1,
+        sessions: [1, 2, 3].map((slot) =>
+          entries.find((entry) => entry.date === date && entry.slot === slot)
+          ?? createDailySessions(date)[slot - 1],
+        ),
+      };
+    });
+  }, [entries, entryDate]);
 
   const extraEvents = useMemo(
     () => entries.filter((entry) => !entry.slot && ['اختبار', 'فرض', 'بحث'].includes(entry.kind)).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)),
@@ -306,11 +366,25 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   };
 
   const startEntry = (entry: ProgramEntry) => {
-    setActiveEntry(entry.id);
-    setActiveTab('schedule');
+    sessionStorage.setItem('tawjeeh.program.lesson-access.v1', '1');
     if (entry.kind === 'مكتسبات' || entry.kind === 'حصة تطبيقية' || entry.kind === 'مراجعة') {
       setLocation(`/lesson/${entry.id}`);
     }
+  };
+
+  const updatePlanSession = (
+    date: string,
+    slot: 1 | 2 | 3,
+    updates: Partial<Pick<ProgramEntry, 'time' | 'subject'>>,
+  ) => {
+    setEntries((current) => {
+      const exists = current.some((entry) => entry.date === date && entry.slot === slot);
+      if (exists) {
+        return current.map((entry) => entry.date === date && entry.slot === slot ? { ...entry, ...updates } : entry);
+      }
+      const fallback = createDailySessions(date)[slot - 1];
+      return [...current, { ...fallback, ...updates }];
+    });
   };
 
   const requestNotificationPermission = async () => {
@@ -350,7 +424,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     localStorage.setItem('tawjeeh.phase1.entryDate', savedDate);
     setEntryDate(savedDate);
     setShowPlannerIntake(false);
-    setActiveTab('events');
+    setActiveTab('overview');
   };
 
   const addEntry = (event: FormEvent<HTMLFormElement>) => {
@@ -368,9 +442,8 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
       completed: false,
     };
     setEntries((current) => [...current, entry]);
-    setSelectedDate(entry.date);
     setShowAddForm(false);
-    setActiveTab('schedule');
+    setActiveTab('events');
     setNewEntry((current) => ({ ...current, title: '' }));
   };
 
@@ -382,8 +455,8 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
             <ProgramAgentAvatar size="lg" />
             <div>
                <div className="program-agent-status"><span /> برنامجك الدراسي</div>
-               <h2>رتّب يومك الدراسي بطريقتك.</h2>
-                <p>البرنامج يرتّب لك ثلاث حصص يوميًا: نبدأ بالفكرة، ثم نحولها إلى تطبيقين. يحدد وقت البداية، أما النهاية فتأتي مع تجاوبك الحقيقي.</p>
+                <h2>خطتك الكاملة لعشرة أيام.</h2>
+                 <p>حدّد لكل حصة وقتها ومادتها، وشاهد مسار فهيم كاملًا أمامك. لا نعرض لك يومًا منفصلًا؛ نرتّب الصورة كاملة ثم نبدأ من المكان المناسب.</p>
             </div>
           </div>
           <div className="program-agent-actions">
@@ -399,13 +472,13 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
             </button>
           </div>
         </div>
-          <div className="program-rhythm-strip" aria-label="إيقاع البرنامج اليومي">
-            <div><strong>٣</strong><span>حصص يومية</span></div>
+          <div className="program-rhythm-strip" aria-label="إيقاع خطة العشرة أيام">
+              <div><strong>١٠</strong><span>أيام واضحة</span></div>
             <i />
-            <div><strong>١</strong><span>نظرية أولًا</span></div>
+             <div><strong>٣</strong><span>حصص لكل يوم</span></div>
             <i />
-            <div><strong>٢</strong><span>تطبيقات متدرجة</span></div>
-            <span className="program-rhythm-note"><Clock3 size={13} /> الوقت من البرنامج، النهاية من إجابتك</span>
+             <div><strong>٢</strong><span>مادتان أو أكثر</span></div>
+             <span className="program-rhythm-note"><Clock3 size={13} /> عدّل الوقت والمادة كما يناسبك</span>
           </div>
       </section>
 
@@ -442,30 +515,38 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         <section className="program-agent-workspace">
           <div className="program-workspace-toolbar">
             <div className="program-tabs" role="tablist" aria-label="واجهة البرنامج الدراسي">
-              <button type="button" className={activeTab === 'schedule' ? 'active' : ''} onClick={() => setActiveTab('schedule')} role="tab" aria-selected={activeTab === 'schedule'} data-testid="tab-program-schedule"><CalendarDays size={16} /> البرنامج اليومي</button>
+              <button type="button" className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')} role="tab" aria-selected={activeTab === 'overview'} data-testid="tab-program-overview"><CalendarDays size={16} /> خطة ١٠ أيام</button>
               <button type="button" className={activeTab === 'events' ? 'active' : ''} onClick={() => setActiveTab('events')} role="tab" aria-selected={activeTab === 'events'} data-testid="tab-program-events"><ClipboardPenLine size={16} /> الاختبارات والفروض والبحوث</button>
               <button type="button" className={activeTab === 'notifications' ? 'active' : ''} onClick={() => setActiveTab('notifications')} role="tab" aria-selected={activeTab === 'notifications'} data-testid="tab-program-notifications"><Bell size={16} /> التنبيهات</button>
             </div>
-            {activeTab === 'schedule' && (
-              <select className="program-date-select" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} aria-label="اختر يوم البرنامج" data-testid="select-program-date">
-                {dates.map((date) => <option key={date} value={date}>{formatDate(date)}</option>)}
-              </select>
-            )}
           </div>
 
-          {activeTab === 'schedule' && (
-            <div className="program-schedule-content">
+           {activeTab === 'overview' && (
+             <div className="program-plan-content">
               <div className="program-schedule-intro">
-                <div><span className="program-card-kicker"><Clock3 size={14} /> {formatDate(selectedDate)} · إيقاع ذكي</span><h3>ثلاث خطوات تكفي لليوم.</h3><p>الأولى نظرية، والحصتان بعدها تطبيق. ننتقل فقط عندما يثبت تفاعلك الفهم.</p></div>
-                <div className="program-today-progress"><strong>{visibleEntries.filter((entry) => entry.completed).length}/{visibleEntries.length}</strong><span>حصص مكتملة</span></div>
+                 <div><span className="program-card-kicker"><CalendarDays size={14} /> الخطة الأساسية · ١٠ أيام</span><h3>اضبط حصصك قبل أن تبدأ.</h3><p>لكل يوم ثلاث خطوات: فهم، تطبيق، ثم تثبيت. يمكنك تعديل التوقيت والمادة من هنا في أي وقت.</p></div>
+                 <div className="program-plan-summary"><strong>٣٠</strong><span>حصة قابلة للضبط</span></div>
               </div>
-              <div className="program-entries">
-                {visibleEntries.length ? visibleEntries.map((entry) => (
-                  <div key={entry.id} className={activeEntry === entry.id ? 'program-active-entry' : ''}>
-                    <ProgramEntryCard entry={entry} onToggle={() => toggleEntry(entry)} onStart={() => startEntry(entry)} />
-                    {activeEntry === entry.id && <div className="program-active-message"><CheckCircle2 size={15} /> الحصة مفتوحة. ابدأها عندما يحين الوقت الذي حددته.</div>}
-                  </div>
-                )) : <div className="program-empty"><CalendarDays size={22} /><strong>لا توجد حصة في هذا اليوم.</strong><span>أضف موعدًا جديدًا ليبقى برنامجك محدثًا.</span></div>}
+               <div className="program-ten-day-list">
+                 {tenDayPlan.map(({ date, dayNumber, sessions }) => (
+                   <section className="program-day-card" key={date} data-testid={`card-program-day-${dayNumber}`}>
+                     <div className="program-day-heading">
+                       <div><span className="program-day-number">اليوم {dayNumber}</span><h4>{formatDate(date)}</h4></div>
+                       <span className="program-day-status">{dayNumber === plannerWindow.day ? 'أنت هنا' : dayNumber < plannerWindow.day ? 'مكتمل' : 'قادم'}</span>
+                     </div>
+                     <div className="program-plan-session-list">
+                       {sessions.map((entry) => (
+                         <ProgramPlanSession
+                           key={entry.id}
+                           entry={entry}
+                           dayNumber={dayNumber}
+                           onUpdate={(updates) => updatePlanSession(date, entry.slot as 1 | 2 | 3, updates)}
+                           onStart={() => startEntry(entry)}
+                         />
+                       ))}
+                     </div>
+                   </section>
+                 ))}
               </div>
             </div>
           )}

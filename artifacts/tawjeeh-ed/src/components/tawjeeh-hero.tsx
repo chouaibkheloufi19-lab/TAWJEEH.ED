@@ -21,7 +21,7 @@ export default function TawjeehHero() {
         <nav className="hero-nav" aria-label="التنقل الرئيسي">
           <Link href="/library">المعرفة</Link>
           <Link href="/quizzes">الاختبارات</Link>
-          <Link href="/chat">تفاعل مع توجيه</Link>
+          <Link href="/register">خطتك الدراسية</Link>
         </nav>
         <div className="hero-header-actions">
           <Link href="/login" className="hero-login">تسجيل الدخول</Link>

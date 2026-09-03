@@ -25,6 +25,7 @@ import {
   Compass,
   FileText,
   Flame,
+  LogOut,
   MessageCircle,
   MoreHorizontal,
   Paperclip,
@@ -141,7 +142,7 @@ const clerkAppearance = {
 
 const navItems = [
   { href: '/profile', label: 'ملف شخصي', icon: UserRound },
-  { href: '/chat', label: 'التفاعل', icon: MessageCircle },
+  { href: '/program', label: 'البرنامج الدراسي', icon: CalendarDays },
   { href: '/quizzes', label: 'الكويزات الأسبوعية', icon: BrainCircuit },
 ];
 
@@ -240,7 +241,7 @@ function Topbar({ title }: { title: string }) {
         <button className="icon-button h-10 w-10" onClick={() => setNoticeOpen((open) => !open)} data-testid="button-notifications" aria-label="الإشعارات">
            <span className="relative"><CircleHelp size={18} /><i className="absolute -left-1 -top-1 h-2 w-2 rounded-full bg-[#2e8b7b]" /></span>
         </button>
-        {noticeOpen && <div className="surface absolute left-0 top-12 z-10 w-56 p-3 text-right shadow-lg" data-testid="panel-notifications"><p className="mb-1 text-xs font-extrabold">تذكير صغير</p><p className="text-[11px] leading-5 text-[#71818a]">لديك جلسة مراجعة متبقية في خطة اليوم.</p></div>}
+        {noticeOpen && <div className="surface absolute left-0 top-12 z-10 w-56 p-3 text-right shadow-lg" data-testid="panel-notifications"><p className="mb-1 text-xs font-extrabold">تذكير صغير</p><p className="text-[11px] leading-5 text-[#71818a]">لديك جلسة مراجعة متبقية في خطة العشرة أيام.</p></div>}
         </div>
          <div className="surface hidden items-center gap-2 px-2 py-1.5 sm:flex">
             <div className="grid h-7 w-7 place-items-center rounded-lg bg-[#e6f6fb] text-xs font-extrabold text-[#005689]">{initials}</div>
@@ -316,6 +317,13 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   if (!isLoaded) return <AuthLoading />;
   if (!isSignedIn) return <Redirect to="/sign-in" />;
   return <>{children}</>;
+}
+
+function ProgramLessonRoute() {
+  const canOpenLesson = typeof sessionStorage !== 'undefined'
+    && sessionStorage.getItem('tawjeeh.program.lesson-access.v1') === '1';
+  if (!canOpenLesson) return <Redirect to="/program" />;
+  return <Shell title="جلسة فهيم"><LessonWorkspace /></Shell>;
 }
 
 function AuthStory({ mode }: { mode: 'login' | 'register' }) {
@@ -478,7 +486,7 @@ function DashboardPage() {
                 <div className="mb-4 flex items-center gap-3"><AgentAvatar size="sm" pose={today.length > 0 && today.every((block) => block.completed || completed.includes(block.id)) ? 'success' : 'guiding'} /><span className="text-xs font-bold text-[#b3e5fc]">مساعدتك التعليمية اليوم</span></div>
               <h2 className="display mb-3 text-[27px] md:text-[34px]" data-testid="text-dashboard-focus">{dashboard.focus || 'نحو فهمٍ أعمق، خطوة واحدة كل مرة.'}</h2>
               <p className="mb-6 max-w-md text-sm leading-7 text-[#e6f6fb]">خطة صغيرة وواضحة الآن أفضل من ساعات طويلة مشتتة. لنبدأ من حيث أنت.</p>
-               <Link href="/chat" className="primary-button bg-[#e6f6fb] text-[#005689]" data-testid="link-ask-owl"><MessageCircle size={16} /> ابدأ التفاعل</Link>
+                <Link href="/program" className="primary-button bg-[#e6f6fb] text-[#005689]" data-testid="link-open-program"><CalendarDays size={16} /> افتح خطة العشرة أيام</Link>
              </div>
           </div>
         </div>
@@ -514,6 +522,7 @@ function DashboardPage() {
 
 function ProfilePage() {
   const { user } = useUser();
+  const { signOut } = useClerk();
   const displayName = user?.firstName || user?.username || 'الطالب';
   const email = user?.primaryEmailAddress?.emailAddress || 'لم يضف بريدًا إلكترونيًا';
   const appId = user?.id || 'يظهر بعد اكتمال تسجيل الدخول';
@@ -587,7 +596,7 @@ function ProfilePage() {
         </div>
         <div className="profile-actions">
           <Link href="/program" className="primary-button"><CalendarDays size={16} /> افتح برنامجك الدراسي</Link>
-          <Link href="/chat" className="secondary-button"><MessageCircle size={16} /> اذهب إلى التفاعل</Link>
+          <button type="button" className="secondary-button" onClick={() => { sessionStorage.removeItem('tawjeeh.program.lesson-access.v1'); void signOut({ redirectUrl: `${basePath}/sign-in` }); }} data-testid="button-sign-out"><LogOut size={16} /> تسجيل الخروج</button>
         </div>
         <div className="profile-learning-grid">
           <section className="surface profile-bank-card">
@@ -853,10 +862,10 @@ function Router() {
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/profile" component={() => <ProtectedRoute><ProfilePage /></ProtectedRoute>} />
          <Route path="/program" component={() => <ProtectedRoute><Shell title="البرنامج الدراسي"><ProgramAgent /></Shell></ProtectedRoute>} />
-        <Route path="/lesson/:id" component={() => <ProtectedRoute><Shell title="جلسة فهيم"><LessonWorkspace /></Shell></ProtectedRoute>} />
+        <Route path="/lesson/:id" component={() => <ProtectedRoute><ProgramLessonRoute /></ProtectedRoute>} />
         <Route path="/library" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
         <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
-        <Route path="/chat" component={() => <ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="/chat" component={() => <ProtectedRoute><Redirect to="/program" /></ProtectedRoute>} />
         <Route component={NotFoundArabic} />
       </Switch>
     </ErrorBoundary>
