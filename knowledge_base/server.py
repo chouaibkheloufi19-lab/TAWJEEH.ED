@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from itertools import product
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -11,6 +12,73 @@ from urllib.parse import parse_qs, urlparse
 
 from .catalog import load_catalog
 from .store import KnowledgeStore
+
+SUBJECT_ALIASES = {
+    "العلوم": ("العلوم", "العلوم الفيزيائية", "الفيزياء"),
+    "العلوم الفيزيائية": ("العلوم الفيزيائية", "الفيزياء"),
+    "الفيزياء": ("العلوم الفيزيائية", "الفيزياء"),
+}
+
+CURRICULUM_YEAR_ALIASES = {
+    "1AS": ("1AS", "first_secondary"),
+    "2AS": ("2AS", "second_secondary"),
+    "3AS": ("3AS", "third_secondary"),
+    "first_secondary": ("first_secondary", "1AS"),
+    "second_secondary": ("second_secondary", "2AS"),
+    "third_secondary": ("third_secondary", "3AS"),
+}
+
+
+def _filter_values(field: str, value: Any) -> tuple[Any, ...]:
+    if field == "subject" and isinstance(value, str):
+        return SUBJECT_ALIASES.get(value, (value,))
+    if field == "curriculum_year" and isinstance(value, str):
+        return CURRICULUM_YEAR_ALIASES.get(value, (value,))
+    return (value,)
+
+
+def _where_variants(where: dict[str, Any] | None) -> list[dict[str, Any] | None]:
+    """Expand friendly aliases into scalar Chroma filters."""
+
+    if not where:
+        return [where]
+    fields = list(where)
+    values = [_filter_values(field, where[field]) for field in fields]
+    return [
+        {**where, **dict(zip(fields, selected_values))}
+        for selected_values in product(*values)
+    ]
+
+
+def _query_store(
+    store: KnowledgeStore,
+    query: str,
+    *,
+    n_results: int,
+    where: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """Query alias-expanded filters and return one ranked result list."""
+
+    variants = _where_variants(where)
+    if len(variants) == 1:
+        return store.query(query, n_results=n_results, where=variants[0])
+
+    by_id: dict[str, dict[str, Any]] = {}
+    for variant in variants:
+        for result in store.query(query, n_results=n_results, where=variant):
+            result_id = str(result.get("id", ""))
+            if result_id and (
+                result_id not in by_id
+                or (result.get("distance") or float("inf"))
+                < (by_id[result_id].get("distance") or float("inf"))
+            ):
+                by_id[result_id] = result
+    return sorted(
+        by_id.values(),
+        key=lambda result: result.get("distance")
+        if result.get("distance") is not None
+        else float("inf"),
+    )[:n_results]
 
 
 def _json_bytes(payload: Any) -> bytes:
@@ -28,13 +96,15 @@ def _catalog_cards(
         return []
 
     normalized_subject = (subject or "").strip()
-    subject_aliases = {
-        "العلوم": {"العلوم", "العلوم الفيزيائية", "الفيزياء"},
-        "الفيزياء": {"العلوم", "العلوم الفيزيائية", "الفيزياء"},
-    }
-    allowed_subjects = subject_aliases.get(
-        normalized_subject,
-        {normalized_subject} if normalized_subject else None,
+    allowed_subjects = (
+        set(_filter_values("subject", normalized_subject))
+        if normalized_subject
+        else None
+    )
+    allowed_years = (
+        set(_filter_values("curriculum_year", curriculum_year))
+        if curriculum_year
+        else None
     )
     filtered: list[dict[str, Any]] = []
     for card in cards:
@@ -42,10 +112,9 @@ def _catalog_cards(
             continue
         if allowed_subjects is not None and card.get("subject") not in allowed_subjects:
             continue
-        if curriculum_year and card.get("curriculum_year") not in {
-            curriculum_year,
-            "unspecified",
-        }:
+        if allowed_years is not None and card.get("curriculum_year") not in (
+            allowed_years | {"unspecified"}
+        ):
             continue
         filtered.append(card)
     return filtered
@@ -180,7 +249,8 @@ class KnowledgeRequestHandler(BaseHTTPRequestHandler):
                 raise ValueError("n_results must be an integer")
             store = self._store()
             if store.count():
-                results = store.query(
+                results = _query_store(
+                    store,
                     query,
                     n_results=n_results,
                     where=where,

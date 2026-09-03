@@ -197,6 +197,7 @@ def _catalog_card(record: dict[str, Any]) -> dict[str, Any]:
         "title": record["title"],
         "summary": record["summary"],
         "subject": record["subject"],
+        "curriculum_year": record["curriculum_year"],
         "unit": record["unit"],
         "lesson": record["lesson"],
         "type": record["content_type"],

@@ -6,6 +6,19 @@ ChromaDB collection and exposes read-only semantic search for future agents.
 
 
 ```bash
+# Index the supplied educational library without guessing scanned text.
+python main.py index-assets \
+  --directory attached_assets \
+  --catalog knowledge_base/catalog.json \
+  --no-ocr
+```
+
+The batch command builds both the source catalog and the persistent ChromaDB
+collection used by the agents. Files with a reliable text layer are indexed;
+scanned files remain in the catalog as `needs_review` until their OCR can be
+checked. To import one source with explicit metadata, use:
+
+```bash
 python main.py ingest \
   --file attached_assets/physics.pdf \
   --year second_secondary \

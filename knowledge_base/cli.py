@@ -58,6 +58,21 @@ def _build_parser() -> argparse.ArgumentParser:
         "--agent-roles", default="fahim,guide,exercise"
     )
 
+    index_parser = subparsers.add_parser(
+        "index-assets",
+        help="Catalog and index all educational files in a directory.",
+    )
+    index_parser.add_argument("--directory", type=Path, default=Path("attached_assets"))
+    index_parser.add_argument(
+        "--catalog", type=Path, default=Path("knowledge_base/catalog.json")
+    )
+    index_parser.add_argument(
+        "--no-ocr",
+        action="store_true",
+        help="Skip OCR and leave scanned pages marked for later review.",
+    )
+    index_parser.add_argument("--verbose", action="store_true")
+
     query_parser = subparsers.add_parser(
         "query", help="Search indexed knowledge and print source citations."
     )
@@ -97,6 +112,14 @@ def main(argv: Sequence[str] | None = None) -> None:
                 where=where,
             ),
         }
+    elif args.command == "index-assets":
+        result = index_assets(
+            args.directory,
+            catalog_path=args.catalog,
+            store=store,
+            verbose=args.verbose,
+            ocr_empty_pages=not args.no_ocr,
+        )
     elif args.command == "collections":
         result = {"collections": store.collections()}
     elif args.command == "serve":
@@ -104,6 +127,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         return
     else:
         raise RuntimeError(f"Unsupported command: {args.command}")
+
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
