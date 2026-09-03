@@ -62,6 +62,11 @@ export const GetDashboardResponse = zod.object({
 /**
  * @summary Get the student's saved lesson summaries and concept metrics
  */
+export const getSummaryBankResponseSummariesItemConceptsItemMasteryMin = 0;
+export const getSummaryBankResponseSummariesItemConceptsItemMasteryMax = 100;
+
+
+
 export const GetSummaryBankResponse = zod.object({
   "summaries": zod.array(zod.object({
   "id": zod.int(),
@@ -72,7 +77,8 @@ export const GetSummaryBankResponse = zod.object({
   "concepts": zod.array(zod.object({
   "id": zod.string(),
   "title": zod.string(),
-  "summary": zod.string()
+  "summary": zod.string(),
+  "mastery": zod.number().min(getSummaryBankResponseSummariesItemConceptsItemMasteryMin).max(getSummaryBankResponseSummariesItemConceptsItemMasteryMax).optional()
 })),
   "completed_at": zod.string(),
   "official_stamp": zod.string(),
@@ -118,6 +124,9 @@ export const CompleteLessonParams = zod.object({
 export const completeLessonBodyMasteryMin = 0;
 export const completeLessonBodyMasteryMax = 100;
 
+export const completeLessonBodyConceptsItemMasteryMin = 0;
+export const completeLessonBodyConceptsItemMasteryMax = 100;
+
 
 
 
@@ -130,9 +139,15 @@ export const CompleteLessonBody = zod.object({
   "concepts": zod.array(zod.object({
   "id": zod.string(),
   "title": zod.string(),
-  "summary": zod.string()
+  "summary": zod.string(),
+  "mastery": zod.number().min(completeLessonBodyConceptsItemMasteryMin).max(completeLessonBodyConceptsItemMasteryMax).optional()
 })).min(1)
 })
+
+export const completeLessonResponseConceptsItemMasteryMin = 0;
+export const completeLessonResponseConceptsItemMasteryMax = 100;
+
+
 
 export const CompleteLessonResponse = zod.object({
   "id": zod.int(),
@@ -143,7 +158,8 @@ export const CompleteLessonResponse = zod.object({
   "concepts": zod.array(zod.object({
   "id": zod.string(),
   "title": zod.string(),
-  "summary": zod.string()
+  "summary": zod.string(),
+  "mastery": zod.number().min(completeLessonResponseConceptsItemMasteryMin).max(completeLessonResponseConceptsItemMasteryMax).optional()
 })),
   "completed_at": zod.string(),
   "official_stamp": zod.string(),

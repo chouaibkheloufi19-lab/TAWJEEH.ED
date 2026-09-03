@@ -1515,6 +1515,13 @@ button { cursor: pointer; }
 .program-plan-session-copy span { color: #8aa0a8; font-size: 8px; font-weight: 800; }
 .program-plan-session-copy strong { overflow: hidden; color: #264b5c; font-size: 11px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
 .program-plan-session-copy small { overflow: hidden; color: #8a9ca4; font-size: 8px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.program-plan-start, .program-plan-complete { border: 0; cursor: pointer; font: inherit; }
+.program-plan-start { padding: 9px 11px; border-radius: 10px; color: #fff; background: #0b617a; font-size: 10px; font-weight: 900; }
+.program-plan-start:hover { background: #084d63; }
+.program-plan-complete { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid #c7dddd; border-radius: 9px; background: #f8fcfc; }
+.program-plan-complete > span { width: 9px; height: 9px; border: 1px solid #9db9bc; border-radius: 50%; }
+.program-plan-complete.is-complete { color: #fff; border-color: #2e8b7b; background: #2e8b7b; }
+.program-plan-complete:focus-visible, .program-plan-start:focus-visible { outline: 3px solid rgba(38, 198, 218, .35); outline-offset: 2px; }
 .program-plan-control { display: grid; gap: 4px; color: #7a9299; font-size: 8px; font-weight: 850; }
 .program-plan-control input, .program-plan-control select { width: 100%; min-height: 32px; padding: 0 7px; border: 1px solid #d5e8e8; border-radius: 8px; color: #264b5c; font-family: inherit; font-size: 10px; font-weight: 800; background: #fbfefe; outline: none; }
 .program-plan-control input:focus, .program-plan-control select:focus { border-color: #26c6da; box-shadow: 0 0 0 3px rgba(38, 198, 218, .1); }

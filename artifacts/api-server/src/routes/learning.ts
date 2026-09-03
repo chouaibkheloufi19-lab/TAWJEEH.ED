@@ -4,6 +4,7 @@ import {
   CompleteLessonParams,
   CompleteLessonResponse,
   GetDashboardResponse,
+  GetErrorBankResponse,
   GetLearningScheduleResponse,
   GetSummaryBankResponse,
   RecordLearningAttemptBody,
@@ -55,7 +56,7 @@ router.get("/dashboard", (req, res): void => {
     ],
     focus: "اليوم نثبت قوانين الحركة ونحوّلها إلى خطوات سهلة للحل.",
   });
-  res.json(data);
+  res.json(GetErrorBankResponse.parse(data));
 });
 
 router.get("/learning/summary-bank", async (req, res): Promise<void> => {

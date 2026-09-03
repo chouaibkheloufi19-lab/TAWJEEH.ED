@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import {
   ListQuizzesResponse,
+  ListQuizAttemptsResponse,
   SubmitQuizAttemptBody,
   SubmitQuizAttemptParams,
   SubmitQuizAttemptResponse,
@@ -39,13 +40,16 @@ const quizzes = [
     description: "اختبار عام صعب يفتح بعد إتمام الوحدة لقياس الفهم الكامل.",
     duration: "12 دقيقة",
     status: "جاهز للبدء",
-    points: 80,
+      points: 120,
     is_high_difficulty: true,
     unit_id: "mechanics",
     score_threshold: 80,
     questions: [
-      { id: "q1", prompt: "في الحركة المستقيمة المنتظمة يكون التسارع:", options: ["منعدمًا", "ثابتًا وموجبًا", "متغيرًا", "لا يمكن تحديده"] },
-      { id: "q2", prompt: "القوة المحصلة تساوي:", options: ["مجموع القوى المؤثرة", "أكبر قوة فقط", "كتلة الجسم", "سرعة الجسم"] },
+        { id: "q1", prompt: "في الحركة المستقيمة المنتظمة يكون التسارع:", options: ["منعدمًا", "ثابتًا وموجبًا", "متغيرًا", "لا يمكن تحديده"] },
+        { id: "q2", prompt: "القوة المحصلة تساوي:", options: ["مجموع القوى المؤثرة", "أكبر قوة فقط", "كتلة الجسم", "سرعة الجسم"] },
+        { id: "q3", prompt: "حسب قانون نيوتن الثاني، إذا تضاعفت القوة وبقيت الكتلة ثابتة فإن التسارع:", options: ["يتضاعف", "ينخفض إلى النصف", "يبقى ثابتًا", "ينعدم"] },
+        { id: "q4", prompt: "ميل منحنى الموضع بدلالة الزمن يمثل:", options: ["السرعة", "الكتلة", "القوة", "الطاقة"] },
+        { id: "q5", prompt: "ما العلاقة الصحيحة لاستخراج التسارع من القوة والكتلة؟", options: ["a = F ÷ m", "a = F × m", "a = m ÷ F", "a = F + m"] },
     ],
   },
 ];
@@ -72,7 +76,7 @@ router.get("/quizzes/attempts", async (req, res): Promise<void> => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  res.json(await listQuizAttempts(userId));
+  res.json(ListQuizAttemptsResponse.parse(await listQuizAttempts(userId)));
 });
 
 router.post("/quizzes/:quizId/attempt", async (req, res): Promise<void> => {
@@ -103,7 +107,13 @@ router.post("/quizzes/:quizId/attempt", async (req, res): Promise<void> => {
   const correctAnswers: Record<string, string> =
     quiz.id === "weekly-physics"
       ? { q1: "F = m × a", q2: "تزداد بانتظام", q3: "الجول" }
-      : { q1: "منعدمًا", q2: "مجموع القوى المؤثرة" };
+      : {
+          q1: "منعدمًا",
+          q2: "مجموع القوى المؤثرة",
+          q3: "يتضاعف",
+          q4: "السرعة",
+          q5: "a = F ÷ m",
+        };
   const correct = quiz.questions.reduce(
     (total, question) => total + (body.data.answers[question.id] === correctAnswers[question.id] ? 1 : 0),
     0,

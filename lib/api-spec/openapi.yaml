@@ -356,6 +356,10 @@ components:
           type: string
         summary:
           type: string
+        mastery:
+          type: number
+          minimum: 0
+          maximum: 100
     SummaryBankItem:
       type: object
       required: [id, lesson_id, lesson_title, subject, summary, concepts, completed_at, official_stamp, logo]

@@ -343,6 +343,80 @@ function nextWeekendDates(today: string) {
   return dates;
 }
 
+function scheduleSeedDates(start = new Date().toISOString().slice(0, 10)) {
+  return Array.from({ length: 10 }, (_, index) => addDays(start, index));
+}
+
+const scheduleSeedRuns = new Map<string, Promise<void>>();
+
+async function ensureBaseLearningSchedule(userId: string) {
+  const active = scheduleSeedRuns.get(userId);
+  if (active) return active;
+
+  const run = (async () => {
+    const existing = await db
+      .select({ id: studyScheduleTable.id })
+      .from(studyScheduleTable)
+      .where(eq(studyScheduleTable.userId, userId))
+      .limit(1);
+    if (existing.length > 0) return;
+
+    const slots = [
+      {
+        time: "08:30",
+        duration: "25–40 دقيقة",
+        title: "فهم الفكرة الأساسية",
+        subject: "العلوم الفيزيائية",
+        kind: "مكتسبات نظرية",
+        lessonId: "newton-motion",
+        conceptId: "definition",
+      },
+      {
+        time: "12:00",
+        duration: "حتى حل تمرينين",
+        title: "تطبيق موجّه",
+        subject: "العلوم الفيزيائية",
+        kind: "حصة تطبيقية",
+        lessonId: "newton-motion",
+        conceptId: "practice",
+      },
+      {
+        time: "17:30",
+        duration: "حتى إجابة التحقق",
+        title: "تثبيت واسترجاع",
+        subject: "العلوم الفيزيائية",
+        kind: "مراجعة تطبيقية",
+        lessonId: "newton-motion",
+        conceptId: "recap",
+      },
+    ] as const;
+
+    await db.insert(studyScheduleTable).values(
+      scheduleSeedDates().flatMap((scheduledDate) =>
+        slots.map((slot) => ({
+          userId,
+          scheduledDate,
+          time: slot.time,
+          duration: slot.duration,
+          title: slot.title,
+          subject: slot.subject,
+          kind: slot.kind,
+          remediationLabel: null,
+          lessonId: slot.lessonId,
+          conceptId: slot.conceptId,
+          sourceSummaryId: null,
+          penaltyKey: null,
+          penaltyType: null,
+          volumeMultiplier: 1,
+          completed: false,
+        })),
+      ),
+    );
+  })();
+  scheduleSeedRuns.set(userId, run);
+  await run.finally(() => scheduleSeedRuns.delete(userId));
+}
+
 async function addWeekendVolumePenalty(
   userId: string,
   penaltyKey: string,
@@ -396,6 +470,8 @@ async function applyMissedTheoryPenalty(
     .update(studyScheduleTable)
     .set({ penaltyKey, penaltyType: "missed_theory" })
     .where(eq(studyScheduleTable.id, source.id));
+  source.penaltyKey = penaltyKey;
+  source.penaltyType = "missed_theory";
 
   if (!next) {
     await db.insert(studyScheduleTable).values({
@@ -453,6 +529,8 @@ async function applyMissedTheoryPenalty(
       completed: false,
     })
     .where(eq(studyScheduleTable.id, next.id));
+  next.penaltyKey = penaltyKey;
+  next.penaltyType = "missed_theory";
 }
 
 async function applySchedulePenalties(userId: string) {
@@ -487,7 +565,11 @@ async function applySchedulePenalties(userId: string) {
     .select()
     .from(quizAttemptsTable)
     .where(eq(quizAttemptsTable.userId, userId));
-  const historicDates = new Set(rows.filter((row) => row.scheduledDate < today).map((row) => row.scheduledDate));
+  const historicDates = new Set(
+    rows
+      .filter((row) => row.scheduledDate < today && row.penaltyType === null)
+      .map((row) => row.scheduledDate),
+  );
   for (const scheduledDate of historicDates) {
     const points = quizAttempts
       .filter((attempt) => attempt.completedAt.toISOString().slice(0, 10) === scheduledDate)
@@ -513,6 +595,7 @@ async function ensureSchedulePenalties(userId: string) {
 }
 
 export async function listLearningSchedule(userId: string) {
+  await ensureBaseLearningSchedule(userId);
   await ensureSchedulePenalties(userId);
   const rows = await db
     .select()
@@ -523,6 +606,7 @@ export async function listLearningSchedule(userId: string) {
 }
 
 export async function updateLearningSchedule(userId: string, scheduleId: number, completed: boolean) {
+  await ensureBaseLearningSchedule(userId);
   const [row] = await db
     .update(studyScheduleTable)
     .set({ completed })

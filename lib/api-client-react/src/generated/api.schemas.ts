@@ -61,6 +61,11 @@ export interface SummaryConcept {
   id: string;
   title: string;
   summary: string;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  mastery?: number;
 }
 
 export interface SummaryBankItem {

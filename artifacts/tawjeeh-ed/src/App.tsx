@@ -576,6 +576,7 @@ function ProfilePage() {
   const weakConcepts = (summaryBank?.metrics ?? []).filter((metric) => metric.error_rate > 0.5);
   const [focusedConcept, setFocusedConcept] = useState<{ summaryId: number; conceptId: string } | null>(null);
   const summaryRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const conceptRefs = useRef<Record<string, HTMLSpanElement | null>>({});
 
   useEffect(() => {
     try {
@@ -602,6 +603,7 @@ function ProfilePage() {
     }
     setFocusedConcept({ summaryId, conceptId });
     window.requestAnimationFrame(() => {
+      conceptRefs.current[`${summaryId}:${conceptId}`]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       summaryRefs.current[String(summaryId)]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   }, [location, summaries.length]);
@@ -636,7 +638,7 @@ function ProfilePage() {
           <section className="surface profile-bank-card">
             <div className="profile-bank-heading"><div><p className="eyebrow mb-1">أثر جلساتك</p><div className="flex flex-wrap items-center gap-2"><h3 className="display text-lg">بنك الملخصات</h3><span className="profile-official-stamp" data-testid="stamp-official-summary">TAWJEEH.ED · OFFICIAL</span></div></div></div>
             <div className="profile-bank-list">
-               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.slice(0, 4).map((summary: SummaryBankItem) => <div className={`profile-summary-item ${focusedConcept?.summaryId === summary.id ? 'is-focused' : ''}`} ref={(element) => { summaryRefs.current[String(summary.id)] = element; }} key={summary.id} data-testid={`card-summary-${summary.id}`}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.slice(0, 3).map((concept) => <span className={focusedConcept?.summaryId === summary.id && focusedConcept.conceptId === concept.id ? 'is-focused' : ''} key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكملي عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعودي إليه قبل المراجعة.</p>}
+               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.map((summary: SummaryBankItem) => <div className={`profile-summary-item ${focusedConcept?.summaryId === summary.id ? 'is-focused' : ''}`} ref={(element) => { summaryRefs.current[String(summary.id)] = element; }} key={summary.id} data-testid={`card-summary-${summary.id}`}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.map((concept) => <span ref={(element) => { conceptRefs.current[`${summary.id}:${concept.id}`] = element; }} className={focusedConcept?.summaryId === summary.id && focusedConcept.conceptId === concept.id ? 'is-focused' : ''} key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكملي عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعودي إليه قبل المراجعة.</p>}
             </div>
           </section>
           <section className="surface profile-bank-card">
@@ -779,16 +781,12 @@ function QuizzesPage() {
   const hardAttempts = (attemptsQuery.data?.attempts ?? []).filter((attempt: QuizAttemptRecord) => attempt.is_high_difficulty);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [mistakeCount, setMistakeCount] = useState(0);
-  const [dailyScore, setDailyScore] = useState(0);
   useEffect(() => {
     try {
       const attempts = JSON.parse(localStorage.getItem('tawjeeh.attempt.bank.v1') || '[]');
       setMistakeCount(Array.isArray(attempts) ? attempts.length : 0);
-      const savedScore = Number(localStorage.getItem('tawjeeh.phase1.dailyScore') || '0');
-      setDailyScore(Number.isFinite(savedScore) ? Math.max(0, savedScore) : 0);
     } catch {
       setMistakeCount(0);
-      setDailyScore(0);
     }
   }, []);
   useEffect(() => {
@@ -798,14 +796,11 @@ function QuizzesPage() {
       setSelectedQuiz(requestedQuiz);
     }
   }, [location, quizzes, selectedQuiz]);
-  const addDailyScore = (points: number) => {
-    setDailyScore((current) => {
-      const next = current + Math.max(0, points);
-      localStorage.setItem('tawjeeh.phase1.dailyScore', String(next));
-      return next;
-    });
-  };
-  if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} onExit={() => { setSelectedQuiz(null); setLocation('/quizzes'); }} onScore={addDailyScore} /></Shell>;
+  const today = new Date().toISOString().slice(0, 10);
+  const dailyScore = (attemptsQuery.data?.attempts ?? [])
+    .filter((attempt: QuizAttemptRecord) => attempt.completed_at.slice(0, 10) === today)
+    .reduce((total, attempt: QuizAttemptRecord) => total + attempt.points_earned, 0);
+  if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} onExit={() => { setSelectedQuiz(null); setLocation('/quizzes'); }} onScore={() => void attemptsQuery.refetch()} /></Shell>;
   return (
     <Shell title="الاختبارات الأسبوعية">
        <section className="mb-5 flex items-end justify-between gap-4 rounded-[1.35rem] border border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">

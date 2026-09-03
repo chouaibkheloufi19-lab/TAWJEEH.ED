@@ -142,6 +142,8 @@ function createDailySessions(date: string, seed?: ProgramEntry): ProgramEntry[] 
 }
 
 function toProgramEntry(entry: ScheduleEntry): ProgramEntry {
+  const isTheory = !entry.remediation_label && (entry.kind.includes('نظر') || entry.kind.includes('مكتسب') || entry.kind.includes('فهم'));
+  const isPractical = !entry.remediation_label && (entry.kind.includes('تطبيق') || entry.kind.includes('تمرين'));
   return {
     id: `remediation-${entry.id}`,
     serverId: entry.id,
@@ -150,15 +152,15 @@ function toProgramEntry(entry: ScheduleEntry): ProgramEntry {
     duration: entry.duration,
     title: entry.title,
     subject: entry.subject,
-    kind: 'مراجعة',
-    agent: 'دليل',
+    kind: isTheory ? 'مكتسبات' : isPractical ? 'حصة تطبيقية' : 'مراجعة',
+    agent: isTheory ? 'فهيم' : isPractical ? 'تمارين' : 'دليل',
     completed: entry.completed,
     remediationLabel: entry.remediation_label,
     missed: entry.missed,
     volumeMultiplier: entry.volume_multiplier,
     penaltyType: entry.penalty_type,
-    track: 'application',
-    endRule: 'تستمر حتى تثبيت المفهوم المرتبط بالخطأ',
+    track: isTheory ? 'theory' : 'application',
+    endRule: isTheory ? 'تنتهي عندما تشرحين الفكرة بكلماتك' : 'تستمر حتى تثبيت المفهوم المرتبط بالخطأ',
   };
 }
 
@@ -238,11 +240,13 @@ function ProgramPlanSession({
   entry,
   dayNumber,
   onUpdate,
+  onToggle,
   onStart,
 }: {
   entry: ProgramEntry;
   dayNumber: number;
   onUpdate: (updates: Partial<Pick<ProgramEntry, 'time' | 'subject'>>) => void;
+  onToggle: () => void;
   onStart: () => void;
 }) {
   const { tone, icon: Icon } = kindStyles[entry.kind];
@@ -278,6 +282,17 @@ function ProgramPlanSession({
       <button type="button" className="program-plan-start" onClick={onStart} data-testid={`button-plan-day-${dayNumber}-slot-${entry.slot}-start`}>
         ابدأ
       </button>
+      {entry.serverId && (
+        <button
+          type="button"
+          className={`program-plan-complete ${entry.completed ? 'is-complete' : ''}`}
+          onClick={onToggle}
+          aria-label={entry.completed ? 'إلغاء إكمال الحصة' : 'تحديد الحصة كمكتملة'}
+          data-testid={`button-plan-day-${dayNumber}-slot-${entry.slot}-complete`}
+        >
+          {entry.completed ? <Check size={13} /> : <span />}
+        </button>
+      )}
     </article>
   );
 }
@@ -311,6 +326,10 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const remediationEntries = useMemo(
     () => (scheduleQuery.data ?? []).map(toProgramEntry),
     [scheduleQuery.data],
+  );
+  const serverEntriesBySlot = useMemo(
+    () => new Map(remediationEntries.map((entry) => [`${entry.date}-${entry.time}`, entry])),
+    [remediationEntries],
   );
   const penaltyEntries = useMemo(
     () => remediationEntries.filter((entry) => entry.remediationLabel || entry.missed || (entry.volumeMultiplier ?? 1) > 1),
@@ -352,12 +371,19 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         date,
         dayNumber: dayIndex + 1,
         sessions: [1, 2, 3].map((slot) =>
-          entries.find((entry) => entry.date === date && entry.slot === slot)
-          ?? createDailySessions(date)[slot - 1],
+          (() => {
+            const localEntry = entries.find((entry) => entry.date === date && entry.slot === slot)
+              ?? createDailySessions(date)[slot - 1];
+            const typedSlot = slot as 1 | 2 | 3;
+            const serverEntry = serverEntriesBySlot.get(`${date}-${localEntry.time}`);
+            return serverEntry
+              ? { ...localEntry, ...serverEntry, slot: typedSlot, id: localEntry.id }
+              : localEntry;
+          })(),
         ),
       };
     });
-  }, [entries, entryDate]);
+  }, [entries, entryDate, serverEntriesBySlot]);
 
   const extraEvents = useMemo(
     () => entries.filter((entry) => !entry.slot && ['اختبار', 'فرض', 'بحث'].includes(entry.kind)).sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)),
@@ -567,6 +593,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
                            entry={entry}
                            dayNumber={dayNumber}
                            onUpdate={(updates) => updatePlanSession(date, entry.slot as 1 | 2 | 3, updates)}
+                            onToggle={() => toggleEntry(entry)}
                            onStart={() => startEntry(entry)}
                          />
                        ))}
