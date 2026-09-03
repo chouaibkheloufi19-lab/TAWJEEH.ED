@@ -1511,9 +1511,15 @@ button { cursor: pointer; }
 .program-schedule-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 17px; }
 .program-schedule-intro h3 { margin: 7px 0 4px; color: #073b58; font-size: 20px; font-weight: 900; letter-spacing: -.04em; }
 .program-schedule-intro p { margin: 0; color: #78909b; font-size: 11px; font-weight: 600; line-height: 1.8; }
+.program-schedule-intro-tools { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .program-plan-summary { display: grid; min-width: 84px; padding: 10px; border-radius: 13px; text-align: center; background: #f0f8f8; }
 .program-plan-summary strong { color: #005f73; font-size: 21px; font-weight: 900; }
 .program-plan-summary span { color: #79929a; font-size: 9px; font-weight: 800; }
+.program-plan-view-toggle { display: inline-flex; align-items: center; gap: 5px; min-height: 34px; padding: 0 10px; border: 1px solid #cce6e8; border-radius: 10px; color: #005f73; font-family: inherit; font-size: 9px; font-weight: 900; background: #fff; cursor: pointer; }
+.program-plan-view-toggle:hover { border-color: #26c6da; color: #084d63; background: #f1fafb; }
+.program-plan-view-toggle:focus-visible { outline: 3px solid rgba(38, 198, 218, .25); outline-offset: 2px; }
+.program-plan-view-toggle svg { transition: transform .2s ease; }
+.program-plan-view-toggle svg.is-open { transform: rotate(180deg); }
 .program-ten-day-list { display: grid; gap: 12px; }
 .program-day-card { padding: 13px; border: 1px solid #dceced; border-radius: 17px; background: linear-gradient(135deg, #fff, #fbfefd); }
 .program-day-card:nth-child(2n) { background: linear-gradient(135deg, #fff, #f9fcff); }
@@ -2146,7 +2152,9 @@ button { cursor: pointer; }
   .program-date-select { width: 100%; }
   .program-plan-content { padding: 14px; }
   .program-schedule-intro { flex-direction: column; }
-  .program-plan-summary { align-self: flex-start; }
+  .program-schedule-intro-tools { width: 100%; align-items: stretch; }
+  .program-plan-summary { flex: 1; align-self: stretch; }
+  .program-plan-view-toggle { justify-content: center; }
   .program-plan-session { grid-template-columns: 38px minmax(0, 1fr); gap: 8px; }
   .program-plan-session-copy { grid-column: 2; }
   .program-plan-control:nth-of-type(1) { grid-column: 1; }

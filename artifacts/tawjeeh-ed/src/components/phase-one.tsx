@@ -61,10 +61,7 @@ const onboardingSteps = [
 const branchOptions = [
   'علوم تجريبية',
   'رياضيات',
-  'تقني رياضي',
-  'تسيير واقتصاد',
-  'آداب وفلسفة',
-  'لغات أجنبية',
+  'تقني رياضي / هندسة',
 ];
 
 const defaultValues: PlannerIntakeValues = {

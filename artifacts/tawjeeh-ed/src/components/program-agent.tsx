@@ -76,18 +76,23 @@ function addDays(dateValue: string, days: number) {
 const today = localDate();
 const examDateKey = 'tawjeeh.exam.baccalaureate-date';
 const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
-const subjectOptions = ['الفيزياء', 'الرياضيات', 'العلوم الطبيعية', 'اللغة العربية'];
+const subjectOptions = ['الرياضيات', 'الفيزياء'];
+
+function normalizeProgramSubject(subject?: string) {
+  return subject === 'الرياضيات' ? 'الرياضيات' : 'الفيزياء';
+}
+
 const initialEntries: ProgramEntry[] = [
-  { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'العلوم الفيزيائية', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
-  { id: 'program-2', date: today, time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'العلوم الفيزيائية', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false, slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
-  { id: 'program-3', date: today, time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'العلوم الفيزيائية', kind: 'مراجعة', agent: 'دليل', completed: false, slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
+  { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
+  { id: 'program-2', date: today, time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false, slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
+  { id: 'program-3', date: today, time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'الفيزياء', kind: 'مراجعة', agent: 'دليل', completed: false, slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
   { id: 'program-4', date: addDays(today, 2), time: '16:00', duration: '45 دقيقة', title: 'الميكانيك', subject: 'الفيزياء', kind: 'فرض', agent: 'تمارين', completed: false },
 ];
 
 const smartSlots: Omit<ProgramEntry, 'id' | 'date' | 'completed'>[] = [
-  { time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'العلوم الفيزيائية', kind: 'مكتسبات', agent: 'فهيم', slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
-  { time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'العلوم الفيزيائية', kind: 'حصة تطبيقية', agent: 'تمارين', slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
-  { time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'العلوم الفيزيائية', kind: 'مراجعة', agent: 'دليل', slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
+  { time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'الفيزياء', kind: 'مكتسبات', agent: 'فهيم', slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
+  { time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'الفيزياء', kind: 'حصة تطبيقية', agent: 'تمارين', slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
+  { time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'الفيزياء', kind: 'مراجعة', agent: 'دليل', slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
 ];
 
 const kindStyles: Record<ProgramKind, { tone: string; icon: typeof BookOpenCheck }> = {
@@ -117,9 +122,9 @@ function readEntries(): ProgramEntry[] {
       title: savedSessions.find((entry) => entry.date === today && entry.slot === slot.slot)?.title
         ?? legacyToday[index]?.title
         ?? slot.title,
-      subject: savedSessions.find((entry) => entry.date === today && entry.slot === slot.slot)?.subject
+      subject: normalizeProgramSubject(savedSessions.find((entry) => entry.date === today && entry.slot === slot.slot)?.subject
         ?? legacyToday[index]?.subject
-        ?? slot.subject,
+        ?? slot.subject),
     }));
     const nonSessionEntries = parsed.filter((entry): entry is ProgramEntry => entry?.date && !entry?.slot);
     return [...todaySessions, ...nonSessionEntries];
@@ -160,7 +165,7 @@ function toProgramEntry(entry: ScheduleEntry): ProgramEntry {
     time: entry.time,
     duration: entry.duration,
     title: entry.title,
-    subject: entry.subject,
+    subject: normalizeProgramSubject(entry.subject),
     kind: isTheory ? 'مكتسبات' : isPractical ? 'حصة تطبيقية' : 'مراجعة',
     agent: isTheory ? 'فهيم' : isPractical ? 'تمارين' : 'دليل',
     completed: entry.completed,
@@ -310,6 +315,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [, setLocation] = useLocation();
   const [entries, setEntries] = useState<ProgramEntry[]>(initialEntries);
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'notifications'>('overview');
+  const [showAllPlanDays, setShowAllPlanDays] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPlannerIntake, setShowPlannerIntake] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -429,12 +435,21 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         dayNumber: dayIndex + 1,
         sessions: [1, 2, 3].map((slot) =>
           (() => {
+            const fallbackEntry = createDailySessions(date)[slot - 1];
             const localEntry = entries.find((entry) => entry.date === date && entry.slot === slot)
-              ?? createDailySessions(date)[slot - 1];
+              ?? fallbackEntry;
             const typedSlot = slot as 1 | 2 | 3;
             const serverEntry = serverEntriesBySlot.get(`${date}-${localEntry.time}`);
             return serverEntry
-              ? { ...localEntry, ...serverEntry, slot: typedSlot, id: localEntry.id }
+              ? {
+                ...serverEntry,
+                ...localEntry,
+                ...(localEntry.subject === fallbackEntry.subject ? { subject: serverEntry.subject } : {}),
+                ...(localEntry.time === fallbackEntry.time ? { time: serverEntry.time } : {}),
+                slot: typedSlot,
+                id: localEntry.id,
+                serverId: serverEntry.serverId,
+              }
               : localEntry;
           })(),
         ),
@@ -510,6 +525,10 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
       progress: Math.min(100, Math.max(0, Math.round((day / 10) * 100))),
     };
   }, [entryDate]);
+  const focusedPlanDay = Math.min(Math.max(plannerWindow.day, 1), tenDayPlan.length);
+  const visiblePlan = showAllPlanDays
+    ? tenDayPlan
+    : tenDayPlan.filter(({ dayNumber }) => dayNumber === focusedPlanDay);
 
   const handlePlannerSubmit = (values: PlannerIntakeValues) => {
     const savedDate = localStorage.getItem('tawjeeh.phase1.entryDate') || today;
@@ -659,10 +678,22 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
              <div className="program-plan-content">
               <div className="program-schedule-intro">
                  <div><span className="program-card-kicker"><CalendarDays size={14} /> الخطة الأساسية · ١٠ أيام</span><h3>اضبط حصصك قبل أن تبدأ.</h3><p>لكل يوم ثلاث خطوات: فهم، تطبيق، ثم تثبيت. يمكنك تعديل التوقيت والمادة من هنا في أي وقت.</p></div>
-                 <div className="program-plan-summary"><strong>٣٠</strong><span>حصة قابلة للضبط</span></div>
+                 <div className="program-schedule-intro-tools">
+                   <div className="program-plan-summary"><strong>{showAllPlanDays ? '٣٠' : '٣'}</strong><span>{showAllPlanDays ? 'حصة قابلة للضبط' : `حصص اليوم · اليوم ${focusedPlanDay}`}</span></div>
+                   <button
+                     type="button"
+                     className="program-plan-view-toggle"
+                     onClick={() => setShowAllPlanDays((current) => !current)}
+                     aria-expanded={showAllPlanDays}
+                     data-testid="button-toggle-plan-days"
+                   >
+                     <ChevronDown size={15} className={showAllPlanDays ? 'is-open' : ''} />
+                     {showAllPlanDays ? 'إخفاء الأيام' : 'عرض الأيام العشرة'}
+                   </button>
+                 </div>
               </div>
                <div className="program-ten-day-list">
-                 {tenDayPlan.map(({ date, dayNumber, sessions }) => (
+                {visiblePlan.map(({ date, dayNumber, sessions }) => (
                    <section className="program-day-card" key={date} data-testid={`card-program-day-${dayNumber}`}>
                      <div className="program-day-heading">
                        <div><span className="program-day-number">اليوم {dayNumber}</span><h4>{formatDate(date)}</h4></div>
@@ -736,7 +767,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           <form className="program-add-modal" onSubmit={addEntry} onMouseDown={(event) => event.stopPropagation()} data-testid="form-add-program-event">
             <div className="program-modal-header"><div><span className="program-card-kicker"><Plus size={14} /> موعد جديد</span><h3>أضف شيئًا إلى برنامجك</h3></div><button type="button" className="program-modal-close" onClick={() => setShowAddForm(false)} aria-label="إغلاق"><X size={18} /></button></div>
              <label>اسم الدرس أو الموعد<input required value={newEntry.title} onChange={(event) => setNewEntry((current) => ({ ...current, title: event.target.value }))} placeholder="اكتب الاسم كما ورد في مستنداتك" autoFocus /></label>
-             <div className="program-form-grid"><label>النوع<select value={newEntry.kind} onChange={(event) => setNewEntry((current) => ({ ...current, kind: event.target.value as ProgramKind }))}><option>اختبار</option><option>فرض</option><option>بحث</option></select></label><label>المادة<select value={newEntry.subject} onChange={(event) => setNewEntry((current) => ({ ...current, subject: event.target.value }))}><option>الفيزياء</option><option>الرياضيات</option><option>العلوم الطبيعية</option><option>اللغة العربية</option></select></label></div>
+             <div className="program-form-grid"><label>النوع<select value={newEntry.kind} onChange={(event) => setNewEntry((current) => ({ ...current, kind: event.target.value as ProgramKind }))}><option>اختبار</option><option>فرض</option><option>بحث</option></select></label><label>المادة<select value={newEntry.subject} onChange={(event) => setNewEntry((current) => ({ ...current, subject: event.target.value }))}><option>الرياضيات</option><option>الفيزياء</option></select></label></div>
              <div className="program-form-grid"><label>التاريخ<input type="date" value={newEntry.date} onChange={(event) => setNewEntry((current) => ({ ...current, date: event.target.value }))} /></label><label>وقت البداية<input type="time" value={newEntry.time} onChange={(event) => setNewEntry((current) => ({ ...current, time: event.target.value }))} /></label></div>
              <label>مدة الحصة<select value={newEntry.duration} onChange={(event) => setNewEntry((current) => ({ ...current, duration: event.target.value }))}><option>20 دقيقة</option><option>30 دقيقة</option><option>45 دقيقة</option><option>60 دقيقة</option><option>90 دقيقة</option></select></label>
              <p className="program-modal-hint"><CalendarClock size={14} /> سيضع البرنامج الموعد الأنسب، وتبقى نهاية الحصة مرتبطة بتجاوبك لا بساعة ثابتة.</p>
