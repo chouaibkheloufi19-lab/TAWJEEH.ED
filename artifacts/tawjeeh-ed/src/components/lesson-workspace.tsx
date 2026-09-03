@@ -35,6 +35,18 @@ import owlAgentGold from '@assets/agent-success-cropped.png';
 import owlAgentMint from '@assets/agent-guiding-cropped.png';
 import owlAgentTeal from '@assets/agent-creation-cropped.png';
 import owlAgentViolet from '@assets/agent-thinking-cropped.png';
+import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
+import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
+import { useUser } from '@clerk/react';
+import {
+  canCompleteEvaluation,
+  getEvaluationBlocker,
+  getEvaluationDay,
+  getEvaluationPlan,
+  type ActiveAgent,
+  type EvaluationMode,
+  type EvaluationPlan,
+} from '@/lib/evaluation';
 
 type LessonSectionId = 'definition' | 'worked-example' | 'graph' | 'practice' | 'recap';
 type BoardMode = 'pen' | 'highlight';
@@ -100,6 +112,25 @@ type LessonSession = {
   attachment: string | null;
   attachmentName: string | null;
   whiteboardStrokes: Point[][];
+  startedAt: string;
+  concludedAt: string | null;
+  evaluationMode: EvaluationMode;
+  activeAgent: ActiveAgent;
+  evaluationCompletedAt: string | null;
+};
+
+type LocalSummary = {
+  id: string;
+  lessonId: string;
+  lessonTitle: string;
+  subject: string;
+  summary: string;
+  concepts: { id: string; title: string; summary: string; mastery: number }[];
+  startedAt: string;
+  completedAt: string;
+  progress: number;
+  officialStamp: string;
+  logo: string;
 };
 
 const lessonSections: LessonSection[] = [
@@ -180,9 +211,10 @@ const exampleDetails: Record<LessonSectionId, { id: string; title: string; detai
 
 const sessionKey = 'tawjeeh.lesson.workspace.v1';
 const attemptBankKey = 'tawjeeh.attempt.bank.v1';
+const profileKey = 'user.profile';
 const lessonId = 'newton-motion';
 
-function readSession(): LessonSession {
+function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
   const fallback: LessonSession = {
     activeConcept: 'definition',
     completedExamples: [],
@@ -190,6 +222,11 @@ function readSession(): LessonSession {
     attachment: null,
     attachmentName: null,
     whiteboardStrokes: [],
+    startedAt: new Date().toISOString(),
+    concludedAt: null,
+    evaluationMode: defaultEvaluationMode,
+    activeAgent: 'faheem',
+    evaluationCompletedAt: null,
   };
   if (typeof window === 'undefined') return fallback;
   try {
@@ -206,10 +243,54 @@ function readSession(): LessonSession {
       whiteboardStrokes: Array.isArray(parsed.whiteboardStrokes)
         ? parsed.whiteboardStrokes.filter((stroke): stroke is Point[] => Array.isArray(stroke) && stroke.every((point) => typeof point?.x === 'number' && typeof point?.y === 'number'))
         : [],
+      startedAt: typeof parsed.startedAt === 'string' ? parsed.startedAt : fallback.startedAt,
+      concludedAt: typeof parsed.concludedAt === 'string' ? parsed.concludedAt : null,
+      evaluationMode: parsed.evaluationMode === 'fixed-foundation' || parsed.evaluationMode === 'adaptive-accelerated'
+        ? parsed.evaluationMode
+        : fallback.evaluationMode,
+      activeAgent: parsed.activeAgent === 'dalil-exercises' ? 'dalil-exercises' : 'faheem',
+      evaluationCompletedAt: typeof parsed.evaluationCompletedAt === 'string' ? parsed.evaluationCompletedAt : null,
     };
   } catch {
     return fallback;
   }
+}
+
+function formatSessionTime(isoDate: string) {
+  return new Intl.DateTimeFormat('ar-DZ', { hour: '2-digit', minute: '2-digit' }).format(new Date(isoDate));
+}
+
+function saveSummaryToProfile(summary: LocalSummary) {
+  try {
+    const profile = JSON.parse(window.localStorage.getItem(profileKey) || '{}') as { summaryBank?: LocalSummary[] };
+    const bank = Array.isArray(profile.summaryBank) ? profile.summaryBank : [];
+    profile.summaryBank = [summary, ...bank.filter((item) => item?.id !== summary.id && item?.lessonId !== summary.lessonId)].slice(0, 20);
+    window.localStorage.setItem(profileKey, JSON.stringify(profile));
+  } catch {
+    window.localStorage.setItem(profileKey, JSON.stringify({ summaryBank: [summary] }));
+  }
+}
+
+function boardRegions(sectionId: LessonSectionId) {
+  if (sectionId === 'graph') {
+    return [
+      { id: 'axis', label: 'المحاور والزمن', left: '7%', top: '65%', width: '33%' },
+      { id: 'slope', label: 'ميل المنحنى', left: '38%', top: '25%', width: '34%' },
+      { id: 'point', label: 'النقطة المحددة', left: '58%', top: '30%', width: '25%' },
+    ];
+  }
+  if (sectionId === 'practice') {
+    return [
+      { id: 'forces', label: 'القوى المؤثرة', left: '14%', top: '29%', width: '31%' },
+      { id: 'mass', label: 'الكتلة', left: '51%', top: '29%', width: '28%' },
+      { id: 'result', label: 'القوة المحصلة', left: '29%', top: '58%', width: '42%' },
+    ];
+  }
+  return [
+    { id: 'idea', label: 'الفكرة الأساسية', left: '12%', top: '24%', width: '38%' },
+    { id: 'example', label: 'المثال التطبيقي', left: '52%', top: '24%', width: '34%' },
+    { id: 'check', label: 'خطوة التحقق', left: '25%', top: '58%', width: '50%' },
+  ];
 }
 
 function readAttemptBank(): AttemptBankItem[] {
@@ -290,6 +371,21 @@ function drawBoard(ctx: CanvasRenderingContext2D, width: number, height: number,
     ctx.fillStyle = '#2e8b7b';
     ctx.beginPath(); ctx.arc(width * .63, height * .43, 5, 0, Math.PI * 2); ctx.fill();
   }
+  const selectedRegion = boardRegions(sectionId).find((region) => region.label === highlightedPart);
+  if (selectedRegion) {
+    const left = Number.parseFloat(selectedRegion.left) / 100 * width;
+    const top = Number.parseFloat(selectedRegion.top) / 100 * height;
+    const regionWidth = Number.parseFloat(selectedRegion.width) / 100 * width;
+    ctx.fillStyle = 'rgba(219, 183, 96, .18)';
+    ctx.strokeStyle = '#b98a2c';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.roundRect(left, top, regionWidth, height * .19, 9);
+    ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
   strokes.forEach((stroke) => {
     if (stroke.length < 2) return;
     ctx.beginPath();
@@ -304,10 +400,13 @@ function drawBoard(ctx: CanvasRenderingContext2D, width: number, height: number,
 }
 
 export function LessonWorkspace() {
+  const { user } = useUser();
+  const registrationAt = user?.createdAt ?? null;
+  const evaluationPlan = useMemo<EvaluationPlan>(() => getEvaluationPlan(registrationAt), [registrationAt]);
   const queryClient = useQueryClient();
   const completeLessonMutation = useCompleteLesson();
   const recordAttemptMutation = useRecordLearningAttempt();
-  const [session, setSession] = useState<LessonSession>(readSession);
+  const [session, setSession] = useState<LessonSession>(() => readSession(evaluationPlan.mode));
   const [messages, setMessages] = useState<Message[]>([
     { id: 'welcome', role: 'assistant', text: 'أهلًا، أنا فهيم. سنمشي في العناصر الخمسة بهدوء، ونثبت كل فكرة بخطوة صغيرة.' },
     { id: 'prompt', role: 'assistant', text: 'اختاري عنصرًا من المسار، أو اكتبي سؤالك، أو ارفقي صورة محاولتك.' },
@@ -328,9 +427,11 @@ export function LessonWorkspace() {
   const [lessonGenerationState, setLessonGenerationState] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
   const [lessonGenerationError, setLessonGenerationError] = useState('');
   const [summarySaveState, setSummarySaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [summaryPreview, setSummaryPreview] = useState<LocalSummary | null>(null);
   const [boardMode, setBoardMode] = useState<BoardMode>('pen');
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const owlVideoRef = useRef<HTMLVideoElement>(null);
   const drawingRef = useRef<Point[]>([]);
   const knowledgeParams = useMemo(() => ({ subject: 'العلوم الفيزيائية', curriculum_year: '3AS' }), []);
   const knowledgeQuery = useListKnowledge(knowledgeParams, { query: { queryKey: getListKnowledgeQueryKey(knowledgeParams), staleTime: 5 * 60 * 1000 } });
@@ -345,21 +446,65 @@ export function LessonWorkspace() {
   const totalExamples = lessonSections.reduce((total, section) => total + exampleDetails[section.id].length, 0);
   const totalCompleted = lessonSections.reduce((total, section) => total + exampleDetails[section.id].filter((example) => session.completedExamples.includes(example.id)).length, 0);
   const progress = Math.round((totalCompleted / totalExamples) * 100);
+  const hotspots = useMemo(() => boardRegions(activeSection.id), [activeSection.id]);
+  const evaluationDay = getEvaluationDay(session.startedAt);
+  const evaluationComplete = canCompleteEvaluation(evaluationPlan, progress, session.startedAt);
+  const evaluationBlocker = getEvaluationBlocker(evaluationPlan, progress, session.startedAt);
+  const faheemActive = session.activeAgent === 'faheem';
 
   useEffect(() => {
-    if (progress < 100 || summarySaveState !== 'idle') return;
+    setSession((current) => {
+      if (current.evaluationMode === evaluationPlan.mode) return current;
+      return { ...current, evaluationMode: evaluationPlan.mode, activeAgent: current.evaluationCompletedAt ? current.activeAgent : 'faheem' };
+    });
+  }, [evaluationPlan.mode]);
+
+  const concludeSession = (retry = false) => {
+    if (retry && !session.concludedAt) return;
+    if (!retry && (!evaluationComplete || session.concludedAt || summarySaveState !== 'idle')) return;
+    const completedAt = new Date().toISOString();
+    const localSummary: LocalSummary = {
+      id: `summary-${lessonId}`,
+      lessonId,
+      lessonTitle: 'قوانين نيوتن والحركة',
+      subject: 'العلوم الفيزيائية',
+      summary: `خلاصة جلسة فهيم: ثبّتِ ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعتِ الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
+      concepts: lessonSections.map((section) => {
+        const examples = exampleDetails[section.id];
+        const mastered = examples.filter((example) => session.completedExamples.includes(example.id)).length;
+        return {
+          id: section.id,
+          title: section.title,
+          summary: section.explanation,
+          mastery: Math.round((mastered / examples.length) * 100),
+        };
+      }),
+      startedAt: session.startedAt,
+      completedAt,
+      progress,
+      officialStamp: 'TAWJEEH.ED · OFFICIAL',
+      logo: 'tawjeeh-owl-transparent.png',
+    };
+    saveSummaryToProfile(localSummary);
+    setSummaryPreview(localSummary);
     setSummarySaveState('saving');
+    setSession((current) => ({
+      ...current,
+      concludedAt: completedAt,
+      evaluationCompletedAt: completedAt,
+      activeAgent: 'dalil-exercises',
+    }));
     completeLessonMutation.mutate({
       lessonId,
       data: {
         lesson_id: lessonId,
-        lesson_title: 'قوانين نيوتن والحركة',
-        subject: 'العلوم الفيزيائية',
-        summary: 'خلاصة الجلسة: فهمنا القصور الذاتي، قرأنا العلاقة بين الموضع والزمن، ثم طبقنا القوة المحصلة والقانون الثاني لنيوتن.',
-        concepts: lessonSections.map((section) => ({
-          id: section.id,
-          title: section.title,
-          summary: section.explanation,
+        lesson_title: localSummary.lessonTitle,
+        subject: localSummary.subject,
+        summary: localSummary.summary,
+        concepts: localSummary.concepts.map(({ id, title, summary: conceptSummary }) => ({
+          id,
+          title,
+          summary: conceptSummary,
         })),
       },
     }, {
@@ -369,7 +514,11 @@ export function LessonWorkspace() {
       },
       onError: () => setSummarySaveState('error'),
     });
-  }, [completeLessonMutation, progress, queryClient, summarySaveState]);
+  };
+
+  useEffect(() => {
+    if (evaluationComplete && !session.concludedAt && summarySaveState === 'idle') concludeSession();
+  }, [evaluationComplete, session.concludedAt, summarySaveState]);
 
   useEffect(() => {
     window.localStorage.setItem(sessionKey, JSON.stringify(session));
@@ -382,13 +531,17 @@ export function LessonWorkspace() {
 
   useEffect(() => {
     if (!isPlaying) return;
-    const timer = window.setInterval(() => {
-      setNarrationProgress((value) => {
-        if (value >= 100) { setIsPlaying(false); return 0; }
-        return value + 2;
-      });
-    }, 130);
-    return () => window.clearInterval(timer);
+    void owlVideoRef.current?.play().catch(() => undefined);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(displayedExplanation);
+      utterance.lang = 'ar-SA';
+      utterance.rate = .92;
+      window.speechSynthesis.speak(utterance);
+    }
+    return () => {
+      window.speechSynthesis?.cancel();
+    };
   }, [isPlaying]);
 
   useEffect(() => {
@@ -398,6 +551,11 @@ export function LessonWorkspace() {
     setGeneratedLesson(null);
     setLessonGenerationState('idle');
     setLessonGenerationError('');
+    if (owlVideoRef.current) {
+      owlVideoRef.current.pause();
+      owlVideoRef.current.currentTime = 0;
+    }
+    setNarrationProgress(0);
   }, [activeSection.id]);
 
   useEffect(() => {
@@ -464,6 +622,7 @@ export function LessonWorkspace() {
   };
 
   const askFahim = async (text: string) => {
+    if (!faheemActive) return;
     const cleanText = text.trim();
     if (!cleanText) return;
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: 'user', text: cleanText }]);
@@ -594,6 +753,23 @@ export function LessonWorkspace() {
     return { x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height };
   };
 
+  const selectBoardRegion = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const point = getCanvasPoint(event);
+    const region = hotspots.find((item) => {
+      const left = Number.parseFloat(item.left) / 100;
+      const top = Number.parseFloat(item.top) / 100;
+      const right = left + Number.parseFloat(item.width) / 100;
+      return point.x >= left && point.x <= right && point.y >= top && point.y <= top + .19;
+    });
+    if (!region) return;
+    setHighlightedPart(region.label);
+    setMessages((current) => [...current, {
+      id: `highlight-${Date.now()}`,
+      role: 'assistant',
+      text: `حددتِ «${region.label}». اسأليني عنه وسأشرح الجزء نفسه خطوة خطوة.`,
+    }]);
+  };
+
   const startDrawing = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
     drawingRef.current = [getCanvasPoint(event)];
@@ -617,6 +793,17 @@ export function LessonWorkspace() {
 
   const clearBoard = () => setSession((current) => ({ ...current, whiteboardStrokes: [] }));
 
+  const toggleNarration = () => {
+    if (isPlaying) {
+      owlVideoRef.current?.pause();
+      window.speechSynthesis?.cancel();
+      setIsPlaying(false);
+      return;
+    }
+    setNarrationProgress(0);
+    setIsPlaying(true);
+  };
+
   return (
     <section className="lesson-workspace" dir="rtl" data-testid="lesson-workspace">
       <header className="lesson-workspace-header">
@@ -625,12 +812,39 @@ export function LessonWorkspace() {
           <h1>قوانين نيوتن والحركة</h1>
           <p>ثلاث نوافذ فقط: مسار واضح، تفاعل فعلي، وشرح على اللوح.</p>
         </div>
-        <div className="lesson-header-status" role="status" data-testid="status-lesson-progress">
-          <span className="lesson-status-dot" aria-hidden="true" />
-          <span>{totalCompleted} من {totalExamples} خطوات مكتملة</span>
-          <strong>{progress}٪</strong>
+        <div className="lesson-header-controls">
+          <div className="lesson-header-status" role="status" data-testid="status-lesson-progress">
+            <span className="lesson-status-dot" aria-hidden="true" />
+            <span>
+              {session.concludedAt
+                ? 'فهيم أنهى التقييم · التسليم جاهز'
+                : `${evaluationPlan.title} · اليوم ${evaluationPlan.mode === 'fixed-foundation' ? `${Math.min(evaluationDay, 10)} / ١٠` : evaluationDay}`}
+            </span>
+            <strong>{progress}٪</strong>
+          </div>
+          {!session.concludedAt && (
+            <div className="lesson-conclude-wrap">
+              <button type="button" className="lesson-conclude-button" onClick={() => concludeSession()} disabled={!evaluationComplete} data-testid="button-conclude-lesson">
+              <CheckCircle2 size={14} /> إنهاء وحفظ الملخص
+              </button>
+              {evaluationBlocker && <span className="lesson-evaluation-blocker">{evaluationBlocker}</span>}
+            </div>
+          )}
         </div>
       </header>
+
+      <div className={`lesson-evaluation-banner ${session.concludedAt ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
+        <div>
+          <span className="lesson-panel-kicker"><Sparkles size={13} /> منطق التقييم حسب توقيت التسجيل</span>
+          <strong>{evaluationPlan.title}</strong>
+          <p>{evaluationPlan.description}</p>
+        </div>
+        <div className="lesson-evaluation-meta">
+          <span>{evaluationPlan.windowLabel}</span>
+          <strong>{session.concludedAt ? 'فهيم غير مفعّل' : evaluationPlan.durationLabel}</strong>
+          <small>{session.concludedAt ? 'دليل + وكيل التمارين يتابعان من هنا' : 'وقت الجلسة مفتوح · البداية مثبتة'}</small>
+        </div>
+      </div>
 
       <div className="lesson-grid">
          <aside className="lesson-panel lesson-path-panel" aria-label="مسار إتقان الطالب">
@@ -673,12 +887,12 @@ export function LessonWorkspace() {
         </aside>
 
          <section className="lesson-panel lesson-conversation-panel" aria-label="منطقة التفاعل والتغذية الراجعة">
-          <div className="lesson-panel-heading lesson-conversation-heading">
+           <div className="lesson-panel-heading lesson-conversation-heading">
             <div className="lesson-fahim-chip">
               <span className="lesson-fahim-avatar"><img src={isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal} alt="فهيم، مساعد تثبيت المفاهيم" /></span>
-               <span><strong>فهيم</strong><small>تفاعل وتغذية راجعة</small></span>
+                <span><strong>{faheemActive ? 'فهيم' : 'فهيم · غير مفعّل'}</strong><small>{faheemActive ? 'تفاعل وتغذية راجعة' : 'سلّم إلى دليل + وكيل التمارين'}</small></span>
             </div>
-            <span className={`lesson-live-state ${isThinking || analysisState === 'analyzing' ? 'is-working' : ''}`}><i />{analysisState === 'analyzing' ? 'يحلل الصورة' : isThinking ? 'يكتب الآن' : 'جاهز'}</span>
+             <span className={`lesson-live-state ${isThinking || analysisState === 'analyzing' ? 'is-working' : ''}`}><i />{!faheemActive ? 'تم التسليم' : analysisState === 'analyzing' ? 'يحلل الصورة' : isThinking ? 'يكتب الآن' : 'جاهز'}</span>
           </div>
           <div className="lesson-messages" aria-live="polite" data-testid="region-fahim-messages">
             {messages.map((message) => (
@@ -688,14 +902,14 @@ export function LessonWorkspace() {
               </article>
             ))}
           </div>
-          <form className="lesson-composer" onSubmit={handleQuestionSubmit}>
+           <form className={`lesson-composer ${!faheemActive ? 'is-disabled' : ''}`} onSubmit={handleQuestionSubmit}>
             <label className="lesson-composer-label" htmlFor="lesson-question"><span>سؤال أو ملاحظة</span><span>العنصر الحالي: {activeSection.label}</span></label>
             <div className="lesson-composer-box">
-              <textarea id="lesson-question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="مثال: لماذا يستمر الراكب في الحركة؟" rows={2} data-testid="input-lesson-question" />
-              <button type="button" className="lesson-icon-button" onClick={() => attachmentInputRef.current?.click()} aria-label="إرفاق صورة الحل" data-testid="button-attach-handwritten"><ImagePlus size={17} /></button>
-              <button type="submit" className="lesson-send-button" aria-label="إرسال السؤال إلى فهيم" disabled={!question.trim() || isThinking} data-testid="button-send-lesson-question"><Send size={16} /></button>
+               <textarea id="lesson-question" value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!faheemActive} placeholder={faheemActive ? 'مثال: لماذا يستمر الراكب في الحركة؟' : 'انتقل الحوار إلى دليل ووكيل التمارين'} rows={2} data-testid="input-lesson-question" />
+               <button type="button" className="lesson-icon-button" onClick={() => attachmentInputRef.current?.click()} disabled={!faheemActive} aria-label="إرفاق صورة الحل" data-testid="button-attach-handwritten"><ImagePlus size={17} /></button>
+               <button type="submit" className="lesson-send-button" aria-label="إرسال السؤال إلى فهيم" disabled={!faheemActive || !question.trim() || isThinking} data-testid="button-send-lesson-question"><Send size={16} /></button>
             </div>
-            <input ref={attachmentInputRef} type="file" accept="image/*" onChange={handleAttachment} hidden data-testid="input-handwritten-image" />
+             <input ref={attachmentInputRef} type="file" accept="image/*" onChange={handleAttachment} disabled={!faheemActive} hidden data-testid="input-handwritten-image" />
             {session.attachment && (
               <div className="lesson-attachment" data-testid="status-handwritten-attached">
                 <img src={session.attachment} alt="معاينة الحل المكتوب بخط اليد" />
@@ -730,13 +944,16 @@ export function LessonWorkspace() {
                  type="button"
                  className="lesson-generate-button"
                  onClick={() => void generateLesson()}
-                 disabled={lessonGenerationState === 'generating'}
+                  disabled={!faheemActive || lessonGenerationState === 'generating'}
                  data-testid="button-generate-lesson"
                >
                  {lessonGenerationState === 'generating' ? <LoaderCircle size={13} className="lesson-spin-icon" /> : <Sparkles size={13} />}
                  {lessonGenerationState === 'generating' ? 'يُحضّر...' : generatedLesson ? 'تحديث الشرح' : 'ولّد شرحًا ذكيًا'}
                </button>
-               <div className="lesson-board-owl"><img src={analysis ? owlAgentViolet : progress === 100 ? owlAgentGold : owlAgentMint} alt="فهيم يشرح المفهوم الحالي" /></div>
+              <div className={`lesson-board-owl ${isPlaying ? 'is-speaking' : ''}`}>
+                <video ref={owlVideoRef} src={owlThinkingVideo} muted playsInline loop poster={owlLogoPath} aria-label="فيديو فهيم أثناء الشرح" data-testid="video-fahim-blackboard" />
+                <span>فيديو فهيم</span>
+              </div>
              </div>
           </div>
            {lessonGenerationState === 'error' && (
@@ -795,28 +1012,45 @@ export function LessonWorkspace() {
             <span className="lesson-explanation-label">فكرة مركزيّة</span>
              <p>{displayedExplanation.replace(`${displayedHighlight} `, '')} <button type="button" className={`lesson-highlight-part ${highlightedPart === displayedHighlight ? 'is-selected' : ''}`} onClick={() => setHighlightedPart(displayedHighlight)} aria-pressed={highlightedPart === displayedHighlight} data-testid="button-highlight-concept">{displayedHighlight}</button></p>
             {activeSource && <div className="lesson-source-line"><BookOpen size={13} /><span>{activeSource.title}</span><small>{activeSource.source} · ص {activeSource.page}</small></div>}
-            <button type="button" className="lesson-ask-highlight" onClick={() => { if (highlightedPart) void askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`); }} disabled={!highlightedPart} data-testid="button-ask-highlighted"><Highlighter size={13} /> اسألي عن الجزء المحدد</button>
+             <button type="button" className="lesson-ask-highlight" onClick={() => { if (highlightedPart) void askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`); }} disabled={!faheemActive || !highlightedPart} data-testid="button-ask-highlighted"><Highlighter size={13} /> اسألي عن الجزء المحدد</button>
           </div>
           <div className="lesson-whiteboard-wrap">
             <div className="lesson-whiteboard-toolbar">
-              <span><BarChart3 size={14} /> لوح فهيم</span>
+               <span><BarChart3 size={14} /> لوح فهيم · انقري على الجزء غير الواضح</span>
               <div>
-                <button type="button" className={boardMode === 'pen' ? 'is-selected' : ''} onClick={() => setBoardMode('pen')} aria-label="أداة الكتابة" data-testid="button-whiteboard-pen"><PenLine size={15} /></button>
-                <button type="button" className={boardMode === 'highlight' ? 'is-selected' : ''} onClick={() => setBoardMode('highlight')} aria-label="أداة التظليل" data-testid="button-whiteboard-highlight"><Highlighter size={15} /></button>
-                <button type="button" onClick={clearBoard} aria-label="مسح الكتابة" data-testid="button-whiteboard-clear"><Eraser size={15} /></button>
+                <button type="button" className={boardMode === 'pen' ? 'is-selected' : ''} onClick={() => setBoardMode('pen')} disabled={!faheemActive} aria-label="أداة الكتابة" data-testid="button-whiteboard-pen"><PenLine size={15} /></button>
+                  <button type="button" className={boardMode === 'highlight' ? 'is-selected' : ''} onClick={() => setBoardMode('highlight')} disabled={!faheemActive} aria-label="أداة التظليل والنقر" data-testid="button-whiteboard-highlight"><Highlighter size={15} /></button>
+                 <button type="button" onClick={clearBoard} disabled={!faheemActive} aria-label="مسح الكتابة" data-testid="button-whiteboard-clear"><Eraser size={15} /></button>
               </div>
             </div>
             <div className="lesson-canvas-shell">
-              <canvas ref={canvasRef} className="lesson-whiteboard-canvas" onPointerDown={startDrawing} onPointerMove={continueDrawing} onPointerUp={finishDrawing} onPointerCancel={finishDrawing} aria-label="لوح تفاعلي للكتابة والرسم" data-testid="canvas-lesson-whiteboard" />
+                <canvas ref={canvasRef} className={`lesson-whiteboard-canvas ${boardMode === 'highlight' ? 'is-highlighting' : ''} ${!faheemActive ? 'is-locked' : ''}`} onPointerDown={faheemActive ? (boardMode === 'highlight' ? selectBoardRegion : startDrawing) : undefined} onPointerMove={faheemActive && boardMode === 'pen' ? continueDrawing : undefined} onPointerUp={faheemActive && boardMode === 'pen' ? finishDrawing : undefined} onPointerCancel={faheemActive && boardMode === 'pen' ? finishDrawing : undefined} aria-label="لوح تفاعلي للكتابة والرسم والتحديد" data-testid="canvas-lesson-whiteboard" />
+               <div className="lesson-board-hotspots" aria-label="مناطق اللوح القابلة للتحديد">
+                 {hotspots.map((region) => (
+                   <button
+                     key={region.id}
+                     type="button"
+                     className={highlightedPart === region.label ? 'is-selected' : ''}
+                     style={{ left: region.left, top: region.top, width: region.width }}
+                      onClick={() => { if (!faheemActive) return; setBoardMode('highlight'); setHighlightedPart(region.label); }}
+                      disabled={!faheemActive}
+                     aria-pressed={highlightedPart === region.label}
+                     aria-label={`تحديد ${region.label}`}
+                     data-testid={`button-board-region-${region.id}`}
+                   >
+                     <span>{region.label}</span>
+                   </button>
+                 ))}
+               </div>
               <span className="lesson-canvas-hint">{activeSection.id === 'graph' ? 'الميل يروي قصة الحركة' : 'اكتبي أو ارسمِي فوق اللوح'}</span>
             </div>
           </div>
           <div className="lesson-teaching-footer">
             <div className="lesson-narration" role="status" aria-live="polite">
-              <button type="button" className="lesson-play-button" onClick={() => setIsPlaying((playing) => !playing)} aria-label={isPlaying ? 'إيقاف شرح فهيم' : 'تشغيل شرح فهيم'} data-testid="button-toggle-narration">{isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
-               <div className="lesson-narration-copy"><strong>{isPlaying ? 'فهيم يشرح لك...' : 'شرح فهيم جاهز'}</strong><span>{isPlaying ? displayedExplanation : 'استمعي للفكرة الأساسية أو اقرئيها على اللوح.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
+                <button type="button" className="lesson-play-button" onClick={toggleNarration} disabled={!faheemActive} aria-label={isPlaying ? 'إيقاف شرح فهيم' : 'تشغيل شرح فهيم'} data-testid="button-toggle-narration">{isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
+                <div className="lesson-narration-copy"><strong>{isPlaying ? 'فهيم يشرح لك بالصوت...' : 'شرح فهيم جاهز'}</strong><span>{isPlaying ? displayedExplanation : 'شغّلي فيديو فهيم وصوته، ثم أوقفيه واسأليه عن أي لحظة.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
             </div>
-            <form className="lesson-board-question" onSubmit={(event) => { event.preventDefault(); void askFahim(question || `ساعدني في فهم ${activeSection.label}`); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="اسألي فهيم عن اللوح" aria-label="سؤال فهيم عن اللوح" data-testid="input-board-question" /><button type="submit" aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
+             <form className={`lesson-board-question ${!faheemActive ? 'is-disabled' : ''}`} onSubmit={(event) => { event.preventDefault(); void askFahim(question || `ساعدني في فهم ${activeSection.label}`); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!faheemActive} placeholder={faheemActive ? 'اسألي فهيم عن اللوح' : 'انتقل اللوح إلى دليل ووكيل التمارين'} aria-label="سؤال فهيم عن اللوح" data-testid="input-board-question" /><button type="submit" disabled={!faheemActive} aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
           </div>
           <div className="lesson-examples">
             <div className="lesson-examples-heading"><h3>تثبيت سريع</h3><span>{completedCount} / {activeExamples.length}</span></div>
@@ -832,9 +1066,18 @@ export function LessonWorkspace() {
             <div className="lesson-note-header"><strong><Save size={13} /> ملاحظتك</strong><span>{noteStatus}</span></div>
             <textarea value={session.note} onChange={(event) => { setNoteStatus('يُحفظ الآن'); setSession((current) => ({ ...current, note: event.target.value })); }} placeholder="اكتبي علاقة تريدين تذكرها..." aria-label="ملاحظة الدرس" data-testid="input-lesson-note" />
             <button type="button" className="lesson-save-note" onClick={() => { window.localStorage.setItem(sessionKey, JSON.stringify(session)); setNoteStatus('حُفظت الملاحظة'); }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
-             {progress === 100 && <div className="lesson-summary-status" role="status" data-testid="status-summary-bank">
-               <span>{summarySaveState === 'saved' ? 'اكتملت الجلسة وحُفظ ملخصها في بنك الملخصات.' : summarySaveState === 'saving' ? 'نحفظ ملخص الجلسة في ملفك...' : summarySaveState === 'error' ? 'تعذر حفظ الملخص.' : 'سيُحفظ ملخص الجلسة تلقائيًا.'}</span>
-               {summarySaveState === 'error' && <button type="button" onClick={() => setSummarySaveState('idle')}>إعادة الحفظ</button>}
+              {(session.concludedAt || summarySaveState !== 'idle') && <div className="lesson-summary-status" role="status" data-testid="status-summary-bank">
+                <span>{summarySaveState === 'saved' ? 'حُفظ الملخص في ملفك وبنك الملخصات.' : summarySaveState === 'saving' ? 'نحفظ ملخص الجلسة في ملفك...' : summarySaveState === 'error' ? 'حُفظ محليًا، وتعذر مزامنة بنك الملخصات.' : 'سيُحفظ ملخص الجلسة تلقائيًا.'}</span>
+                {summarySaveState === 'error' && <button type="button" onClick={() => concludeSession(true)}>إعادة المزامنة</button>}
+             </div>}
+             {summaryPreview && <div className="lesson-summary-card" data-testid="card-session-summary">
+               <div className="lesson-summary-card-header">
+                 <div className="lesson-summary-brand"><img src={owlLogoPath} alt="شعار توجيه" /><span><strong>ملخص جلسة فهيم</strong><small>{summaryPreview.officialStamp}</small></span></div>
+                 <span className="lesson-summary-progress">{summaryPreview.progress}٪</span>
+               </div>
+               <p>{summaryPreview.summary}</p>
+               <div className="lesson-summary-concepts">{summaryPreview.concepts.map((concept) => <span key={concept.id}><strong>{concept.mastery}٪</strong>{concept.title}</span>)}</div>
+               <div className="lesson-summary-times"><span>بدأت {formatSessionTime(summaryPreview.startedAt)}</span><span>اكتملت {formatSessionTime(summaryPreview.completedAt)}</span></div>
              </div>}
             {attemptBank.length > 0 && <div className="lesson-bank"><div className="lesson-bank-heading"><strong>بنك الأخطاء</strong><span>{attemptBank.length} محاولات</span></div>{attemptBank.slice(0, 2).map((item) => <button type="button" key={item.id} className="lesson-bank-item" onClick={() => { setAnalysis(item); setAnalysisState('ready'); }} data-testid={`button-open-attempt-${item.id}`}><span>{item.fileName}</span><small>{item.createdAt} · {item.summaryAnchor}</small></button>)}</div>}
           </div>

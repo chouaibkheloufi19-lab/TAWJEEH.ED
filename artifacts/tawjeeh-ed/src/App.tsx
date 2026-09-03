@@ -519,6 +519,13 @@ function ProfilePage() {
   const appId = user?.id || 'يظهر بعد اكتمال تسجيل الدخول';
   const [savedNotes, setSavedNotes] = useState<string[]>([]);
   const [savedAttempts, setSavedAttempts] = useState<string[]>([]);
+  const [localSummaries, setLocalSummaries] = useState<Array<{
+    lessonId?: string;
+    lessonTitle?: string;
+    summary?: string;
+    concepts?: Array<{ id: string; title: string; summary: string }>;
+    completedAt?: string;
+  }>>([]);
   const summaryQuery = useGetSummaryBank({
     query: {
       queryKey: getGetSummaryBankQueryKey(),
@@ -526,18 +533,33 @@ function ProfilePage() {
     },
   });
   const summaryBank = summaryQuery.data;
-  const summaries = summaryBank?.summaries ?? [];
+  const localSummaryCards: SummaryBankItem[] = localSummaries
+    .filter((summary) => summary.lessonId && summary.lessonTitle && summary.summary && summary.completedAt)
+    .map((summary, index) => ({
+      id: -1 - index,
+      lesson_id: summary.lessonId as string,
+      lesson_title: summary.lessonTitle as string,
+      subject: 'العلوم الفيزيائية',
+      summary: summary.summary as string,
+      concepts: summary.concepts ?? [],
+      completed_at: summary.completedAt as string,
+    }));
+  const serverSummaries = summaryBank?.summaries ?? [];
+  const summaries = [...serverSummaries, ...localSummaryCards.filter((local) => !serverSummaries.some((item) => item.lesson_id === local.lesson_id))];
   const weakConcepts = (summaryBank?.metrics ?? []).filter((metric) => metric.error_rate > 0.5);
 
   useEffect(() => {
     try {
       const session = JSON.parse(localStorage.getItem('tawjeeh.lesson.workspace.v1') || '{}') as { note?: string };
       const attempts = JSON.parse(localStorage.getItem('tawjeeh.attempt.bank.v1') || '[]') as Array<{ fileName?: string; firstErrorStep?: string }>;
+      const profile = JSON.parse(localStorage.getItem('user.profile') || '{}') as { summaryBank?: typeof localSummaries };
       setSavedNotes(session.note?.trim() ? [session.note.trim()] : []);
       setSavedAttempts(attempts.slice(0, 3).map((item) => `${item.fileName || 'محاولة مكتوبة'} · ${item.firstErrorStep || 'مراجعة محفوظة'}`));
+      setLocalSummaries(Array.isArray(profile.summaryBank) ? profile.summaryBank : []);
     } catch {
       setSavedNotes([]);
       setSavedAttempts([]);
+      setLocalSummaries([]);
     }
   }, []);
 
