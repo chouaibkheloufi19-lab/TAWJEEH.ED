@@ -317,6 +317,22 @@ export const ListKnowledgeResponse = zod.array(ListKnowledgeResponseItem)
 
 
 /**
+ * @summary Check whether the ChromaDB knowledge collection is ready
+ */
+export const getKnowledgeStatusResponseIndexedNodesMin = 0;
+
+
+
+export const GetKnowledgeStatusResponse = zod.object({
+  "status": zod.enum(['ready', 'empty']),
+  "service": zod.string(),
+  "collection": zod.string(),
+  "indexedNodes": zod.int().min(getKnowledgeStatusResponseIndexedNodesMin),
+  "message": zod.string()
+})
+
+
+/**
  * @summary Search the knowledge base
  */
 export const queryKnowledgeBodyQueryMin = 2;

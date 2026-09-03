@@ -1,5 +1,11 @@
 import { Router, type IRouter } from "express";
 import { ReplitConnectors } from "@replit/connectors-sdk";
+import {
+  formatRetrievedContext,
+  retrieveGroundedKnowledge,
+  KnowledgeGroundingError,
+  type RetrievalContext,
+} from "../lib/rag";
 
 const router: IRouter = Router();
 const connectors = new ReplitConnectors();
@@ -50,7 +56,13 @@ function extractJson(text: string): AttemptAnalysis {
   return { status: "analyzed", ...(parsed as Omit<AttemptAnalysis, "status">) };
 }
 
-async function callVisionModel(imageDataUrl: string, lesson: string, concept: string) {
+async function callVisionModel(
+  imageDataUrl: string,
+  lesson: string,
+  concept: string,
+  retrieval: RetrievalContext,
+) {
+  const sourceText = formatRetrievedContext(retrieval.documents);
   const response = await withTimeout(
     connectors.proxy("xai", "/v1/chat/completions", {
       method: "POST",
@@ -65,14 +77,14 @@ async function callVisionModel(imageDataUrl: string, lesson: string, concept: st
           {
             role: "system",
             content:
-              "أنت فهيم، مساعد تربوي يقرأ محاولات الطلاب. أجب بالعربية الواضحة. لا تخمّن ما لا يظهر في الصورة، واذكر أن الصورة غير كافية إذا لزم.",
+              "أنت فهيم، مساعد تربوي يقرأ محاولات الطلاب. أجب بالعربية الواضحة. لا تخمّن ما لا يظهر في الصورة. أي ملاحظة تعليمية أو تمرين مقترح يجب أن يستند إلى عقد المتجه المرفقة فقط، وإلا اذكر أن المصدر غير كاف.",
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: `حلّل محاولة الطالب المصورة في درس "${lesson}" ومفهوم "${concept}". حدد أول خطوة خاطئة فقط، وآخر خطوة صحيحة قبلها، ثم اقترح تمرينًا واحدًا يعالج نفس الخطأ. أعد JSON فقط بهذه المفاتيح: firstError, firstErrorStep, lastCorrectStep, feedback, nextExercise, summaryAnchor.`,
+                text: `حلّل محاولة الطالب المصورة في درس "${lesson}" ومفهوم "${concept}". حدد أول خطوة خاطئة فقط، وآخر خطوة صحيحة قبلها، ثم اقترح تمرينًا واحدًا يعالج نفس الخطأ من العقد المرفقة. أعد JSON فقط بهذه المفاتيح: firstError, firstErrorStep, lastCorrectStep, feedback, nextExercise, summaryAnchor.\nعقد المعرفة المسترجعة من ChromaDB:\n${sourceText}`,
               },
               { type: "image_url", image_url: { url: imageDataUrl } },
             ],
@@ -89,9 +101,16 @@ async function callVisionModel(imageDataUrl: string, lesson: string, concept: st
   return extractJson(content);
 }
 
-async function callTextModel(question: string, lesson: string, concept: string, context: string) {
+async function callTextModel(
+  question: string,
+  lesson: string,
+  concept: string,
+  context: string,
+  retrieval: RetrievalContext,
+) {
   const key = process.env.DEEPSEEK_API_KEY;
   if (!key) throw new Error("DEEPSEEK_API_KEY is not configured");
+  const sourceText = formatRetrievedContext(retrieval.documents);
 
   const response = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
@@ -107,11 +126,11 @@ async function callTextModel(question: string, lesson: string, concept: string, 
         {
           role: "system",
           content:
-            "أنت فهيم، مساعد تثبيت المفاهيم في منصة توجيه. اشرح بالعربية، اسأل سؤالًا قصيرًا عند الحاجة، ولا تعطِ الحل كاملًا قبل أن تحاول كشف خطوة الطالب.",
+            "أنت فهيم، مساعد تثبيت المفاهيم في منصة توجيه. اشرح بالعربية، اسأل سؤالًا قصيرًا عند الحاجة، ولا تعطِ الحل كاملًا قبل أن تحاول كشف خطوة الطالب. استخدم عقد المعرفة المرفقة فقط، ولا تضف أي معلومة خارجها.",
         },
         {
           role: "user",
-          content: `الدرس: ${lesson}\nالمفهوم: ${concept}\nسياق المحاولة والتحليل: ${context || "لا توجد محاولة محللة"}\nسؤال الطالب: ${question}`,
+          content: `الدرس: ${lesson}\nالمفهوم: ${concept}\nسياق المحاولة والتحليل: ${context || "لا توجد محاولة محللة"}\nسؤال الطالب: ${question}\n\nعقد المعرفة المسترجعة من ChromaDB:\n${sourceText}`,
         },
       ],
     }),
@@ -142,13 +161,14 @@ router.post("/fahim/analyze-attempt", async (req, res): Promise<void> => {
   }
 
   try {
-    const analysis = await callVisionModel(imageDataUrl, lesson, concept);
-    res.json(analysis);
+    const retrieval = await retrieveGroundedKnowledge(`${lesson} ${concept}`, { nResults: 8 });
+    const analysis = await callVisionModel(imageDataUrl, lesson, concept, retrieval);
+    res.json({ ...analysis, grounding: retrieval.grounding });
   } catch (error) {
     req.log.error({ error }, "Fahim attempt analysis failed");
-    res.status(502).json({
-      error: "fahim_analysis_failed",
-      message: "تعذر قراءة المحاولة الآن. احتفظت بالصورة ويمكنك إعادة التحليل.",
+    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
+      error: error instanceof KnowledgeGroundingError ? error.code : "fahim_analysis_failed",
+      message: "لا يمكن تحليل المحاولة قبل نجاح استرجاع عقد المعرفة من ChromaDB.",
     });
   }
 });
@@ -167,13 +187,20 @@ router.post("/fahim/message", async (req, res): Promise<void> => {
   }
 
   try {
-    const answer = await callTextModel(question, lesson, concept, typeof context === "string" ? context : "");
-    res.json({ answer });
+    const retrieval = await retrieveGroundedKnowledge(`${lesson} ${concept} ${question}`, { nResults: 8 });
+    const answer = await callTextModel(
+      question,
+      lesson,
+      concept,
+      typeof context === "string" ? context : "",
+      retrieval,
+    );
+    res.json({ answer, grounding: retrieval.grounding });
   } catch (error) {
     req.log.error({ error }, "Fahim message failed");
-    res.status(502).json({
-      error: "fahim_message_failed",
-      message: "تعذر الحصول على رد فهيم الآن. حاول مرة أخرى.",
+    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
+      error: error instanceof KnowledgeGroundingError ? error.code : "fahim_message_failed",
+      message: "لا يمكن أن يجيب فهيم قبل نجاح استرجاع عقد المعرفة من ChromaDB.",
     });
   }
 });

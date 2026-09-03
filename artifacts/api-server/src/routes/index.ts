@@ -3,7 +3,7 @@ import { getAuth } from "@clerk/express";
 import type { NextFunction, Request, Response } from "express";
 import healthRouter from "./health";
 import learningRouter from "./learning";
-import knowledgeRouter from "./knowledge";
+import knowledgeRouter, { knowledgeStatusRouter } from "./knowledge";
 import quizzesRouter from "./quizzes";
 import fahimRouter from "./fahim";
 import lessonRouter from "./lesson";
@@ -11,6 +11,7 @@ import lessonRouter from "./lesson";
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(knowledgeStatusRouter);
 router.use((req: Request, res: Response, next: NextFunction): void => {
   const auth = getAuth(req);
   const userId = auth?.sessionClaims?.userId || auth?.userId;

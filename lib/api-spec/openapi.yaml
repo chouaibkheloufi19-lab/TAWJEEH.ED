@@ -192,6 +192,30 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/KnowledgeCard"
+  /knowledge/status:
+    get:
+      operationId: getKnowledgeStatus
+      tags: [knowledge]
+      summary: Check whether the ChromaDB knowledge collection is ready
+      responses:
+        "200":
+          description: Knowledge collection readiness
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeStatus"
+        "503":
+          description: Knowledge service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error, message]
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
   /knowledge/query:
     post:
       operationId: queryKnowledge
@@ -634,6 +658,22 @@ components:
             $ref: "#/components/schemas/KnowledgeCard"
         count:
           type: number
+    KnowledgeStatus:
+      type: object
+      required: [status, service, collection, indexedNodes, message]
+      properties:
+        status:
+          type: string
+          enum: [ready, empty]
+        service:
+          type: string
+        collection:
+          type: string
+        indexedNodes:
+          type: integer
+          minimum: 0
+        message:
+          type: string
     QuizQuestion:
       type: object
       required: [id, prompt, options]

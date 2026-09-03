@@ -1,16 +1,14 @@
-import { Router, type IRouter, type Response } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import {
   ListKnowledgeQueryParams,
   ListKnowledgeResponse,
   QueryKnowledgeBody,
   QueryKnowledgeResponse,
 } from "@workspace/api-zod";
+import { getKnowledgeStatus, knowledgeFetch } from "../lib/rag";
 
 const router: IRouter = Router();
-const knowledgeBaseUrl = (
-  process.env.KNOWLEDGE_BASE_URL ?? "http://127.0.0.1:8001/knowledge"
-).replace(/\/$/, "");
-
+export const knowledgeStatusRouter: IRouter = Router();
 type KnowledgeResult = {
   id: string;
   document?: string;
@@ -56,24 +54,6 @@ function resultToCard(result: KnowledgeResult): CatalogCard {
   };
 }
 
-async function knowledgeFetch<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
-  const response = await fetch(`${knowledgeBaseUrl}${path}`, {
-    ...init,
-    signal: AbortSignal.timeout(6000),
-    headers: {
-      "content-type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`Knowledge service responded with ${response.status}`);
-  }
-  return (await response.json()) as T;
-}
-
 function serviceUnavailable(res: Response): void {
   res.status(503).json({
     error: "knowledge_service_unavailable",
@@ -104,6 +84,28 @@ router.get("/knowledge", async (req, res): Promise<void> => {
     serviceUnavailable(res);
   }
 });
+
+async function knowledgeStatusHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const payload = await getKnowledgeStatus();
+    const count = Number(payload.count ?? 0);
+    res.json({
+      status: payload.status === "ok" && count > 0 ? "ready" : "empty",
+      service: payload.service ?? "tawjeeh-knowledge-base",
+      collection: payload.collection ?? "tawjeeh_knowledge",
+      indexedNodes: count,
+      message:
+        count > 0
+          ? "RAG retrieval is connected to the learning agents."
+          : "The knowledge collection has no indexed vector nodes.",
+    });
+  } catch (error) {
+    req.log.error({ error }, "Knowledge readiness request failed");
+    serviceUnavailable(res);
+  }
+}
+
+knowledgeStatusRouter.get("/knowledge/status", knowledgeStatusHandler);
 
 router.post("/knowledge/query", async (req, res): Promise<void> => {
   const parsed = QueryKnowledgeBody.safeParse(req.body);

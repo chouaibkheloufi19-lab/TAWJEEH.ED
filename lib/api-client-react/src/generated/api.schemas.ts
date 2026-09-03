@@ -218,6 +218,23 @@ export interface KnowledgeQueryResponse {
   count: number;
 }
 
+export type KnowledgeStatusStatus = typeof KnowledgeStatusStatus[keyof typeof KnowledgeStatusStatus];
+
+
+export const KnowledgeStatusStatus = {
+  ready: 'ready',
+  empty: 'empty',
+} as const;
+
+export interface KnowledgeStatus {
+  status: KnowledgeStatusStatus;
+  service: string;
+  collection: string;
+  /** @minimum 0 */
+  indexedNodes: number;
+  message: string;
+}
+
 export interface QuizQuestion {
   id: string;
   prompt: string;
@@ -310,6 +327,11 @@ exam_date?: string;
 export type ListKnowledgeParams = {
 subject?: string;
 curriculum_year?: string;
+};
+
+export type GetKnowledgeStatus503 = {
+  error: string;
+  message: string;
 };
 
 export type ListQuizzesParams = {

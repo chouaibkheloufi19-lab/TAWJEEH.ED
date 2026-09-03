@@ -1,9 +1,15 @@
 import { Router, type IRouter } from "express";
+import { getUserId, listErrorBank } from "../lib/learning-store";
+import {
+  formatRetrievedContext,
+  retrieveGroundedKnowledge,
+  sourceDocumentsFrom,
+  type KnowledgeDocument,
+  type RetrievalContext,
+  KnowledgeGroundingError,
+} from "../lib/rag";
 
 const router: IRouter = Router();
-const knowledgeBaseUrl = (
-  process.env.KNOWLEDGE_BASE_URL ?? "http://127.0.0.1:8001/knowledge"
-).replace(/\/$/, "");
 
 type GeneratedElement = {
   id: string;
@@ -14,12 +20,8 @@ type GeneratedElement = {
 
 type GraphPoint = { x: number; y: number; label?: string };
 
-type KnowledgeDocument = {
-  document?: string;
-  metadata?: Record<string, string | number>;
-};
-
 type SourceDocument = { title: string; source: string; page: number };
+type Grounding = RetrievalContext["grounding"];
 
 type GeneratedLesson = {
   status: "generated";
@@ -37,6 +39,7 @@ type GeneratedLesson = {
     points: GraphPoint[];
   };
   prompt: string;
+  grounding: Grounding;
 };
 
 type GeneratedExercise = {
@@ -48,37 +51,12 @@ type GeneratedExercise = {
   hint: string;
   solution: string;
   sourceDocuments: SourceDocument[];
+  grounding: Grounding;
 };
 
-async function queryKnowledge(query: string) {
-  const queries = [query, `الميكانيك القوة الكتلة التسارع تمارين ${query}`];
-  let lastPayload: { results?: KnowledgeDocument[] } = { results: [] };
-  for (const candidate of queries) {
-    const response = await fetch(`${knowledgeBaseUrl}/v1/query`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ query: candidate, n_results: 8 }),
-      signal: AbortSignal.timeout(6000),
-    });
-    if (!response.ok) throw new Error(`Knowledge service responded with ${response.status}`);
-    lastPayload = (await response.json()) as { results?: KnowledgeDocument[] };
-    if (lastPayload.results?.length) return lastPayload;
-  }
-  return lastPayload;
-}
-
-function sourceDocumentsFrom(documents: KnowledgeDocument[]): SourceDocument[] {
-  return documents.slice(0, 5).map((item) => {
-    const metadata = item.metadata ?? {};
-    return {
-      title: String(metadata.lesson || metadata.unit || "مصدر تعليمي"),
-      source: String(metadata.source_file || "مصدر غير محدد"),
-      page: Number(metadata.source_page || 0),
-    };
-  });
-}
-
-function extractGeneratedLesson(text: string): GeneratedLesson {
+function extractGeneratedLesson(
+  text: string,
+): Omit<GeneratedLesson, "grounding"> {
   const candidate = text.match(/\{[\s\S]*\}/)?.[0];
   if (!candidate) throw new Error("Lesson generator returned non-JSON content");
   const parsed = JSON.parse(candidate) as Partial<GeneratedLesson>;
@@ -132,21 +110,11 @@ async function generateLesson(
   level: string,
   activeConcept: string,
   attemptContext: string,
-  documents: Array<{ document?: string; metadata?: Record<string, string | number> }>,
+  retrieval: RetrievalContext,
 ) {
   const key = process.env.DEEPSEEK_API_KEY;
   if (!key) throw new Error("DEEPSEEK_API_KEY is not configured");
-  const sourceText = documents
-    .map((item, index) => {
-      const metadata = item.metadata ?? {};
-      return [
-        `المصدر ${index + 1}: ${metadata.lesson || metadata.unit || "درس"}`,
-        `المادة: ${metadata.subject || "غير محددة"}`,
-        `الملف: ${metadata.source_file || "غير محدد"}، الصفحة: ${metadata.source_page || 0}`,
-        `المحتوى: ${(item.document || "").slice(0, 1800)}`,
-      ].join("\n");
-    })
-    .join("\n\n");
+  const sourceText = formatRetrievedContext(retrieval.documents);
   const response = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
     headers: {
@@ -161,7 +129,7 @@ async function generateLesson(
         {
           role: "system",
           content:
-            "أنت مخطط درس عربي دقيق لمنصة تعليمية جزائرية. ابنِ شرح درس «قوانين نيوتن والحركة» من المصادر التي أرسلها المستخدم فقط. لا تستبدل عنوان الدرس بعنوان آخر ولا تخترع معلومات خارج المصادر. أعد JSON فقط. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية. اجعل العناصر قصيرة، وكل عنصر يمثل خطوة واضحة في التعلم. أضف تمثيلًا بيانيًا رقميًا عندما يسمح المفهوم بذلك، وإلا أعد graph.type = none.",
+            "أنت مخطط درس عربي دقيق لمنصة تعليمية جزائرية. استخدم عقد المتجه المرفقة فقط؛ لا تضف أي معلومة من ذاكرتك أو من منهج خارجي. كل شرح ومثال ورسم وخطوة حل يجب أن يكون اقتباسًا أو إعادة صياغة أمينة لعقدة متجه، واربطه بمعرّف العقدة في sourceNodeIds. إذا لم تدعم العقدة معلومة، احذفها. أعد JSON فقط. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية. اجعل العناصر قصيرة، وكل عنصر يمثل خطوة واضحة في التعلم. أضف تمثيلًا بيانيًا رقميًا فقط عندما تسمح به البيانات المسترجعة، وإلا أعد graph.type = none.",
         },
         {
           role: "user",
@@ -170,9 +138,9 @@ async function generateLesson(
             `مستوى الطالب: ${level || "غير محدد"}`,
             `العنصر الحالي: ${activeConcept || "البداية"}`,
             `ملخص بنك الأخطاء: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
-            "المصادر التعليمية:",
-            sourceText || "لم تصل مصادر مفهرسة.",
-            'أعد الشكل التالي حرفيًا: {"lessonTitle":"عنوان من المصادر","objective":"هدف قصير","elements":[{"id":"definition","title":"...","kind":"definition","summary":"..."},{"id":"example","title":"...","kind":"example","summary":"..."},{"id":"graph","title":"...","kind":"graph","summary":"..."},{"id":"practice","title":"...","kind":"practice","summary":"..."},{"id":"recap","title":"...","kind":"recap","summary":"..."}],"explanation":"شرح عربي قصير","highlight":"عبارة مهمة من الشرح","graph":{"type":"line","title":"عنوان الرسم","xLabel":"المحور الأفقي","yLabel":"المحور العمودي","points":[{"x":0,"y":0,"label":"..."}]},"prompt":"سؤال تفاعلي قصير","sourceDocuments":[{"title":"...","source":"...","page":1}]}',
+            "عقد المتجه المسترجعة من ChromaDB:",
+            sourceText,
+            'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","objective":"هدف قصير","elements":[{"id":"definition","title":"...","kind":"definition","summary":"..."},{"id":"example","title":"...","kind":"example","summary":"..."},{"id":"graph","title":"...","kind":"graph","summary":"..."},{"id":"practice","title":"...","kind":"practice","summary":"..."},{"id":"recap","title":"...","kind":"recap","summary":"..."}],"explanation":"شرح عربي قصير","highlight":"عبارة مهمة من الشرح","graph":{"type":"line","title":"عنوان الرسم","xLabel":"المحور الأفقي","yLabel":"المحور العمودي","points":[{"x":0,"y":0,"label":"..."}]},"prompt":"سؤال تفاعلي قصير","sourceNodeIds":["node-id"]}',
           ].join("\n"),
         },
       ],
@@ -183,7 +151,11 @@ async function generateLesson(
   const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const content = payload.choices?.[0]?.message?.content;
   if (!content) throw new Error("Lesson generator returned no content");
-  return extractGeneratedLesson(content);
+  return {
+    ...extractGeneratedLesson(content),
+    sourceDocuments: sourceDocumentsFrom(retrieval.documents),
+    grounding: retrieval.grounding,
+  };
 }
 
 async function generateExercise(
@@ -191,22 +163,11 @@ async function generateExercise(
   level: string,
   activeConcept: string,
   attemptContext: string,
-  documents: KnowledgeDocument[],
+  retrieval: RetrievalContext,
 ): Promise<GeneratedExercise> {
   const key = process.env.DEEPSEEK_API_KEY;
   if (!key) throw new Error("DEEPSEEK_API_KEY is not configured");
-  if (!documents.length) throw new Error("No indexed knowledge sources found");
-  const sourceText = documents
-    .map((item, index) => {
-      const metadata = item.metadata ?? {};
-      return [
-        `المصدر ${index + 1}: ${metadata.lesson || metadata.unit || "درس"}`,
-        `المادة: ${metadata.subject || "الفيزياء"}`,
-        `الملف: ${metadata.source_file || "غير محدد"}، الصفحة: ${metadata.source_page || 0}`,
-        `المحتوى: ${(item.document || "").slice(0, 2200)}`,
-      ].join("\n");
-    })
-    .join("\n\n");
+  const sourceText = formatRetrievedContext(retrieval.documents);
   const response = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
     headers: {
@@ -221,7 +182,7 @@ async function generateExercise(
         {
           role: "system",
           content:
-            "أنت مولّد تمارين عربي لمنصة توجيه. أنشئ تمرينًا واحدًا قابلًا للحل من درس «قوانين نيوتن والحركة» اعتمادًا على المصادر المرفقة فقط. لا تخترع قانونًا أو موضوعًا غير موجود في المصادر. أعد JSON فقط. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية. اجعل التمرين مناسبًا لمستوى الطالب، واكتب الإجابة والحل خطوة خطوة.",
+            "أنت وكيل تمارين عربي لمنصة توجيه. أنشئ تمرينًا واحدًا قابلًا للحل اعتمادًا على عقد المتجه المرفقة فقط وعلى سجل الأخطاء المرفق لتحديد المستوى. لا تخترع قانونًا أو رقمًا أو موضوعًا غير موجود في العقد. يجب أن تكون الإجابة والحل خطوة خطوة ومربوطين بمعرّفات العقد في sourceNodeIds. أعد JSON فقط. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.",
         },
         {
           role: "user",
@@ -230,9 +191,9 @@ async function generateExercise(
             `مستوى الطالب: ${level || "غير محدد"}`,
             `المفهوم الحالي: ${activeConcept || "قوانين نيوتن والحركة"}`,
             `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
-            "المصادر التعليمية من قاعدة المعرفة:",
+            "عقد المتجه المسترجعة من ChromaDB:",
             sourceText,
-            'أعد الشكل التالي حرفيًا: {"lessonTitle":"قوانين نيوتن والحركة","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceDocuments":[{"title":"...","source":"...","page":1}]}',
+            'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
           ].join("\n"),
         },
       ],
@@ -256,14 +217,6 @@ async function generateExercise(
   ) {
     throw new Error("Exercise generator returned an incomplete exercise");
   }
-  const generatedSources = Array.isArray(parsed.sourceDocuments)
-    ? parsed.sourceDocuments.filter((source): source is SourceDocument => (
-      Boolean(source) &&
-      typeof source.title === "string" &&
-      typeof source.source === "string" &&
-      typeof source.page === "number"
-    )).slice(0, 5)
-    : [];
   return {
     status: "generated",
     lessonTitle: "قوانين نيوتن والحركة",
@@ -272,7 +225,8 @@ async function generateExercise(
     answer: parsed.answer,
     hint: parsed.hint,
     solution: parsed.solution,
-    sourceDocuments: generatedSources.length ? generatedSources : sourceDocumentsFrom(documents),
+    sourceDocuments: sourceDocumentsFrom(retrieval.documents),
+    grounding: retrieval.grounding,
   };
 }
 
@@ -289,7 +243,7 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     return;
   }
   try {
-    const payload = await queryKnowledge(
+    const retrieval = await retrieveGroundedKnowledge(
       [lesson, activeConcept, attemptContext].filter((value): value is string => Boolean(value)).join(" "),
     );
     const generated = await generateLesson(
@@ -297,15 +251,14 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
       typeof level === "string" ? level : "",
       typeof activeConcept === "string" ? activeConcept : "",
       typeof attemptContext === "string" ? attemptContext : "",
-      payload.results ?? [],
+      retrieval,
     );
-    const documents = sourceDocumentsFrom(payload.results ?? []);
-    res.json({ ...generated, sourceDocuments: generated.sourceDocuments.length ? generated.sourceDocuments : documents });
+    res.json(generated);
   } catch (error) {
     req.log.error({ error }, "Lesson generation failed");
-    res.status(502).json({
-      error: "lesson_generation_failed",
-      message: "تعذر توليد الدرس من المستندات الآن. تحقق من اتصال المعرفة ثم حاول مرة أخرى.",
+    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
+      error: error instanceof KnowledgeGroundingError ? error.code : "lesson_generation_failed",
+      message: "لا يمكن توليد الدرس قبل نجاح استرجاع عقد المعرفة من ChromaDB.",
     });
   }
 });
@@ -323,22 +276,32 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     return;
   }
   try {
-    const payload = await queryKnowledge(
-      [lesson, activeConcept, "تمارين قوانين نيوتن والحركة"].filter((value): value is string => Boolean(value)).join(" "),
+    const userId = getUserId(req);
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const errorBank = await listErrorBank(userId);
+    const historicalErrors = errorBank.errors
+      .slice(0, 12)
+      .map((error) => `${error.concept_title}: ${error.error_tag}`)
+      .join(" | ");
+    const retrieval = await retrieveGroundedKnowledge(
+      [lesson, activeConcept, historicalErrors, "تمارين"].filter((value): value is string => Boolean(value)).join(" "),
     );
     const generated = await generateExercise(
       lesson,
       typeof level === "string" ? level : "",
       typeof activeConcept === "string" ? activeConcept : "",
-      typeof attemptContext === "string" ? attemptContext : "",
-      payload.results ?? [],
+      [typeof attemptContext === "string" ? attemptContext : "", historicalErrors].filter(Boolean).join(" | "),
+      retrieval,
     );
     res.json(generated);
   } catch (error) {
     req.log.error({ error }, "Exercise generation failed");
-    res.status(502).json({
-      error: "exercise_generation_failed",
-      message: "تعذر توليد تمرين من قاعدة المعرفة الآن. حاول مرة أخرى بعد لحظات.",
+    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
+      error: error instanceof KnowledgeGroundingError ? error.code : "exercise_generation_failed",
+      message: "لا يمكن توليد التمرين قبل نجاح استرجاع عقد المعرفة وسجل الأخطاء.",
     });
   }
 });

@@ -24,10 +24,12 @@ import type {
   ErrorBankResponse,
   ExamMode,
   GetExamModeParams,
+  GetKnowledgeStatus503,
   HealthStatus,
   KnowledgeCard,
   KnowledgeQueryInput,
   KnowledgeQueryResponse,
+  KnowledgeStatus,
   LearningAttemptInput,
   LearningAttemptResponse,
   LessonCompletionInput,
@@ -827,6 +829,83 @@ export function useListKnowledge<TData = Awaited<ReturnType<typeof listKnowledge
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListKnowledgeQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetKnowledgeStatusUrl = () => {
+
+
+
+
+  return `/api/knowledge/status`
+}
+
+/**
+ * @summary Check whether the ChromaDB knowledge collection is ready
+ */
+export const getKnowledgeStatus = async ( options?: Parameters<typeof customFetch>[1]): Promise<KnowledgeStatus> => {
+
+  return customFetch<KnowledgeStatus>(getGetKnowledgeStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetKnowledgeStatusQueryKey = () => {
+    return [
+    `/api/knowledge/status`
+    ] as const;
+    }
+
+
+export const getGetKnowledgeStatusQueryOptions = <TData = Awaited<ReturnType<typeof getKnowledgeStatus>>, TError = ErrorType<GetKnowledgeStatus503>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetKnowledgeStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getKnowledgeStatus>>> = ({ signal }) => getKnowledgeStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetKnowledgeStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getKnowledgeStatus>>>
+export type GetKnowledgeStatusQueryError = ErrorType<GetKnowledgeStatus503>
+
+
+/**
+ * @summary Check whether the ChromaDB knowledge collection is ready
+ */
+
+export function useGetKnowledgeStatus<TData = Awaited<ReturnType<typeof getKnowledgeStatus>>, TError = ErrorType<GetKnowledgeStatus503>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getKnowledgeStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetKnowledgeStatusQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

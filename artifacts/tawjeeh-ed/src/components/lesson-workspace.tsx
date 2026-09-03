@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3,
   BookOpen,
@@ -109,6 +109,23 @@ type GeneratedLesson = {
   };
   prompt: string;
   concept: LessonSectionId;
+};
+
+type GeneratedExercise = {
+  status: 'generated';
+  lessonTitle: string;
+  title: string;
+  prompt: string;
+  answer: string;
+  hint: string;
+  solution: string;
+  sourceDocuments: { title: string; source: string; page: number }[];
+  grounding: {
+    status: 'ready';
+    query: string;
+    retrievedNodeIds: string[];
+    sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
+  };
 };
 
 type AttemptBankItem = AttemptAnalysis & {
@@ -491,7 +508,7 @@ export function LessonWorkspace() {
   const [analysisState, setAnalysisState] = useState<'idle' | 'analyzing' | 'ready' | 'error'>('idle');
   const [analysisError, setAnalysisError] = useState('');
   const [attemptBank, setAttemptBank] = useState<AttemptBankItem[]>(readAttemptBank);
-  const [generatedExercise, setGeneratedExercise] = useState('');
+  const [generatedExercise, setGeneratedExercise] = useState<GeneratedExercise | null>(null);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
   const [lessonGenerationState, setLessonGenerationState] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
   const [lessonGenerationError, setLessonGenerationError] = useState('');
@@ -511,13 +528,27 @@ export function LessonWorkspace() {
   const knowledgeParams = useMemo(() => ({ subject: 'العلوم الفيزيائية', curriculum_year: '3AS' }), []);
   const knowledgeQuery = useListKnowledge(knowledgeParams, { query: { queryKey: getListKnowledgeQueryKey(knowledgeParams), staleTime: 5 * 60 * 1000 } });
   const knowledgeCards = useMemo(() => (knowledgeQuery.data as KnowledgeCard[] | undefined) ?? [], [knowledgeQuery.data]);
+  const knowledgeStatusQuery = useQuery({
+    queryKey: ['knowledge-status'],
+    queryFn: async () => {
+      const response = await fetch('/api/knowledge/status', { credentials: 'include' });
+      const payload = await response.json() as { status?: string; indexedNodes?: number; message?: string };
+      if (!response.ok) throw new Error(payload.message || 'تعذر التحقق من اتصال قاعدة المعرفة');
+      return payload;
+    },
+    staleTime: 60_000,
+    retry: 1,
+  });
+  const ragReady = knowledgeStatusQuery.data?.status === 'ready' && Number(knowledgeStatusQuery.data.indexedNodes) > 0;
   const activeSection = useMemo(() => lessonSections.find((section) => section.id === session.activeConcept) ?? lessonSections[0], [session.activeConcept]);
   const activeSource = useMemo(() => sourceForSection(activeSection, knowledgeCards), [activeSection, knowledgeCards]);
   const activeExamples = exampleDetails[activeSection.id];
   const displayedTitle = generatedLesson?.lessonTitle ?? activeSection.title;
   const sourceExcerpt = activeSource?.summary?.replace(/\s+/g, ' ').trim().slice(0, 520) ?? '';
-  const displayedExplanation = generatedLesson?.explanation ?? (sourceExcerpt || activeSection.explanation);
-  const displayedHighlight = generatedLesson?.highlight || activeSection.highlight;
+  const displayedExplanation = ragReady
+    ? generatedLesson?.explanation ?? sourceExcerpt
+    : 'تتصل مساحة الدرس بقاعدة المعرفة قبل عرض أي شرح. انتظري اكتمال اتصال RAG.';
+  const displayedHighlight = ragReady ? generatedLesson?.highlight || activeSection.highlight : 'اتصال قاعدة المعرفة';
   const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
   const totalExamples = lessonSections.reduce((total, section) => total + exampleDetails[section.id].length, 0);
   const totalCompleted = lessonSections.reduce((total, section) => total + exampleDetails[section.id].filter((example) => session.gradedExamples[example.id] === 'correct').length, 0);
@@ -528,10 +559,10 @@ export function LessonWorkspace() {
   const evaluationBlocker = getEvaluationBlocker(evaluationPlan, progress, session.startedAt);
   const foundationExpired = evaluationDay > 10;
   const phase4Active = Boolean(session.concludedAt) || foundationExpired || session.activeAgent === 'dalil-exercises';
-  const agentsAvailable = knowledgeQuery.isSuccess;
-  const handoffComplete = phase4Active || agentsAvailable;
+  const agentsAvailable = ragReady;
+  const handoffComplete = (phase4Active || agentsAvailable) && ragReady;
   const faheemActive = !phase4Active && session.activeAgent === 'faheem';
-  const lessonToolsActive = true;
+  const lessonToolsActive = ragReady;
   const activePartnerDetails = useMemo(() => {
     const details = partnerDetails[activePartner];
     if (activePartner === 'dalil' && examMode?.reduce_passive_explanation) {
@@ -568,6 +599,10 @@ export function LessonWorkspace() {
 
   const concludeSession = (retry = false) => {
     if (retry && !session.concludedAt) return;
+    if (!ragReady) {
+      setSummarySaveState('error');
+      return;
+    }
     if (!retry && (!evaluationComplete || session.concludedAt || summarySaveState !== 'idle')) return;
     const completedAt = new Date().toISOString();
     const localSummary: LocalSummary = {
@@ -575,14 +610,14 @@ export function LessonWorkspace() {
       lessonId,
       lessonTitle: 'قوانين نيوتن والحركة',
       subject: 'العلوم الفيزيائية',
-      summary: `خلاصة جلسة فهيم: ثبّتِ ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعتِ الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
+      summary: `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّتِ ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعتِ الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
       concepts: lessonSections.map((section) => {
         const examples = exampleDetails[section.id];
         const mastered = examples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
         return {
           id: section.id,
           title: section.title,
-          summary: section.explanation,
+          summary: sourceForSection(section, knowledgeCards)?.summary || 'لا يوجد مقتطف مسترجع لهذا المفهوم بعد.',
           mastery: Math.round((mastered / examples.length) * 100),
         };
       }),
@@ -745,6 +780,11 @@ export function LessonWorkspace() {
   };
 
   const generateLesson = async () => {
+    if (!ragReady) {
+      setLessonGenerationState('error');
+      setLessonGenerationError('لا يمكن بدء الدرس قبل اتصال RAG ووجود عقد معرفة مفهرسة.');
+      return;
+    }
     setLessonGenerationState('generating');
     setLessonGenerationError('');
     try {
@@ -780,9 +820,9 @@ export function LessonWorkspace() {
   };
 
   useEffect(() => {
-    if (!knowledgeCards.length || lessonGenerationState !== 'idle') return;
+    if (!ragReady || lessonGenerationState !== 'idle') return;
     void generateLesson();
-  }, [activeSection.id, knowledgeCards.length]);
+  }, [activeSection.id, ragReady]);
 
   useEffect(() => {
     if (!agentsAvailable) return;
@@ -798,7 +838,7 @@ export function LessonWorkspace() {
   }, [agentsAvailable, activeSource]);
 
   const askFahim = async (text: string) => {
-    if (!faheemActive) return;
+    if (!faheemActive || !ragReady) return;
     const cleanText = text.trim();
     if (!cleanText) return;
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: 'user', text: cleanText }]);
@@ -852,6 +892,7 @@ export function LessonWorkspace() {
       return;
     }
     const cleanText = text.trim();
+    if (!ragReady) return;
     if (!cleanText || queryKnowledgeMutation.isPending) return;
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: 'user', text: cleanText }]);
     setQuestion('');
@@ -865,32 +906,45 @@ export function LessonWorkspace() {
         },
       });
       const source = response.results?.[0];
-       const targetedConcept = examMode?.error_concepts[0]?.concept_title;
+      if (activePartner === 'dalil' && !source) {
+        throw new Error('لم تُسترجع عقدة معرفة مطابقة؛ لم يُعرض شرح غير مؤسس.');
+      }
+      const targetedConcept = examMode?.error_concepts[0]?.concept_title;
        const sourceContext = source
          ? `مرجع من «${source.title}» (${source.source} · ص ${source.page}): ${source.summary.slice(0, 360)}`
-         : sourceExcerpt
-           ? `مرجع الدرس الحالي: ${sourceExcerpt}`
-           : '';
-       const exercisePrompt = analysis?.nextExercise
-         ?? (targetedConcept
-           ? `تمرين مكدس أخطاء في «${targetedConcept}»: اكتبي المعطيات، حددي العلاقة، ثم تحققي من الوحدة.`
-           : `تمرين تطبيقي في «${activeSection.title}»: ${activeExamples[0]?.detail ?? 'اكتبي المعطيات أولًا، ثم حددي العلاقة المناسبة.'}`);
-      const reply = activePartner === 'dalil'
-        ? source
-            ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source.title}»`}: ${source.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقلي إلى التطبيق.' : 'ابدئي من هذه الفكرة، ثم قارنيها بما يظهر على اللوح.'}`
-           : `${intensiveExamMode ? 'خلاصة سريعة' : 'لنثبتها بهدوء'}: ${displayedExplanation} ${intensiveExamMode ? 'اكتبي خطوة الحل التالية.' : 'هل تريدين ربطها بالمثال أم بالرسم؟'}`
-         : `جهزت لك تدريبًا قصيرًا على «${activeSection.title}». ${sourceContext} افتحي مساحة الحل، واكتبي خطوتك الأولى وسأراجعها معك.`;
+        : `مرجع الدرس الحالي: ${sourceExcerpt}`;
+      let reply = activePartner === 'dalil'
+        ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source?.title}»`}: ${source?.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقلي إلى التطبيق.' : 'ابدئي من هذه الفكرة، ثم قارنيها بما يظهر على اللوح.'}`
+        : `جهزت لك تدريبًا مرتبطًا بالعقد المسترجعة.`;
+      if (activePartner === 'exercises') {
+        const response = await fetch('/api/lesson/exercise', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            lesson: 'قوانين نيوتن والحركة',
+            level: '3AS',
+            activeConcept: activeSection.title,
+            attemptContext: analysis
+              ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`
+              : targetedConcept || cleanText,
+          }),
+        });
+        const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
+        if (!response.ok || payload.status !== 'generated' || !payload.prompt || payload.grounding?.status !== 'ready') {
+          throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
+        }
+        setGeneratedExercise(payload as GeneratedExercise);
+        setExerciseAnswer('');
+        setExerciseFeedback(null);
+        setShowExerciseSolution(false);
+        reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من العقد المسترجعة. ابدئي بكتابة المعطيات والخطوة الأولى.`;
+      }
       setMessages((current) => [...current, {
         id: `partner-answer-${Date.now()}`,
         role: 'assistant',
         text: reply,
       }]);
-      if (activePartner === 'exercises') {
-        setGeneratedExercise(exercisePrompt);
-        setExerciseAnswer('');
-        setExerciseFeedback(null);
-        setShowExerciseSolution(false);
-      }
     } catch {
       setMessages((current) => [...current, {
         id: `partner-answer-error-${Date.now()}`,
@@ -995,21 +1049,47 @@ export function LessonWorkspace() {
       completedExamples: current.completedExamples.filter((id) => !id.startsWith(`${activeSection.id}-`)),
       gradedExamples: Object.fromEntries(Object.entries(current.gradedExamples).filter(([id]) => !id.startsWith(`${activeSection.id}-`))),
     }));
-    setGeneratedExercise('');
+    setGeneratedExercise(null);
     setMessages((current) => [...current, { id: `recovery-${Date.now()}`, role: 'assistant', text: `ثبتنا آخر خطوة صحيحة: «${analysis.lastCorrectStep}». سنبني هذا المفهوم من جديد.` }]);
   };
 
-  const buildExercise = () => {
-    if (!analysis) return;
-    const density = examMode?.exercise_density ?? 1;
-    const exerciseSet = Array.from({ length: density }, (_, index) => (
-      `${index + 1}. ${analysis.nextExercise}${density > 1 ? ` — غيّري المعطى أو التمثيل في المحاولة ${index + 1}، ثم تحققي من الوحدة.` : ''}`
-    ));
-    setGeneratedExercise(exerciseSet.join('\n\n'));
-    setExerciseAnswer('');
-    setExerciseFeedback(null);
-    setShowExerciseSolution(false);
-    setMessages((current) => [...current, { id: `exercise-${Date.now()}`, role: 'assistant', text: density > 1 ? `بنيت لك ${density} تمارين متدرجة على نفس موضع الخطأ. ابدئي بالأولى ثم أرسلي خطوتك.` : 'بنيت لك تمرينًا على نفس موضع الخطأ. اكتبي أول خطوة فقط ثم أرسليها لي.' }]);
+  const buildExercise = async () => {
+    if (!analysis || !ragReady) return;
+    setIsThinking(true);
+    try {
+      const response = await fetch('/api/lesson/exercise', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          lesson: 'قوانين نيوتن والحركة',
+          level: '3AS',
+          activeConcept: activeSection.title,
+          attemptContext: `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`,
+        }),
+      });
+      const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
+      if (!response.ok || payload.status !== 'generated' || !payload.prompt || payload.grounding?.status !== 'ready') {
+        throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
+      }
+      setGeneratedExercise(payload as GeneratedExercise);
+      setExerciseAnswer('');
+      setExerciseFeedback(null);
+      setShowExerciseSolution(false);
+      setMessages((current) => [...current, {
+        id: `exercise-${Date.now()}`,
+        role: 'assistant',
+        text: 'بنيت لك تمرينًا يعالج موضع الخطأ من عقد المعرفة وسجل محاولاتك. ابدئي بكتابة المعطيات والخطوة الأولى.',
+      }]);
+    } catch (error) {
+      setMessages((current) => [...current, {
+        id: `exercise-error-${Date.now()}`,
+        role: 'assistant',
+        text: error instanceof Error ? error.message : 'تعذر تجهيز تمرين مؤسس على المعرفة.',
+      }]);
+    } finally {
+      setIsThinking(false);
+    }
   };
 
   const reviewGeneratedExercise = () => {
@@ -1118,7 +1198,7 @@ export function LessonWorkspace() {
           </div>
           {!session.concludedAt && (
             <div className="lesson-conclude-wrap">
-              <button type="button" className="lesson-conclude-button" onClick={() => concludeSession()} disabled={!evaluationComplete} data-testid="button-conclude-lesson">
+              <button type="button" className="lesson-conclude-button" onClick={() => concludeSession()} disabled={!evaluationComplete || !ragReady} data-testid="button-conclude-lesson">
               <CheckCircle2 size={14} /> إنهاء وحفظ الملخص
               </button>
               {evaluationBlocker && <span className="lesson-evaluation-blocker">{evaluationBlocker}</span>}
@@ -1126,6 +1206,20 @@ export function LessonWorkspace() {
           )}
         </div>
       </header>
+
+      <div className={`lesson-rag-status ${ragReady ? 'is-ready' : 'is-error'}`} role="status" data-testid="status-rag-readiness">
+        <span className="lesson-status-dot" aria-hidden="true" />
+        <strong>{ragReady ? 'RAG متصل قبل بدء الدرس' : 'ننتظر اتصال RAG قبل عرض الدرس'}</strong>
+        <span>
+          {ragReady
+            ? `${knowledgeStatusQuery.data?.indexedNodes ?? 0} عقدة متجهية جاهزة لفهيم ودليل والتمارين.`
+            : knowledgeStatusQuery.isLoading
+              ? 'يجري التحقق من خدمة ChromaDB...'
+              : knowledgeStatusQuery.error instanceof Error
+                ? 'خدمة المعرفة غير متاحة؛ لم نعرض محتوى مولّدًا.'
+                : 'لا توجد عقد متجهية مفهرسة؛ شغّل فهرسة المصادر ثم أعد المحاولة.'}
+        </span>
+      </div>
 
        <div className={`lesson-evaluation-banner ${phase4Active ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
         <div>
@@ -1475,7 +1569,18 @@ export function LessonWorkspace() {
                 );
               })}
             </div>
-            {generatedExercise && <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise"><span>تمرين يعالج نفس الخطأ</span><p>{generatedExercise}</p></div>}
+           {generatedExercise && (
+             <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
+               <span>تمرين يعالج نفس الخطأ · مؤسس على RAG</span>
+               <h4>{generatedExercise.title}</h4>
+               <p>{generatedExercise.prompt}</p>
+               <small>العقد المستخدمة: {generatedExercise.grounding.retrievedNodeIds.slice(0, 3).join('، ')}</small>
+               <button type="button" onClick={() => setShowExerciseSolution((visible) => !visible)} data-testid="button-toggle-generated-solution">
+                 {showExerciseSolution ? 'إخفاء الحل' : 'إظهار الحل خطوة خطوة'}
+               </button>
+               {showExerciseSolution && <p className="lesson-generated-solution">{generatedExercise.solution}</p>}
+             </div>
+           )}
           </div>
           <div className="lesson-note-card">
             <div className="lesson-note-header"><strong><Save size={13} /> ملاحظتك</strong><span>{noteStatus}</span></div>

@@ -1694,6 +1694,23 @@ button { cursor: pointer; }
 .lesson-conclude-button:hover { transform: translateY(-1px); border-color: var(--lesson-teal); background: #e0f1e9; }
 .lesson-conclude-button:disabled { cursor: not-allowed; opacity: .52; transform: none; }
 .lesson-evaluation-blocker { max-width: 280px; color: #987136; font-size: 8px; font-weight: 750; line-height: 1.6; text-align: right; }
+.lesson-rag-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 3px 10px;
+  padding: 9px 12px;
+  border: 1px solid #cfe3d9;
+  border-radius: 12px;
+  color: var(--lesson-teal);
+  background: #eff8f1;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.lesson-rag-status .lesson-status-dot { flex: 0 0 auto; }
+.lesson-rag-status strong { font-weight: 900; }
+.lesson-rag-status span:last-child { color: var(--lesson-muted); font-weight: 650; }
+.lesson-rag-status.is-error { border-color: #eed7bd; color: #a56b48; background: #fff8ef; }
 .lesson-evaluation-banner { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 3px 14px; padding: 13px 15px; border: 1px solid #cfe3d9; border-radius: 15px; background: linear-gradient(105deg, #eff8f1, #fffaf0); }
 .lesson-evaluation-banner.is-handed-off { border-color: #d7c78f; background: linear-gradient(105deg, #fff8de, #f8f1df); }
 .lesson-exam-mode-strip { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 3px 14px; padding: 12px 15px; border: 1px solid #d8c9ee; border-radius: 15px; background: linear-gradient(105deg, #fbf8ff, #fff); }
