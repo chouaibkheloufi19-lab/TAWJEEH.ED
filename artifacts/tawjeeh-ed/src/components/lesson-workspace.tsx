@@ -517,12 +517,14 @@ export function LessonWorkspace() {
   };
 
   useEffect(() => {
-    if (evaluationComplete && !session.concludedAt && summarySaveState === 'idle') concludeSession();
-  }, [evaluationComplete, session.concludedAt, summarySaveState]);
-
-  useEffect(() => {
-    window.localStorage.setItem(sessionKey, JSON.stringify(session));
-    setNoteStatus('محفوظ محليًا');
+    try {
+      // Keep the working image in memory for the active session, but never
+      // push multi-megabyte image bytes into localStorage.
+      window.localStorage.setItem(sessionKey, JSON.stringify({ ...session, attachment: null }));
+      setNoteStatus('محفوظ محليًا');
+    } catch {
+      setNoteStatus('تعذر الحفظ المحلي');
+    }
   }, [session]);
 
   useEffect(() => {
@@ -754,6 +756,7 @@ export function LessonWorkspace() {
   };
 
   const selectBoardRegion = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    pauseNarration();
     const point = getCanvasPoint(event);
     const region = hotspots.find((item) => {
       const left = Number.parseFloat(item.left) / 100;
@@ -795,13 +798,17 @@ export function LessonWorkspace() {
 
   const toggleNarration = () => {
     if (isPlaying) {
-      owlVideoRef.current?.pause();
-      window.speechSynthesis?.cancel();
-      setIsPlaying(false);
+      pauseNarration();
       return;
     }
     setNarrationProgress(0);
     setIsPlaying(true);
+  };
+
+  const pauseNarration = () => {
+    owlVideoRef.current?.pause();
+    window.speechSynthesis?.cancel();
+    setIsPlaying(false);
   };
 
   return (
@@ -839,10 +846,10 @@ export function LessonWorkspace() {
           <strong>{evaluationPlan.title}</strong>
           <p>{evaluationPlan.description}</p>
         </div>
-        <div className="lesson-evaluation-meta">
+         <div className="lesson-evaluation-meta">
           <span>{evaluationPlan.windowLabel}</span>
           <strong>{session.concludedAt ? 'فهيم غير مفعّل' : evaluationPlan.durationLabel}</strong>
-          <small>{session.concludedAt ? 'دليل + وكيل التمارين يتابعان من هنا' : 'وقت الجلسة مفتوح · البداية مثبتة'}</small>
+           <small>{session.concludedAt ? 'دليل + وكيل التمارين يتابعان من هنا' : `بدأت ${formatSessionTime(session.startedAt)} · الوقت مفتوح`}</small>
         </div>
       </div>
 
@@ -937,7 +944,7 @@ export function LessonWorkspace() {
             <div>
                <span className="lesson-panel-kicker"><Volume2 size={13} /> سبورة فهيم الذكية</span>
                <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
-              <p>{activeSection.duration} · {activeSection.label}</p>
+               <p>إيقاع مقترح · {activeSection.duration} · {activeSection.label}</p>
             </div>
              <div className="lesson-teaching-actions">
                <button
@@ -951,7 +958,22 @@ export function LessonWorkspace() {
                  {lessonGenerationState === 'generating' ? 'يُحضّر...' : generatedLesson ? 'تحديث الشرح' : 'ولّد شرحًا ذكيًا'}
                </button>
               <div className={`lesson-board-owl ${isPlaying ? 'is-speaking' : ''}`}>
-                <video ref={owlVideoRef} src={owlThinkingVideo} muted playsInline loop poster={owlLogoPath} aria-label="فيديو فهيم أثناء الشرح" data-testid="video-fahim-blackboard" />
+                 <video
+                   ref={owlVideoRef}
+                   src={owlThinkingVideo}
+                   muted
+                   playsInline
+                   loop
+                   poster={owlLogoPath}
+                   onTimeUpdate={(event) => {
+                     const video = event.currentTarget;
+                     if (video.duration > 0 && Number.isFinite(video.duration)) {
+                       setNarrationProgress((video.currentTime / video.duration) * 100);
+                     }
+                   }}
+                   aria-label="فيديو فهيم أثناء الشرح"
+                   data-testid="video-fahim-blackboard"
+                 />
                 <span>فيديو فهيم</span>
               </div>
              </div>
@@ -1008,9 +1030,9 @@ export function LessonWorkspace() {
                </div>
              </div>
            )}
-          <div className="lesson-explanation">
+           <div className="lesson-explanation">
             <span className="lesson-explanation-label">فكرة مركزيّة</span>
-             <p>{displayedExplanation.replace(`${displayedHighlight} `, '')} <button type="button" className={`lesson-highlight-part ${highlightedPart === displayedHighlight ? 'is-selected' : ''}`} onClick={() => setHighlightedPart(displayedHighlight)} aria-pressed={highlightedPart === displayedHighlight} data-testid="button-highlight-concept">{displayedHighlight}</button></p>
+             <p>{displayedExplanation.replace(`${displayedHighlight} `, '')} <button type="button" className={`lesson-highlight-part ${highlightedPart === displayedHighlight ? 'is-selected' : ''}`} onClick={() => { pauseNarration(); setHighlightedPart(displayedHighlight); }} aria-pressed={highlightedPart === displayedHighlight} data-testid="button-highlight-concept">{displayedHighlight}</button></p>
             {activeSource && <div className="lesson-source-line"><BookOpen size={13} /><span>{activeSource.title}</span><small>{activeSource.source} · ص {activeSource.page}</small></div>}
              <button type="button" className="lesson-ask-highlight" onClick={() => { if (highlightedPart) void askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`); }} disabled={!faheemActive || !highlightedPart} data-testid="button-ask-highlighted"><Highlighter size={13} /> اسألي عن الجزء المحدد</button>
           </div>
@@ -1032,7 +1054,7 @@ export function LessonWorkspace() {
                      type="button"
                      className={highlightedPart === region.label ? 'is-selected' : ''}
                      style={{ left: region.left, top: region.top, width: region.width }}
-                      onClick={() => { if (!faheemActive) return; setBoardMode('highlight'); setHighlightedPart(region.label); }}
+                       onClick={() => { if (!faheemActive) return; pauseNarration(); setBoardMode('highlight'); setHighlightedPart(region.label); }}
                       disabled={!faheemActive}
                      aria-pressed={highlightedPart === region.label}
                      aria-label={`تحديد ${region.label}`}
@@ -1065,7 +1087,7 @@ export function LessonWorkspace() {
           <div className="lesson-note-card">
             <div className="lesson-note-header"><strong><Save size={13} /> ملاحظتك</strong><span>{noteStatus}</span></div>
             <textarea value={session.note} onChange={(event) => { setNoteStatus('يُحفظ الآن'); setSession((current) => ({ ...current, note: event.target.value })); }} placeholder="اكتبي علاقة تريدين تذكرها..." aria-label="ملاحظة الدرس" data-testid="input-lesson-note" />
-            <button type="button" className="lesson-save-note" onClick={() => { window.localStorage.setItem(sessionKey, JSON.stringify(session)); setNoteStatus('حُفظت الملاحظة'); }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
+             <button type="button" className="lesson-save-note" onClick={() => { try { window.localStorage.setItem(sessionKey, JSON.stringify({ ...session, attachment: null })); setNoteStatus('حُفظت الملاحظة'); } catch { setNoteStatus('تعذر حفظ الملاحظة'); } }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
               {(session.concludedAt || summarySaveState !== 'idle') && <div className="lesson-summary-status" role="status" data-testid="status-summary-bank">
                 <span>{summarySaveState === 'saved' ? 'حُفظ الملخص في ملفك وبنك الملخصات.' : summarySaveState === 'saving' ? 'نحفظ ملخص الجلسة في ملفك...' : summarySaveState === 'error' ? 'حُفظ محليًا، وتعذر مزامنة بنك الملخصات.' : 'سيُحفظ ملخص الجلسة تلقائيًا.'}</span>
                 {summarySaveState === 'error' && <button type="button" onClick={() => concludeSession(true)}>إعادة المزامنة</button>}

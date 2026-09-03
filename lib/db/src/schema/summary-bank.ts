@@ -21,7 +21,6 @@ export const summaryBankTable = pgTable("summary_bank", {
 });
 
 export const insertSummaryBankSchema = createInsertSchema(summaryBankTable).omit({
-  id: true,
   completedAt: true,
   createdAt: true,
 });

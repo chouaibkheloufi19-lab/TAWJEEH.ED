@@ -20,7 +20,6 @@ export const studyScheduleTable = pgTable("study_schedule", {
 });
 
 export const insertStudyScheduleSchema = createInsertSchema(studyScheduleTable).omit({
-  id: true,
   createdAt: true,
 });
 

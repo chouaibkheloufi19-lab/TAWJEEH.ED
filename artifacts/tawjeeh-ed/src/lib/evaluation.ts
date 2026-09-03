@@ -33,10 +33,10 @@ export function getEvaluationPlan(registrationAt: Date | string | null | undefin
       mode: 'fixed-foundation',
       activeAgent: 'faheem',
       title: 'تدارك للمكتسبات القبلية',
-      description: 'مرحلة تأسيس وتقييم ثابتة لعشرة أيام، يقودها فهيم خطوة خطوة قبل التسليم.',
-      durationLabel: '١٠ أيام ثابتة',
+      description: 'مسار تأسيسي لعشرة أيام، يقوده فهيم خطوة خطوة. تبدأ كل جلسة في وقتها وتبقى مفتوحة حتى يكتمل الفهم.',
+      durationLabel: 'مسار ١٠ أيام',
       durationDays: 10,
-      windowLabel: 'نافذة بداية السنة · ١ سبتمبر — ١٥ أكتوبر',
+      windowLabel: 'نافذة البداية · ١ سبتمبر — ١٥ أكتوبر',
     };
   }
 
@@ -58,26 +58,24 @@ export function getEvaluationDay(startedAt: string, now = new Date()) {
 }
 
 export function canCompleteEvaluation(
-  plan: EvaluationPlan,
+  _plan: EvaluationPlan,
   progress: number,
-  startedAt: string,
-  now = new Date(),
+  _startedAt: string,
+  _now = new Date(),
 ) {
   if (progress < 100) return false;
-  if (plan.mode === 'adaptive-accelerated') return true;
-  return getEvaluationDay(startedAt, now) >= (plan.durationDays ?? 10);
+  // The ten-day plan describes the learner's foundation roadmap, not a
+  // forced session duration. A learner can conclude as soon as the practical
+  // checks demonstrate mastery, regardless of how long the session remains open.
+  return true;
 }
 
 export function getEvaluationBlocker(
-  plan: EvaluationPlan,
+  _plan: EvaluationPlan,
   progress: number,
-  startedAt: string,
-  now = new Date(),
+  _startedAt: string,
+  _now = new Date(),
 ) {
   if (progress < 100) return 'أكملي عناصر التشخيص العملية أولًا.';
-  if (plan.mode === 'fixed-foundation') {
-    const day = getEvaluationDay(startedAt, now);
-    if (day < (plan.durationDays ?? 10)) return `هذه المرحلة ثابتة لعشرة أيام. ثبّتِ اليوم ${day}، ثم عودي في اليوم ١٠ لإتمام التسليم.`;
-  }
   return '';
 }

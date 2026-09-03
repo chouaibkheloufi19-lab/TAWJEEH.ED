@@ -15,7 +15,6 @@ export const learningAttemptsTable = pgTable("learning_attempts", {
 });
 
 export const insertLearningAttemptSchema = createInsertSchema(learningAttemptsTable).omit({
-  id: true,
   createdAt: true,
 });
 
