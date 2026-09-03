@@ -1,0 +1,92 @@
+warning: The `fitz` API is deprecated and will be removed in future. Use `import pymupdf` instead.
+MuPDF error: syntax error: cannot find ExtGState resource 'pgf@CA0.5'
+
+MuPDF error: syntax error: cannot find ExtGState resource 'pgf@ca0.5'
+
+MuPDF error: syntax error: cannot find ExtGState resource 'pgf@CA0.5'
+
+MuPDF error: syntax error: cannot find ExtGState resource 'pgf@ca0.5'
+
+Inspected 81 PDF files
+Inventory: .agents/outputs/pdf_inventory.json
+attached_assets/#بكالوريا_37_نهاية_بالحل_في_الدوال_المثل_1788340024736.pdf: 6 pages, image_pages=6, first_page_chars=0
+attached_assets/1_مجلة_الخليل_في_الدوال_العددية_الأستاذ_قويسم_خليل_1788339989210.pdf: 50 pages, image_pages=50, first_page_chars=0
+attached_assets/60_نهاية_مع_لحل_1788340024734.pdf: 9 pages, image_pages=9, first_page_chars=0
+attached_assets/BcZ63qCCMmK2VxOd4libmEZCK3EDsuGjlEAlyZlz_1788342118800.pdf: 5 pages, image_pages=5, first_page_chars=1719
+attached_assets/CamScanner_18-08-2026_11.50_1788341187962.pdf: 9 pages, image_pages=9, first_page_chars=0
+attached_assets/CamScanner_18-08-2026_11.54_1788341187963.pdf: 15 pages, image_pages=15, first_page_chars=0
+attached_assets/CamScanner_19-08-2026_11.17_1788341187961.pdf: 420 pages, image_pages=420, first_page_chars=0
+attached_assets/CamScanner_19-08-2026_12.42_1788341187964.pdf: 285 pages, image_pages=285, first_page_chars=0
+attached_assets/CamScanner_19-08-2026_14.10_1788341187964.pdf: 219 pages, image_pages=219, first_page_chars=0
+attached_assets/_⁨واجب_في_الاشتقاق⁩_1788340024739.pdf: 4 pages, image_pages=4, first_page_chars=1029
+attached_assets/dzexams-2as-mathematiques-1020872_1788341603126.pdf: 6 pages, image_pages=6, first_page_chars=15
+attached_assets/dzexams-2as-mathematiques-1239357_1788341603125.pdf: 7 pages, image_pages=7, first_page_chars=2776
+attached_assets/dzexams-2as-mathematiques-1281644_1788341603125.pdf: 7 pages, image_pages=5, first_page_chars=1500
+attached_assets/dzexams-2as-mathematiques-141833_1788341603124.pdf: 2 pages, image_pages=1, first_page_chars=2001
+attached_assets/dzexams-2as-mathematiques-142133_1788341603124.pdf: 2 pages, image_pages=0, first_page_chars=1252
+attached_assets/dzexams-2as-mathematiques-185407_1788341603123.pdf: 2 pages, image_pages=2, first_page_chars=1865
+attached_assets/dzexams-2as-mathematiques-185681_1788341603122.pdf: 3 pages, image_pages=0, first_page_chars=1469
+attached_assets/dzexams-2as-mathematiques-197621_1788341603122.pdf: 2 pages, image_pages=1, first_page_chars=2178
+attached_assets/dzexams-2as-mathematiques-200899_1788341603121.pdf: 2 pages, image_pages=0, first_page_chars=1304
+attached_assets/dzexams-2as-mathematiques-253605_1788341603132.pdf: 2 pages, image_pages=1, first_page_chars=1695
+attached_assets/dzexams-2as-mathematiques-343543_1788341603132.pdf: 4 pages, image_pages=1, first_page_chars=1272
+attached_assets/dzexams-2as-mathematiques-376520_1788341603131.pdf: 4 pages, image_pages=2, first_page_chars=1323
+attached_assets/dzexams-2as-mathematiques-376766_1788341603131.pdf: 2 pages, image_pages=2, first_page_chars=15
+attached_assets/dzexams-2as-mathematiques-410266_1788341603130.pdf: 2 pages, image_pages=2, first_page_chars=15
+attached_assets/dzexams-2as-mathematiques-458613_1788341603129.pdf: 2 pages, image_pages=2, first_page_chars=15
+attached_assets/dzexams-2as-mathematiques-499824_1788341603128.pdf: 2 pages, image_pages=2, first_page_chars=1795
+attached_assets/dzexams-2as-mathematiques-500437_1788341603127.pdf: 4 pages, image_pages=3, first_page_chars=1180
+attached_assets/dzexams-2as-mathematiques-951483_1788341603126.pdf: 5 pages, image_pages=5, first_page_chars=2883
+attached_assets/dzexams-2as-physique-107696_1788341786165.pdf: 2 pages, image_pages=0, first_page_chars=1799
+attached_assets/dzexams-docs-3as-902063_1788341568448.pdf: 2 pages, image_pages=2, first_page_chars=222
+attached_assets/dzexams-docs-3as-907425_1788341570428.pdf: 5 pages, image_pages=0, first_page_chars=1920
+attached_assets/eddirasa.com-اختبار-في-العلوم-الفيزيائية-الفصل-الثاني-السنة-ال_1788341786163.pdf: 2 pages, image_pages=2, first_page_chars=0
+attached_assets/eddirasa.com-اختبار-في-العلوم-الفيزيائية-الفصل-الثاني-السنة-ال_1788341786164.pdf: 1 pages, image_pages=1, first_page_chars=0
+attached_assets/eddirasa.com-الموضوع-رقم-56-اختبار-الفصل-الثاني-علوم-فيزيائية-_1788341786162.pdf: 6 pages, image_pages=1, first_page_chars=0
+attached_assets/eddirasa.com-الموضوع-رقم-57-اختبار-الفصل-الثاني-علوم-فيزيائية-_1788341786161.pdf: 3 pages, image_pages=3, first_page_chars=0
+attached_assets/eddirasa.com-الموضوع-رقم-58-اختبار-الفصل-الثاني-علوم-فيزيائية-_1788341786170.pdf: 5 pages, image_pages=5, first_page_chars=0
+attached_assets/eddirasa.com-الموضوع-رقم-59-اختبار-الفصل-الثاني-علوم-فيزيائية-_1788341786169.pdf: 3 pages, image_pages=1, first_page_chars=0
+attached_assets/eddirasa.com-الموضوع-رقم-60-اختبار-الفصل-الثاني-علوم-فيزيائية-_1788341786168.pdf: 5 pages, image_pages=4, first_page_chars=0
+attached_assets/eddirasa.com-الموضوع-رقم-61-اختبار-الفصل-الثاني-علوم-فيزيائية-_1788341786168.pdf: 6 pages, image_pages=5, first_page_chars=2621
+attached_assets/lim2as2027_1788340024738.pdf: 13 pages, image_pages=0, first_page_chars=937
+attached_assets/pdf_2026-07-22-13-41-39_1788342357034.pdf: 11 pages, image_pages=11, first_page_chars=0
+attached_assets/pdf_2026-07-22-15-39-37_1788342357035.pdf: 16 pages, image_pages=16, first_page_chars=0
+attached_assets/pdf_2026-07-22-18-08-08_1788342357034.pdf: 10 pages, image_pages=10, first_page_chars=0
+attached_assets/pdf_2026-07-22-20-32-02_1788342357033.pdf: 13 pages, image_pages=13, first_page_chars=0
+attached_assets/pdf_2026-08-08-12-12-21_1788342357037.pdf: 8 pages, image_pages=8, first_page_chars=0
+attached_assets/physics3as_moghni-unit01_(1)_1788341649962.pdf: 51 pages, image_pages=51, first_page_chars=0
+attached_assets/physics3as_moghni-unit01_1788341649961.pdf: 51 pages, image_pages=51, first_page_chars=0
+attached_assets/physics3as_moghni-unit02_1788341649961.pdf: 39 pages, image_pages=39, first_page_chars=0
+attached_assets/physics3as_moghni-unit03_1788341649960.pdf: 58 pages, image_pages=58, first_page_chars=0
+attached_assets/physics3as_moghni-unit04_1788341649958.pdf: 57 pages, image_pages=57, first_page_chars=0
+attached_assets/physics3as_moghni-unit05_1788341649963.pdf: 65 pages, image_pages=65, first_page_chars=0
+attached_assets/physics3as_moghni-unit06_1788341649962.pdf: 38 pages, image_pages=38, first_page_chars=0
+attached_assets/sy10D31pUO4VL75JDOB2by2UsxJs2n3r1xNUPGeL_1788342118797.pdf: 15 pages, image_pages=15, first_page_chars=0
+attached_assets/xXtPpVcchbM0NX5MjzweqBbcp0zzhgrJeyNhwDJZ_1788342118796.pdf: 16 pages, image_pages=16, first_page_chars=0
+attached_assets/أفكار_الدوال_1788339989211.pdf: 40 pages, image_pages=40, first_page_chars=7
+attached_assets/استنتاج_تمثيل_بياني_لدالة_انطلاقا_من_تمثيل_آخر_من_إعداد_الأ_1788340024738.pdf: 4 pages, image_pages=0, first_page_chars=1110
+attached_assets/التمرين_8_1788342118801.pdf: 1 pages, image_pages=1, first_page_chars=2120
+attached_assets/الدورة_التأسيسية_ملف_الحصة_07_1788342357036.pdf: 17 pages, image_pages=17, first_page_chars=0
+attached_assets/الدورة_التأسيسية_ملف_الحصة_08_1788342357036.pdf: 8 pages, image_pages=8, first_page_chars=0
+attached_assets/الدورة_التأسيسية_ملف_الحصة_5_1788342357032.pdf: 11 pages, image_pages=11, first_page_chars=0
+attached_assets/المحطة_الثانية_نحو_الامتياز_رياضيات_نافع_بكالوريا_2026_1788340024735.pdf: 45 pages, image_pages=33, first_page_chars=209
+attached_assets/برنامج-الرياضيات-شعبة-رياضيات-2023_1788341540601.pdf: 19 pages, image_pages=10, first_page_chars=293
+attached_assets/بكالوريا_في_دوال_عددية_بالحل_مفصل_1788340024736.pdf: 5 pages, image_pages=5, first_page_chars=0
+attached_assets/تمارين_الدوال_العددية_في_البكالوريا_للشعب_العلمية_1788340024738.pdf: 3 pages, image_pages=3, first_page_chars=1972
+attached_assets/تمرين_بكالوريا_1788342118800.pdf: 1 pages, image_pages=1, first_page_chars=1651
+attached_assets/تمرين_شامل_في_الناقلية_و_الضغط_1788342118798.pdf: 2 pages, image_pages=2, first_page_chars=1043
+attached_assets/حل_الاختبار_المقترح_1788342118801.pdf: 32 pages, image_pages=32, first_page_chars=0
+attached_assets/حل_تمرين_شامل_ضغط_غاز_1788342118802.pdf: 10 pages, image_pages=10, first_page_chars=0
+attached_assets/سلسلة_تمارين_رقم_3_1788339989213.pdf: 3 pages, image_pages=1, first_page_chars=1152
+attached_assets/سلسلة_مكتسبات_قبلية_اضافية_1788340024739.pdf: 25 pages, image_pages=25, first_page_chars=0
+attached_assets/مجلة_الدوال_العددية_بكالوريا__1788339989209.pdf: 62 pages, image_pages=61, first_page_chars=438
+attached_assets/محطة_الانطلاق_رياضيات_الجزء_الأول_01_نافع_بكالوريا_2026_1788340024735.pdf: 60 pages, image_pages=53, first_page_chars=133
+attached_assets/مسائل_شاملة_حول_الدوال_4_صفحات_في_صفحة_1788339989210.pdf: 59 pages, image_pages=59, first_page_chars=3500
+attached_assets/مسائل_دوال_عددية_بدون_حل_1788340024737.pdf: 8 pages, image_pages=8, first_page_chars=0
+attached_assets/مسألة_لمراجعة_مكتسبات_1788341522507.pdf: 12 pages, image_pages=12, first_page_chars=0
+attached_assets/مسألة_لمراجعة_مكتسبات_1788342118799.pdf: 12 pages, image_pages=12, first_page_chars=0
+attached_assets/مطوية_المكتسبات_القبلية_2027_1788342357035.pdf: 2 pages, image_pages=2, first_page_chars=0
+attached_assets/مكتسبات_قبلية_في_دوال_عددية_1788340024740.pdf: 15 pages, image_pages=15, first_page_chars=0
+attached_assets/ملخص_الدوال_1788339989212.pdf: 8 pages, image_pages=8, first_page_chars=0
+attached_assets/ملف_المراجعة_الفصلية_من_معسكر_الانقاذ_1788342118798.pdf: 10 pages, image_pages=10, first_page_chars=2010
+attached_assets/وثيقة_معماريات_ومواصفات_منصة_توجيه_التعليمية_-_النسخة_الشاملة__1787929851866.pdf: 5 pages, image_pages=0, first_page_chars=1127
