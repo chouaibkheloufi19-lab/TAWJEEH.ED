@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { PlannerIntakeCard, type PlannerIntakeValues } from '@/components/phase-one';
 import {
   getGetLearningScheduleQueryKey,
   useGetLearningSchedule,
@@ -53,13 +54,26 @@ type ProgramAgentProps = {
   embedded?: boolean;
 };
 
-const today = '2024-06-12';
+function localDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(dateValue: string, days: number) {
+  const date = new Date(`${dateValue}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return localDate(date);
+}
+
+const today = localDate();
 const initialEntries: ProgramEntry[] = [
   { id: 'program-1', date: today, time: '08:30', duration: '25–40 دقيقة', title: 'فهم الفكرة الأساسية', subject: 'العلوم الفيزيائية', kind: 'مكتسبات', agent: 'فهيم', completed: true, slot: 1, track: 'theory', endRule: 'تنتهي عندما تشرحين الفكرة بكلماتك' },
   { id: 'program-2', date: today, time: '12:00', duration: 'حتى حل تمرينين', title: 'تطبيق موجّه', subject: 'العلوم الفيزيائية', kind: 'حصة تطبيقية', agent: 'تمارين', completed: false, slot: 2, track: 'application', endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
   { id: 'program-3', date: today, time: '17:30', duration: 'حتى إجابة التحقق', title: 'تثبيت واسترجاع', subject: 'العلوم الفيزيائية', kind: 'مراجعة', agent: 'دليل', completed: false, slot: 3, track: 'application', endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
-  { id: 'program-4', date: '2024-06-14', time: '16:00', duration: '45 دقيقة', title: 'الميكانيك', subject: 'الفيزياء', kind: 'فرض', agent: 'تمارين', completed: false },
-  { id: 'program-5', date: '2024-06-15', time: '11:00', duration: '30 دقيقة', title: 'الدوال العددية', subject: 'الرياضيات', kind: 'بحث', agent: 'دليل', completed: false },
+  { id: 'program-4', date: addDays(today, 2), time: '16:00', duration: '45 دقيقة', title: 'الميكانيك', subject: 'الفيزياء', kind: 'فرض', agent: 'تمارين', completed: false },
+  { id: 'program-5', date: addDays(today, 3), time: '11:00', duration: '30 دقيقة', title: 'الدوال العددية', subject: 'الرياضيات', kind: 'بحث', agent: 'دليل', completed: false },
 ];
 
 const smartSlots: Omit<ProgramEntry, 'id' | 'date' | 'completed'>[] = [
@@ -219,8 +233,13 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [selectedDate, setSelectedDate] = useState(today);
   const [activeTab, setActiveTab] = useState<'schedule' | 'events' | 'notifications'>('schedule');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showPlannerIntake, setShowPlannerIntake] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(
+    typeof Notification === 'undefined' ? 'default' : Notification.permission,
+  );
   const [activeEntry, setActiveEntry] = useState<string | null>(null);
+  const [entryDate, setEntryDate] = useState(() => localStorage.getItem('tawjeeh.phase1.entryDate') || today);
   const [newEntry, setNewEntry] = useState({
     date: today,
     time: '18:00',
@@ -244,6 +263,8 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   useEffect(() => {
     setEntries(readEntries());
     setNotificationsEnabled(localStorage.getItem('tawjeeh.program.notifications') !== 'off');
+    const savedEntryDate = localStorage.getItem('tawjeeh.phase1.entryDate');
+    if (savedEntryDate) setEntryDate(savedEntryDate);
   }, []);
 
   useEffect(() => {
@@ -294,12 +315,80 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     }
   };
 
+  const requestNotificationPermission = async () => {
+    if (typeof Notification === 'undefined') return;
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+    if (permission === 'granted') {
+      localStorage.setItem('tawjeeh.program.notifications', 'on');
+      setNotificationsEnabled(true);
+    }
+  };
+
   const toggleNotifications = () => {
     setNotificationsEnabled((enabled) => {
       const next = !enabled;
       localStorage.setItem('tawjeeh.program.notifications', next ? 'on' : 'off');
+      if (next && notificationPermission === 'default') void requestNotificationPermission();
       return next;
     });
+  };
+
+  const plannerWindow = useMemo(() => {
+    const start = new Date(`${entryDate}T12:00:00`);
+    const current = new Date(`${today}T12:00:00`);
+    const dayDifference = Math.floor((current.getTime() - start.getTime()) / 86_400_000);
+    const day = Math.max(1, dayDifference + 1);
+    return {
+      day,
+      inFoundation: dayDifference >= 0 && dayDifference < 10,
+      progress: Math.min(100, Math.max(0, Math.round((day / 10) * 100))),
+    };
+  }, [entryDate]);
+
+  const handlePlannerSubmit = (values: PlannerIntakeValues) => {
+    const savedDate = localStorage.getItem('tawjeeh.phase1.entryDate') || today;
+    localStorage.setItem('tawjeeh.phase1.planner.v1', JSON.stringify(values));
+    localStorage.setItem('tawjeeh.phase1.entryDate', savedDate);
+    setEntryDate(savedDate);
+    const plannedEntries: ProgramEntry[] = [
+      values.testSchedule.trim() && {
+        id: `planner-test-${Date.now()}`,
+        date: addDays(today, 2),
+        time: '16:00',
+        duration: '45 دقيقة',
+        title: values.testSchedule.trim(),
+        subject: values.branch,
+        kind: 'اختبار',
+        agent: 'تمارين',
+        completed: false,
+      },
+      values.homework.trim() && {
+        id: `planner-homework-${Date.now() + 1}`,
+        date: addDays(today, 1),
+        time: '18:00',
+        duration: `${values.dailyMinutes} دقيقة`,
+        title: values.homework.trim(),
+        subject: values.branch,
+        kind: 'بحث',
+        agent: 'دليل',
+        completed: false,
+      },
+      values.holidayAssignments.trim() && {
+        id: `planner-holiday-${Date.now() + 2}`,
+        date: addDays(today, 3),
+        time: '10:00',
+        duration: `${values.dailyMinutes} دقيقة`,
+        title: values.holidayAssignments.trim(),
+        subject: values.branch,
+        kind: 'عطلة',
+        agent: 'دليل',
+        completed: false,
+      },
+    ].filter(Boolean) as ProgramEntry[];
+    if (plannedEntries.length) setEntries((current) => [...current, ...plannedEntries]);
+    setShowPlannerIntake(false);
+    setActiveTab('events');
   };
 
   const addEntry = (event: FormEvent<HTMLFormElement>) => {
@@ -340,6 +429,9 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
               {notificationsEnabled ? <Bell size={17} /> : <BellOff size={17} />}
               {notificationsEnabled ? 'التنبيهات مفعّلة' : 'التنبيهات متوقفة'}
             </button>
+            <button type="button" className="program-planner-button" onClick={() => setShowPlannerIntake(true)} data-testid="button-open-planner-intake">
+              <Sparkles size={17} /> تهيئة خطة فهيم
+            </button>
             <button type="button" className="program-add-button" onClick={() => setShowAddForm(true)} data-testid="button-add-program-event">
               <Plus size={17} /> إضافة موعد
             </button>
@@ -359,11 +451,11 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         <aside className="program-agent-aside">
           <div className="program-side-card program-phase-card">
             <div className="program-card-kicker"><Sparkles size={14} /> المسار الحالي</div>
-            <h3>المكتسبات الأساسية</h3>
-            <p>عشرة أيام لتثبيت المفاهيم السابقة قبل الدخول في المراجعة المركّزة.</p>
-            <div className="program-progress-label"><span>التقدم</span><strong>٤٠٪</strong></div>
-            <div className="program-progress"><span style={{ width: '40%' }} /></div>
-            <div className="program-phase-days">{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day) => <span key={day} className={day < 4 ? 'done' : day === 4 ? 'current' : ''}>{day < 4 ? <Check size={11} /> : day}</span>)}</div>
+            <h3>{plannerWindow.inFoundation ? 'المكتسبات الأساسية' : 'المراجعة المركّزة'}</h3>
+            <p>{plannerWindow.inFoundation ? `فهيم يقودك في اليوم ${Math.min(plannerWindow.day, 10)} من ١٠ لتثبيت المفاهيم السابقة.` : 'اكتملت نافذة prior knowledge. يمكنك الآن رفع كثافة المراجعة المركّزة.'}</p>
+            <div className="program-progress-label"><span>التقدم</span><strong>{plannerWindow.progress}٪</strong></div>
+            <div className="program-progress"><span style={{ width: `${plannerWindow.progress}%` }} /></div>
+            <div className="program-phase-days">{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day) => <span key={day} className={day < plannerWindow.day ? 'done' : day === plannerWindow.day ? 'current' : ''}>{day < plannerWindow.day ? <Check size={11} /> : day}</span>)}</div>
           </div>
            <div className="program-side-card program-network-card">
              <div className="program-card-kicker"><Sparkles size={14} /> شبكة المساعدة</div>
@@ -436,6 +528,24 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           )}
         </section>
       </div>
+
+      {showPlannerIntake && (
+        <div className="program-planner-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowPlannerIntake(false); }}>
+          <div className="program-planner-modal" onMouseDown={(event) => event.stopPropagation()}>
+            <PlannerIntakeCard
+              initialValues={(() => {
+                try {
+                  return JSON.parse(localStorage.getItem('tawjeeh.phase1.planner.v1') || '{}') as Partial<PlannerIntakeValues>;
+                } catch {
+                  return {};
+                }
+              })()}
+              onBack={() => setShowPlannerIntake(false)}
+              onSubmit={handlePlannerSubmit}
+            />
+          </div>
+        </div>
+      )}
 
       {showAddForm && (
         <div className="program-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowAddForm(false); }}>

@@ -61,6 +61,7 @@ import {
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LessonWorkspace } from '@/components/lesson-workspace';
+import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/phase-one';
 import { ProgramAgent } from '@/components/program-agent';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlAgentMint from '@assets/agent-guiding-cropped.png';
@@ -289,49 +290,18 @@ function AuthBrand() {
 }
 
 function AuthWelcome() {
-  const { isSignedIn } = useAuth();
-  const [step, setStep] = useState(0);
-  const steps = [
-    { title: 'أرتّب لك البداية.', body: 'أعرّفك على خطتك، ثم أترك لك خطوة واحدة واضحة بدل قائمة طويلة تشتّتك.' },
-    { title: 'أحفظ ما يهمك.', body: 'ملخصاتك، محاولاتك، وأخطاءك تبقى قريبة منك حتى تعود إليها وقت المراجعة.' },
-    { title: 'تعلّم بإيقاعك.', body: 'اختر وقت الحصة، وسأوصلك إلى الدرس والتمارين في اللحظة المناسبة.' },
-  ];
-  const isLast = step === steps.length - 1;
+  const [, setLocation] = useLocation();
+  const savePlannerValues = (values: PlannerIntakeValues) => {
+    localStorage.setItem('tawjeeh.phase1.planner.v1', JSON.stringify(values));
+    localStorage.setItem('tawjeeh.phase1.entryDate', new Date().toISOString().slice(0, 10));
+    setLocation('/sign-up');
+  };
   return (
-    <main className="auth-onboarding" dir="rtl">
-      <header className="auth-onboarding-header">
-        <AuthBrand />
-        <button className="onboarding-skip" type="button" onClick={() => setStep(steps.length - 1)} data-testid="button-skip-onboarding">تجاوز الشرح <ArrowLeft size={14} /></button>
-      </header>
-      <section className="onboarding-layout">
-        <div className="onboarding-owl" aria-label="المساعدة التعليمية">
-          <div className="owl-pose-frame"><img src={owlAgentTeal} alt="مساعد تعليمي يشرح لك الطريق" className="companion-owl" /></div>
-          <span className="onboarding-spark one">خطوة واحدة الآن</span>
-          <span className="onboarding-spark two">كل تقدمك محفوظ</span>
-        </div>
-        <div className="onboarding-copy">
-          <span className="onboarding-step"><i /> الشارحة · {step + 1} من {steps.length}</span>
-          <h1>مرحبًا بك في<br /><strong>مساحتك.</strong></h1>
-          <p>توجيه مساحة تعليمية لرحلة البكالوريا الجزائرية. لا نعرض كل شيء دفعة واحدة؛ نبدأ بما تحتاجه اليوم.</p>
-          <div className="onboarding-bubble" aria-live="polite" data-testid="status-onboarding-message">
-            <strong>معلومة من النظام</strong>
-            <span>{steps[step].title} {steps[step].body}</span>
-          </div>
-          <div className="onboarding-dots" aria-label="مراحل الشرح">
-            {steps.map((item, index) => <i key={item.title} className={index === step ? 'active' : ''} />)}
-          </div>
-          <div className="onboarding-actions">
-            {isLast ? (
-              <Link href={isSignedIn ? '/profile' : '/sign-in'} className="onboarding-next" data-testid="link-onboarding-continue">إلى مساحتك <ArrowLeft size={17} /></Link>
-            ) : (
-              <button type="button" className="onboarding-next" onClick={() => setStep((current) => current + 1)} data-testid="button-next-onboarding">تابع الشرح <ArrowLeft size={17} /></button>
-            )}
-            {!isSignedIn && <Link href="/sign-up" className="onboarding-login" data-testid="link-onboarding-signup">إنشاء حساب جديد</Link>}
-          </div>
-           <p className="onboarding-note">حفاظًا على خصوصية التطبيق، نعرض لك المعلومة المطلوبة فقط. وأنت من يختار الإيقاع.</p>
-        </div>
-      </section>
-    </main>
+    <PhaseOnePresentation
+      onSkip={() => setLocation('/sign-up')}
+      onSignIn={() => setLocation('/sign-in')}
+      onPlannerSubmit={savePlannerValues}
+    />
   );
 }
 
@@ -592,7 +562,7 @@ function ProfilePage() {
         </div>
         <div className="profile-learning-grid">
           <section className="surface profile-bank-card">
-            <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">أثر جلساتك</p><h3 className="display text-lg">بنك الملخصات</h3></div><AgentAvatar size="sm" pose="creation" /></div>
+            <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">أثر جلساتك</p><div className="flex flex-wrap items-center gap-2"><h3 className="display text-lg">بنك الملخصات</h3><span className="profile-official-stamp" data-testid="stamp-official-summary">TAWJEEH.ED · OFFICIAL</span></div></div><AgentAvatar size="sm" pose="creation" /></div>
             <div className="profile-bank-list">
                {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.slice(0, 4).map((summary: SummaryBankItem) => <div className="profile-summary-item" key={summary.id}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.slice(0, 3).map((concept) => <span key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكملي عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعودي إليه قبل المراجعة.</p>}
             </div>
@@ -685,7 +655,7 @@ function QuizResultCard({ result, onAgain }: { result: QuizResult; onAgain: () =
   );
 }
 
-function QuizAttempt({ quiz, onExit }: { quiz: Quiz; onExit: () => void }) {
+function QuizAttempt({ quiz, onExit, onScore }: { quiz: Quiz; onExit: () => void; onScore: (points: number) => void }) {
   const submitMutation = useSubmitQuizAttempt();
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -695,7 +665,12 @@ function QuizAttempt({ quiz, onExit }: { quiz: Quiz; onExit: () => void }) {
   if (!question) return <EmptyState title="لا توجد أسئلة" body="هذا الاختبار لا يحتوي على أسئلة قابلة للعرض حاليًا." action={<button className="secondary-button" onClick={onExit} data-testid="button-exit-empty-quiz">العودة</button>} />;
   const isLast = questionIndex === quiz.questions.length - 1;
   const choose = (option: string) => setAnswers((current) => ({ ...current, [question.id]: option }));
-  const submit = () => submitMutation.mutate({ quizId: quiz.id, data: { answers } }, { onSuccess: (data) => setResult(data) });
+  const submit = () => submitMutation.mutate({ quizId: quiz.id, data: { answers } }, {
+    onSuccess: (data) => {
+      setResult(data);
+      onScore(data.points_earned);
+    },
+  });
   return (
     <div className="mx-auto max-w-3xl">
        <div className="mb-5 flex items-center justify-between"><button className="secondary-button !px-3 !py-2 !text-xs" onClick={onExit} data-testid="button-exit-quiz"><X size={15} /> إنهاء</button><span className="text-xs font-bold text-[#64748b]">{quiz.title}</span></div>
@@ -728,21 +703,40 @@ function QuizzesPage() {
   const quizzes = (quizzesQuery.data as Quiz[] | undefined) ?? [];
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [mistakeCount, setMistakeCount] = useState(0);
+  const [dailyScore, setDailyScore] = useState(0);
   useEffect(() => {
     try {
       const attempts = JSON.parse(localStorage.getItem('tawjeeh.attempt.bank.v1') || '[]');
       setMistakeCount(Array.isArray(attempts) ? attempts.length : 0);
+      const savedScore = Number(localStorage.getItem('tawjeeh.phase1.dailyScore') || '0');
+      setDailyScore(Number.isFinite(savedScore) ? Math.max(0, savedScore) : 0);
     } catch {
       setMistakeCount(0);
+      setDailyScore(0);
     }
   }, []);
-  if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} onExit={() => setSelectedQuiz(null)} /></Shell>;
+  const addDailyScore = (points: number) => {
+    setDailyScore((current) => {
+      const next = current + Math.max(0, points);
+      localStorage.setItem('tawjeeh.phase1.dailyScore', String(next));
+      return next;
+    });
+  };
+  if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} onExit={() => setSelectedQuiz(null)} onScore={addDailyScore} /></Shell>;
   return (
     <Shell title="الاختبارات الأسبوعية">
        <section className="mb-5 flex items-end justify-between gap-4 rounded-[1.35rem] border border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">
          <div><p className="eyebrow mb-2 text-[#2e8b7b]">كويزاتك الأسبوعية</p><h2 className="display text-[26px] md:text-[34px]">اختبر فهمك، بهدوء.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-[#64748b]">الأول يتابع مستواك وما ظهر في محاولاتك، والثاني تحدٍّ عام صعب بعد إتمام الوحدة.</p><p className="mt-2 text-xs font-bold text-[#2e8b7b]">{mistakeCount ? `تم رصد ${mistakeCount} محاولات للمراجعة هذا الأسبوع.` : 'ستتكوّن مراجعتك من إجاباتك ومحاولاتك القادمة.'}</p></div>
          <div className="hidden rounded-2xl bg-[#e6f6fb] p-4 text-[#005689] sm:block"><Target size={32} strokeWidth={1.5} /></div>
       </section>
+       <section className="phase-one-score-card" data-testid="card-daily-score-threshold">
+         <div className="phase-one-score-heading">
+           <div><span className="eyebrow">مقياس التقدم اليومي</span><h2 className="display">نقطة اليوم تربطنا بالنجاح.</h2></div>
+           <div className="phase-one-score-values"><strong data-testid="text-daily-score">{dailyScore}</strong><span>/ 70 نقطة</span></div>
+         </div>
+         <div className="phase-one-score-track" aria-label="التقدم نحو الحد اليومي"><span style={{ width: `${Math.min(100, Math.round((dailyScore / 70) * 100))}%` }} /></div>
+         <div className="phase-one-score-footer"><span><CheckCircle2 size={14} /> الحد المطلوب اليومي: ٧٠ نقطة</span><span><Trophy size={14} /> مؤشر النجاح: ١٠ / ٢٠ في المعدل</span><span>{dailyScore >= 70 ? 'أتممت حد اليوم' : `تبقّى ${Math.max(0, 70 - dailyScore)} نقطة`}</span></div>
+       </section>
       {quizzesQuery.isLoading ? <LoadingState label="نحضّر تمارين مناسبة لك..." /> : quizzesQuery.isError ? <ErrorState onRetry={() => quizzesQuery.refetch()} /> : quizzes.length === 0 ? <EmptyState title="لا توجد اختبارات بعد" body="ستجد هنا تدريبات الوحدات والاختبار الأسبوعي عند توفرها." /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} onStart={() => setSelectedQuiz(quiz)} />)}</div>}
     </Shell>
   );
@@ -753,6 +747,7 @@ const agentOptions = [
   { id: 'host', name: 'توجيه', role: 'محادثة عامة' },
   { id: 'fahim', name: 'فَهيم', role: 'تشخيص الفجوات' },
   { id: 'dalil', name: 'دليل', role: 'شرح المفاهيم' },
+  { id: 'planner', name: 'المخطّط', role: 'تنظيم الوقت والمواعيد' },
 ];
 const starterMessages: ChatMessage[] = [{ id: 'starter', from: 'agent', text: 'أهلًا بك. اكتب ما يشغلك الآن، وسأساعدك في الوصول إلى الشرح أو التدريب المناسب.' }];
 
@@ -800,11 +795,11 @@ function ChatPage() {
       <div className="grid grid-cols-[.75fr_1.5fr] gap-5 two-col">
          <aside className="surface order-2 border-[#b3e5fc] p-5 lg:order-1">
            <p className="eyebrow mb-1">اختر نوع المساعدة</p><h2 className="display mb-5 text-xl">المساعدة المناسبة</h2>
-           <div className="space-y-2">{agentOptions.map((item) => { const active = item.id === agent; return <button key={item.id} onClick={() => setAgent(item.id)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-right transition ${active ? 'border-[#2e8b7b] bg-[#e8f8f5]' : 'border-transparent bg-[#f7fcfe] hover:border-[#b3e5fc]'}`} data-testid={`button-agent-${item.id}`}>{item.id === 'host' ? <AgentAvatar size="sm" /> : <span className={`grid h-11 w-11 place-items-center rounded-[26%] ${active ? 'bg-[#e6f6fb] text-[#005689]' : 'bg-[#f7fcfe] text-[#64748b]'}`}>{item.id === 'fahim' ? <BrainCircuit size={20} /> : <BookOpen size={20} />}</span>}<span><strong className="block text-sm font-extrabold">{item.name}</strong><small className="mt-0.5 block text-[10px] text-[#64748b]">{item.role}</small></span>{active && <CheckCircle2 className="mr-auto text-[#2e8b7b]" size={17} />}</button>; })}</div>
+            <div className="space-y-2">{agentOptions.map((item) => { const active = item.id === agent; return <button key={item.id} onClick={() => setAgent(item.id)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-right transition ${active ? 'border-[#2e8b7b] bg-[#e8f8f5]' : 'border-transparent bg-[#f7fcfe] hover:border-[#b3e5fc]'}`} data-testid={`button-agent-${item.id}`}>{item.id === 'host' ? <AgentAvatar size="sm" /> : <span className={`grid h-11 w-11 place-items-center rounded-[26%] ${active ? 'bg-[#e6f6fb] text-[#005689]' : 'bg-[#f7fcfe] text-[#64748b]'}`}>{item.id === 'fahim' ? <BrainCircuit size={20} /> : item.id === 'planner' ? <CalendarDays size={20} /> : <BookOpen size={20} />}</span>}<span><strong className="block text-sm font-extrabold">{item.name}</strong><small className="mt-0.5 block text-[10px] text-[#64748b]">{item.role}</small></span>{active && <CheckCircle2 className="mr-auto text-[#2e8b7b]" size={17} />}</button>; })}</div>
            <div className="mt-5 rounded-2xl bg-[#e8f8f5] p-4"><div className="mb-2 flex items-center gap-2 text-[#005689]"><Sparkles size={15} /><span className="text-xs font-extrabold">اقتراح سريع</span></div><p className="text-xs font-bold leading-6 text-[#64748b]">إن لم تعرف من تختار، ابدأ بالمحادثة العامة وسنحدد الخطوة التالية.</p></div>
         </aside>
         <section className="surface order-1 flex min-h-[570px] flex-col overflow-hidden lg:order-2">
-            <div className="flex items-center gap-3 border-b border-[#b3e5fc] bg-[#f7fcfe] px-5 py-4"><div className="relative">{selectedAgent.id === 'host' ? <AgentAvatar size="sm" /> : <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#e6f6fb] text-[#005689]">{selectedAgent.id === 'fahim' ? <BrainCircuit size={17} /> : <BookOpen size={17} />}</span>}<i className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f7fcfe] bg-[#2e8b7b]" /></div><div><strong className="block text-sm font-extrabold">{selectedAgent.name}</strong><span className="text-[10px] text-[#64748b]">{selectedAgent.role} · {isThinking ? 'يفكر الآن' : 'متصل الآن'}</span></div><MoreHorizontal className="mr-auto text-[#64748b]" size={19} /></div>
+            <div className="flex items-center gap-3 border-b border-[#b3e5fc] bg-[#f7fcfe] px-5 py-4"><div className="relative">{selectedAgent.id === 'host' ? <AgentAvatar size="sm" /> : <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#e6f6fb] text-[#005689]">{selectedAgent.id === 'fahim' ? <BrainCircuit size={17} /> : selectedAgent.id === 'planner' ? <CalendarDays size={17} /> : <BookOpen size={17} />}</span>}<i className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#f7fcfe] bg-[#2e8b7b]" /></div><div><strong className="block text-sm font-extrabold">{selectedAgent.name}</strong><span className="text-[10px] text-[#64748b]">{selectedAgent.role} · {isThinking ? 'يفكر الآن' : 'متصل الآن'}</span></div><MoreHorizontal className="mr-auto text-[#64748b]" size={19} /></div>
             <div className="flex-1 space-y-4 overflow-y-auto p-5 md:p-7">{messages.map((message) => <div key={message.id} className={`flex items-end gap-2 ${message.from === 'student' ? 'justify-start' : 'justify-end'}`} data-testid={`message-chat-${message.id}`}>{message.from === 'agent' && <AgentAvatar size="sm" />}<div className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-7 ${message.from === 'student' ? 'rounded-bl-md bg-[#004b75] text-white' : 'rounded-br-md bg-[#e8f8f5] text-[#005689]'}`}>{message.text}</div></div>)}{isThinking && <div className="flex items-end justify-end gap-2" data-testid="status-chat-thinking"><AgentAvatar size="sm" /><div className="rounded-2xl rounded-br-md bg-[#e8f8f5] px-4 py-3 text-sm text-[#005689]">فهيم يكتب الآن...</div></div>}</div>
             <div className="border-t border-[#b3e5fc] p-4"><div className="mb-3 flex flex-wrap gap-2">{['اشرح لي درسًا', 'اختبرني قليلًا', 'أين أخطئ؟'].map((prompt) => <button key={prompt} onClick={() => void send(prompt)} disabled={isThinking} className="tag bg-[#f7fcfe] text-[#64748b] transition hover:bg-[#e6f6fb] disabled:cursor-wait disabled:opacity-60" data-testid={`button-prompt-${prompt}`}>{prompt}</button>)}</div>{error && <p className="mb-2 text-xs font-bold text-[#a34e4e]" role="alert" data-testid="status-chat-error">{error}</p>}<form className="flex items-end gap-2" onSubmit={(event) => { event.preventDefault(); void send(); }}><button type="button" className="icon-button h-11 w-11 shrink-0" onClick={() => setText((current) => current || 'أريد إرفاق ملفًا')} data-testid="button-attach" aria-label="إرفاق ملف"><Paperclip size={18} /></button><textarea rows={1} value={text} onChange={(event) => setText(event.target.value)} className="min-h-11 flex-1 resize-none rounded-xl border border-[#b3e5fc] bg-white px-4 py-3 text-sm outline-none focus:border-[#005689]" placeholder="اكتب سؤالك هنا..." data-testid="input-chat-message" /><button className="primary-button h-11 w-11 shrink-0 !p-0" type="submit" disabled={!text.trim() || isThinking} data-testid="button-send-message" aria-label="إرسال الرسالة"><Send size={17} /></button></form><p className="mt-2 text-center text-[10px] text-[#64748b]">توجيه يساعدك على الفهم، وأنت صاحب القرار في رحلتك.</p></div>
         </section>
