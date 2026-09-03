@@ -545,16 +545,23 @@ function ProfilePage() {
     <Shell title="الملف الشخصي">
       <section className="profile-page" dir="rtl">
         <div className="profile-identity-card">
-          <AgentAvatar size="lg" />
-          <div>
-            <p className="eyebrow">ملفك داخل توجيه</p>
+          <div className="profile-avatar-placeholder" aria-hidden="true">{displayName.slice(0, 1)}</div>
+          <div className="profile-identity-content">
+            <p className="eyebrow">بيانات الحساب</p>
             <h2 className="display">{displayName}</h2>
-            <p>{email}</p>
+            <div className="profile-email-row">
+              <span>البريد الإلكتروني</span>
+              <strong dir="ltr">{email}</strong>
+            </div>
           </div>
         </div>
         <div className="profile-id-card">
-          <div><span className="eyebrow">معرّف التطبيق</span><strong>{appId}</strong><small>هذا المعرّف مرتبط بحسابك المسجل، وليس اسمًا افتراضيًا.</small></div>
-          <UserRound size={24} />
+          <div className="profile-id-copy">
+            <span className="eyebrow">معرّف التطبيق</span>
+            <strong dir="ltr">{appId}</strong>
+            <small>هذا المعرّف مرتبط بحسابك المسجل، وليس اسمًا افتراضيًا.</small>
+          </div>
+          <div className="profile-id-icon" aria-hidden="true"><UserRound size={22} /></div>
         </div>
         <div className="profile-actions">
           <Link href="/program" className="primary-button"><CalendarDays size={16} /> افتح برنامجك الدراسي</Link>
@@ -562,13 +569,13 @@ function ProfilePage() {
         </div>
         <div className="profile-learning-grid">
           <section className="surface profile-bank-card">
-            <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">أثر جلساتك</p><div className="flex flex-wrap items-center gap-2"><h3 className="display text-lg">بنك الملخصات</h3><span className="profile-official-stamp" data-testid="stamp-official-summary">TAWJEEH.ED · OFFICIAL</span></div></div><AgentAvatar size="sm" pose="creation" /></div>
+            <div className="profile-bank-heading"><div><p className="eyebrow mb-1">أثر جلساتك</p><div className="flex flex-wrap items-center gap-2"><h3 className="display text-lg">بنك الملخصات</h3><span className="profile-official-stamp" data-testid="stamp-official-summary">TAWJEEH.ED · OFFICIAL</span></div></div></div>
             <div className="profile-bank-list">
                {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.slice(0, 4).map((summary: SummaryBankItem) => <div className="profile-summary-item" key={summary.id}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.slice(0, 3).map((concept) => <span key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكملي عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعودي إليه قبل المراجعة.</p>}
             </div>
           </section>
           <section className="surface profile-bank-card">
-            <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">نتعلّم من المحاولة</p><h3 className="display text-lg">بنك الأخطاء</h3></div><AgentAvatar size="sm" pose="thinking" /></div>
+            <div className="profile-bank-heading"><div><p className="eyebrow mb-1">نتعلّم من المحاولة</p><h3 className="display text-lg">بنك الأخطاء</h3></div></div>
             <div className="profile-bank-list">
               {savedAttempts.length ? savedAttempts.map((attempt, index) => <div className="profile-bank-item" key={`${attempt}-${index}`}><RotateCcw size={15} /><span>{attempt}</span></div>) : <p className="profile-bank-empty">ارفقي صورة حل في جلسة فهيم. سنحفظ نقطة التوقف لتصبحي أقوى في المحاولة التالية.</p>}
              </div>

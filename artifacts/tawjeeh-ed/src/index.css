@@ -572,18 +572,67 @@ button { cursor: pointer; }
 .onboarding-next:hover, .onboarding-login:hover { transform: translateY(-2px); }
 .onboarding-note { margin-top: 20px; color: #85979a; font-size: 10px; font-weight: 700; }
 .status-pose { width: 64px; height: 64px; }
-.profile-learning-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 20px; }
+.profile-page { display: grid; gap: 16px; }
+.profile-identity-card,
+.profile-id-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #cfe4e1;
+  border-radius: 20px;
+  padding: 20px 22px;
+  background: linear-gradient(115deg, #f7fcfa 0%, #eef8f7 100%);
+  box-shadow: 0 12px 27px rgba(31, 74, 83, .07);
+}
+.profile-avatar-placeholder {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #b7d9d5;
+  border-radius: 22px;
+  color: #005689;
+  background: #e6f6fb;
+  font-size: 28px;
+  font-weight: 900;
+}
+.profile-identity-content,
+.profile-id-copy { min-width: 0; }
+.profile-identity-card h2 { margin: 4px 0 0; color: #21445b; font-size: clamp(24px, 3vw, 34px); }
+.profile-email-row { display: grid; gap: 3px; margin-top: 10px; }
+.profile-email-row span,
+.profile-id-copy small { color: #71858b; font-size: 10px; font-weight: 700; }
+.profile-email-row strong { max-width: 100%; overflow-wrap: anywhere; color: #2d5c6d; font-size: 13px; font-weight: 800; }
+.profile-id-card { justify-content: space-between; padding: 17px 20px; background: #fffdf8; }
+.profile-id-copy { display: grid; gap: 5px; }
+.profile-id-copy strong { max-width: 100%; overflow-wrap: anywhere; color: #21445b; font-family: var(--app-font-mono); font-size: 12px; line-height: 1.6; }
+.profile-id-copy small { line-height: 1.7; }
+.profile-id-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 13px;
+  color: #005689;
+  background: #e6f6fb;
+}
+.profile-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.profile-actions > * { flex: 1 1 220px; justify-content: center; }
+.profile-learning-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .profile-bank-card { min-height: 190px; padding: 20px; }
+.profile-bank-heading { display: flex; align-items: flex-start; min-height: 43px; }
 .profile-bank-list { display: grid; gap: 11px; margin-top: 17px; }
-.profile-bank-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; color: #385866; background: #f3f8f5; font-size: 11px; font-weight: 750; }
+.profile-bank-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 12px; color: #385866; background: #f3f8f5; font-size: 12px; font-weight: 750; line-height: 1.7; }
 .profile-bank-item svg { flex: 0 0 auto; color: #3f877d; }
-.profile-bank-empty { color: #819196; font-size: 12px; line-height: 1.8; }
-.profile-summary-item { display: grid; gap: 8px; padding: 12px; border: 1px solid #dceced; border-radius: 13px; background: #fbfefd; }
+.profile-bank-empty { color: #71858b; font-size: 12px; line-height: 2; }
+.profile-summary-item { display: grid; gap: 9px; padding: 14px; border: 1px solid #dceced; border-radius: 13px; background: #fbfefd; }
 .profile-summary-item-heading { display: flex; align-items: center; gap: 8px; color: #2c5969; }
 .profile-summary-item-heading svg { color: #3f877d; }
-.profile-summary-item-heading strong { font-size: 11px; font-weight: 900; }
+.profile-summary-item-heading strong { font-size: 12px; font-weight: 900; }
 .profile-summary-item-heading small { margin-right: auto; color: #8aa1a7; font-size: 9px; font-weight: 700; }
-.profile-summary-item p { margin: 0; color: #647d86; font-size: 10px; line-height: 1.8; }
+.profile-summary-item p { margin: 0; color: #5c747d; font-size: 11px; line-height: 2; }
 .profile-summary-concepts { display: flex; flex-wrap: wrap; gap: 5px; }
 .profile-summary-concepts span { padding: 4px 7px; border-radius: 999px; color: #2e8b7b; background: #e8f8f5; font-size: 9px; font-weight: 800; }
 .profile-metrics-card { grid-column: 1 / -1; padding: 20px; }
@@ -604,6 +653,12 @@ button { cursor: pointer; }
   .onboarding-dots, .onboarding-actions { justify-content: center; }
   .onboarding-spark { display: none; }
   .profile-learning-grid { grid-template-columns: 1fr; }
+  .profile-identity-card { align-items: flex-start; padding: 18px; }
+  .profile-avatar-placeholder { width: 64px; height: 64px; border-radius: 18px; font-size: 24px; }
+  .profile-id-card { align-items: flex-start; padding: 16px 18px; }
+  .profile-actions > * { flex-basis: 100%; }
+  .profile-metric-row { align-items: flex-start; flex-direction: column; }
+  .profile-emergency-tag { align-self: flex-start; }
 }
 
 /* Auth-first entry screen */
