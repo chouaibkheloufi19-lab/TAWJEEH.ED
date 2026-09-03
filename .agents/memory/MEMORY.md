@@ -3,3 +3,4 @@
 - [Arabic educational OCR](arabic-ocr.md) — never embed empty, timed-out, or visibly unreliable OCR; keep scanned sources pending review.
 - [Imported app runtime setup](runtime-setup.md) — provision existing Clerk wiring and install Python dependencies before diagnosing runtime failures.
 - [Drizzle identity insert schemas](drizzle-identity-inserts.md) — generated identity columns are already non-insertable in current drizzle-zod typing.
+- [Learning penalty state](learning-penalty-state.md) — schedule penalties and quiz attempts are persisted server-side with idempotent penalty keys.

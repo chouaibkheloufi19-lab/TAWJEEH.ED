@@ -16,4 +16,7 @@ export interface Quiz {
   questions: QuizQuestion[];
   status: string;
   points: number;
+  is_high_difficulty: boolean;
+  unit_id: string;
+  score_threshold: number;
 }

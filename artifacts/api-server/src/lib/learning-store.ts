@@ -4,6 +4,7 @@ import type { Request } from "express";
 import {
   db,
   learningAttemptsTable,
+  quizAttemptsTable,
   studyScheduleTable,
   summaryBankTable,
 } from "@workspace/db";
@@ -55,6 +56,20 @@ export type ScheduleEntry = {
   lesson_id: string | null;
   concept_id: string | null;
   completed: boolean;
+  missed: boolean;
+  penalty_type: string | null;
+  volume_multiplier: number;
+};
+
+export type ErrorBankItem = {
+  id: number;
+  lesson_id: string;
+  lesson_title: string;
+  concept_id: string;
+  concept_title: string;
+  error_tag: string;
+  summary_id: number | null;
+  created_at: string;
 };
 
 export function getUserId(req: Request): string | null {
@@ -78,6 +93,7 @@ export function toSummaryBankItem(row: typeof summaryBankTable.$inferSelect): Su
 }
 
 export function toScheduleEntry(row: typeof studyScheduleTable.$inferSelect): ScheduleEntry {
+  const today = new Date().toISOString().slice(0, 10);
   return {
     id: row.id,
     scheduled_date: row.scheduledDate,
@@ -90,6 +106,9 @@ export function toScheduleEntry(row: typeof studyScheduleTable.$inferSelect): Sc
     lesson_id: row.lessonId,
     concept_id: row.conceptId,
     completed: row.completed,
+    missed: !row.completed && row.scheduledDate < today,
+    penalty_type: row.penaltyType,
+    volume_multiplier: row.volumeMultiplier,
   };
 }
 
@@ -132,6 +151,34 @@ export async function listSummaryBank(userId: string) {
   return {
     summaries: summaries.map(toSummaryBankItem),
     metrics: Array.from(metrics.values()),
+  };
+}
+
+export async function listErrorBank(userId: string) {
+  const [attempts, summaries] = await Promise.all([
+    db
+      .select()
+      .from(learningAttemptsTable)
+      .where(and(eq(learningAttemptsTable.userId, userId), eq(learningAttemptsTable.isCorrect, false)))
+      .orderBy(desc(learningAttemptsTable.createdAt))
+      .limit(100),
+    db
+      .select({ id: summaryBankTable.id, lessonId: summaryBankTable.lessonId })
+      .from(summaryBankTable)
+      .where(eq(summaryBankTable.userId, userId)),
+  ]);
+  const summaryIds = new Map(summaries.map((summary) => [summary.lessonId, summary.id]));
+  return {
+    errors: attempts.map((attempt) => ({
+      id: attempt.id,
+      lesson_id: attempt.lessonId,
+      lesson_title: attempt.lessonTitle,
+      concept_id: attempt.conceptId,
+      concept_title: attempt.conceptTitle,
+      error_tag: attempt.errorTag,
+      summary_id: summaryIds.get(attempt.lessonId) ?? null,
+      created_at: attempt.createdAt.toISOString(),
+    })),
   };
 }
 
@@ -254,6 +301,8 @@ export async function recordLearningAttempt(
           lessonId: input.lessonId,
           conceptId: input.conceptId,
           sourceSummaryId: summary[0]?.id ?? null,
+          penaltyType: "error_remediation",
+          volumeMultiplier: 1,
           completed: false,
         })
         .returning()
@@ -265,7 +314,206 @@ export async function recordLearningAttempt(
   return { attempt_id: attempt.id, metric, remediation };
 }
 
+function addDays(dateValue: string, days: number) {
+  const date = new Date(`${dateValue}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function isTheorySession(row: typeof studyScheduleTable.$inferSelect) {
+  const value = `${row.kind} ${row.title}`.toLowerCase();
+  return value.includes("theory") || value.includes("نظر") || value.includes("مكتسب") || value.includes("فهم");
+}
+
+function isPracticalSession(row: typeof studyScheduleTable.$inferSelect) {
+  const value = `${row.kind} ${row.title}`.toLowerCase();
+  return value.includes("practical") || value.includes("تطبيق") || value.includes("تمرين") || value.includes("exercise");
+}
+
+function nextWeekendDates(today: string) {
+  const start = new Date(`${today}T12:00:00Z`);
+  const dates: string[] = [];
+  for (let offset = 1; offset <= 7 && dates.length < 2; offset += 1) {
+    const candidate = new Date(start);
+    candidate.setUTCDate(candidate.getUTCDate() + offset);
+    if (candidate.getUTCDay() === 5 || candidate.getUTCDay() === 6) {
+      dates.push(candidate.toISOString().slice(0, 10));
+    }
+  }
+  return dates;
+}
+
+async function addWeekendVolumePenalty(
+  userId: string,
+  penaltyKey: string,
+  source: typeof studyScheduleTable.$inferSelect | null,
+  reason: string,
+) {
+  const existing = await db
+    .select({ id: studyScheduleTable.id })
+    .from(studyScheduleTable)
+    .where(and(eq(studyScheduleTable.userId, userId), eq(studyScheduleTable.penaltyKey, penaltyKey)))
+    .limit(1);
+  if (existing.length > 0) return;
+
+  const dates = nextWeekendDates(new Date().toISOString().slice(0, 10));
+  await db.insert(studyScheduleTable).values(
+    dates.map((scheduledDate, index) => ({
+      userId,
+      scheduledDate,
+      time: index === 0 ? "18:00" : "10:00",
+      duration: "حجم مضاعف · 45 دقيقة",
+      title: source
+        ? `تمرين نهاية الأسبوع المضاعف · ${source.title}`
+        : "كويز نهاية الأسبوع المضاعف · نقاط اليوم",
+      subject: source?.subject ?? "العلوم الفيزيائية",
+      kind: "تمرين نهاية الأسبوع",
+      remediationLabel: reason,
+      lessonId: source?.lessonId ?? null,
+      conceptId: source?.conceptId ?? null,
+      sourceSummaryId: null,
+      penaltyKey,
+      penaltyType: "weekend_volume_double",
+      volumeMultiplier: 2,
+      completed: false,
+    })),
+  );
+}
+
+async function applyMissedTheoryPenalty(
+  userId: string,
+  source: typeof studyScheduleTable.$inferSelect,
+  rows: (typeof studyScheduleTable.$inferSelect)[],
+) {
+  const penaltyKey = `missed-theory:${source.id}`;
+  if (source.penaltyKey) return;
+  const next = rows
+    .filter((row) => !row.completed && !row.penaltyKey)
+    .filter((row) => `${row.scheduledDate}T${row.time}` > `${source.scheduledDate}T${source.time}`)
+    .sort((a, b) => `${a.scheduledDate}T${a.time}`.localeCompare(`${b.scheduledDate}T${b.time}`))[0];
+
+  await db
+    .update(studyScheduleTable)
+    .set({ penaltyKey, penaltyType: "missed_theory" })
+    .where(eq(studyScheduleTable.id, source.id));
+
+  if (!next) {
+    await db.insert(studyScheduleTable).values({
+      userId,
+      scheduledDate: addDays(source.scheduledDate, 1),
+      time: source.time,
+      duration: source.duration,
+      title: source.title,
+      subject: source.subject,
+      kind: source.kind,
+      remediationLabel: "تعويض حصة نظرية فائتة",
+      lessonId: source.lessonId,
+      conceptId: source.conceptId,
+      sourceSummaryId: source.sourceSummaryId,
+      penaltyKey,
+      penaltyType: "missed_theory",
+      volumeMultiplier: 1,
+      completed: false,
+    });
+    return;
+  }
+
+  const lastDate = rows.reduce((latest, row) => row.scheduledDate > latest ? row.scheduledDate : latest, next.scheduledDate);
+  await db.insert(studyScheduleTable).values({
+    userId,
+    scheduledDate: addDays(lastDate, 1),
+    time: next.time,
+    duration: next.duration,
+    title: next.title,
+    subject: next.subject,
+    kind: next.kind,
+    remediationLabel: "تأجيل بعد حصة نظرية فائتة",
+    lessonId: next.lessonId,
+    conceptId: next.conceptId,
+    sourceSummaryId: next.sourceSummaryId,
+    penaltyKey: `${penaltyKey}:shifted`,
+    penaltyType: "shifted_after_missed_theory",
+    volumeMultiplier: next.volumeMultiplier,
+    completed: false,
+  });
+  await db
+    .update(studyScheduleTable)
+    .set({
+      title: source.title,
+      subject: source.subject,
+      kind: source.kind,
+      duration: source.duration,
+      remediationLabel: "تعويض حصة نظرية فائتة",
+      lessonId: source.lessonId,
+      conceptId: source.conceptId,
+      sourceSummaryId: source.sourceSummaryId,
+      penaltyKey,
+      penaltyType: "missed_theory",
+      volumeMultiplier: 1,
+      completed: false,
+    })
+    .where(eq(studyScheduleTable.id, next.id));
+}
+
+async function applySchedulePenalties(userId: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = await db
+    .select()
+    .from(studyScheduleTable)
+    .where(eq(studyScheduleTable.userId, userId))
+    .orderBy(studyScheduleTable.scheduledDate, studyScheduleTable.time);
+
+  for (const row of rows) {
+    if (row.completed || row.scheduledDate >= today || row.penaltyKey) continue;
+    if (isTheorySession(row)) {
+      await applyMissedTheoryPenalty(userId, row, rows);
+      continue;
+    }
+    if (isPracticalSession(row)) {
+      await db
+        .update(studyScheduleTable)
+        .set({ penaltyKey: `missed-practical:${row.id}`, penaltyType: "missed_practical" })
+        .where(eq(studyScheduleTable.id, row.id));
+      await addWeekendVolumePenalty(
+        userId,
+        `missed-practical:${row.id}`,
+        row,
+        "مضاعفة حجم نهاية الأسبوع بسبب حصة تطبيقية فائتة",
+      );
+    }
+  }
+
+  const quizAttempts = await db
+    .select()
+    .from(quizAttemptsTable)
+    .where(eq(quizAttemptsTable.userId, userId));
+  const historicDates = new Set(rows.filter((row) => row.scheduledDate < today).map((row) => row.scheduledDate));
+  for (const scheduledDate of historicDates) {
+    const points = quizAttempts
+      .filter((attempt) => attempt.completedAt.toISOString().slice(0, 10) === scheduledDate)
+      .reduce((total, attempt) => total + attempt.pointsEarned, 0);
+    if (points >= 70) continue;
+    await addWeekendVolumePenalty(
+      userId,
+      `daily-quiz-points:${scheduledDate}`,
+      null,
+      "مضاعفة حجم نهاية الأسبوع بسبب عدم بلوغ ٧٠ نقطة يومية",
+    );
+  }
+}
+
+const schedulePenaltyRuns = new Map<string, Promise<void>>();
+
+async function ensureSchedulePenalties(userId: string) {
+  const active = schedulePenaltyRuns.get(userId);
+  if (active) return active;
+  const run = applySchedulePenalties(userId).finally(() => schedulePenaltyRuns.delete(userId));
+  schedulePenaltyRuns.set(userId, run);
+  return run;
+}
+
 export async function listLearningSchedule(userId: string) {
+  await ensureSchedulePenalties(userId);
   const rows = await db
     .select()
     .from(studyScheduleTable)
@@ -281,4 +529,58 @@ export async function updateLearningSchedule(userId: string, scheduleId: number,
     .where(and(eq(studyScheduleTable.id, scheduleId), eq(studyScheduleTable.userId, userId)))
     .returning();
   return row ? toScheduleEntry(row) : null;
+}
+
+export async function recordQuizAttempt(
+  userId: string,
+  input: {
+    quizId: string;
+    quizTitle: string;
+    score: number;
+    correct: number;
+    total: number;
+    pointsEarned: number;
+    isHighDifficulty: boolean;
+    passed: boolean;
+  },
+) {
+  const [row] = await db
+    .insert(quizAttemptsTable)
+    .values({
+      userId,
+      quizId: input.quizId,
+      quizTitle: input.quizTitle,
+      score: input.score,
+      correct: input.correct,
+      total: input.total,
+      pointsEarned: input.pointsEarned,
+      isHighDifficulty: input.isHighDifficulty,
+      passed: input.passed,
+    })
+    .returning();
+  if (!row) throw new Error("Quiz attempt could not be saved");
+  return row;
+}
+
+export async function listQuizAttempts(userId: string) {
+  const rows = await db
+    .select()
+    .from(quizAttemptsTable)
+    .where(eq(quizAttemptsTable.userId, userId))
+    .orderBy(desc(quizAttemptsTable.completedAt))
+    .limit(50);
+  return {
+    attempts: rows.map((row) => ({
+      id: row.id,
+      quiz_id: row.quizId,
+      quiz_title: row.quizTitle,
+      score: row.score,
+      correct: row.correct,
+      total: row.total,
+      points_earned: row.pointsEarned,
+      is_high_difficulty: row.isHighDifficulty,
+      passed: row.passed,
+      completed_at: row.completedAt.toISOString(),
+    })),
+  };
 }

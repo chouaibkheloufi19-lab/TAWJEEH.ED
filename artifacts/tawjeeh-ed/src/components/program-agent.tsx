@@ -48,6 +48,9 @@ type ProgramEntry = {
   endRule?: string;
   serverId?: number;
   remediationLabel?: string | null;
+  missed?: boolean;
+  volumeMultiplier?: number;
+  penaltyType?: string | null;
 };
 
 type ProgramAgentProps = {
@@ -151,6 +154,9 @@ function toProgramEntry(entry: ScheduleEntry): ProgramEntry {
     agent: 'دليل',
     completed: entry.completed,
     remediationLabel: entry.remediation_label,
+    missed: entry.missed,
+    volumeMultiplier: entry.volume_multiplier,
+    penaltyType: entry.penalty_type,
     track: 'application',
     endRule: 'تستمر حتى تثبيت المفهوم المرتبط بالخطأ',
   };
@@ -305,6 +311,10 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const remediationEntries = useMemo(
     () => (scheduleQuery.data ?? []).map(toProgramEntry),
     [scheduleQuery.data],
+  );
+  const penaltyEntries = useMemo(
+    () => remediationEntries.filter((entry) => entry.remediationLabel || entry.missed || (entry.volumeMultiplier ?? 1) > 1),
+    [remediationEntries],
   );
 
   useEffect(() => {
@@ -483,6 +493,22 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
       </section>
 
       <div className="program-agent-layout">
+        {penaltyEntries.length > 0 && (
+          <section className="program-penalty-banner" role="status" data-testid="card-schedule-penalties">
+            <div className="program-penalty-banner-heading">
+              <div><span className="program-card-kicker"><Bell size={14} /> تعديلات تلقائية على خطتك</span><h3>الحصة الفائتة لا تختفي؛ نعيد ترتيب الطريق.</h3></div>
+              <span className="program-penalty-count">{penaltyEntries.length}</span>
+            </div>
+            <div className="program-penalty-list">
+              {penaltyEntries.slice(0, 6).map((entry) => (
+                <div key={entry.id} className="program-penalty-row">
+                  <div><strong>{entry.title}</strong><small>{entry.remediationLabel ?? (entry.missed ? 'حصة فائتة تحتاج تعويضًا' : 'تعديل تلقائي')}</small></div>
+                  <span>{entry.volumeMultiplier && entry.volumeMultiplier > 1 ? '×٢ نهاية الأسبوع' : formatDate(entry.date)}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         <aside className="program-agent-aside">
           <div className="program-side-card program-phase-card">
             <div className="program-card-kicker"><Sparkles size={14} /> المسار الحالي</div>

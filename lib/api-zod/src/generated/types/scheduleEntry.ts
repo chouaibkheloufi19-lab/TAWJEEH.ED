@@ -21,4 +21,8 @@ export interface ScheduleEntry {
   /** @nullable */
   concept_id: string | null;
   completed: boolean;
+  missed: boolean;
+  /** @nullable */
+  penalty_type: string | null;
+  volume_multiplier: number;
 }

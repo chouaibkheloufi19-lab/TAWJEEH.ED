@@ -92,6 +92,23 @@ export const GetSummaryBankResponse = zod.object({
 
 
 /**
+ * @summary Get incorrect practical submissions linked to lesson concepts
+ */
+export const GetErrorBankResponse = zod.object({
+  "errors": zod.array(zod.object({
+  "id": zod.int(),
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "concept_id": zod.string(),
+  "concept_title": zod.string(),
+  "error_tag": zod.string(),
+  "summary_id": zod.int().nullable(),
+  "created_at": zod.string()
+}))
+})
+
+
+/**
  * @summary Save a completed lesson summary to the student's profile
  */
 export const CompleteLessonParams = zod.object({
@@ -169,7 +186,10 @@ export const RecordLearningAttemptResponse = zod.object({
   "remediation_label": zod.string().nullable(),
   "lesson_id": zod.string().nullable(),
   "concept_id": zod.string().nullable(),
-  "completed": zod.boolean()
+  "completed": zod.boolean(),
+  "missed": zod.boolean(),
+  "penalty_type": zod.string().nullable(),
+  "volume_multiplier": zod.int()
 }),zod.null()])
 })
 
@@ -188,7 +208,10 @@ export const GetLearningScheduleResponseItem = zod.object({
   "remediation_label": zod.string().nullable(),
   "lesson_id": zod.string().nullable(),
   "concept_id": zod.string().nullable(),
-  "completed": zod.boolean()
+  "completed": zod.boolean(),
+  "missed": zod.boolean(),
+  "penalty_type": zod.string().nullable(),
+  "volume_multiplier": zod.int()
 })
 export const GetLearningScheduleResponse = zod.array(GetLearningScheduleResponseItem)
 
@@ -215,7 +238,10 @@ export const UpdateLearningScheduleResponse = zod.object({
   "remediation_label": zod.string().nullable(),
   "lesson_id": zod.string().nullable(),
   "concept_id": zod.string().nullable(),
-  "completed": zod.boolean()
+  "completed": zod.boolean(),
+  "missed": zod.boolean(),
+  "penalty_type": zod.string().nullable(),
+  "volume_multiplier": zod.int()
 })
 
 
@@ -292,9 +318,31 @@ export const ListQuizzesResponseItem = zod.object({
   "options": zod.array(zod.string())
 })),
   "status": zod.string(),
-  "points": zod.number()
+  "points": zod.number(),
+  "is_high_difficulty": zod.boolean(),
+  "unit_id": zod.string(),
+  "score_threshold": zod.number()
 })
 export const ListQuizzesResponse = zod.array(ListQuizzesResponseItem)
+
+
+/**
+ * @summary List persisted quiz attempts
+ */
+export const ListQuizAttemptsResponse = zod.object({
+  "attempts": zod.array(zod.object({
+  "id": zod.int(),
+  "quiz_id": zod.string(),
+  "quiz_title": zod.string(),
+  "score": zod.number(),
+  "correct": zod.number(),
+  "total": zod.number(),
+  "points_earned": zod.number(),
+  "is_high_difficulty": zod.boolean(),
+  "passed": zod.boolean(),
+  "completed_at": zod.string()
+}))
+})
 
 
 /**
@@ -314,7 +362,10 @@ export const SubmitQuizAttemptResponse = zod.object({
   "correct": zod.number(),
   "total": zod.number(),
   "message": zod.string(),
-  "points_earned": zod.number()
+  "points_earned": zod.number(),
+  "attempt_id": zod.int(),
+  "passed": zod.boolean(),
+  "is_high_difficulty": zod.boolean()
 })
 
 

@@ -14,6 +14,7 @@ import {
 } from "@workspace/api-zod";
 import {
   getUserId,
+  listErrorBank,
   listLearningSchedule,
   listSummaryBank,
   recordLearningAttempt,
@@ -65,6 +66,16 @@ router.get("/learning/summary-bank", async (req, res): Promise<void> => {
   }
   const data = await listSummaryBank(userId);
   res.json(GetSummaryBankResponse.parse(data));
+});
+
+router.get("/learning/error-bank", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const data = await listErrorBank(userId);
+  res.json(data);
 });
 
 router.post("/learning/lessons/:lessonId/complete", async (req, res): Promise<void> => {

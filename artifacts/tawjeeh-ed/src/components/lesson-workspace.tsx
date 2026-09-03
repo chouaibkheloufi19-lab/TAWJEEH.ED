@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import {
   getGetLearningScheduleQueryKey,
+  getGetErrorBankQueryKey,
+  getListQuizzesQueryKey,
   getListKnowledgeQueryKey,
   getGetSummaryBankQueryKey,
   useCompleteLesson,
@@ -38,6 +40,7 @@ import owlAgentViolet from '@assets/agent-thinking-cropped.png';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
 import { useUser } from '@clerk/react';
+import { useLocation } from 'wouter';
 import {
   canCompleteEvaluation,
   getEvaluationBlocker,
@@ -428,6 +431,7 @@ function drawBoard(ctx: CanvasRenderingContext2D, width: number, height: number,
 }
 
 export function LessonWorkspace() {
+  const [, setLocation] = useLocation();
   const { user } = useUser();
   const registrationAt = user?.createdAt ?? null;
   const evaluationPlan = useMemo<EvaluationPlan>(() => getEvaluationPlan(registrationAt), [registrationAt]);
@@ -540,6 +544,7 @@ export function LessonWorkspace() {
       onSuccess: () => {
         setSummarySaveState('saved');
         void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getListQuizzesQueryKey() });
       },
       onError: () => setSummarySaveState('error'),
     });
@@ -627,6 +632,22 @@ export function LessonWorkspace() {
         : current.completedExamples.filter((id) => id !== exampleId),
       gradedExamples: { ...current.gradedExamples, [exampleId]: isCorrect ? 'correct' : 'incorrect' },
     }));
+    recordAttemptMutation.mutate({
+      data: {
+        lesson_id: lessonId,
+        lesson_title: 'قوانين نيوتن والحركة',
+        concept_id: activeSection.id,
+        concept_title: activeSection.title,
+        error_tag: isCorrect ? 'correct' : `فجوة ${activeSection.title} · ${example.expectedKeywords.join('، ')}`,
+        is_correct: isCorrect,
+      },
+    }, {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getGetLearningScheduleQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getGetErrorBankQueryKey() });
+      },
+    });
     setMessages((current) => [...current, {
       id: `example-${exampleId}-${Date.now()}`,
       role: 'assistant',
@@ -743,6 +764,7 @@ export function LessonWorkspace() {
         onSuccess: (result) => {
           void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
           void queryClient.invalidateQueries({ queryKey: getGetLearningScheduleQueryKey() });
+          void queryClient.invalidateQueries({ queryKey: getGetErrorBankQueryKey() });
           if (result.remediation) {
             setMessages((current) => [...current, {
               id: `remediation-${Date.now()}`,
@@ -1198,6 +1220,7 @@ export function LessonWorkspace() {
                <p>{summaryPreview.summary}</p>
                <div className="lesson-summary-concepts">{summaryPreview.concepts.map((concept) => <span key={concept.id}><strong>{concept.mastery}٪</strong>{concept.title}</span>)}</div>
                <div className="lesson-summary-times"><span>بدأت {formatSessionTime(summaryPreview.startedAt)}</span><span>اكتملت {formatSessionTime(summaryPreview.completedAt)}</span></div>
+               {summaryPreview.progress === 100 && summarySaveState === 'saved' && <button type="button" className="lesson-unit-quiz-button" onClick={() => setLocation('/quizzes?quiz=mechanics-unit')} data-testid="button-start-unit-assessment"><Sparkles size={14} /> افتحي تقييم الوحدة عالي الصعوبة</button>}
              </div>}
             {attemptBank.length > 0 && <div className="lesson-bank"><div className="lesson-bank-heading"><strong>بنك الأخطاء</strong><span>{attemptBank.length} محاولات</span></div>{attemptBank.slice(0, 2).map((item) => <button type="button" key={item.id} className="lesson-bank-item" onClick={() => { setAnalysis(item); setAnalysisState('ready'); }} data-testid={`button-open-attempt-${item.id}`}><span>{item.fileName}</span><small>{item.createdAt} · {item.summaryAnchor}</small></button>)}</div>}
           </div>

@@ -15,6 +15,9 @@ export const studyScheduleTable = pgTable("study_schedule", {
   lessonId: text("lesson_id"),
   conceptId: text("concept_id"),
   sourceSummaryId: integer("source_summary_id"),
+  penaltyKey: text("penalty_key"),
+  penaltyType: text("penalty_type"),
+  volumeMultiplier: integer("volume_multiplier").notNull().default(1),
   completed: boolean("completed").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

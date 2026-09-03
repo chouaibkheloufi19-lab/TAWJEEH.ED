@@ -129,12 +129,32 @@ export interface ScheduleEntry {
   /** @nullable */
   concept_id: string | null;
   completed: boolean;
+  missed: boolean;
+  /** @nullable */
+  penalty_type: string | null;
+  volume_multiplier: number;
 }
 
 export interface LearningAttemptResponse {
   attempt_id: number;
   metric: ConceptMetric;
   remediation: ScheduleEntry | null;
+}
+
+export interface ErrorBankItem {
+  id: number;
+  lesson_id: string;
+  lesson_title: string;
+  concept_id: string;
+  concept_title: string;
+  error_tag: string;
+  /** @nullable */
+  summary_id: number | null;
+  created_at: string;
+}
+
+export interface ErrorBankResponse {
+  errors: ErrorBankItem[];
 }
 
 export interface ScheduleUpdateInput {
@@ -187,6 +207,9 @@ export interface Quiz {
   questions: QuizQuestion[];
   status: string;
   points: number;
+  is_high_difficulty: boolean;
+  unit_id: string;
+  score_threshold: number;
 }
 
 export type QuizAttemptInputAnswers = {[key: string]: string};
@@ -202,6 +225,26 @@ export interface QuizResult {
   total: number;
   message: string;
   points_earned: number;
+  attempt_id: number;
+  passed: boolean;
+  is_high_difficulty: boolean;
+}
+
+export interface QuizAttemptRecord {
+  id: number;
+  quiz_id: string;
+  quiz_title: string;
+  score: number;
+  correct: number;
+  total: number;
+  points_earned: number;
+  is_high_difficulty: boolean;
+  passed: boolean;
+  completed_at: string;
+}
+
+export interface QuizAttemptsResponse {
+  attempts: QuizAttemptRecord[];
 }
 
 export type ListKnowledgeParams = {

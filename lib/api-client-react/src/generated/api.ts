@@ -21,6 +21,7 @@ import type {
 
 import type {
   Dashboard,
+  ErrorBankResponse,
   HealthStatus,
   KnowledgeCard,
   KnowledgeQueryInput,
@@ -31,6 +32,7 @@ import type {
   ListKnowledgeParams,
   Quiz,
   QuizAttemptInput,
+  QuizAttemptsResponse,
   QuizResult,
   ScheduleEntry,
   ScheduleUpdateInput,
@@ -285,6 +287,83 @@ export function useGetSummaryBank<TData = Awaited<ReturnType<typeof getSummaryBa
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetSummaryBankQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetErrorBankUrl = () => {
+
+
+
+
+  return `/api/learning/error-bank`
+}
+
+/**
+ * @summary Get incorrect practical submissions linked to lesson concepts
+ */
+export const getErrorBank = async ( options?: Parameters<typeof customFetch>[1]): Promise<ErrorBankResponse> => {
+
+  return customFetch<ErrorBankResponse>(getGetErrorBankUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetErrorBankQueryKey = () => {
+    return [
+    `/api/learning/error-bank`
+    ] as const;
+    }
+
+
+export const getGetErrorBankQueryOptions = <TData = Awaited<ReturnType<typeof getErrorBank>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getErrorBank>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetErrorBankQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getErrorBank>>> = ({ signal }) => getErrorBank({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getErrorBank>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetErrorBankQueryResult = NonNullable<Awaited<ReturnType<typeof getErrorBank>>>
+export type GetErrorBankQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get incorrect practical submissions linked to lesson concepts
+ */
+
+export function useGetErrorBank<TData = Awaited<ReturnType<typeof getErrorBank>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getErrorBank>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetErrorBankQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -809,6 +888,83 @@ export function useListQuizzes<TData = Awaited<ReturnType<typeof listQuizzes>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListQuizzesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListQuizAttemptsUrl = () => {
+
+
+
+
+  return `/api/quizzes/attempts`
+}
+
+/**
+ * @summary List persisted quiz attempts
+ */
+export const listQuizAttempts = async ( options?: Parameters<typeof customFetch>[1]): Promise<QuizAttemptsResponse> => {
+
+  return customFetch<QuizAttemptsResponse>(getListQuizAttemptsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuizAttemptsQueryKey = () => {
+    return [
+    `/api/quizzes/attempts`
+    ] as const;
+    }
+
+
+export const getListQuizAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof listQuizAttempts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuizAttempts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuizAttemptsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuizAttempts>>> = ({ signal }) => listQuizAttempts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuizAttempts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListQuizAttemptsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuizAttempts>>>
+export type ListQuizAttemptsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List persisted quiz attempts
+ */
+
+export function useListQuizAttempts<TData = Awaited<ReturnType<typeof listQuizAttempts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuizAttempts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListQuizAttemptsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

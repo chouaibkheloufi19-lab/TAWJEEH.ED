@@ -6,14 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface QuizResult {
+export interface QuizAttemptRecord {
+  id: number;
   quiz_id: string;
+  quiz_title: string;
   score: number;
   correct: number;
   total: number;
-  message: string;
   points_earned: number;
-  attempt_id: number;
-  passed: boolean;
   is_high_difficulty: boolean;
+  passed: boolean;
+  completed_at: string;
 }

@@ -42,20 +42,26 @@ import {
 } from 'lucide-react';
 import {
   getGetDashboardQueryKey,
+  getGetErrorBankQueryKey,
   getGetSummaryBankQueryKey,
   getHealthCheckQueryKey,
   getListKnowledgeQueryKey,
+  getListQuizAttemptsQueryKey,
   getListQuizzesQueryKey,
   useGetDashboard,
+  useGetErrorBank,
   useGetSummaryBank,
   useHealthCheck,
   useListKnowledge,
+  useListQuizAttempts,
   useListQuizzes,
   useQueryKnowledge,
   useSubmitQuizAttempt,
   type Dashboard,
+  type ErrorBankItem,
   type KnowledgeCard,
   type Quiz,
+  type QuizAttemptRecord,
   type QuizResult,
   type SummaryBankItem,
 } from '@workspace/api-client-react';
@@ -523,6 +529,7 @@ function DashboardPage() {
 function ProfilePage() {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const [location, setLocation] = useLocation();
   const displayName = user?.firstName || user?.username || 'الطالب';
   const email = user?.primaryEmailAddress?.emailAddress || 'لم يضف بريدًا إلكترونيًا';
   const appId = user?.id || 'يظهر بعد اكتمال تسجيل الدخول';
@@ -543,7 +550,14 @@ function ProfilePage() {
       refetchInterval: 10_000,
     },
   });
+  const errorBankQuery = useGetErrorBank({
+    query: {
+      queryKey: getGetErrorBankQueryKey(),
+      refetchInterval: 10_000,
+    },
+  });
   const summaryBank = summaryQuery.data;
+  const errorBank = errorBankQuery.data?.errors ?? [];
   const localSummaryCards: SummaryBankItem[] = localSummaries
     .filter((summary) => summary.lessonId && summary.lessonTitle && summary.summary && summary.completedAt)
     .map((summary, index) => ({
@@ -560,6 +574,8 @@ function ProfilePage() {
   const serverSummaries = summaryBank?.summaries ?? [];
   const summaries = [...serverSummaries, ...localSummaryCards.filter((local) => !serverSummaries.some((item) => item.lesson_id === local.lesson_id))];
   const weakConcepts = (summaryBank?.metrics ?? []).filter((metric) => metric.error_rate > 0.5);
+  const [focusedConcept, setFocusedConcept] = useState<{ summaryId: number; conceptId: string } | null>(null);
+  const summaryRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     try {
@@ -575,6 +591,20 @@ function ProfilePage() {
       setLocalSummaries([]);
     }
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.split('?')[1] ?? '');
+    const summaryId = Number(params.get('summary'));
+    const conceptId = params.get('concept');
+    if (!Number.isFinite(summaryId) || !conceptId) {
+      setFocusedConcept(null);
+      return;
+    }
+    setFocusedConcept({ summaryId, conceptId });
+    window.requestAnimationFrame(() => {
+      summaryRefs.current[String(summaryId)]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, [location, summaries.length]);
 
   return (
     <Shell title="الملف الشخصي">
@@ -606,13 +636,13 @@ function ProfilePage() {
           <section className="surface profile-bank-card">
             <div className="profile-bank-heading"><div><p className="eyebrow mb-1">أثر جلساتك</p><div className="flex flex-wrap items-center gap-2"><h3 className="display text-lg">بنك الملخصات</h3><span className="profile-official-stamp" data-testid="stamp-official-summary">TAWJEEH.ED · OFFICIAL</span></div></div></div>
             <div className="profile-bank-list">
-               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.slice(0, 4).map((summary: SummaryBankItem) => <div className="profile-summary-item" key={summary.id}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.slice(0, 3).map((concept) => <span key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكملي عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعودي إليه قبل المراجعة.</p>}
+               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.slice(0, 4).map((summary: SummaryBankItem) => <div className={`profile-summary-item ${focusedConcept?.summaryId === summary.id ? 'is-focused' : ''}`} ref={(element) => { summaryRefs.current[String(summary.id)] = element; }} key={summary.id} data-testid={`card-summary-${summary.id}`}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.slice(0, 3).map((concept) => <span className={focusedConcept?.summaryId === summary.id && focusedConcept.conceptId === concept.id ? 'is-focused' : ''} key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكملي عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعودي إليه قبل المراجعة.</p>}
             </div>
           </section>
           <section className="surface profile-bank-card">
             <div className="profile-bank-heading"><div><p className="eyebrow mb-1">نتعلّم من المحاولة</p><h3 className="display text-lg">بنك الأخطاء</h3></div></div>
             <div className="profile-bank-list">
-              {savedAttempts.length ? savedAttempts.map((attempt, index) => <div className="profile-bank-item" key={`${attempt}-${index}`}><RotateCcw size={15} /><span>{attempt}</span></div>) : <p className="profile-bank-empty">ارفقي صورة حل في جلسة فهيم. سنحفظ نقطة التوقف لتصبحي أقوى في المحاولة التالية.</p>}
+               {errorBankQuery.isLoading ? <p className="profile-bank-empty">نسترجع مواضع الأخطاء...</p> : errorBank.length ? errorBank.map((error: ErrorBankItem) => <button type="button" className="profile-error-item" key={error.id} disabled={error.summary_id === null} onClick={() => { if (error.summary_id !== null) setLocation(`/profile?summary=${error.summary_id}&concept=${encodeURIComponent(error.concept_id)}`); }} data-testid={`button-error-bank-${error.id}`}><RotateCcw size={15} /><span><strong>{error.concept_title}</strong><small>{error.error_tag} · {error.summary_id === null ? 'بانتظار ملخص الدرس' : 'افتحي موضعه في الملخص'}</small></span><ChevronLeft size={15} /></button>) : savedAttempts.length ? savedAttempts.map((attempt, index) => <div className="profile-bank-item" key={`${attempt}-${index}`}><RotateCcw size={15} /><span>{attempt}</span></div>) : <p className="profile-bank-empty">ارفقي صورة حل أو أجيبي عن تمرين في جلسة فهيم. سنحفظ كل موضع خطأ لتعودي إليه.</p>}
              </div>
            </section>
           <section className="surface profile-metrics-card">
@@ -685,7 +715,7 @@ function QuizResultCard({ result, onAgain }: { result: QuizResult; onAgain: () =
   return (
     <div className="surface mx-auto max-w-xl p-8 text-center" data-testid="card-quiz-result">
        <div className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-[28px] bg-[#e6f6fb] text-[#005689]"><Trophy size={37} strokeWidth={1.5} /></div>
-      <p className="eyebrow mb-2">اكتملت المحاولة</p><h2 className="display mb-2 text-3xl">{result.message || 'عمل جميل، واصل التقدم.'}</h2>
+       <p className="eyebrow mb-2">{result.is_high_difficulty ? 'تقييم الوحدة عالي الصعوبة' : 'اكتملت المحاولة'}</p><h2 className="display mb-2 text-3xl">{result.message || 'عمل جميل، واصل التقدم.'}</h2>
        <p className="mb-7 text-sm text-[#64748b]">هذه النتيجة نقطة بداية ذكية لجلسة المراجعة القادمة.</p>
        <div className="mb-7 grid grid-cols-3 divide-x divide-x-reverse divide-[#b3e5fc] rounded-2xl bg-[#e6f6fb] p-4">
          <div><strong className="mono block text-2xl text-[#005689]">{percentage}%</strong><span className="text-[10px] font-bold text-[#64748b]">النتيجة</span></div>
@@ -730,19 +760,23 @@ function QuizAttempt({ quiz, onExit, onScore }: { quiz: Quiz; onExit: () => void
 
 function QuizCard({ quiz, onStart }: { quiz: Quiz; onStart: () => void }) {
   const isWeekly = quiz.id === 'weekly-physics';
+  const locked = quiz.is_high_difficulty && quiz.status.startsWith('يفتح');
   return (
     <article className="surface flex flex-col p-5" data-testid={`card-quiz-${quiz.id}`}>
        <div className="mb-5 flex items-start justify-between gap-2"><span className="tag bg-[#e8f8f5] text-[#2e8b7b]">{isWeekly ? 'مخصص لمستواك' : 'تحدّي صعب'}</span><span className="text-[11px] font-bold text-[#64748b]">{quiz.status}</span></div>
        <h3 className="mb-2 text-lg font-extrabold">{quiz.title}</h3><p className="mb-6 min-h-[48px] text-sm leading-7 text-[#64748b]">{quiz.description}</p>
        <div className="mb-5 flex items-center gap-4 text-[11px] font-bold text-[#64748b]"><span className="flex items-center gap-1"><Clock3 size={14} /> {quiz.duration}</span><span className="flex items-center gap-1"><CircleHelp size={14} /> {quiz.questions?.length ?? 0} أسئلة</span><span className="flex items-center gap-1"><Zap size={14} /> {quiz.points} نقطة</span></div>
-      <button className="primary-button mt-auto w-full" onClick={onStart} data-testid={`button-start-quiz-${quiz.id}`}><Play size={15} fill="currentColor" /> ابدأ التدريب</button>
+       <button className="primary-button mt-auto w-full" disabled={locked} onClick={onStart} data-testid={`button-start-quiz-${quiz.id}`}><Play size={15} fill="currentColor" /> {locked ? 'أكملي الوحدة أولًا' : quiz.is_high_difficulty ? 'ابدئي التقييم' : 'ابدأ التدريب'}</button>
     </article>
   );
 }
 
 function QuizzesPage() {
+  const [location, setLocation] = useLocation();
+  const attemptsQuery = useListQuizAttempts({ query: { queryKey: getListQuizAttemptsQueryKey() } });
   const quizzesQuery = useListQuizzes({ query: { queryKey: getListQuizzesQueryKey() } });
   const quizzes = (quizzesQuery.data as Quiz[] | undefined) ?? [];
+  const hardAttempts = (attemptsQuery.data?.attempts ?? []).filter((attempt: QuizAttemptRecord) => attempt.is_high_difficulty);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [mistakeCount, setMistakeCount] = useState(0);
   const [dailyScore, setDailyScore] = useState(0);
@@ -757,6 +791,13 @@ function QuizzesPage() {
       setDailyScore(0);
     }
   }, []);
+  useEffect(() => {
+    const quizId = new URLSearchParams(location.split('?')[1] ?? '').get('quiz');
+    const requestedQuiz = quizzes.find((quiz) => quiz.id === quizId);
+    if (requestedQuiz && !selectedQuiz && !requestedQuiz.status.startsWith('يفتح')) {
+      setSelectedQuiz(requestedQuiz);
+    }
+  }, [location, quizzes, selectedQuiz]);
   const addDailyScore = (points: number) => {
     setDailyScore((current) => {
       const next = current + Math.max(0, points);
@@ -764,7 +805,7 @@ function QuizzesPage() {
       return next;
     });
   };
-  if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} onExit={() => setSelectedQuiz(null)} onScore={addDailyScore} /></Shell>;
+  if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} onExit={() => { setSelectedQuiz(null); setLocation('/quizzes'); }} onScore={addDailyScore} /></Shell>;
   return (
     <Shell title="الاختبارات الأسبوعية">
        <section className="mb-5 flex items-end justify-between gap-4 rounded-[1.35rem] border border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">
@@ -779,6 +820,7 @@ function QuizzesPage() {
          <div className="phase-one-score-track" aria-label="التقدم نحو الحد اليومي"><span style={{ width: `${Math.min(100, Math.round((dailyScore / 70) * 100))}%` }} /></div>
          <div className="phase-one-score-footer"><span><CheckCircle2 size={14} /> الحد المطلوب اليومي: ٧٠ نقطة</span><span><Trophy size={14} /> مؤشر النجاح: ١٠ / ٢٠ في المعدل</span><span>{dailyScore >= 70 ? 'أتممت حد اليوم' : `تبقّى ${Math.max(0, 70 - dailyScore)} نقطة`}</span></div>
        </section>
+       {hardAttempts.length > 0 && <section className="quiz-attempt-history" data-testid="card-unit-assessment-history"><div><span className="eyebrow">سجل تقييم الوحدة</span><h3 className="display text-lg">نتائج التحدّي عالي الصعوبة</h3></div><div className="quiz-attempt-history-list">{hardAttempts.slice(0, 5).map((attempt: QuizAttemptRecord) => <div className="quiz-attempt-history-row" key={attempt.id}><span><strong>{attempt.score}%</strong><small>{attempt.correct} من {attempt.total} · {attempt.completed_at.slice(0, 10)}</small></span><b className={attempt.passed ? 'passed' : 'retry'}>{attempt.passed ? 'اجتاز' : 'يحتاج محاولة أخرى'}</b></div>)}</div></section>}
       {quizzesQuery.isLoading ? <LoadingState label="نحضّر تمارين مناسبة لك..." /> : quizzesQuery.isError ? <ErrorState onRetry={() => quizzesQuery.refetch()} /> : quizzes.length === 0 ? <EmptyState title="لا توجد اختبارات بعد" body="ستجد هنا تدريبات الوحدات والاختبار الأسبوعي عند توفرها." /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} onStart={() => setSelectedQuiz(quiz)} />)}</div>}
     </Shell>
   );

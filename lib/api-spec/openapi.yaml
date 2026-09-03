@@ -54,6 +54,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SummaryBankResponse"
+  /learning/error-bank:
+    get:
+      operationId: getErrorBank
+      tags: [learning]
+      summary: Get incorrect practical submissions linked to lesson concepts
+      responses:
+        "200":
+          description: Error bank
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBankResponse"
   /learning/lessons/{lessonId}/complete:
     post:
       operationId: completeLesson
@@ -195,6 +207,18 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Quiz"
+  /quizzes/attempts:
+    get:
+      operationId: listQuizAttempts
+      tags: [quizzes]
+      summary: List persisted quiz attempts
+      responses:
+        "200":
+          description: Persisted quiz attempts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizAttemptsResponse"
   /quizzes/{quizId}/attempt:
     post:
       operationId: submitQuizAttempt
@@ -439,7 +463,7 @@ components:
             - type: "null"
     ScheduleEntry:
       type: object
-      required: [id, scheduled_date, time, duration, title, subject, kind, remediation_label, lesson_id, concept_id, completed]
+      required: [id, scheduled_date, time, duration, title, subject, kind, remediation_label, lesson_id, concept_id, completed, missed, penalty_type, volume_multiplier]
       properties:
         id:
           type: integer
@@ -463,6 +487,40 @@ components:
           type: ["string", "null"]
         completed:
           type: boolean
+        missed:
+          type: boolean
+        penalty_type:
+          type: ["string", "null"]
+        volume_multiplier:
+          type: integer
+    ErrorBankItem:
+      type: object
+      required: [id, lesson_id, lesson_title, concept_id, concept_title, error_tag, summary_id, created_at]
+      properties:
+        id:
+          type: integer
+        lesson_id:
+          type: string
+        lesson_title:
+          type: string
+        concept_id:
+          type: string
+        concept_title:
+          type: string
+        error_tag:
+          type: string
+        summary_id:
+          type: ["integer", "null"]
+        created_at:
+          type: string
+    ErrorBankResponse:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorBankItem"
     ScheduleUpdateInput:
       type: object
       required: [completed]
@@ -536,7 +594,7 @@ components:
             type: string
     Quiz:
       type: object
-      required: [id, title, subject, description, duration, questions, status, points]
+      required: [id, title, subject, description, duration, questions, status, points, is_high_difficulty, unit_id, score_threshold]
       properties:
         id:
           type: string
@@ -556,6 +614,12 @@ components:
           type: string
         points:
           type: number
+        is_high_difficulty:
+          type: boolean
+        unit_id:
+          type: string
+        score_threshold:
+          type: number
     QuizAttemptInput:
       type: object
       required: [answers]
@@ -566,7 +630,7 @@ components:
             type: string
     QuizResult:
       type: object
-      required: [quiz_id, score, correct, total, message, points_earned]
+      required: [quiz_id, score, correct, total, message, points_earned, attempt_id, passed, is_high_difficulty]
       properties:
         quiz_id:
           type: string
@@ -580,4 +644,42 @@ components:
           type: string
         points_earned:
           type: number
+        attempt_id:
+          type: integer
+        passed:
+          type: boolean
+        is_high_difficulty:
+          type: boolean
+    QuizAttemptRecord:
+      type: object
+      required: [id, quiz_id, quiz_title, score, correct, total, points_earned, is_high_difficulty, passed, completed_at]
+      properties:
+        id:
+          type: integer
+        quiz_id:
+          type: string
+        quiz_title:
+          type: string
+        score:
+          type: number
+        correct:
+          type: number
+        total:
+          type: number
+        points_earned:
+          type: number
+        is_high_difficulty:
+          type: boolean
+        passed:
+          type: boolean
+        completed_at:
+          type: string
+    QuizAttemptsResponse:
+      type: object
+      required: [attempts]
+      properties:
+        attempts:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizAttemptRecord"
 
