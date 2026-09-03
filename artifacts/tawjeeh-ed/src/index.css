@@ -2598,3 +2598,56 @@ button { cursor: pointer; }
   .program-planner-modal { max-height: calc(100dvh - 20px); border-radius: 20px; }
   .program-planner-modal .phase-one-planner-shell { padding: 22px 16px; }
 }
+
+/* Compact mascot media: keep the learning surface and its inputs visually primary. */
+.phase-one-onboarding-visual {
+  display: grid;
+  min-height: 190px;
+  place-items: center;
+}
+.phase-one-owl-card {
+  width: 100px;
+  height: 100px;
+  min-height: 0;
+  border-width: 3px;
+  border-radius: 22px;
+  box-shadow: 0 14px 28px rgba(31, 74, 83, .14);
+}
+.phase-one-owl-card .phase-one-video-caption { display: none; }
+.phase-one-video,
+.phase-one-video-still {
+  max-width: 100%;
+  max-height: 100%;
+}
+.phase-one-float-note {
+  padding: 7px 9px;
+  box-shadow: 0 9px 18px rgba(31, 74, 83, .09);
+}
+.phase-one-float-note-top { top: 17%; left: 4%; }
+.phase-one-float-note-bottom { right: 4%; bottom: 17%; }
+
+/* Keep any alternate auth mascot media treatment within the same quiet scale. */
+.auth-video-shell {
+  width: 100px;
+  height: 100px;
+  max-width: 100%;
+  max-height: 100px;
+}
+.auth-welcome-video,
+.auth-splash-video {
+  max-width: 100px;
+  max-height: 100px;
+  object-fit: contain;
+}
+
+@media (max-width: 720px) {
+  .phase-one-onboarding-visual {
+    min-height: 145px;
+  }
+  .phase-one-owl-card {
+    width: 88px;
+    height: 88px;
+  }
+  .phase-one-float-note-top { top: 4%; left: 0; }
+  .phase-one-float-note-bottom { right: 0; bottom: 4%; }
+}
