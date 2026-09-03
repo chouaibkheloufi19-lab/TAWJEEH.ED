@@ -11,9 +11,13 @@ import {
   ImagePlus,
   Lightbulb,
   LoaderCircle,
+  Maximize2,
   MessageCircle,
+  Minimize2,
   Pause,
   PenLine,
+  PanelRightClose,
+  PanelRightOpen,
   Play,
   RotateCcw,
   Save,
@@ -494,6 +498,8 @@ export function LessonWorkspace() {
   const [summarySaveState, setSummarySaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [summaryPreview, setSummaryPreview] = useState<LocalSummary | null>(null);
   const [boardMode, setBoardMode] = useState<BoardMode>('pen');
+  const [isBoardImmersive, setIsBoardImmersive] = useState(false);
+  const [isLessonRailCollapsed, setIsLessonRailCollapsed] = useState(false);
   const [activePartner, setActivePartner] = useState<ActivePartner>('dalil');
   const [exerciseAnswer, setExerciseAnswer] = useState('');
   const [exerciseFeedback, setExerciseFeedback] = useState<'correct' | 'retry' | null>(null);
@@ -509,7 +515,8 @@ export function LessonWorkspace() {
   const activeSource = useMemo(() => sourceForSection(activeSection, knowledgeCards), [activeSection, knowledgeCards]);
   const activeExamples = exampleDetails[activeSection.id];
   const displayedTitle = generatedLesson?.lessonTitle ?? activeSection.title;
-  const displayedExplanation = generatedLesson?.explanation ?? activeSection.explanation;
+  const sourceExcerpt = activeSource?.summary?.replace(/\s+/g, ' ').trim().slice(0, 520) ?? '';
+  const displayedExplanation = generatedLesson?.explanation ?? (sourceExcerpt || activeSection.explanation);
   const displayedHighlight = generatedLesson?.highlight || activeSection.highlight;
   const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
   const totalExamples = lessonSections.reduce((total, section) => total + exampleDetails[section.id].length, 0);
@@ -521,9 +528,10 @@ export function LessonWorkspace() {
   const evaluationBlocker = getEvaluationBlocker(evaluationPlan, progress, session.startedAt);
   const foundationExpired = evaluationDay > 10;
   const phase4Active = Boolean(session.concludedAt) || foundationExpired || session.activeAgent === 'dalil-exercises';
-  const handoffComplete = phase4Active;
+  const agentsAvailable = knowledgeQuery.isSuccess;
+  const handoffComplete = phase4Active || agentsAvailable;
   const faheemActive = !phase4Active && session.activeAgent === 'faheem';
-  const lessonToolsActive = faheemActive || phase4Active;
+  const lessonToolsActive = true;
   const activePartnerDetails = useMemo(() => {
     const details = partnerDetails[activePartner];
     if (activePartner === 'dalil' && examMode?.reduce_passive_explanation) {
@@ -673,6 +681,13 @@ export function LessonWorkspace() {
   }, [activeSection.id]);
 
   useEffect(() => {
+    document.body.style.overflow = isBoardImmersive ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isBoardImmersive]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -764,6 +779,24 @@ export function LessonWorkspace() {
     }
   };
 
+  useEffect(() => {
+    if (!knowledgeCards.length || lessonGenerationState !== 'idle') return;
+    void generateLesson();
+  }, [activeSection.id, knowledgeCards.length]);
+
+  useEffect(() => {
+    if (!agentsAvailable) return;
+    setMessages((current) => current.some((message) => message.id === 'knowledge-ready')
+      ? current
+      : [...current, {
+          id: 'knowledge-ready',
+          role: 'assistant',
+          text: activeSource
+            ? `فتحت لك المصدر الحقيقي «${activeSource.title}» من ${activeSource.source} · ص ${activeSource.page}. يمكنك البدء من اللوح أو سؤال دليل عن أي خطوة.`
+            : 'فتحت لك بطاقات المعرفة الحقيقية. ابدئي من الفكرة الحالية، وسأربط كل سؤال بالمصادر المتاحة.',
+        }]);
+  }, [agentsAvailable, activeSource]);
+
   const askFahim = async (text: string) => {
     if (!faheemActive) return;
     const cleanText = text.trim();
@@ -784,6 +817,7 @@ export function LessonWorkspace() {
           lesson: 'قوانين نيوتن والحركة',
           concept: activeSection.title,
             context: [
+               activeSource ? `المصدر الحالي: ${activeSource.title} — ${activeSource.source} ص ${activeSource.page}\nمقتطف المصدر: ${sourceExcerpt}` : '',
               analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}` : '',
               highlightedPart ? `الجزء المحدد على اللوح: ${highlightedPart}` : '',
               pausedContext,
@@ -832,15 +866,20 @@ export function LessonWorkspace() {
       });
       const source = response.results?.[0];
        const targetedConcept = examMode?.error_concepts[0]?.concept_title;
+       const sourceContext = source
+         ? `مرجع من «${source.title}» (${source.source} · ص ${source.page}): ${source.summary.slice(0, 360)}`
+         : sourceExcerpt
+           ? `مرجع الدرس الحالي: ${sourceExcerpt}`
+           : '';
        const exercisePrompt = analysis?.nextExercise
          ?? (targetedConcept
            ? `تمرين مكدس أخطاء في «${targetedConcept}»: اكتبي المعطيات، حددي العلاقة، ثم تحققي من الوحدة.`
            : `تمرين تطبيقي في «${activeSection.title}»: ${activeExamples[0]?.detail ?? 'اكتبي المعطيات أولًا، ثم حددي العلاقة المناسبة.'}`);
       const reply = activePartner === 'dalil'
         ? source
-           ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source.title}»`}: ${source.summary} ${intensiveExamMode ? 'والآن انتقلي إلى التطبيق.' : 'ابدئي من هذه الفكرة، ثم قارنيها بما يظهر على اللوح.'}`
+            ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source.title}»`}: ${source.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقلي إلى التطبيق.' : 'ابدئي من هذه الفكرة، ثم قارنيها بما يظهر على اللوح.'}`
            : `${intensiveExamMode ? 'خلاصة سريعة' : 'لنثبتها بهدوء'}: ${displayedExplanation} ${intensiveExamMode ? 'اكتبي خطوة الحل التالية.' : 'هل تريدين ربطها بالمثال أم بالرسم؟'}`
-        : `جهزت لك تدريبًا قصيرًا على «${activeSection.title}». افتحي بطاقة التمرين في مساحة الحل، واكتبي خطوتك الأولى وسأراجعها معك.`;
+         : `جهزت لك تدريبًا قصيرًا على «${activeSection.title}». ${sourceContext} افتحي مساحة الحل، واكتبي خطوتك الأولى وسأراجعها معك.`;
       setMessages((current) => [...current, {
         id: `partner-answer-${Date.now()}`,
         role: 'assistant',
@@ -1088,16 +1127,16 @@ export function LessonWorkspace() {
         </div>
       </header>
 
-      <div className={`lesson-evaluation-banner ${handoffComplete ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
+       <div className={`lesson-evaluation-banner ${phase4Active ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
         <div>
-           <span className="lesson-panel-kicker"><Sparkles size={13} /> {handoffComplete ? 'اكتمل التشخيص · بداية المرحلة الرابعة' : 'إيقاع جلسة اليوم'}</span>
-           <strong>{handoffComplete ? 'انتقلتِ من فهيم إلى شريكين للتركيز' : evaluationPlan.title}</strong>
-           <p>{handoffComplete ? 'فهيم أغلق الحلقة التأسيسية. دليل للشرح، ووكيل التمارين للتطبيق — وأنتِ تختارين من يقود الخطوة التالية.' : evaluationPlan.description}</p>
+            <span className="lesson-panel-kicker"><Sparkles size={13} /> {phase4Active ? 'اكتمل التشخيص · بداية المرحلة الرابعة' : 'المصادر والوكلاء جاهزون'}</span>
+            <strong>{phase4Active ? 'انتقلتِ من فهيم إلى شريكين للتركيز' : 'ابدئي الدراسة الآن من المصدر'}</strong>
+            <p>{phase4Active ? 'فهيم أغلق الحلقة التأسيسية. دليل للشرح، ووكيل التمارين للتطبيق — وأنتِ تختارين من يقود الخطوة التالية.' : 'فتحت لك مساحة شرح كاملة، ومصدرًا حقيقيًا من قاعدة المعرفة، ووكلاء يربطون السؤال بالدرس بدل تشتيتك بين الشاشات.'}</p>
         </div>
          <div className="lesson-evaluation-meta">
-           <span>{handoffComplete ? 'الحالة: تم التسليم' : evaluationPlan.windowLabel}</span>
-           <strong>{handoffComplete ? 'دليل + تمارين' : evaluationPlan.durationLabel}</strong>
-            <small>{handoffComplete ? `اكتمل ${formatSessionTime(session.concludedAt ?? session.startedAt)}` : `بدأت ${formatSessionTime(session.startedAt)} · الوقت مفتوح`}</small>
+            <span>{phase4Active ? 'الحالة: تم التسليم' : 'الحالة: دراسة مباشرة'}</span>
+            <strong>{phase4Active ? 'دليل + تمارين' : `${knowledgeCards.length} مصدرًا متاحًا`}</strong>
+             <small>{phase4Active ? `اكتمل ${formatSessionTime(session.concludedAt ?? session.startedAt)}` : `${evaluationPlan.windowLabel} · الوقت مفتوح`}</small>
         </div>
       </div>
 
@@ -1122,15 +1161,27 @@ export function LessonWorkspace() {
          </div>
        </div>
 
-      <div className="lesson-grid">
-         <aside className="lesson-panel lesson-path-panel" aria-label="مسار إتقان الطالب">
+       <div className={`lesson-grid ${isLessonRailCollapsed ? 'has-collapsed-rail' : ''}`}>
+          <aside className={`lesson-panel lesson-path-panel ${isLessonRailCollapsed ? 'is-collapsed' : ''}`} aria-label="مسار إتقان الطالب">
           <div className="lesson-panel-heading">
             <div>
                <span className="lesson-panel-kicker"><BookOpen size={13} /> خريطة الإتقان</span>
                <h2>طريق الفهم</h2>
                <p>نثبت خطوة قبل أن نفتح التي بعدها.</p>
             </div>
-            <span className="lesson-rail-count">{progress}٪</span>
+             <div className="lesson-rail-tools">
+               <span className="lesson-rail-count">{progress}٪</span>
+               <button
+                 type="button"
+                 className="lesson-rail-toggle"
+                 onClick={() => setIsLessonRailCollapsed((collapsed) => !collapsed)}
+                 aria-label={isLessonRailCollapsed ? 'إظهار مراحل الدرس' : 'طي مراحل الدرس'}
+                 aria-expanded={!isLessonRailCollapsed}
+                 data-testid="button-toggle-lesson-rail"
+               >
+                 {isLessonRailCollapsed ? <PanelRightOpen size={15} /> : <PanelRightClose size={15} />}
+               </button>
+             </div>
           </div>
           <div className="lesson-progress-meter">
             <div className="lesson-progress-label"><span>تقدم الجلسة</span><strong>{totalCompleted}/{totalExamples}</strong></div>
@@ -1147,6 +1198,7 @@ export function LessonWorkspace() {
                   type="button"
                   className={`lesson-path-item ${active ? 'is-active' : ''} ${done ? 'is-done' : ''}`}
                   onClick={() => selectSection(section)}
+                   title={isLessonRailCollapsed ? section.label : undefined}
                   aria-current={active ? 'step' : undefined}
                   data-testid={`button-lesson-section-${section.id}`}
                 >
@@ -1232,14 +1284,31 @@ export function LessonWorkspace() {
           </form>
         </section>
 
-          <section className="lesson-panel lesson-teaching-panel" aria-label={handoffComplete ? 'مساحة الدرس والتمرين والحل' : 'السبورة الذكية لفهيم'}>
+           <section
+             className={`lesson-panel lesson-teaching-panel ${isBoardImmersive ? 'is-immersive' : ''}`}
+             aria-label={handoffComplete ? 'مساحة الدرس والتمرين والحل' : 'السبورة الذكية لفهيم'}
+             aria-modal={isBoardImmersive ? 'true' : undefined}
+             role={isBoardImmersive ? 'dialog' : undefined}
+           >
           <div className="lesson-teaching-header">
             <div>
                 <span className="lesson-panel-kicker"><Volume2 size={13} /> {handoffComplete ? 'لوح الدرس' : 'لوح فهيم'}</span>
                <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
                <p>إيقاع مقترح · {activeSection.duration} · {activeSection.label}</p>
+                {activeSource && <span className="lesson-source-badge"><BookOpen size={12} /> مصدر مباشر · {activeSource.source} · ص {activeSource.page}</span>}
             </div>
              <div className="lesson-teaching-actions">
+                <button
+                  type="button"
+                  className="lesson-board-expand-button"
+                  onClick={() => setIsBoardImmersive((open) => !open)}
+                  aria-label={isBoardImmersive ? 'العودة إلى جلسة الدرس' : 'فتح مساحة الشرح كاملة'}
+                  aria-expanded={isBoardImmersive}
+                  data-testid="button-toggle-immersive-board"
+                >
+                  {isBoardImmersive ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  <span>{isBoardImmersive ? 'العودة للجلسة' : 'مساحة شرح كاملة'}</span>
+                </button>
                <button
                  type="button"
                  className="lesson-generate-button"

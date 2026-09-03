@@ -189,10 +189,10 @@ function AgentAvatar({ size = 'md', pose = 'default' }: { size?: 'sm' | 'md' | '
   );
 }
 
-function NavLinks({ mobile = false }: { mobile?: boolean }) {
+function NavLinks({ mobile = false, compact = false }: { mobile?: boolean; compact?: boolean }) {
   const [location] = useLocation();
   return (
-    <nav className={mobile ? 'mobile-nav' : 'mt-12 flex flex-col gap-2'} aria-label="التنقل الرئيسي">
+    <nav className={mobile ? 'mobile-nav' : `mt-12 flex flex-col gap-2 ${compact ? 'lesson-sidebar-links' : ''}`} aria-label="التنقل الرئيسي">
       {navItems.map(({ href, label, icon: Icon }) => {
         const active = href === '/' ? location === '/' : location.startsWith(href);
         return (
@@ -200,10 +200,10 @@ function NavLinks({ mobile = false }: { mobile?: boolean }) {
             key={href}
             href={href}
             data-testid={`link-nav-${label}`}
-            className={`${mobile ? '' : 'sidebar-link flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-bold'} ${active ? 'active' : ''}`}
+            className={`${mobile ? '' : 'sidebar-link flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-bold'} ${compact ? 'lesson-sidebar-link' : ''} ${active ? 'active' : ''}`}
           >
             <Icon size={mobile ? 19 : 18} strokeWidth={active ? 2.5 : 1.8} />
-            <span>{label}</span>
+            <span className={compact ? 'lesson-sidebar-label' : undefined}>{label}</span>
           </Link>
         );
       })}
@@ -211,14 +211,14 @@ function NavLinks({ mobile = false }: { mobile?: boolean }) {
   );
 }
 
-function Sidebar() {
+function Sidebar({ compact = false }: { compact?: boolean }) {
   const healthQuery = useHealthCheck({ query: { queryKey: getHealthCheckQueryKey(), staleTime: 60_000 } });
   const connected = healthQuery.data?.status === 'ok' || healthQuery.data?.status === 'healthy';
   return (
-    <aside className="sidebar fixed inset-y-0 right-0 z-10 hidden w-[252px] flex-col px-5 py-7 lg:flex">
-      <Logo />
-      <NavLinks />
-      <div className="mt-auto overflow-hidden rounded-2xl border border-[#b3e5fc] bg-[#004b75] p-4">
+    <aside className={`sidebar fixed inset-y-0 right-0 z-10 hidden w-[252px] flex-col px-5 py-7 lg:flex ${compact ? 'is-compact' : ''}`}>
+      <Logo compact={compact} />
+      <NavLinks compact={compact} />
+      <div className="lesson-sidebar-card mt-auto overflow-hidden rounded-2xl border border-[#b3e5fc] bg-[#004b75] p-4">
         <div className="mb-3 flex items-start justify-between">
           <span className="tag bg-[#e6f6fb] text-[#004b75]">مساحة هادئة</span>
           <Sparkles size={17} className="text-[#e6f6fb]" />
@@ -226,7 +226,7 @@ function Sidebar() {
         <p className="mb-1 text-sm font-extrabold text-white">كل خطوة تُحسب.</p>
         <p className="text-[11px] leading-5 text-[#b3e5fc]">ارجع إلى خطتك حين تتشتت. النظام يعرف أين توقفت.</p>
       </div>
-      <div className="mt-5 flex items-center justify-between px-1 text-[10px] text-[#b3e5fc]">
+      <div className="lesson-sidebar-footer mt-5 flex items-center justify-between px-1 text-[10px] text-[#b3e5fc]">
         <span>البكالوريا الجزائرية</span>
         <span className="flex items-center gap-1.5"><i className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-[#8fe5cd]' : 'bg-[#e7ba8f]'}`} />{connected ? 'متصل' : 'يستعد'}</span>
       </div>
@@ -264,10 +264,11 @@ function Topbar({ title }: { title: string }) {
 }
 
 function Shell({ children, title }: { children: ReactNode; title: string }) {
+  const isLessonShell = title === 'جلسة فهيم';
   return (
-    <div className="app-shell noise">
-      <Sidebar />
-      <main className="min-h-[100dvh] lg:mr-[252px]">
+    <div className={`app-shell noise ${isLessonShell ? 'lesson-shell' : ''}`}>
+      <Sidebar compact={isLessonShell} />
+      <main className={isLessonShell ? 'min-h-[100dvh] lg:mr-[66px]' : 'min-h-[100dvh] lg:mr-[252px]'}>
         <div className="content-wrap">
           <Topbar title={title} />
           {children}
