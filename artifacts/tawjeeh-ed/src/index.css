@@ -2261,12 +2261,12 @@ button { cursor: pointer; }
 .phase-one-planner-shell {
   --phase-ink: #193d51;
   --phase-deep: #0b526d;
-  --phase-blue: #177d91;
-  --phase-blue-soft: #dceff0;
-  --phase-mint: #dfeee8;
+  --phase-blue: #2f7fa8;
+  --phase-blue-soft: #e8f3f7;
+  --phase-mint: #e3f1f7;
   --phase-warm: #c68b52;
   --phase-paper: #fbf7ef;
-  --phase-line: #c8dedd;
+  --phase-line: #c8dce6;
   position: relative;
   min-height: 100dvh;
   overflow: hidden;
@@ -2903,8 +2903,8 @@ button { cursor: pointer; }
   --lesson-line: #d5e6e3;
   --lesson-paper: #fffdf8;
   --lesson-mist: #f1f7f4;
-  --lesson-aqua: #e1f2ef;
-  --lesson-teal: #2f8aa5;
+  --lesson-aqua: #e6f2f7;
+  --lesson-teal: #2f7fa8;
   --lesson-navy: #164b61;
   --lesson-blue: #257ea2;
   --lesson-gold: #b98939;
@@ -3801,8 +3801,8 @@ button { cursor: pointer; }
   --lesson-line: #d5e6e3;
   --lesson-paper: #fffdf8;
   --lesson-mist: #f1f7f4;
-  --lesson-aqua: #e1f2ef;
-  --lesson-teal: #2f8aa5;
+  --lesson-aqua: #e6f2f7;
+  --lesson-teal: #2f7fa8;
   --lesson-navy: #164b61;
   --lesson-blue: #257ea2;
   --lesson-gold: #b98939;
@@ -4082,7 +4082,7 @@ button { cursor: pointer; }
 /* Official TAWJEEH.ED palette enforcement */
 :root {
   --brand-petroleum: #005f73;
-  --brand-teal: #2f8aa5;
+  --brand-teal: #2f7fa8;
   --brand-deep-blue: #1f6f92;
   --brand-electric: #3b82b7;
   --brand-soft: #e8f3f6;
@@ -4701,8 +4701,8 @@ button { cursor: pointer; }
 
 /* Responsive lesson layout: give the board room before stacking on phones. */
 .lesson-workspace {
-  --lesson-teal: #2f728d;
-  --lesson-blue: #2f8aa5;
+  --lesson-teal: #2f7fa8;
+  --lesson-blue: #2f7fa8;
   --lesson-aqua: #e5f2f7;
   --lesson-mist: #f2f8fa;
   --lesson-line: #c8dce6;
@@ -4945,4 +4945,44 @@ button { cursor: pointer; }
       'path'
       'convo';
   }
+}
+
+/* Final brand correction: use blue/petroleum accents instead of green/mint. */
+:root {
+  --brand-teal: #2f7fa8;
+  --brand-soft: #e8f3f7;
+  --brand-soft-blue: #eaf0ff;
+}
+
+.phase-one-range-choice.is-selected,
+.phase-one-time-choice.is-selected,
+.phase-one-priority-choice.is-selected {
+  border-color: #8cbccc;
+  background: #eaf2f7;
+}
+
+.lesson-workspace {
+  --lesson-teal: #2f7fa8;
+  --lesson-blue: #2f7fa8;
+  --lesson-aqua: #e6f2f7;
+  --lesson-mist: #f3f8fb;
+  --lesson-line: #c8dce6;
+}
+
+[class~="text-[#2e8b7b]"],
+[class~="text-[#3f877d]"],
+[class~="text-[#8fe5cd]"] {
+  color: var(--brand-teal) !important;
+}
+
+[class~="bg-[#2e8b7b]"] {
+  background-color: var(--brand-teal) !important;
+}
+
+[class~="bg-[#e8f8f5]"],
+[class~="bg-[#eaf5ef]"],
+[class~="bg-[#eaf6f1]"],
+[class~="bg-[#e1f2ef]"],
+[class~="bg-[#e1f2ed]"] {
+  background-color: var(--brand-soft) !important;
 }
