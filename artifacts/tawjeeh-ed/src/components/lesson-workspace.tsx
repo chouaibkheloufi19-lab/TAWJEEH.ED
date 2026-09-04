@@ -62,7 +62,7 @@ import {
 type LessonSectionId = 'definition' | 'worked-example' | 'graph' | 'practice' | 'recap';
 type BoardMode = 'pen' | 'highlight';
 type Point = { x: number; y: number };
-type ActivePartner = 'dalil' | 'exercises';
+type ActivePartner = 'dalil' | 'exercises' | 'creative';
 
 type LessonSection = {
   id: LessonSectionId;
@@ -120,6 +120,30 @@ type GeneratedExercise = {
   answer: string;
   hint: string;
   solution: string;
+  sourceDocuments: { title: string; source: string; page: number }[];
+  sourceNodeIds: string[];
+  grounding: {
+    status: 'ready';
+    query: string;
+    retrievedNodeIds: string[];
+    sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
+  };
+};
+
+type CreativeIdea = {
+  title: string;
+  approach: string;
+  steps: string[];
+  creativeTwist: string;
+  expectedOutcome: string;
+  sourceNodeIds: string[];
+};
+
+type CreativeIdeasResponse = {
+  status: 'generated';
+  lessonTitle: string;
+  solutionSummary: string;
+  ideas: CreativeIdea[];
   sourceDocuments: { title: string; source: string; page: number }[];
   sourceNodeIds: string[];
   grounding: {
@@ -254,6 +278,12 @@ const partnerDetails: Record<ActivePartner, {
     role: 'شريك التطبيق',
     description: 'يحوّل الفكرة إلى تدريب قصير على مستواك.',
     prompt: 'اختر مفهومًا، وسأعطيك خطوة تدريبية واحدة لتبدأ بها.',
+  },
+  creative: {
+    name: 'المبدعة',
+    role: 'شريكة الأفكار',
+    description: 'تعرف الحل، ثم تفتح لك طرقًا جديدة لفهمه وتطبيقه.',
+    prompt: 'اكتب المسألة أو الحل الذي تريد تطويره، وسأبدأ بالحل الصحيح ثم أقترح أفكارًا مختلفة.',
   },
 };
 
@@ -517,6 +547,7 @@ export function LessonWorkspace() {
   const [analysisError, setAnalysisError] = useState('');
   const [attemptBank, setAttemptBank] = useState<AttemptBankItem[]>(readAttemptBank);
   const [generatedExercise, setGeneratedExercise] = useState<GeneratedExercise | null>(null);
+  const [creativeIdeas, setCreativeIdeas] = useState<CreativeIdeasResponse | null>(null);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
   const [lessonGenerationState, setLessonGenerationState] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
   const [lessonGenerationError, setLessonGenerationError] = useState('');
@@ -778,6 +809,7 @@ export function LessonWorkspace() {
     setIsPlaying(false);
     setHighlightedPart('');
     setGeneratedLesson(null);
+    setCreativeIdeas(null);
     setLessonGenerationState('idle');
     setLessonGenerationError('');
     if (owlVideoRef.current) {
@@ -1000,7 +1032,9 @@ export function LessonWorkspace() {
         : `مرجع الدرس الحالي: ${sourceExcerpt}`;
       let reply = activePartner === 'dalil'
         ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source?.title}»`}: ${source?.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقل إلى التطبيق.' : 'ابدأ من هذه الفكرة، ثم قارنها بما يظهر على اللوح.'}`
-        : 'جهزت لك تدريبًا مرتبطًا بدرس قوانين نيوتن والحركة.';
+        : activePartner === 'exercises'
+          ? 'جهزت لك تدريبًا مرتبطًا بدرس قوانين نيوتن والحركة.'
+          : 'سأثبت الحل أولًا، ثم أفتح لك أكثر من طريق إبداعي لفهمه.';
       if (activePartner === 'exercises') {
         const response = await fetch('/api/lesson/exercise', {
           method: 'POST',
@@ -1025,6 +1059,37 @@ export function LessonWorkspace() {
         setShowExerciseSolution(false);
         reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من محتوى الدرس. ابدأ بكتابة المعطيات والخطوة الأولى.`;
       }
+       if (activePartner === 'creative') {
+         const response = await fetch('/api/creative/ideas', {
+           method: 'POST',
+           credentials: 'include',
+           headers: { 'content-type': 'application/json' },
+           body: JSON.stringify({
+             lesson: 'قوانين نيوتن والحركة',
+             level: '3AS',
+             activeConcept: activeSection.title,
+             question: cleanText,
+             context: [
+               activeSource ? `مرجع الدرس الحالي: ${activeSource.source} ص ${activeSource.page}` : '',
+               analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}` : '',
+               sourceExcerpt,
+             ].filter(Boolean).join('\n'),
+           }),
+         });
+         const payload = await response.json() as Partial<CreativeIdeasResponse> & { message?: string };
+         if (
+           !response.ok ||
+           payload.status !== 'generated' ||
+           !payload.solutionSummary ||
+           !Array.isArray(payload.ideas) ||
+           payload.ideas.length < 3 ||
+           payload.grounding?.status !== 'ready'
+         ) {
+           throw new Error(payload.message || 'تعذر توليد الحل والأفكار الإبداعية');
+         }
+         setCreativeIdeas(payload as CreativeIdeasResponse);
+         reply = `عرفت الحل أولًا، ثم بنيت لك ${(payload as CreativeIdeasResponse).ideas.length} أفكار مختلفة حوله. افتح البطاقة واختر الفكرة الأقرب لطريقتك.`;
+       }
       setMessages((current) => [...current, {
         id: `partner-answer-${Date.now()}`,
         role: 'assistant',
@@ -1409,10 +1474,10 @@ export function LessonWorkspace() {
           {knowledgeQuery.isError && <p className="lesson-source-status is-error">تعذر تحميل الإحالات؛ بقيت أدوات الجلسة متاحة.</p>}
         </aside>
 
-         <section className="lesson-panel lesson-conversation-panel" aria-label={handoffComplete ? 'التواصل مع دليل ووكيل التمارين' : 'حديثك مع فهيم'}>
+         <section className="lesson-panel lesson-conversation-panel" aria-label={handoffComplete ? 'التواصل مع شركاء التعلّم' : 'حديثك مع فهيم'}>
            <div className="lesson-panel-heading lesson-conversation-heading">
              <div className="lesson-fahim-chip">
-               <span className={`lesson-fahim-avatar ${handoffComplete ? 'is-handoff' : ''}`}><img src={handoffComplete ? (activePartner === 'dalil' ? owlAgentTeal : owlAgentGold) : (isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal)} alt={handoffComplete ? `${activePartnerDetails.name}، ${activePartnerDetails.role}` : 'فهيم، مساعد تثبيت المفاهيم'} /></span>
+                <span className={`lesson-fahim-avatar ${handoffComplete ? 'is-handoff' : ''}`}><img src={handoffComplete ? (activePartner === 'dalil' ? owlAgentTeal : activePartner === 'creative' ? owlAgentViolet : owlAgentGold) : (isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal)} alt={handoffComplete ? `${activePartnerDetails.name}، ${activePartnerDetails.role}` : 'فهيم، مساعد تثبيت المفاهيم'} /></span>
                  <span><strong>{handoffComplete ? activePartnerDetails.name : 'فهيم'}</strong><small>{handoffComplete ? activePartnerDetails.role : faheemActive ? 'تفاعل وتغذية راجعة' : 'اكتمل التسليم إلى الشريكين'}</small></span>
              </div>
               <span className={`lesson-live-state ${isThinking || analysisState === 'analyzing' ? 'is-working' : ''}`}><i />{handoffComplete ? (isThinking ? 'يراجع الآن' : 'متاح') : !faheemActive ? 'تم التسليم' : analysisState === 'analyzing' ? 'يحلل الصورة' : isThinking ? 'يكتب الآن' : 'جاهز'}</span>
@@ -1429,11 +1494,11 @@ export function LessonWorkspace() {
                      role="tab"
                      aria-selected={active}
                      title={details.description}
-                     className={`lesson-agent-option ${active ? 'is-active' : ''} ${partner === 'exercises' ? 'is-exercises' : 'is-dalil'}`}
+                      className={`lesson-agent-option ${active ? 'is-active' : ''} ${partner === 'exercises' ? 'is-exercises' : partner === 'creative' ? 'is-creative' : 'is-dalil'}`}
                      onClick={() => switchPartner(partner)}
                      data-testid={`button-switch-agent-${partner}`}
                    >
-                     <span className="lesson-agent-option-icon">{partner === 'dalil' ? <Lightbulb size={15} /> : <PenLine size={15} />}</span>
+                      <span className="lesson-agent-option-icon">{partner === 'dalil' ? <Lightbulb size={15} /> : partner === 'creative' ? <Sparkles size={15} /> : <PenLine size={15} />}</span>
                      <span><strong>{details.name}</strong><small>{details.role}</small></span>
                      {active && <Check size={14} aria-hidden="true" />}
                    </button>
@@ -1441,13 +1506,34 @@ export function LessonWorkspace() {
                })}
              </div>
            )}
-          <div className="lesson-messages" aria-live="polite" data-testid="region-fahim-messages">
+           <div className="lesson-messages" aria-live="polite" data-testid="region-fahim-messages">
             {messages.map((message) => (
               <article key={message.id} className={`lesson-message ${message.role === 'assistant' ? 'is-assistant' : 'is-user'}`} data-testid={`message-lesson-${message.id}`}>
                  <div className="lesson-message-meta">{message.role === 'assistant' ? <><Sparkles size={11} /> {handoffComplete ? activePartnerDetails.name : 'فهيم'}</> : 'أنت'}<span className="lesson-message-time">{getTimeLabel()}</span></div>
                 <p>{message.text}</p>
               </article>
             ))}
+             {activePartner === 'creative' && creativeIdeas && (
+               <article className="lesson-creative-card" data-testid="card-creative-ideas">
+                 <div className="lesson-creative-card-head">
+                   <div><span><Sparkles size={12} /> الحل أولًا</span><strong>{creativeIdeas.lessonTitle}</strong></div>
+                   <small>{creativeIdeas.ideas.length} أفكار</small>
+                 </div>
+                 <p className="lesson-creative-solution">{creativeIdeas.solutionSummary}</p>
+                 <div className="lesson-creative-ideas">
+                   {creativeIdeas.ideas.map((idea, index) => (
+                     <div className="lesson-creative-idea" key={`${idea.title}-${index}`}>
+                       <div className="lesson-creative-idea-title"><span>{index + 1}</span><strong>{idea.title}</strong></div>
+                       <p>{idea.approach}</p>
+                       <ol>{idea.steps.map((step, stepIndex) => <li key={`${idea.title}-step-${stepIndex}`}>{step}</li>)}</ol>
+                       <div className="lesson-creative-twist"><Lightbulb size={12} /><span><strong>اللمسة الإبداعية:</strong> {idea.creativeTwist}</span></div>
+                       <small className="lesson-creative-outcome">ما ستتعلمه: {idea.expectedOutcome}</small>
+                     </div>
+                   ))}
+                 </div>
+                 <small className="lesson-creative-grounding"><BookOpen size={11} /> مبنية على مصادر المنهاج المسترجعة</small>
+               </article>
+             )}
           </div>
             <form className={`lesson-composer ${!faheemActive && !handoffComplete ? 'is-disabled' : ''}`} onSubmit={handleQuestionSubmit}>
             <label className="lesson-composer-label" htmlFor="lesson-question"><span>{handoffComplete ? `اكتب إلى ${activePartnerDetails.name}` : 'سؤال أو ملاحظة'}</span><span>العنصر الحالي: {activeSection.label}</span></label>
