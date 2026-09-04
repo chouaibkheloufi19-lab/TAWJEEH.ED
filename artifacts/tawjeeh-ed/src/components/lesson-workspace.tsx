@@ -528,6 +528,7 @@ export function LessonWorkspace() {
   const [activePartner, setActivePartner] = useState<ActivePartner>('dalil');
   const [exerciseAnswer, setExerciseAnswer] = useState('');
   const [exerciseFeedback, setExerciseFeedback] = useState<'correct' | 'retry' | null>(null);
+  const [showExerciseHint, setShowExerciseHint] = useState(false);
   const [showExerciseSolution, setShowExerciseSolution] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1137,8 +1138,15 @@ export function LessonWorkspace() {
     setMessages((current) => [...current, { id: `recovery-${Date.now()}`, role: 'assistant', text: `ثبتنا آخر خطوة صحيحة: «${analysis.lastCorrectStep}». سنبني هذا المفهوم من جديد.` }]);
   };
 
-  const buildExercise = async () => {
-    if (!analysis || !ragReady) return;
+  const generateExerciseForStudent = async (attemptContext: string) => {
+    if (!ragReady) {
+      setMessages((current) => [...current, {
+        id: `exercise-not-ready-${Date.now()}`,
+        role: 'assistant',
+        text: 'لم تجهز مصادر المنهاج بعد. أعد المحاولة بعد لحظات ليُبنى التمرين من محتوى موثوق.',
+      }]);
+      return;
+    }
     setIsThinking(true);
     try {
       const response = await fetch('/api/lesson/exercise', {
@@ -1149,7 +1157,7 @@ export function LessonWorkspace() {
           lesson: 'قوانين نيوتن والحركة',
           level: '3AS',
           activeConcept: activeSection.title,
-          attemptContext: `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`,
+            attemptContext,
         }),
       });
        const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
@@ -1159,11 +1167,14 @@ export function LessonWorkspace() {
       setGeneratedExercise(payload as GeneratedExercise);
       setExerciseAnswer('');
       setExerciseFeedback(null);
+      setShowExerciseHint(false);
       setShowExerciseSolution(false);
       setMessages((current) => [...current, {
         id: `exercise-${Date.now()}`,
         role: 'assistant',
-        text: 'بنيت لك تمرينًا يعالج موضع الخطأ من الدرس وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.',
+        text: analysis
+          ? 'بنيت لك تمرينًا يعالج موضع الخطأ من الدرس وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.'
+          : 'جهزت لك تمرينًا مناسبًا للمفهوم الحالي. حاول وحدك أولًا، ثم اطلب التلميح عند الحاجة.',
       }]);
     } catch (error) {
       setMessages((current) => [...current, {
@@ -1176,19 +1187,44 @@ export function LessonWorkspace() {
     }
   };
 
+  const buildExercise = async () => {
+    if (!analysis) return;
+    await generateExerciseForStudent(`${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`);
+  };
+
   const reviewGeneratedExercise = () => {
-    const target = activeExamples[0];
-    if (!target || !exerciseAnswer.trim()) return;
+    if (!generatedExercise || !exerciseAnswer.trim()) return;
     const normalized = normalizeAnswer(exerciseAnswer);
-    const isCorrect = target.expectedKeywords.every((keyword) => normalized.includes(normalizeAnswer(keyword)));
+    const expected = normalizeAnswer(generatedExercise.answer);
+    const isCorrect = Boolean(expected) && (
+      normalized === expected
+      || normalized.includes(expected)
+      || expected.includes(normalized)
+    );
     setExerciseFeedback(isCorrect ? 'correct' : 'retry');
     setShowExerciseSolution(false);
+    recordAttemptMutation.mutate({
+      data: {
+        lesson_id: lessonId,
+        lesson_title: generatedExercise.lessonTitle,
+        concept_id: activeSection.id,
+        concept_title: activeSection.title,
+        error_tag: isCorrect ? 'correct' : `تمرين مولّد · ${generatedExercise.title}`,
+        is_correct: isCorrect,
+      },
+    }, {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getGetLearningScheduleQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getGetErrorBankQueryKey() });
+      },
+    });
     setMessages((current) => [...current, {
       id: `exercise-review-${Date.now()}`,
       role: 'assistant',
       text: isCorrect
-        ? 'حلّك صحيح. ثبّت العلاقة الأساسية، ويمكنك الآن الانتقال إلى المثال التالي.'
-        : 'نحتاج خطوة أخرى قبل اعتماد الحل. افتح تلميح الحل، ثم أعد كتابة المعطيات والعلاقة.',
+        ? 'حلّك قريب من الإجابة النموذجية. أحسنت، ثبّت الخطوات ثم جرّب تمرينًا آخر.'
+        : 'لم نصل للإجابة بعد. افتح التلميح، ثم أعد كتابة المعطيات والعلاقة قبل مشاهدة الحل.',
     }]);
   };
 
@@ -1598,7 +1634,22 @@ export function LessonWorkspace() {
               <form className={`lesson-board-question ${!lessonToolsActive ? 'is-disabled' : ''}`} onSubmit={(event) => { event.preventDefault(); void (handoffComplete ? askPartner(question || `ساعدني في فهم ${activeSection.label}`) : askFahim(question || `ساعدني في فهم ${activeSection.label}`)); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!lessonToolsActive} placeholder={handoffComplete ? `اكتب إلى ${activePartnerDetails.name} عن اللوح` : faheemActive ? 'اسأل فهيم عن اللوح' : 'اكتمل التسليم إلى الشريكين'} aria-label={`سؤال ${handoffComplete ? activePartnerDetails.name : 'فهيم'} عن اللوح`} data-testid="input-board-question" /><button type="submit" disabled={!lessonToolsActive} aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
           </div>
           <div className="lesson-examples">
-            <div className="lesson-examples-heading"><h3>تثبيت سريع</h3><span>{completedCount} / {activeExamples.length}</span></div>
+             <div className="lesson-examples-heading">
+               <div>
+                 <h3>تثبيت سريع</h3>
+                 <span>{completedCount} / {activeExamples.length}</span>
+               </div>
+               <button
+                 type="button"
+                 className="lesson-generate-exercise-button"
+                 onClick={() => void generateExerciseForStudent(`تمرين مباشر على مفهوم ${activeSection.title}`)}
+                 disabled={!lessonToolsActive || isThinking}
+                 data-testid="button-generate-student-exercise"
+               >
+                 {isThinking ? <LoaderCircle size={12} className="lesson-spin-icon" /> : <Sparkles size={12} />}
+                 {isThinking ? 'يُحضّر...' : 'تمرين الآن'}
+               </button>
+             </div>
              <p className="lesson-examples-hint">اكتب إجابة قصيرة لكل مثال، ثم تحقق منها. لا نحتسب الفهم إلا بعد إجابة صحيحة.</p>
              <div className="lesson-example-list">
               {activeExamples.map((example) => {
@@ -1636,14 +1687,48 @@ export function LessonWorkspace() {
             </div>
            {generatedExercise && (
              <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
-               <span>تمرين إضافي يعالج نفس الخطأ</span>
+                <span>{analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل كشف الحل'}</span>
                <h4>{generatedExercise.title}</h4>
                <p>{generatedExercise.prompt}</p>
                <small>بُني من محتوى درس قوانين نيوتن والحركة</small>
-               <button type="button" onClick={() => setShowExerciseSolution((visible) => !visible)} data-testid="button-toggle-generated-solution">
-                 {showExerciseSolution ? 'إخفاء الحل' : 'إظهار الحل خطوة خطوة'}
-               </button>
-               {showExerciseSolution && <p className="lesson-generated-solution">{generatedExercise.solution}</p>}
+                <textarea
+                  value={exerciseAnswer}
+                  onChange={(event) => {
+                    setExerciseAnswer(event.target.value);
+                    setExerciseFeedback(null);
+                  }}
+                  placeholder="اكتب محاولتك هنا قبل فتح التلميح..."
+                  aria-label="إجابة التمرين المولّد"
+                  rows={2}
+                  data-testid="input-generated-exercise-answer"
+                />
+                <div className="lesson-generated-exercise-actions">
+                  <button
+                    type="button"
+                    onClick={reviewGeneratedExercise}
+                    disabled={!exerciseAnswer.trim() || recordAttemptMutation.isPending}
+                    data-testid="button-check-generated-exercise"
+                  >
+                    {exerciseFeedback === 'correct' ? 'إجابة صحيحة' : 'تحقق من إجابتي'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowExerciseHint((visible) => !visible)}
+                    data-testid="button-toggle-generated-hint"
+                  >
+                    {showExerciseHint ? 'إخفاء التلميح' : 'أعطني تلميحًا'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowExerciseSolution((visible) => !visible)}
+                    data-testid="button-toggle-generated-solution"
+                  >
+                    {showExerciseSolution ? 'إخفاء الحل' : 'إظهار الحل خطوة خطوة'}
+                  </button>
+                </div>
+                {exerciseFeedback && <p className={`lesson-generated-feedback ${exerciseFeedback === 'correct' ? 'is-correct' : 'is-retry'}`}>{exerciseFeedback === 'correct' ? 'أحسنت، إجابتك تطابق الفكرة المطلوبة.' : 'راجع المعطيات والخطوة الأولى، ثم حاول مرة أخرى.'}</p>}
+                {showExerciseHint && <p className="lesson-generated-hint"><strong>تلميح:</strong> {generatedExercise.hint}</p>}
+                {showExerciseSolution && <p className="lesson-generated-solution">{generatedExercise.solution}</p>}
              </div>
            )}
           </div>

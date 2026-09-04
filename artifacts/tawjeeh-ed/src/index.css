@@ -3582,6 +3582,112 @@ button { cursor: pointer; }
 .lesson-generated-exercise span {
   color: var(--lesson-gold);
 }
+.lesson-examples-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lesson-generate-exercise-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 27px;
+  padding: 0 9px;
+  border: 1px solid #d7bc76;
+  border-radius: 8px;
+  color: #80601d;
+  font-size: 8px;
+  font-weight: 900;
+  background: #fff8df;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+.lesson-generate-exercise-button:hover:not(:disabled) {
+  border-color: var(--lesson-gold);
+  background: #ffefbd;
+  transform: translateY(-1px);
+}
+.lesson-generate-exercise-button:disabled {
+  cursor: wait;
+  opacity: .58;
+}
+.lesson-generated-exercise h4 {
+  margin: 4px 0 0;
+  color: var(--lesson-navy);
+  font-size: 11px;
+  font-weight: 900;
+}
+.lesson-generated-exercise textarea {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 7px;
+  padding: 7px 8px;
+  resize: vertical;
+  border: 1px solid #e1d3a9;
+  border-radius: 8px;
+  outline: none;
+  color: var(--lesson-ink);
+  font: inherit;
+  font-size: 9px;
+  line-height: 1.7;
+  background: rgba(255,255,255,.72);
+}
+.lesson-generated-exercise textarea:focus {
+  border-color: var(--lesson-gold);
+  box-shadow: 0 0 0 3px rgba(185,138,44,.12);
+  background: #fff;
+}
+.lesson-generated-exercise-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+.lesson-generated-exercise-actions button {
+  min-height: 25px;
+  padding: 0 8px;
+  border: 1px solid #d7bc76;
+  border-radius: 7px;
+  color: #80601d;
+  font-size: 8px;
+  font-weight: 850;
+  background: #fffdf4;
+}
+.lesson-generated-exercise-actions button:first-child {
+  color: #2e796e;
+  border-color: #b9d8d1;
+  background: #eff8f2;
+}
+.lesson-generated-exercise-actions button:hover:not(:disabled) {
+  background: #ffefbd;
+}
+.lesson-generated-exercise-actions button:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+.lesson-generated-feedback,
+.lesson-generated-hint,
+.lesson-generated-solution {
+  margin-top: 7px !important;
+  padding: 7px 8px;
+  border-radius: 7px;
+  background: rgba(255,255,255,.55);
+}
+.lesson-generated-feedback.is-correct {
+  color: #2e796e !important;
+  background: #e8f4ed;
+}
+.lesson-generated-feedback.is-retry {
+  color: #995649 !important;
+  background: #fff0e6;
+}
+.lesson-generated-hint {
+  color: #80601d !important;
+}
+.lesson-generated-solution {
+  color: #6f603a !important;
+  white-space: pre-line;
+}
 .lesson-note-card {
   margin: 0 15px 15px;
   border-color: #d8e4dc;
