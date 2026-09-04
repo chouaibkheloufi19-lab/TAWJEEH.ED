@@ -3,13 +3,21 @@ import { ArrowRight, CheckCircle2, Lightbulb, RotateCcw, Sparkles } from 'lucide
 import { Link } from 'wouter';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 
-const correctAnswer = '3';
+const correctAnswer = '4x-16';
+
+function normalizeMath(value: string) {
+  return value
+    .replace(/[−–—]/g, '-')
+    .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+    .replace(/\s+/g, '')
+    .toLowerCase();
+}
 
 export function MathPractice() {
   const [answer, setAnswer] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const isCorrect = answer.trim() === correctAnswer;
+  const isCorrect = normalizeMath(answer) === correctAnswer;
 
   const reset = () => {
     setAnswer('');
@@ -36,17 +44,22 @@ export function MathPractice() {
           <div className="order-2 lg:order-1">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#e8f8f5] px-3 py-2 text-xs font-extrabold text-[#2e8b7b]">
               <Sparkles size={15} />
-              تحدٍّ قصير لاختبار الفهم
+              مراجعة مكتسبات · من السند
             </div>
             <h1 className="mb-4 text-3xl font-black leading-tight text-[#003c60] md:text-5xl">
-              المعادلات الخطية
+              اشتقاق كثيرات الحدود
             </h1>
             <p className="max-w-md text-base leading-8 text-[#64748b]">
-              رتّب العمليات بهدوء، ثم اكتب قيمة المتغيّر فقط. لا تحتاج إلى آلة حاسبة.
+              راجع قاعدة اشتقاق الدوال كثيرات الحدود، ثم اكتب الدالة المشتقة كاملة. لا تحتاج إلى آلة حاسبة.
             </p>
             <div className="mt-8 flex items-start gap-3 rounded-2xl border border-[#b3e5fc] bg-white p-4 text-sm leading-7 text-[#476273] shadow-sm">
               <Lightbulb className="mt-1 shrink-0 text-[#d49b35]" size={18} />
-              <p><strong className="text-[#005689]">تلميح:</strong> ابدأ بتبسيط الطرف الأيسر قبل عزل المتغيّر.</p>
+              <p><strong className="text-[#005689]">تلميح:</strong> اشتقّ كل حد على حدة، وتذكّر أن مشتقة الثابت تساوي صفرًا.</p>
+            </div>
+            <div className="mt-4 rounded-2xl border border-dashed border-[#9bd1dc] bg-[#eefafd] p-4 text-xs leading-6 text-[#476273]">
+              <strong className="block text-[#005689]">السند المعتمد</strong>
+              واجب في الاشتقاق · الدوال العددية · التمرين 1
+              <span className="mt-1 block text-[10px] text-[#71818a]">المصدر: _⁨واجب_في_الاشتقاق⁩.pdf</span>
             </div>
           </div>
 
@@ -54,13 +67,13 @@ export function MathPractice() {
             <div className="mb-8 flex items-center justify-between gap-3">
               <div>
                 <span className="mb-2 block text-xs font-extrabold text-[#71818a]">السؤال ١ · مستوى متوسط</span>
-                <h2 className="text-xl font-black text-[#003c60]">أوجد قيمة <span dir="ltr">x</span></h2>
+                <h2 className="text-xl font-black text-[#003c60]">احسب الدالة المشتقة <span dir="ltr">f′(x)</span></h2>
               </div>
               <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#e6f6fb] text-lg font-black text-[#005689]">01</div>
             </div>
 
             <div className="mb-8 rounded-2xl bg-[#004b75] px-5 py-8 text-center text-3xl font-black tracking-wide text-white md:text-4xl" dir="ltr">
-              3(2x − 1) + 4 = 19
+              f(x) = 2x² − 16x + 5
             </div>
 
             <form
@@ -77,13 +90,12 @@ export function MathPractice() {
                 <input
                   id="math-answer"
                   type="text"
-                  inputMode="numeric"
                   value={answer}
                   onChange={(event) => {
                     setAnswer(event.target.value);
                     setSubmitted(false);
                   }}
-                  placeholder="اكتب قيمة x"
+                  placeholder="اكتب f′(x)"
                   className="min-h-12 min-w-0 flex-1 rounded-xl border border-[#b3e5fc] bg-[#f7fcfe] px-4 text-center text-lg font-bold text-[#003c60] outline-none transition focus:border-[#2e8b7b] focus:ring-2 focus:ring-[#e8f8f5]"
                   dir="ltr"
                   aria-describedby={submitted ? 'math-feedback' : undefined}
@@ -103,14 +115,14 @@ export function MathPractice() {
                 {isCorrect ? <CheckCircle2 className="mt-1 shrink-0" size={19} /> : <Lightbulb className="mt-1 shrink-0" size={19} />}
                 <p>
                   {isCorrect
-                    ? 'أحسنت! الإجابة صحيحة: x = 3.'
-                    : 'ليست الإجابة الصحيحة بعد. وسّع القوس ثم اجمع الحدود المتشابهة وحاول مرة أخرى.'}
+                    ? 'أحسنت! الإجابة صحيحة: f′(x) = 4x − 16.'
+                    : 'ليست الإجابة الصحيحة بعد. اشتقّ الحدّين 2x² و−16x، ثم اجعل مشتقة الثابت 5 تساوي صفرًا.'}
                 </p>
               </div>
             )}
 
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#e6f1f5] pt-5">
-              <span className="text-xs text-[#71818a]">اكتب الحل على ورقة إن أحببت، ثم أدخل النتيجة.</span>
+              <span className="text-xs text-[#71818a]">اكتب الدالة المشتقة بصيغة مثل: 4x − 16</span>
               {submitted && (
                 <button type="button" onClick={reset} className="inline-flex items-center gap-2 text-xs font-extrabold text-[#005689] hover:text-[#2e8b7b]">
                   <RotateCcw size={14} />

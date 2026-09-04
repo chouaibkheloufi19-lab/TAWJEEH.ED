@@ -321,6 +321,15 @@ function AuthWelcome() {
 
 function HomeRedirect() {
   const { isLoaded, isSignedIn } = useAuth();
+  const [previewFallback, setPreviewFallback] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded) return;
+    const timeoutId = window.setTimeout(() => setPreviewFallback(true), 1200);
+    return () => window.clearTimeout(timeoutId);
+  }, [isLoaded]);
+
+  if (previewFallback && !isLoaded) return <MathPractice />;
   if (!isLoaded) return <AuthLoading />;
   return isSignedIn ? <Redirect to="/profile" /> : <AuthWelcome />;
 }
