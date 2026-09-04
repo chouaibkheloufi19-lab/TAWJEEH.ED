@@ -4986,3 +4986,15 @@ button { cursor: pointer; }
 [class~="bg-[#e1f2ed]"] {
   background-color: var(--brand-soft) !important;
 }
+
+/* Primary actions use a clearly blue tone, not a green-leaning petroleum tone. */
+.primary-button,
+.profile-actions .primary-button {
+  background: #2f79b7 !important;
+  color: #ffffff !important;
+}
+
+.primary-button:hover,
+.profile-actions .primary-button:hover {
+  background: #245f99 !important;
+}
