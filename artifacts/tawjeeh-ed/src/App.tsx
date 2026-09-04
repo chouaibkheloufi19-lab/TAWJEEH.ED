@@ -71,6 +71,7 @@ import {
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LessonWorkspace } from '@/components/lesson-workspace';
+import { MathPractice } from '@/components/math-practice';
 import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/phase-one';
 import { ProgramAgent } from '@/components/program-agent';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
@@ -917,6 +918,7 @@ function Router() {
     <ErrorBoundary resetKey={location}>
       <Switch>
         <Route path="/" component={HomeRedirect} />
+        <Route path="/practice" component={MathPractice} />
         <Route path="/sign-in/*?" component={SignInPage} />
         <Route path="/sign-up/*?" component={SignUpPage} />
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
