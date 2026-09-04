@@ -1,7 +1,7 @@
 kind = "web"
 previewPath = "/"
 title = "TAWJEEH.ED"
-description = "An Arabic-first adaptive learning workspace for baccalaureate students, with a three-tier Faheem lesson room for progress, conversation, and interactive blackboard teaching."
+description = "An Arabic-first adaptive learning workspace for baccalaureate students, with guided lessons, grounded exercises, and progress tracking."
 version = "1.0.0"
 id = "artifacts/tawjeeh-ed"
 router = "path"
