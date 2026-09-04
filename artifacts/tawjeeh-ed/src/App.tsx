@@ -30,6 +30,7 @@ import {
   MoreHorizontal,
   Paperclip,
   Play,
+  Printer,
   RotateCcw,
   Search,
   Send,
@@ -750,6 +751,137 @@ function QuizResultCard({ result, onAgain }: { result: QuizResult; onAgain: () =
   );
 }
 
+function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
+  return (
+    <Shell title="موضوع تجريبي">
+      <div className="exam-paper-toolbar">
+        <button className="secondary-button !px-3 !py-2 !text-xs" onClick={onExit} data-testid="button-exit-exam-paper">
+          <ArrowRight size={15} /> العودة للاختبارات
+        </button>
+        <button className="primary-button !px-3 !py-2 !text-xs" onClick={() => window.print()} data-testid="button-print-exam-paper">
+          <Printer size={15} /> طباعة الموضوع
+        </button>
+      </div>
+      <article className="exam-paper" dir="rtl" data-testid="card-generated-exam-paper">
+        <header className="exam-paper-header">
+          <div>
+            <p>الجمهورية الجزائرية الديمقراطية الشعبية</p>
+            <p>وزارة التربية الوطنية</p>
+          </div>
+          <div className="exam-paper-brand">
+            <strong>TAWJEEH</strong>
+            <span>مساحة التعلّم</span>
+          </div>
+          <div className="exam-paper-header-left">
+            <p>اختبار تجريبي</p>
+            <p>الموسم الدراسي 2026 / 2027</p>
+          </div>
+        </header>
+
+        <div className="exam-paper-title">
+          <p className="exam-paper-kicker">الرياضيات · شعبة العلوم التجريبية</p>
+          <h1>اختبار تجريبي في الرياضيات</h1>
+          <div className="exam-paper-meta">
+            <span>المستوى: السنة الثالثة ثانوي</span>
+            <span>المدة: ساعتان و30 دقيقة</span>
+            <span>العلامة: 20 نقطة</span>
+          </div>
+        </div>
+
+        <div className="exam-paper-note">
+          <strong>ملاحظة:</strong> يمنع استعمال الآلة الحاسبة، وتراعى جودة الكتابة والتبرير في كل إجابة.
+        </div>
+
+        <section className="exam-paper-section">
+          <div className="exam-paper-section-heading">
+            <span>التمرين الأول</span>
+            <b>06 نقاط</b>
+          </div>
+          <p>
+            لتكن الدالة <span className="math-inline">f</span> المعرفة على المجال:
+          </p>
+          <div className="math-display" dir="ltr">D<sub>f</sub> = ℝ \ &#123;-1&#125; ، &nbsp; f(x) = (x² + 2x + 3) / (x + 1)</div>
+          <p>ويمثل منحناها البياني <span className="math-inline">C<sub>f</sub></span> في معلم متعامد ومتجانس.</p>
+          <ol>
+            <li>
+              <p>اكتب <span className="math-inline">f(x)</span> على الشكل:</p>
+              <div className="math-display" dir="ltr">f(x) = x + 1 + 2 / (x + 1)</div>
+              <p>ثم احسب النهايتين عندما يؤول <span className="math-inline">x</span> إلى <span className="math-inline">−1</span> من اليمين ومن اليسار.</p>
+              <p>كما احسب: <span className="math-inline">lim [f(x) − (x + 1)]</span> عندما يؤول <span className="math-inline">x</span> إلى <span className="math-inline">+∞</span>.</p>
+            </li>
+            <li>
+              <p>بيّن أن:</p>
+              <div className="math-display" dir="ltr">f′(x) = 1 − 2 / (x + 1)²</div>
+              <p>ثم حل في <span className="math-inline">D<sub>f</sub></span> المعادلة <span className="math-inline">f′(x) = 0</span>، وأنشئ جدول تغيرات الدالة <span className="math-inline">f</span>.</p>
+            </li>
+            <li>
+              <p>بيّن أن المستقيم <span className="math-inline">y = x + 1</span> مقارب مائل للمنحنى <span className="math-inline">C<sub>f</sub></span>، ثم ادرس الوضع النسبي بينهما.</p>
+            </li>
+            <li>
+              <p>حل في <span className="math-inline">D<sub>f</sub></span> المعادلة <span className="math-inline">f(x) = 3</span>، ثم اكتب معادلة المماس للمنحنى عند النقطة ذات الفاصلة <span className="math-inline">0</span>.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section className="exam-paper-section">
+          <div className="exam-paper-section-heading">
+            <span>التمرين الثاني</span>
+            <b>07 نقاط</b>
+          </div>
+          <p>لتكن الدالة <span className="math-inline">g</span> المعرفة على <span className="math-inline">ℝ</span> بـ:</p>
+          <div className="math-display" dir="ltr">g(x) = x³ − 3x + 1</div>
+          <p>ويمثل منحناها البياني <span className="math-inline">C<sub>g</sub></span>.</p>
+          <ol>
+            <li>احسب <span className="math-inline">g′(x)</span>، ثم ادرس إشارة المشتقة وأنشئ جدول تغيرات الدالة <span className="math-inline">g</span>.</li>
+            <li>
+              <p>احسب القيم:</p>
+              <div className="math-display" dir="ltr">g(−2), &nbsp; g(−1), &nbsp; g(0), &nbsp; g(1), &nbsp; g(2)</div>
+              <p>ثم بيّن أن المعادلة <span className="math-inline">g(x) = 0</span> تقبل حلاً في كل من المجالات: <span className="math-inline">[−2;−1]</span>، <span className="math-inline">[0;1]</span>، <span className="math-inline">[1;2]</span>.</p>
+            </li>
+            <li>بيّن أن المعادلة <span className="math-inline">g(x) = 0</span> تقبل ثلاثة حلول حقيقية متميزة، وأعط حصراً لكل حل.</li>
+            <li>
+              <p>نعتبر المستقيم <span className="math-inline">Δ: y = x</span>. ادرس عدد نقاط تقاطعه مع المنحنى <span className="math-inline">C<sub>g</sub></span>، ثم حل المعادلة:</p>
+              <div className="math-display" dir="ltr">g(x) = x</div>
+            </li>
+            <li>اكتب معادلة المماس للمنحنى <span className="math-inline">C<sub>g</sub></span> عند النقطة ذات الفاصلة <span className="math-inline">1</span>.</li>
+          </ol>
+        </section>
+
+        <section className="exam-paper-section">
+          <div className="exam-paper-section-heading">
+            <span>التمرين الثالث</span>
+            <b>07 نقاط</b>
+          </div>
+          <p>نعتبر المتتالية العددية <span className="math-inline">(u<sub>n</sub>)</span> المعرفة بـ:</p>
+          <div className="math-display" dir="ltr">u₀ = 0 ، &nbsp; u<sub>n+1</sub> = ½u<sub>n</sub> + 3/2</div>
+          <p>من أجل كل عدد طبيعي <span className="math-inline">n</span>.</p>
+          <ol>
+            <li>احسب الحدود <span className="math-inline">u₁، u₂، u₃</span>.</li>
+            <li>نضع <span className="math-inline">v<sub>n</sub> = u<sub>n</sub> − 3</span>. بيّن أن <span className="math-inline">(v<sub>n</sub>)</span> هندسية، ثم عين أساسها وحدها الأول.</li>
+            <li>استنتج أن:</li>
+          </ol>
+          <div className="math-display" dir="ltr">u<sub>n</sub> = 3 − 3 / 2ⁿ</div>
+          <ol start={4}>
+            <li>بيّن أن <span className="math-inline">(u<sub>n</sub>)</span> متزايدة ومحدودة، ثم احسب نهايتها.</li>
+            <li>
+              <p>نعرف:</p>
+              <div className="math-display" dir="ltr">S<sub>n</sub> = u₀ + u₁ + u₂ + ⋯ + u<sub>n</sub></div>
+              <p>اكتب <span className="math-inline">S<sub>n</sub></span> بدلالة <span className="math-inline">n</span>، ثم احسب:</p>
+              <div className="math-display" dir="ltr">lim S<sub>n</sub> / (n + 1)</div>
+            </li>
+            <li>عين أصغر عدد طبيعي <span className="math-inline">n</span> يحقق <span className="math-inline">u<sub>n</sub> &gt; 2,9</span>.</li>
+          </ol>
+        </section>
+
+        <footer className="exam-paper-footer">
+          <span>انتهى الموضوع</span>
+          <span>بالتوفيق والنجاح</span>
+        </footer>
+      </article>
+    </Shell>
+  );
+}
+
 function QuizAttempt({ quiz, examDate, onExit, onScore }: { quiz: Quiz; examDate?: string; onExit: () => void; onScore: (result: QuizResult) => void }) {
   const submitMutation = useSubmitQuizAttempt();
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -808,6 +940,7 @@ function QuizzesPage() {
   const quizzes = (quizzesQuery.data as Quiz[] | undefined) ?? [];
   const hardAttempts = (attemptsQuery.data?.attempts ?? []).filter((attempt: QuizAttemptRecord) => attempt.is_high_difficulty);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [showGeneratedExam, setShowGeneratedExam] = useState(false);
   const [mistakeCount, setMistakeCount] = useState(0);
   useEffect(() => {
     try {
@@ -829,6 +962,7 @@ function QuizzesPage() {
     .filter((attempt: QuizAttemptRecord) => attempt.completed_at.slice(0, 10) === today)
     .reduce((total, attempt: QuizAttemptRecord) => total + attempt.points_earned, 0);
   if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} examDate={examDate} onExit={() => { setSelectedQuiz(null); setLocation('/quizzes'); }} onScore={(result) => { void attemptsQuery.refetch(); void queryClient.invalidateQueries({ queryKey: getGetErrorBankQueryKey() }); void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() }); if (result.mode !== 'standard') void quizzesQuery.refetch(); }} /></Shell>;
+  if (showGeneratedExam) return <GeneratedExamPaper onExit={() => setShowGeneratedExam(false)} />;
   return (
     <Shell title="الاختبارات الأسبوعية">
        <section className="mb-5 flex items-end justify-between gap-4 rounded-[1.35rem] border border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">
@@ -845,6 +979,18 @@ function QuizzesPage() {
          <div className="phase-one-score-footer"><span><CheckCircle2 size={14} /> الحد المطلوب اليومي: ٧٠ نقطة</span><span><Trophy size={14} /> مؤشر النجاح: ١٠ / ٢٠ في المعدل</span><span>{dailyScore >= 70 ? 'أتممت حد اليوم' : `تبقّى ${Math.max(0, 70 - dailyScore)} نقطة`}</span></div>
        </section>
        {hardAttempts.length > 0 && <section className="quiz-attempt-history" data-testid="card-unit-assessment-history"><div><span className="eyebrow">سجل تقييم الوحدة</span><h3 className="display text-lg">نتائج التحدّي عالي الصعوبة</h3></div><div className="quiz-attempt-history-list">{hardAttempts.slice(0, 5).map((attempt: QuizAttemptRecord) => <div className="quiz-attempt-history-row" key={attempt.id}><span><strong>{attempt.score}%</strong><small>{attempt.correct} من {attempt.total} · {attempt.completed_at.slice(0, 10)}</small></span><b className={attempt.passed ? 'passed' : 'retry'}>{attempt.passed ? 'اجتاز' : 'يحتاج محاولة أخرى'}</b></div>)}</div></section>}
+       <section className="generated-exam-card" data-testid="card-generated-exam">
+         <div className="generated-exam-icon"><FileText size={24} /></div>
+         <div className="generated-exam-copy">
+           <span className="eyebrow">موضوع جديد من توجيه</span>
+           <h3>اختبار تجريبي في الرياضيات</h3>
+           <p>موضوع كامل بنمط الاختبارات الجزائرية: دوال، اشتقاق، مماسات، كثيرات حدود ومتتاليات.</p>
+           <div className="generated-exam-meta"><span>الثالثة ثانوي</span><span>علوم تجريبية</span><span>20 نقطة</span><span>ساعتان و30 دقيقة</span></div>
+         </div>
+         <button className="primary-button generated-exam-action" onClick={() => setShowGeneratedExam(true)} data-testid="button-open-generated-exam">
+           <BookOpen size={16} /> فتح الموضوع
+         </button>
+       </section>
       {quizzesQuery.isLoading ? <LoadingState label="نحضّر تمارين مناسبة لك..." /> : quizzesQuery.isError ? <ErrorState onRetry={() => quizzesQuery.refetch()} /> : quizzes.length === 0 ? <EmptyState title="لا توجد اختبارات بعد" body="ستجد هنا تدريبات الوحدات والاختبار الأسبوعي عند توفرها." /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} onStart={() => setSelectedQuiz(quiz)} />)}</div>}
      </Shell>
   );
