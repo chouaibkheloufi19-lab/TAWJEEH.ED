@@ -4900,29 +4900,40 @@ button { cursor: pointer; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   margin: 12px 15px 0;
-  padding: 10px 12px;
-  border: 1px solid #efcfb5;
-  border-radius: 11px;
-  background: #fff8ef;
-  line-height: 1.7;
+  padding: 14px 18px;
+  border: 1px solid #eadbc8;
+  border-radius: 18px;
+  color: #96634f;
+  background: #fffaf3;
+  line-height: 1.75;
 }
 
 .lesson-generation-error span {
   min-width: 0;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .lesson-generation-error button {
   flex: 0 0 auto;
-  min-height: 28px;
-  padding: 0 10px;
-  border: 1px solid #e1b995;
-  border-radius: 8px;
-  color: #985d3e;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #d8c0a5;
+  border-radius: 12px;
+  color: #8c624e;
   background: #fff;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 850;
+  white-space: nowrap;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.lesson-generation-error button:hover {
+  border-color: #bf9d7c;
+  background: #fffdf9;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 900px) {
