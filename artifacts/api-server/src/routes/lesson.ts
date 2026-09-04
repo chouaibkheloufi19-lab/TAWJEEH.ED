@@ -10,9 +10,13 @@ import {
   KnowledgeGroundingError,
 } from "../lib/rag";
 import {
+  ACADEMIC_EXAM_PROMPT,
   ADAPTIVE_EXERCISE_PROMPT,
+  EXERCISE_GENERATION_PROMPT,
   FRIENDLY_TUTOR_PROMPT,
   GROUNDED_CONTENT_RULES,
+  LEARNER_SAFE_OUTPUT_RULES,
+  LESSON_GENERATION_PROMPT,
 } from "../lib/ai-prompts";
 import { callXaiTextModel } from "../lib/ai-provider";
 
@@ -93,7 +97,19 @@ function extractGeneratedLesson(
       ["definition", "example", "graph", "practice", "recap"].includes(item.kind)
     ))
     .slice(0, 7);
-  if (!elements.length) throw new Error("Lesson generator returned no valid elements");
+  const requiredKinds: GeneratedElement["kind"][] = [
+    "definition",
+    "example",
+    "graph",
+    "practice",
+    "recap",
+  ];
+  if (
+    elements.length !== requiredKinds.length ||
+    elements.some((element, index) => element.kind !== requiredKinds[index])
+  ) {
+    throw new Error("Lesson generator returned an invalid academic lesson structure");
+  }
   return {
     status: "generated",
     lessonTitle: parsed.lessonTitle,
@@ -130,9 +146,12 @@ async function generateLesson(
         role: "system",
         content: [
           FRIENDLY_TUTOR_PROMPT,
+          ACADEMIC_EXAM_PROMPT,
+          LESSON_GENERATION_PROMPT,
           GROUNDED_CONTENT_RULES,
+          LEARNER_SAFE_OUTPUT_RULES,
           "أنت مخطط درس عربي دقيق لمنصة تعليمية جزائرية. اجعل العناصر قصيرة، وكل عنصر يمثل خطوة واضحة في التعلم. أضف تمثيلًا بيانيًا رقميًا فقط عندما تسمح به البيانات المسترجعة، وإلا أعد graph.type = none. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.",
-          "هذه الواجهة تحتاج JSON فقط؛ ضع الشرح والتمثيل التعليمي داخل الحقول المطلوبة ولا تضف أي نص خارج الكائن.",
+          "هذه الواجهة تحتاج JSON فقط؛ أعد الحقول المطلوبة فقط، وضع الشرح والتمثيل التعليمي داخل الكائن ولا تضف أي نص خارجه.",
         ].join("\n\n"),
       },
       {
@@ -173,9 +192,12 @@ async function generateExercise(
         role: "system",
         content: [
           ADAPTIVE_EXERCISE_PROMPT,
+          ACADEMIC_EXAM_PROMPT,
+          EXERCISE_GENERATION_PROMPT,
           GROUNDED_CONTENT_RULES,
+          LEARNER_SAFE_OUTPUT_RULES,
           "أنت وكيل تمارين عربي لمنصة توجيه. أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق. أخفِ الإجابة في الحقول المخصصة لها، واجعل التلميح لا يكشف الحل. يجب أن يكون الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.",
-          "هذه الواجهة تحتاج JSON فقط؛ لا تضف أي نص خارج الكائن.",
+          "هذه الواجهة تحتاج JSON فقط؛ أعد الحقول المطلوبة فقط ولا تضف أي نص خارج الكائن.",
         ].join("\n\n"),
       },
       {

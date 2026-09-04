@@ -7,7 +7,9 @@ import {
 import {
   ACADEMIC_EXAM_PROMPT,
   ADAPTIVE_EXERCISE_PROMPT,
+  EXERCISE_GENERATION_PROMPT,
   GROUNDED_CONTENT_RULES,
+  LEARNER_SAFE_OUTPUT_RULES,
 } from "./ai-prompts";
 import { callXaiTextModel } from "./ai-provider";
 
@@ -85,7 +87,9 @@ export async function generateGroundedQuizQuestions(input: {
         role: "system",
         content: [
           promptPolicy,
+          EXERCISE_GENERATION_PROMPT,
           GROUNDED_CONTENT_RULES,
+          LEARNER_SAFE_OUTPUT_RULES,
           "هذه الواجهة تفاعلية، لذلك أعد أسئلة اختيار من متعدد بالعربية بصيغة JSON فقط. رتّب الأسئلة من الأساسيات إلى التطبيق ثم سؤال التحدي، مع مراعاة سجل الأخطاء لتحديد الأولوية. يجب أن تكون كل الخيارات والإجابة الصحيحة مدعومة بالمصادر.",
           'أعد الشكل: {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctOption":"...","conceptId":"...","conceptTitle":"...","sourceNodeIds":["node-id"]}]}',
         ].join("\n\n"),
