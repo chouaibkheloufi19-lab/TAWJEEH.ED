@@ -322,15 +322,13 @@ function AuthWelcome() {
 
 function HomeRedirect() {
   const { isLoaded, isSignedIn } = useAuth();
-  const [previewFallback, setPreviewFallback] = useState(false);
+  const [, setLocation] = useLocation();
 
-  useEffect(() => {
-    if (isLoaded) return;
-    const timeoutId = window.setTimeout(() => setPreviewFallback(true), 1200);
-    return () => window.clearTimeout(timeoutId);
-  }, [isLoaded]);
-
-  if (previewFallback && !isLoaded) return <MathPractice />;
+  // Keep the preview useful even when Clerk is still loading in the dev iframe.
+  // Production continues to wait for the real auth state before redirecting.
+  if (!isLoaded && import.meta.env.DEV) {
+    return <GeneratedExamPaper onExit={() => setLocation('/practice')} />;
+  }
   if (!isLoaded) return <AuthLoading />;
   return isSignedIn ? <Redirect to="/profile" /> : <AuthWelcome />;
 }
