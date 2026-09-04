@@ -4,6 +4,11 @@ import {
   retrieveGroundedKnowledge,
   type RetrievalContext,
 } from "./rag";
+import {
+  ACADEMIC_EXAM_PROMPT,
+  ADAPTIVE_EXERCISE_PROMPT,
+  GROUNDED_CONTENT_RULES,
+} from "./ai-prompts";
 
 export type GroundedQuizQuestion = {
   id: string;
@@ -72,6 +77,9 @@ export async function generateGroundedQuizQuestions(input: {
   );
   const key = process.env.DEEPSEEK_API_KEY;
   if (!key) throw new Error("DEEPSEEK_API_KEY is not configured");
+  const promptPolicy = input.mode === "pre_exam" || input.mode === "error_stack"
+    ? ACADEMIC_EXAM_PROMPT
+    : ADAPTIVE_EXERCISE_PROMPT;
   const response = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
     headers: {
@@ -85,8 +93,12 @@ export async function generateGroundedQuizQuestions(input: {
       messages: [
         {
           role: "system",
-          content:
-            "أنت وكيل التمارين في منصة توجيه. أنشئ أسئلة اختيار من متعدد بالعربية اعتمادًا على عقد ChromaDB المرفقة فقط وسجل الأخطاء لتحديد الأولوية. لا تضف قانونًا أو رقمًا أو مفهومًا من خارج العقد. كل سؤال وجميع خياراته وإجابته الصحيحة يجب أن تكون مدعومة بالعقد، ويجب أن تذكر sourceNodeIds من العقد المرفقة فقط. أعد JSON فقط.",
+          content: [
+            promptPolicy,
+            GROUNDED_CONTENT_RULES,
+            "هذه الواجهة تفاعلية، لذلك أعد أسئلة اختيار من متعدد بالعربية بصيغة JSON فقط. رتّب الأسئلة من الأساسيات إلى التطبيق ثم سؤال التحدي، مع مراعاة سجل الأخطاء لتحديد الأولوية. يجب أن تكون كل الخيارات والإجابة الصحيحة مدعومة بالمصادر.",
+            'أعد الشكل: {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctOption":"...","conceptId":"...","conceptTitle":"...","sourceNodeIds":["node-id"]}]}',
+          ].join("\n\n"),
         },
         {
           role: "user",
@@ -97,7 +109,6 @@ export async function generateGroundedQuizQuestions(input: {
             `سجل الأخطاء: ${input.errorContext || "لا توجد أخطاء محفوظة"}`,
             "عقد المتجه المسترجعة من ChromaDB:",
             formatRetrievedContext(retrieval.documents),
-            'أعد الشكل: {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctOption":"...","conceptId":"...","conceptTitle":"...","sourceNodeIds":["node-id"]}]}',
           ].join("\n"),
         },
       ],

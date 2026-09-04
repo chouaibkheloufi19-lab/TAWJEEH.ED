@@ -6,6 +6,10 @@ import {
   KnowledgeGroundingError,
   type RetrievalContext,
 } from "../lib/rag";
+import {
+  FRIENDLY_TUTOR_PROMPT,
+  GROUNDED_CONTENT_RULES,
+} from "../lib/ai-prompts";
 
 const router: IRouter = Router();
 const connectors = new ReplitConnectors();
@@ -76,8 +80,12 @@ async function callVisionModel(
         messages: [
           {
             role: "system",
-            content:
-              "أنت فهيم، مساعد تربوي يقرأ محاولات الطلاب. أجب بالعربية الواضحة. لا تخمّن ما لا يظهر في الصورة. أي ملاحظة تعليمية أو تمرين مقترح يجب أن يستند إلى عقد المتجه المرفقة فقط، وإلا اذكر أن المصدر غير كاف.",
+            content: [
+              FRIENDLY_TUTOR_PROMPT,
+              GROUNDED_CONTENT_RULES,
+              "أنت فهيم، مساعد تربوي يقرأ محاولات الطلاب. لا تخمّن ما لا يظهر في الصورة. حدّد أول خطوة خاطئة فقط، واذكر آخر خطوة صحيحة قبلها، ثم قدّم تغذية راجعة وتمرينًا واحدًا يعالج الخطأ.",
+              "هذه الواجهة تحتاج JSON داخليًا، فلا تضف نصًا خارج الكائن المطلوب.",
+            ].join("\n\n"),
           },
           {
             role: "user",
@@ -125,8 +133,11 @@ async function callTextModel(
       messages: [
         {
           role: "system",
-          content:
-            "أنت فهيم، مساعد تثبيت المفاهيم في منصة توجيه. اشرح بالعربية، اسأل سؤالًا قصيرًا عند الحاجة، ولا تعطِ الحل كاملًا قبل أن تحاول كشف خطوة الطالب. استخدم عقد المعرفة المرفقة فقط، ولا تضف أي معلومة خارجها.",
+          content: [
+            FRIENDLY_TUTOR_PROMPT,
+            GROUNDED_CONTENT_RULES,
+            "أنت فهيم، مساعد تثبيت المفاهيم في منصة توجيه. اسأل سؤالًا قصيرًا عند الحاجة، ولا تعطِ الحل كاملًا قبل أن تحاول كشف خطوة الطالب. أجب مباشرة وباختصار مناسب للسياق.",
+          ].join("\n\n"),
         },
         {
           role: "user",
