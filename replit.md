@@ -13,8 +13,8 @@
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Replit workflows: `artifacts/tawjeeh-ed: web`, `artifacts/api-server: API Server`, and `artifacts/api-server: Knowledge Base`
-- Required setup: Replit PostgreSQL (`DATABASE_URL` is managed automatically), `DEEPSEEK_API_KEY` in Secrets, the connected xAI integration for Grok Vision, and Replit-managed Clerk Auth
-- Optional env: `KNOWLEDGE_BASE_URL` (defaults to `http://127.0.0.1:8001/knowledge`) and `DEEPSEEK_MODEL` (defaults to `deepseek-chat`)
+- Required setup: Replit PostgreSQL (`DATABASE_URL` is managed automatically), the connected xAI integration for text and vision generation, and Replit-managed Clerk Auth
+- Optional env: `KNOWLEDGE_BASE_URL` (defaults to `http://127.0.0.1:8001/knowledge`), `XAI_MODEL` or `GROK_TEXT_MODEL` (otherwise the first compatible text model is discovered at runtime), and `GROK_VISION_MODEL`
 - `python main.py index-assets --directory attached_assets --catalog knowledge_base/catalog.json` — inventory and index the educational library
 - Add `--no-ocr` for a fast, safe catalog pass that marks scanned pages for later OCR
 - `python main.py ingest --file <pdf> --year second_secondary` — import a PDF into ChromaDB

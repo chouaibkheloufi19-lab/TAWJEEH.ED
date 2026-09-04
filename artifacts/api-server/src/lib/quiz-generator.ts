@@ -9,6 +9,7 @@ import {
   ADAPTIVE_EXERCISE_PROMPT,
   GROUNDED_CONTENT_RULES,
 } from "./ai-prompts";
+import { callXaiTextModel } from "./ai-provider";
 
 export type GroundedQuizQuestion = {
   id: string;
@@ -75,49 +76,33 @@ export async function generateGroundedQuizQuestions(input: {
     [input.lesson, input.level, input.mode, input.errorContext, "اختبار وتمارين"].filter(Boolean).join(" "),
     { nResults: 10 },
   );
-  const key = process.env.DEEPSEEK_API_KEY;
-  if (!key) throw new Error("DEEPSEEK_API_KEY is not configured");
   const promptPolicy = input.mode === "pre_exam" || input.mode === "error_stack"
     ? ACADEMIC_EXAM_PROMPT
     : ADAPTIVE_EXERCISE_PROMPT;
-  const response = await fetch("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
-      temperature: 0,
-      max_tokens: 1800,
-      messages: [
-        {
-          role: "system",
-          content: [
-            promptPolicy,
-            GROUNDED_CONTENT_RULES,
-            "هذه الواجهة تفاعلية، لذلك أعد أسئلة اختيار من متعدد بالعربية بصيغة JSON فقط. رتّب الأسئلة من الأساسيات إلى التطبيق ثم سؤال التحدي، مع مراعاة سجل الأخطاء لتحديد الأولوية. يجب أن تكون كل الخيارات والإجابة الصحيحة مدعومة بالمصادر.",
-            'أعد الشكل: {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctOption":"...","conceptId":"...","conceptTitle":"...","sourceNodeIds":["node-id"]}]}',
-          ].join("\n\n"),
-        },
-        {
-          role: "user",
-          content: [
-            `الدرس: ${input.lesson}`,
-            `المستوى: ${input.level || "3AS"}`,
-            `النمط: ${input.mode}`,
-            `سجل الأخطاء: ${input.errorContext || "لا توجد أخطاء محفوظة"}`,
-            "عقد المتجه المسترجعة من ChromaDB:",
-            formatRetrievedContext(retrieval.documents),
-          ].join("\n"),
-        },
-      ],
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!response.ok) throw new Error(`Exercises Agent responded with ${response.status}`);
-  const payload = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-  const content = payload.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Exercises Agent returned no questions");
+  const content = await callXaiTextModel(
+    [
+      {
+        role: "system",
+        content: [
+          promptPolicy,
+          GROUNDED_CONTENT_RULES,
+          "هذه الواجهة تفاعلية، لذلك أعد أسئلة اختيار من متعدد بالعربية بصيغة JSON فقط. رتّب الأسئلة من الأساسيات إلى التطبيق ثم سؤال التحدي، مع مراعاة سجل الأخطاء لتحديد الأولوية. يجب أن تكون كل الخيارات والإجابة الصحيحة مدعومة بالمصادر.",
+          'أعد الشكل: {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctOption":"...","conceptId":"...","conceptTitle":"...","sourceNodeIds":["node-id"]}]}',
+        ].join("\n\n"),
+      },
+      {
+        role: "user",
+        content: [
+          `الدرس: ${input.lesson}`,
+          `المستوى: ${input.level || "3AS"}`,
+          `النمط: ${input.mode}`,
+          `سجل الأخطاء: ${input.errorContext || "لا توجد أخطاء محفوظة"}`,
+          "عقد المتجه المسترجعة من ChromaDB:",
+          formatRetrievedContext(retrieval.documents),
+        ].join("\n"),
+      },
+    ],
+    { temperature: 0, maxOutputTokens: 1800 },
+  );
   return { questions: parseQuestions(content, retrieval), retrieval };
 }

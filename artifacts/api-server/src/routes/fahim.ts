@@ -10,6 +10,7 @@ import {
   FRIENDLY_TUTOR_PROMPT,
   GROUNDED_CONTENT_RULES,
 } from "../lib/ai-prompts";
+import { callXaiTextModel } from "../lib/ai-provider";
 
 const router: IRouter = Router();
 const connectors = new ReplitConnectors();
@@ -116,42 +117,24 @@ async function callTextModel(
   context: string,
   retrieval: RetrievalContext,
 ) {
-  const key = process.env.DEEPSEEK_API_KEY;
-  if (!key) throw new Error("DEEPSEEK_API_KEY is not configured");
   const sourceText = formatRetrievedContext(retrieval.documents);
-
-  const response = await fetch("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
-      temperature: 0.2,
-      max_tokens: 900,
-      messages: [
-        {
-          role: "system",
-          content: [
-            FRIENDLY_TUTOR_PROMPT,
-            GROUNDED_CONTENT_RULES,
-            "أنت فهيم، مساعد تثبيت المفاهيم في منصة توجيه. اسأل سؤالًا قصيرًا عند الحاجة، ولا تعطِ الحل كاملًا قبل أن تحاول كشف خطوة الطالب. أجب مباشرة وباختصار مناسب للسياق.",
-          ].join("\n\n"),
-        },
-        {
-          role: "user",
-          content: `الدرس: ${lesson}\nالمفهوم: ${concept}\nسياق المحاولة والتحليل: ${context || "لا توجد محاولة محللة"}\nسؤال الطالب: ${question}\n\nعقد المعرفة المسترجعة من ChromaDB:\n${sourceText}`,
-        },
-      ],
-    }),
-    signal: AbortSignal.timeout(30000),
-  });
-  if (!response.ok) throw new Error(`Text provider responded with ${response.status}`);
-  const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  const content = payload.choices?.[0]?.message?.content?.trim();
-  if (!content) throw new Error("Text provider returned no answer");
-  return content;
+  return callXaiTextModel(
+    [
+      {
+        role: "system",
+        content: [
+          FRIENDLY_TUTOR_PROMPT,
+          GROUNDED_CONTENT_RULES,
+          "أنت فهيم، مساعد تثبيت المفاهيم في منصة توجيه. اسأل سؤالًا قصيرًا عند الحاجة، ولا تعطِ الحل كاملًا قبل أن تحاول كشف خطوة الطالب. أجب مباشرة وباختصار مناسب للسياق.",
+        ].join("\n\n"),
+      },
+      {
+        role: "user",
+        content: `الدرس: ${lesson}\nالمفهوم: ${concept}\nسياق المحاولة والتحليل: ${context || "لا توجد محاولة محللة"}\nسؤال الطالب: ${question}\n\nعقد المعرفة المسترجعة من ChromaDB:\n${sourceText}`,
+      },
+    ],
+    { temperature: 0.2, maxOutputTokens: 900 },
+  );
 }
 
 router.post("/fahim/analyze-attempt", async (req, res): Promise<void> => {
