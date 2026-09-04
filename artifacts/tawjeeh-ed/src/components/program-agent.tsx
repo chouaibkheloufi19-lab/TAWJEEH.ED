@@ -688,23 +688,6 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
             <div className="program-progress"><span style={{ width: `${plannerWindow.progress}%` }} /></div>
             <div className="program-phase-days">{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day) => <span key={day} className={day < plannerWindow.day ? 'done' : day === plannerWindow.day ? 'current' : ''}>{day < plannerWindow.day ? <Check size={11} /> : day}</span>)}</div>
           </div>
-           <div className="program-side-card program-network-card">
-             <div className="program-card-kicker"><Sparkles size={14} /> شبكة المساعدة</div>
-             <h3>ثلاثة وكلاء، مسار واحد.</h3>
-             <div className="program-agent-network">
-               {(['فهيم', 'تمارين', 'دليل'] as const).map((agent, index) => {
-                 const profile = agentProfiles[agent];
-                 return (
-                   <div className="program-network-agent" key={agent}>
-                     <ProgramMiniAgent agent={agent} />
-                     <div><strong>{agent}</strong><small>{profile.role}</small></div>
-                     {index < 2 && <ChevronDown size={13} className="program-network-link" />}
-                   </div>
-                 );
-               })}
-             </div>
-             <p className="program-network-caption">فهيم يشرح، تمارين يختبر، ودليل يثبت ما تعلمته.</p>
-           </div>
              <div className="program-side-note"><CalendarClock size={18} /><p>أضف اختبارًا أو فرضًا أو بحثًا عندما تعرفه؛ البرنامج يضع الخطوة المناسبة قبله تلقائيًا.</p></div>
         </aside>
 
