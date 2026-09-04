@@ -548,6 +548,8 @@ export function LessonWorkspace() {
   const [attemptBank, setAttemptBank] = useState<AttemptBankItem[]>(readAttemptBank);
   const [generatedExercise, setGeneratedExercise] = useState<GeneratedExercise | null>(null);
   const [creativeIdeas, setCreativeIdeas] = useState<CreativeIdeasResponse | null>(null);
+  const [copilotQuestion, setCopilotQuestion] = useState('');
+  const [topicStudioOpen, setTopicStudioOpen] = useState(true);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
   const [lessonGenerationState, setLessonGenerationState] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
   const [lessonGenerationError, setLessonGenerationError] = useState('');
@@ -936,6 +938,85 @@ export function LessonWorkspace() {
     }
   };
 
+  const askCopilotQuestion = async (text: string) => {
+    const cleanText = text.trim();
+    if (!cleanText || !ragReady || isThinking) return;
+    setMessages((current) => [...current, { id: `copilot-user-${Date.now()}`, role: 'user', text: cleanText }]);
+    setCopilotQuestion('');
+    setIsThinking(true);
+    try {
+      const response = await fetch('/api/fahim/message', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          question: cleanText,
+          lesson: fixedLessonTitle,
+          concept: activeSection.title,
+          context: [
+            'السؤال قادم من كوبيلوت الموضوع داخل مساحة الدرس.',
+            generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
+            sourceExcerpt ? `المكتسب المرتبط حاليًا: ${sourceExcerpt}` : '',
+            `عدد مكتسبات قاعدة المعرفة المتاحة: ${foundationalSources.length}`,
+          ].filter(Boolean).join('\n'),
+        }),
+      });
+      const payload = await response.json() as { answer?: string; message?: string };
+      if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
+      setMessages((current) => [...current, { id: `copilot-answer-${Date.now()}`, role: 'assistant', text: payload.answer as string }]);
+    } catch {
+      setMessages((current) => [...current, {
+        id: `copilot-error-${Date.now()}`,
+        role: 'assistant',
+        text: 'تعذر تشغيل كوبيلوت الموضوع الآن. أعد السؤال بعد لحظات.',
+      }]);
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
+  const generateCreativeTopic = async () => {
+    if (!ragReady || isThinking) return;
+    setActivePartner('creative');
+    setIsThinking(true);
+    try {
+      const response = await fetch('/api/creative/ideas', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          lesson: fixedLessonTitle,
+          level: '3AS',
+          activeConcept: activeSection.title,
+          question: 'حوّل موضوع الدرس إلى تطبيقات ومشاريع إبداعية تغطي كل مكتسبات المنهاج الموجودة في قاعدة المعرفة.',
+          context: [
+            generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
+            sourceExcerpt,
+          ].filter(Boolean).join('\n'),
+          curriculumContext: `المطلوب تغطية جميع مكتسبات قاعدة المعرفة، وعدد بطاقات المعرفة المتاحة حاليًا: ${foundationalSources.length}.`,
+        }),
+      });
+      const payload = await response.json() as Partial<CreativeIdeasResponse> & { message?: string };
+      if (!response.ok || payload.status !== 'generated' || !payload.solutionSummary || !Array.isArray(payload.ideas) || payload.ideas.length < 3 || payload.grounding?.status !== 'ready') {
+        throw new Error(payload.message || 'تعذر توليد المسارات الإبداعية');
+      }
+      setCreativeIdeas(payload as CreativeIdeasResponse);
+      setMessages((current) => [...current, {
+        id: `topic-creative-${Date.now()}`,
+        role: 'assistant',
+        text: `ولّدت لك ${(payload as CreativeIdeasResponse).ideas.length} مسارات إبداعية تغطي مكتسبات قاعدة المعرفة. ستجدها في بطاقة المبدعة أدناه.`,
+      }]);
+    } catch (error) {
+      setMessages((current) => [...current, {
+        id: `topic-creative-error-${Date.now()}`,
+        role: 'assistant',
+        text: error instanceof Error ? error.message : 'تعذر توليد المسارات الإبداعية من المصادر الآن.',
+      }]);
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
   useEffect(() => {
     if (!ragReady || lessonGenerationState !== 'idle') return;
     void generateLesson();
@@ -1074,6 +1155,7 @@ export function LessonWorkspace() {
                analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}` : '',
                sourceExcerpt,
              ].filter(Boolean).join('\n'),
+              curriculumContext: `اعتمد على جميع مكتسبات قاعدة المعرفة المتاحة، لا على الجزء المرتبط بالسؤال فقط. عدد البطاقات الأساسية المتاحة: ${foundationalSources.length}.`,
            }),
          });
          const payload = await response.json() as Partial<CreativeIdeasResponse> & { message?: string };
@@ -1573,7 +1655,7 @@ export function LessonWorkspace() {
            >
           <div className="lesson-teaching-header">
             <div>
-                <span className="lesson-panel-kicker"><Volume2 size={13} /> {handoffComplete ? 'لوح الدرس' : 'لوح فهيم'}</span>
+                <span className="lesson-panel-kicker"><Volume2 size={13} /> طبقة 1 · {handoffComplete ? 'لوح الدرس' : 'لوح فهيم'}</span>
                <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
                <p>إيقاع مقترح · {activeSection.duration} · {activeSection.label}</p>
                 {activeSource && <span className="lesson-source-badge"><BookOpen size={12} /> مصدر مباشر · {activeSource.source} · ص {activeSource.page}</span>}
@@ -1623,6 +1705,48 @@ export function LessonWorkspace() {
               </div>
              </div>
           </div>
+            <section className={`lesson-topic-studio ${topicStudioOpen ? 'is-open' : ''}`} aria-label="موضوع الدرس وتوليده">
+              <div className="lesson-topic-studio-head">
+                <div>
+                  <span className="lesson-topic-kicker"><BookOpen size={12} /> موضوع الدرس داخل مساحة التفاعل</span>
+                  <h3>موضوع تطبيقي شامل · قوانين نيوتن والحركة</h3>
+                  <p>اقرأ المطلوب، اسأل عن أي نقطة، ثم حوّل كل مكتسبات المنهاج إلى تطبيق إبداعي.</p>
+                </div>
+                <button type="button" className="lesson-topic-toggle" onClick={() => setTopicStudioOpen((open) => !open)} aria-expanded={topicStudioOpen} data-testid="button-toggle-topic-studio">
+                  {topicStudioOpen ? 'طي الموضوع' : 'عرض الموضوع'}
+                </button>
+              </div>
+              {topicStudioOpen && (
+                <div className="lesson-topic-studio-body">
+                  <div className="lesson-topic-meta">
+                    <span>المستوى: السنة الثالثة ثانوي</span>
+                    <span>النمط: موضوع + تعلم ذكي</span>
+                    <span>{foundationalSources.length || '—'} مكتسبات مرتبطة بالمصادر</span>
+                  </div>
+                  <div className="lesson-topic-brief">
+                    <div><strong>المطلوب</strong><span>فسّر القصور الذاتي والقوة المحصلة، اربطهما بالتسارع، ثم طبّق القوانين على وضعية حركة واقعية.</span></div>
+                    <div><strong>طريقة العمل</strong><span>ابدأ بالمعطيات، اكتب القانون المناسب، برّر النتيجة، واطلب من فهيم توضيح أي خطوة.</span></div>
+                    <div><strong>التثبيت</strong><span>اختر مفهومًا من خريطة الإتقان في الطبقة الثالثة لتفتح مثالًا وتمرينًا مرتبطين به.</span></div>
+                  </div>
+                  <div className="lesson-topic-actions">
+                    <button type="button" className="lesson-topic-primary" onClick={() => void generateCreativeTopic()} disabled={!lessonToolsActive || isThinking} data-testid="button-generate-topic-creative">
+                      {isThinking ? <LoaderCircle size={13} className="lesson-spin-icon" /> : <Sparkles size={13} />} ولّد تطبيقات إبداعية من كل المكتسبات
+                    </button>
+                    <button type="button" className="lesson-topic-secondary" onClick={() => setLocation('/exam-preview')} data-testid="button-open-full-topic">
+                      <BookOpen size={13} /> فتح الموضوع الكامل
+                    </button>
+                  </div>
+                  <form className="lesson-copilot-form" onSubmit={(event) => { event.preventDefault(); void askCopilotQuestion(copilotQuestion); }}>
+                    <div>
+                      <span className="lesson-copilot-label"><MessageCircle size={13} /> سؤال الكوبيلوت</span>
+                      <small>اسأل عن الموضوع أو عن أي خطوة فيه</small>
+                    </div>
+                    <input value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} disabled={!lessonToolsActive || isThinking} placeholder="مثال: كيف أختار القانون المناسب في الوضعية؟" aria-label="سؤال الكوبيلوت عن الموضوع" data-testid="input-topic-copilot-question" />
+                    <button type="submit" disabled={!lessonToolsActive || !copilotQuestion.trim() || isThinking} aria-label="إرسال سؤال الكوبيلوت" data-testid="button-send-topic-copilot"><Send size={15} /></button>
+                  </form>
+                </div>
+              )}
+            </section>
            {lessonGenerationState === 'error' && (
              <div className="lesson-generation-error" role="alert" data-testid="status-lesson-generation-error">
                <span>{lessonGenerationError}</span>

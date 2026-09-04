@@ -5323,3 +5323,208 @@ button { cursor: pointer; }
 .profile-actions .primary-button:hover {
   background: #245f99 !important;
 }
+
+/* Lesson studio: three full-width horizontal learning layers. */
+.lesson-topic-studio {
+  margin: 0 16px 16px;
+  overflow: hidden;
+  border: 1px solid #efc9b9;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fffaf5, #fff3ec);
+}
+.lesson-topic-studio-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px 13px;
+}
+.lesson-topic-kicker,
+.lesson-copilot-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #a45e42;
+  font-size: 9px;
+  font-weight: 900;
+}
+.lesson-topic-studio h3 {
+  margin: 6px 0 4px;
+  color: var(--lesson-navy);
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -.03em;
+}
+.lesson-topic-studio p {
+  margin: 0;
+  color: #7c7772;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.lesson-topic-toggle,
+.lesson-topic-secondary {
+  border: 1px solid #e3b4a0;
+  border-radius: 10px;
+  padding: 8px 11px;
+  color: #8f553f;
+  background: rgba(255,255,255,.74);
+  font-size: 9px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+.lesson-topic-studio-body {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+.lesson-topic-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.lesson-topic-meta span {
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #8e6658;
+  background: #fff;
+  font-size: 9px;
+  font-weight: 750;
+}
+.lesson-topic-brief {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+.lesson-topic-brief > div {
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(239,201,185,.8);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255,255,255,.66);
+}
+.lesson-topic-brief strong {
+  color: #9d5d45;
+  font-size: 10px;
+}
+.lesson-topic-brief span {
+  color: #6d6b69;
+  font-size: 10px;
+  line-height: 1.65;
+}
+.lesson-topic-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lesson-topic-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: #fff;
+  background: #a45e42;
+  font-size: 9px;
+  font-weight: 850;
+}
+.lesson-topic-primary:disabled,
+.lesson-topic-secondary:disabled,
+.lesson-topic-toggle:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.lesson-copilot-form {
+  display: grid;
+  grid-template-columns: minmax(170px, .55fr) minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 9px;
+  border-top: 1px solid rgba(239,201,185,.8);
+  padding-top: 12px;
+}
+.lesson-copilot-form > div {
+  display: grid;
+  gap: 3px;
+}
+.lesson-copilot-form small {
+  color: #8a807b;
+  font-size: 8px;
+}
+.lesson-copilot-form input {
+  min-width: 0;
+  border: 1px solid #e6c4b5;
+  border-radius: 10px;
+  padding: 9px 11px;
+  outline: 0;
+  color: var(--lesson-navy);
+  background: #fff;
+  font: inherit;
+  font-size: 10px;
+}
+.lesson-copilot-form input:focus {
+  border-color: #a45e42;
+  box-shadow: 0 0 0 3px rgba(164,94,66,.1);
+}
+.lesson-copilot-form button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: #a45e42;
+}
+.lesson-copilot-form button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+@media (min-width: 901px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'teaching'
+      'convo'
+      'path';
+    gap: 16px;
+  }
+  .lesson-teaching-panel {
+    grid-area: teaching;
+  }
+  .lesson-conversation-panel {
+    grid-area: convo;
+  }
+  .lesson-path-panel {
+    grid-area: path;
+  }
+  .lesson-path-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0 16px 13px;
+  }
+  .lesson-path-item {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .lesson-topic-studio-head {
+    display: grid;
+  }
+  .lesson-topic-brief {
+    grid-template-columns: 1fr;
+  }
+  .lesson-topic-toggle {
+    justify-self: start;
+  }
+  .lesson-copilot-form {
+    grid-template-columns: 1fr 34px;
+  }
+  .lesson-copilot-form > div {
+    grid-column: 1 / -1;
+  }
+}

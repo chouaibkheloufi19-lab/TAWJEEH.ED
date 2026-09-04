@@ -965,7 +965,6 @@ function QuizzesPage() {
   const quizzes = (quizzesQuery.data as Quiz[] | undefined) ?? [];
   const hardAttempts = (attemptsQuery.data?.attempts ?? []).filter((attempt: QuizAttemptRecord) => attempt.is_high_difficulty);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
-  const [showGeneratedExam, setShowGeneratedExam] = useState(false);
   const [mistakeCount, setMistakeCount] = useState(0);
   useEffect(() => {
     try {
@@ -987,7 +986,6 @@ function QuizzesPage() {
     .filter((attempt: QuizAttemptRecord) => attempt.completed_at.slice(0, 10) === today)
     .reduce((total, attempt: QuizAttemptRecord) => total + attempt.points_earned, 0);
   if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} examDate={examDate} onExit={() => { setSelectedQuiz(null); setLocation('/quizzes'); }} onScore={(result) => { void attemptsQuery.refetch(); void queryClient.invalidateQueries({ queryKey: getGetErrorBankQueryKey() }); void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() }); if (result.mode !== 'standard') void quizzesQuery.refetch(); }} /></Shell>;
-  if (showGeneratedExam) return <GeneratedExamPaper onExit={() => setShowGeneratedExam(false)} />;
   return (
     <Shell title="الاختبارات الأسبوعية">
        <section className="mb-5 flex items-end justify-between gap-4 rounded-[1.35rem] border border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">
@@ -1004,18 +1002,6 @@ function QuizzesPage() {
          <div className="phase-one-score-footer"><span><CheckCircle2 size={14} /> الحد المطلوب اليومي: ٧٠ نقطة</span><span><Trophy size={14} /> مؤشر النجاح: ١٠ / ٢٠ في المعدل</span><span>{dailyScore >= 70 ? 'أتممت حد اليوم' : `تبقّى ${Math.max(0, 70 - dailyScore)} نقطة`}</span></div>
        </section>
        {hardAttempts.length > 0 && <section className="quiz-attempt-history" data-testid="card-unit-assessment-history"><div><span className="eyebrow">سجل تقييم الوحدة</span><h3 className="display text-lg">نتائج التحدّي عالي الصعوبة</h3></div><div className="quiz-attempt-history-list">{hardAttempts.slice(0, 5).map((attempt: QuizAttemptRecord) => <div className="quiz-attempt-history-row" key={attempt.id}><span><strong>{attempt.score}%</strong><small>{attempt.correct} من {attempt.total} · {attempt.completed_at.slice(0, 10)}</small></span><b className={attempt.passed ? 'passed' : 'retry'}>{attempt.passed ? 'اجتاز' : 'يحتاج محاولة أخرى'}</b></div>)}</div></section>}
-       <section className="generated-exam-card" data-testid="card-generated-exam">
-         <div className="generated-exam-icon"><FileText size={24} /></div>
-         <div className="generated-exam-copy">
-           <span className="eyebrow">موضوع جديد من توجيه</span>
-           <h3>اختبار تجريبي في الرياضيات</h3>
-           <p>موضوع كامل بنمط الاختبارات الجزائرية: دوال، اشتقاق، مماسات، كثيرات حدود ومتتاليات.</p>
-           <div className="generated-exam-meta"><span>الثالثة ثانوي</span><span>علوم تجريبية</span><span>20 نقطة</span><span>ساعتان و30 دقيقة</span></div>
-         </div>
-         <button className="primary-button generated-exam-action" onClick={() => setShowGeneratedExam(true)} data-testid="button-open-generated-exam">
-           <BookOpen size={16} /> فتح الموضوع
-         </button>
-       </section>
       {quizzesQuery.isLoading ? <LoadingState label="نحضّر تمارين مناسبة لك..." /> : quizzesQuery.isError ? <ErrorState onRetry={() => quizzesQuery.refetch()} /> : quizzes.length === 0 ? <EmptyState title="لا توجد اختبارات بعد" body="ستجد هنا تدريبات الوحدات والاختبار الأسبوعي عند توفرها." /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} onStart={() => setSelectedQuiz(quiz)} />)}</div>}
      </Shell>
   );

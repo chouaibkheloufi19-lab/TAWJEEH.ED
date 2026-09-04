@@ -84,7 +84,7 @@ function extractCreativeIdeas(text: string, retrieval: RetrievalContext) {
 }
 
 router.post("/creative/ideas", async (req, res): Promise<void> => {
-  const { lesson, level, activeConcept, question, context } = req.body as Record<string, unknown>;
+  const { lesson, level, activeConcept, question, context, curriculumContext } = req.body as Record<string, unknown>;
   if (
     typeof lesson !== "string" ||
     lesson.trim().length < 2 ||
@@ -92,7 +92,8 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
     !question.trim() ||
     (level !== undefined && typeof level !== "string") ||
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
-    (context !== undefined && typeof context !== "string")
+    (context !== undefined && typeof context !== "string") ||
+    (curriculumContext !== undefined && typeof curriculumContext !== "string")
   ) {
     res.status(400).json({ error: "invalid_creative_ideas_payload" });
     return;
@@ -100,10 +101,10 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
 
   try {
     const retrieval = await retrieveGroundedKnowledge(
-      [lesson, activeConcept, question, context, "الحل والأفكار الإبداعية"].filter(
+      [lesson, activeConcept, question, context, curriculumContext, "كل مكتسبات المنهاج الحل والأفكار الإبداعية"].filter(
         (value): value is string => Boolean(value?.trim()),
       ).join(" "),
-      { nResults: 10 },
+      { nResults: 50 },
     );
     const content = await callXaiTextModel(
       [
@@ -113,7 +114,7 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
             CREATIVE_IDEAS_PROMPT,
             GROUNDED_CONTENT_RULES,
             LEARNER_SAFE_OUTPUT_RULES,
-            "هذه الواجهة تحتاج JSON فقط. يجب أن تذكري الحل أولًا، ثم 3 أفكار مختلفة على الأقل، وكل فكرة يجب أن تستشهد بعقدة مسترجعة.",
+            "هذه الواجهة تحتاج JSON فقط. يجب أن تذكري الحل أولًا، ثم 3 أفكار مختلفة على الأقل، وكل فكرة يجب أن تستشهد بعقدة مسترجعة. غطّي جميع المكتسبات والمفاهيم المختلفة الموجودة في كل العقد المسترجعة، ولا تعيدي الفكرة نفسها بصيغ مختلفة.",
             'أعيدي الشكل التالي: {"lessonTitle":"...","solutionSummary":"الحل أو الفكرة المركزية خطوة خطوة","ideas":[{"title":"...","approach":"...","steps":["...","..."],"creativeTwist":"...","expectedOutcome":"...","sourceNodeIds":["node-id"]}],"sourceNodeIds":["node-id"]}',
           ].join("\n\n"),
         },
@@ -125,6 +126,7 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
             `المفهوم الحالي: ${typeof activeConcept === "string" && activeConcept ? activeConcept : "المفهوم الحالي"}`,
             `طلب الطالب: ${question}`,
             `السياق المتاح: ${typeof context === "string" && context ? context : "لا يوجد سياق إضافي"}`,
+            `نطاق مكتسبات المنهاج المطلوب تغطيته: ${typeof curriculumContext === "string" && curriculumContext ? curriculumContext : "غطِّ جميع المكتسبات الموجودة في العقد المسترجعة"}`,
             "عقد المعرفة المسترجعة:",
             formatRetrievedContext(retrieval.documents),
           ].join("\n"),
