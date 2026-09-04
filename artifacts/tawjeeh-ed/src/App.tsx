@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import {
   ClerkProvider,
@@ -27,9 +27,12 @@ import {
   Flame,
   LogOut,
   MessageCircle,
+  Minus,
   MoreHorizontal,
   Paperclip,
+  PenLine,
   Play,
+  Plus,
   Printer,
   RotateCcw,
   Search,
@@ -40,6 +43,8 @@ import {
   UserRound,
   X,
   Zap,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import {
   getGetDashboardQueryKey,
@@ -423,6 +428,11 @@ function SignUpPage() {
   );
 }
 
+function ExamPreviewRoute() {
+  const [, setLocation] = useLocation();
+  return <GeneratedExamPaper onExit={() => setLocation('/')} />;
+}
+
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const previousUserId = useRef<string | null | undefined>(undefined);
@@ -749,6 +759,15 @@ function QuizResultCard({ result, onAgain }: { result: QuizResult; onAgain: () =
   );
 }
 
+function MathFraction({ numerator, denominator }: { numerator: ReactNode; denominator: ReactNode }) {
+  return (
+    <span className="math-fraction" role="img" aria-label="كسر رياضي">
+      <span>{numerator}</span>
+      <span>{denominator}</span>
+    </span>
+  );
+}
+
 function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
   return (
     <Shell title="موضوع تجريبي">
@@ -767,6 +786,10 @@ function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
             <p>وزارة التربية الوطنية</p>
           </div>
           <div className="exam-paper-brand">
+            <div className="exam-paper-mark" aria-label="رمز توجيه في الموضوع">
+              <strong>ت</strong>
+              <span>T</span>
+            </div>
             <strong>TAWJEEH</strong>
             <span>مساحة التعلّم</span>
           </div>
@@ -798,18 +821,20 @@ function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
           <p>
             لتكن الدالة <span className="math-inline">f</span> المعرفة على المجال:
           </p>
-          <div className="math-display" dir="ltr">D<sub>f</sub> = ℝ \ &#123;-1&#125; ، &nbsp; f(x) = (x² + 2x + 3) / (x + 1)</div>
+          <div className="math-display" dir="ltr">
+            D<sub>f</sub> = ℝ \ &#123;-1&#125; ، &nbsp; f(x) = <MathFraction numerator="x² + 2x + 3" denominator="x + 1" />
+          </div>
           <p>ويمثل منحناها البياني <span className="math-inline">C<sub>f</sub></span> في معلم متعامد ومتجانس.</p>
           <ol>
             <li>
               <p>اكتب <span className="math-inline">f(x)</span> على الشكل:</p>
-              <div className="math-display" dir="ltr">f(x) = x + 1 + 2 / (x + 1)</div>
+              <div className="math-display" dir="ltr">f(x) = x + 1 + <MathFraction numerator="2" denominator="x + 1" /></div>
               <p>ثم احسب النهايتين عندما يؤول <span className="math-inline">x</span> إلى <span className="math-inline">−1</span> من اليمين ومن اليسار.</p>
               <p>كما احسب: <span className="math-inline">lim [f(x) − (x + 1)]</span> عندما يؤول <span className="math-inline">x</span> إلى <span className="math-inline">+∞</span>.</p>
             </li>
             <li>
               <p>بيّن أن:</p>
-              <div className="math-display" dir="ltr">f′(x) = 1 − 2 / (x + 1)²</div>
+              <div className="math-display" dir="ltr">f′(x) = 1 − <MathFraction numerator="2" denominator="(x + 1)²" /></div>
               <p>ثم حل في <span className="math-inline">D<sub>f</sub></span> المعادلة <span className="math-inline">f′(x) = 0</span>، وأنشئ جدول تغيرات الدالة <span className="math-inline">f</span>.</p>
             </li>
             <li>
@@ -851,21 +876,23 @@ function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
             <b>07 نقاط</b>
           </div>
           <p>نعتبر المتتالية العددية <span className="math-inline">(u<sub>n</sub>)</span> المعرفة بـ:</p>
-          <div className="math-display" dir="ltr">u₀ = 0 ، &nbsp; u<sub>n+1</sub> = ½u<sub>n</sub> + 3/2</div>
+          <div className="math-display" dir="ltr">
+            u₀ = 0 ، &nbsp; u<sub>n+1</sub> = <MathFraction numerator="1" denominator="2" />u<sub>n</sub> + <MathFraction numerator="3" denominator="2" />
+          </div>
           <p>من أجل كل عدد طبيعي <span className="math-inline">n</span>.</p>
           <ol>
             <li>احسب الحدود <span className="math-inline">u₁، u₂، u₃</span>.</li>
             <li>نضع <span className="math-inline">v<sub>n</sub> = u<sub>n</sub> − 3</span>. بيّن أن <span className="math-inline">(v<sub>n</sub>)</span> هندسية، ثم عين أساسها وحدها الأول.</li>
             <li>استنتج أن:</li>
           </ol>
-          <div className="math-display" dir="ltr">u<sub>n</sub> = 3 − 3 / 2ⁿ</div>
+          <div className="math-display" dir="ltr">u<sub>n</sub> = 3 − <MathFraction numerator="3" denominator="2ⁿ" /></div>
           <ol start={4}>
             <li>بيّن أن <span className="math-inline">(u<sub>n</sub>)</span> متزايدة ومحدودة، ثم احسب نهايتها.</li>
             <li>
               <p>نعرف:</p>
               <div className="math-display" dir="ltr">S<sub>n</sub> = u₀ + u₁ + u₂ + ⋯ + u<sub>n</sub></div>
               <p>اكتب <span className="math-inline">S<sub>n</sub></span> بدلالة <span className="math-inline">n</span>، ثم احسب:</p>
-              <div className="math-display" dir="ltr">lim S<sub>n</sub> / (n + 1)</div>
+              <div className="math-display" dir="ltr">lim <MathFraction numerator={<>S<sub>n</sub></>} denominator="n + 1" /></div>
             </li>
             <li>عين أصغر عدد طبيعي <span className="math-inline">n</span> يحقق <span className="math-inline">u<sub>n</sub> &gt; 2,9</span>.</li>
           </ol>
@@ -1072,6 +1099,7 @@ function Router() {
       <Switch>
         <Route path="/" component={HomeRedirect} />
         <Route path="/practice" component={MathPractice} />
+        <Route path="/exam-preview" component={ExamPreviewRoute} />
         <Route path="/sign-in/*?" component={SignInPage} />
         <Route path="/sign-up/*?" component={SignUpPage} />
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
