@@ -11,6 +11,27 @@ env = { "CI" = "true" }
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Run Tawjeeh preview"
+
+[[workflows.workflow]]
+name = "Run Tawjeeh preview"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sh -c 'PORT=8080 pnpm --filter @workspace/api-server run dev & PORT=5173 pnpm --filter @workspace/tawjeeh-ed run dev'"
+waitForPort = 5173
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
