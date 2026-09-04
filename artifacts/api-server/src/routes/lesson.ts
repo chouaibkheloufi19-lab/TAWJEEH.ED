@@ -14,6 +14,7 @@ import {
   FRIENDLY_TUTOR_PROMPT,
   GROUNDED_CONTENT_RULES,
 } from "../lib/ai-prompts";
+import { callXaiTextModel } from "../lib/ai-provider";
 
 const router: IRouter = Router();
 
@@ -122,54 +123,33 @@ async function generateLesson(
   attemptContext: string,
   retrieval: RetrievalContext,
 ) {
-  const key = process.env.DEEPSEEK_API_KEY;
-  if (!key) throw new Error("DEEPSEEK_API_KEY is not configured");
   const sourceText = formatRetrievedContext(retrieval.documents);
-  const response = await fetch("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
-      temperature: 0.15,
-      max_tokens: 1800,
-      messages: [
-        {
-          role: "system",
-          content: [
-            FRIENDLY_TUTOR_PROMPT,
-            GROUNDED_CONTENT_RULES,
-            "أنت مخطط درس عربي دقيق لمنصة تعليمية جزائرية. اجعل العناصر قصيرة، وكل عنصر يمثل خطوة واضحة في التعلم. أضف تمثيلًا بيانيًا رقميًا فقط عندما تسمح به البيانات المسترجعة، وإلا أعد graph.type = none. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.",
-            "هذه الواجهة تحتاج JSON فقط؛ ضع الشرح والتمثيل التعليمي داخل الحقول المطلوبة ولا تضف أي نص خارج الكائن.",
-          ].join("\n\n"),
-        },
-        {
-          role: "user",
-          content: [
-            `عنوان الدرس المطلوب: ${lesson}`,
-            `مستوى الطالب: ${level || "غير محدد"}`,
-            `العنصر الحالي: ${activeConcept || "البداية"}`,
-            `ملخص بنك الأخطاء: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
-            "عقد المتجه المسترجعة من ChromaDB:",
-            sourceText,
-            'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","objective":"هدف قصير","elements":[{"id":"definition","title":"...","kind":"definition","summary":"..."},{"id":"example","title":"...","kind":"example","summary":"..."},{"id":"graph","title":"...","kind":"graph","summary":"..."},{"id":"practice","title":"...","kind":"practice","summary":"..."},{"id":"recap","title":"...","kind":"recap","summary":"..."}],"explanation":"شرح عربي قصير","highlight":"عبارة مهمة من الشرح","graph":{"type":"line","title":"عنوان الرسم","xLabel":"المحور الأفقي","yLabel":"المحور العمودي","points":[{"x":0,"y":0,"label":"..."}]},"prompt":"سؤال تفاعلي قصير","sourceNodeIds":["node-id"]}',
-          ].join("\n"),
-        },
-      ],
-    }),
-    signal: AbortSignal.timeout(30000),
-  });
-  if (!response.ok) {
-    const providerError = (await response.text().catch(() => "")).replace(/\s+/g, " ").trim().slice(0, 320);
-    throw new Error(
-      `Lesson generator responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
-    );
-  }
-  const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  const content = payload.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Lesson generator returned no content");
+  const content = await callXaiTextModel(
+    [
+      {
+        role: "system",
+        content: [
+          FRIENDLY_TUTOR_PROMPT,
+          GROUNDED_CONTENT_RULES,
+          "أنت مخطط درس عربي دقيق لمنصة تعليمية جزائرية. اجعل العناصر قصيرة، وكل عنصر يمثل خطوة واضحة في التعلم. أضف تمثيلًا بيانيًا رقميًا فقط عندما تسمح به البيانات المسترجعة، وإلا أعد graph.type = none. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.",
+          "هذه الواجهة تحتاج JSON فقط؛ ضع الشرح والتمثيل التعليمي داخل الحقول المطلوبة ولا تضف أي نص خارج الكائن.",
+        ].join("\n\n"),
+      },
+      {
+        role: "user",
+        content: [
+          `عنوان الدرس المطلوب: ${lesson}`,
+          `مستوى الطالب: ${level || "غير محدد"}`,
+          `العنصر الحالي: ${activeConcept || "البداية"}`,
+          `ملخص بنك الأخطاء: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
+          "عقد المتجه المسترجعة من ChromaDB:",
+          sourceText,
+          'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","objective":"هدف قصير","elements":[{"id":"definition","title":"...","kind":"definition","summary":"..."},{"id":"example","title":"...","kind":"example","summary":"..."},{"id":"graph","title":"...","kind":"graph","summary":"..."},{"id":"practice","title":"...","kind":"practice","summary":"..."},{"id":"recap","title":"...","kind":"recap","summary":"..."}],"explanation":"شرح عربي قصير","highlight":"عبارة مهمة من الشرح","graph":{"type":"line","title":"عنوان الرسم","xLabel":"المحور الأفقي","yLabel":"المحور العمودي","points":[{"x":0,"y":0,"label":"..."}]},"prompt":"سؤال تفاعلي قصير","sourceNodeIds":["node-id"]}',
+        ].join("\n"),
+      },
+    ],
+    { temperature: 0.15, maxOutputTokens: 1800 },
+  );
   const parsed = extractGeneratedLesson(content);
   return {
     ...parsed,
@@ -186,54 +166,33 @@ async function generateExercise(
   attemptContext: string,
   retrieval: RetrievalContext,
 ): Promise<GeneratedExercise> {
-  const key = process.env.DEEPSEEK_API_KEY;
-  if (!key) throw new Error("DEEPSEEK_API_KEY is not configured");
   const sourceText = formatRetrievedContext(retrieval.documents);
-  const response = await fetch("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
-      temperature: 0.15,
-      max_tokens: 1200,
-      messages: [
-        {
-          role: "system",
-          content: [
-            ADAPTIVE_EXERCISE_PROMPT,
-            GROUNDED_CONTENT_RULES,
-            "أنت وكيل تمارين عربي لمنصة توجيه. أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق. أخفِ الإجابة في الحقول المخصصة لها، واجعل التلميح لا يكشف الحل. يجب أن يكون الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.",
-            "هذه الواجهة تحتاج JSON فقط؛ لا تضف أي نص خارج الكائن.",
-          ].join("\n\n"),
-        },
-        {
-          role: "user",
-          content: [
-            `عنوان الدرس: ${lesson}`,
-            `مستوى الطالب: ${level || "غير محدد"}`,
-            `المفهوم الحالي: ${activeConcept || "قوانين نيوتن والحركة"}`,
-            `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
-            "عقد المتجه المسترجعة من ChromaDB:",
-            sourceText,
-            'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
-          ].join("\n"),
-        },
-      ],
-    }),
-    signal: AbortSignal.timeout(30000),
-  });
-  if (!response.ok) {
-    const providerError = (await response.text().catch(() => "")).replace(/\s+/g, " ").trim().slice(0, 320);
-    throw new Error(
-      `Exercise generator responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
-    );
-  }
-  const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  const content = payload.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Exercise generator returned no content");
+  const content = await callXaiTextModel(
+    [
+      {
+        role: "system",
+        content: [
+          ADAPTIVE_EXERCISE_PROMPT,
+          GROUNDED_CONTENT_RULES,
+          "أنت وكيل تمارين عربي لمنصة توجيه. أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق. أخفِ الإجابة في الحقول المخصصة لها، واجعل التلميح لا يكشف الحل. يجب أن يكون الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.",
+          "هذه الواجهة تحتاج JSON فقط؛ لا تضف أي نص خارج الكائن.",
+        ].join("\n\n"),
+      },
+      {
+        role: "user",
+        content: [
+          `عنوان الدرس: ${lesson}`,
+          `مستوى الطالب: ${level || "غير محدد"}`,
+          `المفهوم الحالي: ${activeConcept || "قوانين نيوتن والحركة"}`,
+          `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
+          "عقد المتجه المسترجعة من ChromaDB:",
+          sourceText,
+          'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
+        ].join("\n"),
+      },
+    ],
+    { temperature: 0.15, maxOutputTokens: 1200 },
+  );
   const candidate = content.match(/\{[\s\S]*\}/)?.[0];
   if (!candidate) throw new Error("Exercise generator returned non-JSON content");
   const parsed = JSON.parse(candidate) as Partial<GeneratedExercise>;
