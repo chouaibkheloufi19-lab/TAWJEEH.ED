@@ -49,8 +49,8 @@
   --secondary-foreground: 188 47% 22%;
   --muted: 42 25% 93%;
   --muted-foreground: 211 18% 48%;
-  --accent: 158 38% 88%;
-  --accent-foreground: 161 39% 31%;
+  --accent: 194 38% 88%;
+  --accent-foreground: 194 55% 28%;
   --destructive: 2 61% 54%;
   --destructive-foreground: 42 43% 97%;
   --sidebar: 188 45% 20%;
@@ -58,8 +58,8 @@
   --sidebar-border: 205 39% 32%;
   --sidebar-primary: 188 35% 92%;
   --sidebar-primary-foreground: 188 47% 22%;
-  --sidebar-accent: 158 38% 88%;
-  --sidebar-accent-foreground: 161 39% 31%;
+  --sidebar-accent: 194 38% 88%;
+  --sidebar-accent-foreground: 194 55% 28%;
   --app-font-sans: 'IBM Plex Sans Arabic', sans-serif;
   --app-font-mono: 'Space Mono', monospace;
   --radius: 1.05rem;
@@ -4082,9 +4082,9 @@ button { cursor: pointer; }
 /* Official TAWJEEH.ED palette enforcement */
 :root {
   --brand-petroleum: #005f73;
-  --brand-teal: #0a9396;
-  --brand-deep-blue: #1e3a8a;
-  --brand-electric: #3b82f6;
+  --brand-teal: #2f8aa5;
+  --brand-deep-blue: #1f6f92;
+  --brand-electric: #3b82b7;
   --brand-soft: #e8f3f6;
   --brand-soft-blue: #eaf0ff;
   --brand-neutral: #f1f5f9;
