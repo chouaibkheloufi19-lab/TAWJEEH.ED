@@ -141,6 +141,8 @@ type CreativeIdea = {
 
 type CreativeIdeasResponse = {
   status: 'generated';
+  mode?: 'creative_topic';
+  agent?: 'exercises';
   lessonTitle: string;
   solutionSummary: string;
   ideas: CreativeIdea[];
@@ -280,10 +282,10 @@ const partnerDetails: Record<ActivePartner, {
     prompt: 'اختر مفهومًا، وسأعطيك خطوة تدريبية واحدة لتبدأ بها.',
   },
   creative: {
-    name: 'المبدعة',
-    role: 'شريكة الأفكار',
-    description: 'تعرف الحل، ثم تفتح لك طرقًا جديدة لفهمه وتطبيقه.',
-    prompt: 'اكتب المسألة أو الحل الذي تريد تطويره، وسأبدأ بالحل الصحيح ثم أقترح أفكارًا مختلفة.',
+    name: 'وكيل التمارين الإبداعي',
+    role: 'شريك الموضوعات',
+    description: 'يبني موضوعات مختلفة من نفس المكتسبات ويجعلك تبدأ بالمحاولة.',
+    prompt: 'اكتب المسألة أو الفكرة التي تريد تطويرها، وسأبني لك موضوعات مختلفة قابلة للدراسة.',
   },
 };
 
@@ -548,6 +550,7 @@ export function LessonWorkspace() {
   const [attemptBank, setAttemptBank] = useState<AttemptBankItem[]>(readAttemptBank);
   const [generatedExercise, setGeneratedExercise] = useState<GeneratedExercise | null>(null);
   const [creativeIdeas, setCreativeIdeas] = useState<CreativeIdeasResponse | null>(null);
+  const [selectedCreativeTopic, setSelectedCreativeTopic] = useState<CreativeIdea | null>(null);
   const [copilotQuestion, setCopilotQuestion] = useState('');
   const [topicStudioOpen, setTopicStudioOpen] = useState(true);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
@@ -938,9 +941,18 @@ export function LessonWorkspace() {
     }
   };
 
-  const askCopilotQuestion = async (text: string) => {
+  const askCopilotQuestion = async (text: string, topic = selectedCreativeTopic) => {
     const cleanText = text.trim();
     if (!cleanText || !ragReady || isThinking) return;
+    const topicContext = topic
+      ? [
+          `عنوان الموضوع الإبداعي: ${topic.title}`,
+          `طريقة البدء: ${topic.approach}`,
+          `خطوات الموضوع: ${topic.steps.join(' | ')}`,
+          `اللمسة الإبداعية: ${topic.creativeTwist}`,
+          `الناتج المتوقع: ${topic.expectedOutcome}`,
+        ].join('\n')
+      : '';
     setMessages((current) => [...current, { id: `copilot-user-${Date.now()}`, role: 'user', text: cleanText }]);
     setCopilotQuestion('');
     setIsThinking(true);
@@ -957,8 +969,10 @@ export function LessonWorkspace() {
             'السؤال قادم من كوبيلوت الموضوع داخل مساحة الدرس.',
             generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
             sourceExcerpt ? `المكتسب المرتبط حاليًا: ${sourceExcerpt}` : '',
+            topicContext,
             `عدد مكتسبات قاعدة المعرفة المتاحة: ${foundationalSources.length}`,
           ].filter(Boolean).join('\n'),
+          topicContext,
         }),
       });
       const payload = await response.json() as { answer?: string; message?: string };
@@ -975,12 +989,17 @@ export function LessonWorkspace() {
     }
   };
 
+  const askAboutCreativeTopic = (topic: CreativeIdea) => {
+    setSelectedCreativeTopic(topic);
+    void askCopilotQuestion(`ساعدني في فهم موضوع «${topic.title}» وابدأ معي بالخطوة الأولى.`, topic);
+  };
+
   const generateCreativeTopic = async () => {
     if (!ragReady || isThinking) return;
     setActivePartner('creative');
     setIsThinking(true);
     try {
-      const response = await fetch('/api/creative/ideas', {
+       const response = await fetch('/api/lesson/exercise', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -988,12 +1007,12 @@ export function LessonWorkspace() {
           lesson: fixedLessonTitle,
           level: '3AS',
           activeConcept: activeSection.title,
-          question: 'حوّل موضوع الدرس إلى تطبيقات ومشاريع إبداعية تغطي كل مكتسبات المنهاج الموجودة في قاعدة المعرفة.',
-          context: [
-            generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
-            sourceExcerpt,
-          ].filter(Boolean).join('\n'),
-          curriculumContext: `المطلوب تغطية جميع مكتسبات قاعدة المعرفة، وعدد بطاقات المعرفة المتاحة حاليًا: ${foundationalSources.length}.`,
+           mode: 'creative_topic',
+           attemptContext: [
+             'حوّل الموضوع إلى تطبيقات إبداعية قابلة للدراسة الآن، لا إلى أفكار عامة فقط.',
+             generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
+             sourceExcerpt,
+           ].filter(Boolean).join('\n'),
         }),
       });
       const payload = await response.json() as Partial<CreativeIdeasResponse> & { message?: string };
@@ -1001,10 +1020,10 @@ export function LessonWorkspace() {
         throw new Error(payload.message || 'تعذر توليد المسارات الإبداعية');
       }
       setCreativeIdeas(payload as CreativeIdeasResponse);
-      setMessages((current) => [...current, {
+        setMessages((current) => [...current, {
         id: `topic-creative-${Date.now()}`,
         role: 'assistant',
-        text: `ولّدت لك ${(payload as CreativeIdeasResponse).ideas.length} مسارات إبداعية تغطي مكتسبات قاعدة المعرفة. ستجدها في بطاقة المبدعة أدناه.`,
+         text: `بنى لك وكيل التمارين ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة من مصادر المنهاج. ستجدها في بطاقة التمرين الإبداعي أدناه.`,
       }]);
     } catch (error) {
       setMessages((current) => [...current, {
@@ -1141,7 +1160,7 @@ export function LessonWorkspace() {
         reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من محتوى الدرس. ابدأ بكتابة المعطيات والخطوة الأولى.`;
       }
        if (activePartner === 'creative') {
-         const response = await fetch('/api/creative/ideas', {
+               const response = await fetch('/api/lesson/exercise', {
            method: 'POST',
            credentials: 'include',
            headers: { 'content-type': 'application/json' },
@@ -1149,13 +1168,14 @@ export function LessonWorkspace() {
              lesson: 'قوانين نيوتن والحركة',
              level: '3AS',
              activeConcept: activeSection.title,
-             question: cleanText,
-             context: [
+              mode: 'creative_topic',
+              attemptContext: [
                activeSource ? `مرجع الدرس الحالي: ${activeSource.source} ص ${activeSource.page}` : '',
                analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}` : '',
                sourceExcerpt,
-             ].filter(Boolean).join('\n'),
-              curriculumContext: `اعتمد على جميع مكتسبات قاعدة المعرفة المتاحة، لا على الجزء المرتبط بالسؤال فقط. عدد البطاقات الأساسية المتاحة: ${foundationalSources.length}.`,
+                `طلب الطالب: ${cleanText}`,
+                `اعتمد على جميع مكتسبات قاعدة المعرفة المتاحة وعددها ${foundationalSources.length}.`,
+              ].filter(Boolean).join('\n'),
            }),
          });
          const payload = await response.json() as Partial<CreativeIdeasResponse> & { message?: string };
@@ -1170,7 +1190,7 @@ export function LessonWorkspace() {
            throw new Error(payload.message || 'تعذر توليد الحل والأفكار الإبداعية');
          }
          setCreativeIdeas(payload as CreativeIdeasResponse);
-         reply = `عرفت الحل أولًا، ثم بنيت لك ${(payload as CreativeIdeasResponse).ideas.length} أفكار مختلفة حوله. افتح البطاقة واختر الفكرة الأقرب لطريقتك.`;
+          reply = `استخدمت منطق وكيل التمارين، فبدأت بالحل ثم بنيت لك ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة. اختر واحدًا وابدأ من خطواته.`;
        }
       setMessages((current) => [...current, {
         id: `partner-answer-${Date.now()}`,
@@ -1598,18 +1618,21 @@ export function LessonWorkspace() {
              {activePartner === 'creative' && creativeIdeas && (
                <article className="lesson-creative-card" data-testid="card-creative-ideas">
                  <div className="lesson-creative-card-head">
-                   <div><span><Sparkles size={12} /> الحل أولًا</span><strong>{creativeIdeas.lessonTitle}</strong></div>
+                   <div><span><Sparkles size={12} /> وكيل التمارين الإبداعي · الحل أولًا</span><strong>{creativeIdeas.lessonTitle}</strong></div>
                    <small>{creativeIdeas.ideas.length} أفكار</small>
                  </div>
                  <p className="lesson-creative-solution">{creativeIdeas.solutionSummary}</p>
                  <div className="lesson-creative-ideas">
-                   {creativeIdeas.ideas.map((idea, index) => (
-                     <div className="lesson-creative-idea" key={`${idea.title}-${index}`}>
+                  {creativeIdeas.ideas.map((idea, index) => (
+                    <div className={`lesson-creative-idea ${selectedCreativeTopic?.title === idea.title ? 'is-selected' : ''}`} key={`${idea.title}-${index}`}>
                        <div className="lesson-creative-idea-title"><span>{index + 1}</span><strong>{idea.title}</strong></div>
                        <p>{idea.approach}</p>
                        <ol>{idea.steps.map((step, stepIndex) => <li key={`${idea.title}-step-${stepIndex}`}>{step}</li>)}</ol>
                        <div className="lesson-creative-twist"><Lightbulb size={12} /><span><strong>اللمسة الإبداعية:</strong> {idea.creativeTwist}</span></div>
                        <small className="lesson-creative-outcome">ما ستتعلمه: {idea.expectedOutcome}</small>
+                      <button type="button" className="lesson-creative-ask" onClick={() => askAboutCreativeTopic(idea)} disabled={isThinking} data-testid={`button-ask-creative-topic-${index + 1}`}>
+                        <MessageCircle size={12} /> اسأل التعليم الذكي عن هذا الموضوع
+                      </button>
                      </div>
                    ))}
                  </div>
@@ -1739,7 +1762,7 @@ export function LessonWorkspace() {
                   <form className="lesson-copilot-form" onSubmit={(event) => { event.preventDefault(); void askCopilotQuestion(copilotQuestion); }}>
                     <div>
                       <span className="lesson-copilot-label"><MessageCircle size={13} /> سؤال الكوبيلوت</span>
-                      <small>اسأل عن الموضوع أو عن أي خطوة فيه</small>
+                     <small>{selectedCreativeTopic ? `الموضوع المحدد: ${selectedCreativeTopic.title}` : 'اسأل عن الموضوع أو عن أي خطوة فيه'}</small>
                     </div>
                     <input value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} disabled={!lessonToolsActive || isThinking} placeholder="مثال: كيف أختار القانون المناسب في الوضعية؟" aria-label="سؤال الكوبيلوت عن الموضوع" data-testid="input-topic-copilot-question" />
                     <button type="submit" disabled={!lessonToolsActive || !copilotQuestion.trim() || isThinking} aria-label="إرسال سؤال الكوبيلوت" data-testid="button-send-topic-copilot"><Send size={15} /></button>

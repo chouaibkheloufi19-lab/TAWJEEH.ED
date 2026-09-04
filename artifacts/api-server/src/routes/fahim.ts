@@ -115,6 +115,7 @@ async function callTextModel(
   lesson: string,
   concept: string,
   context: string,
+  topicContext: string,
   retrieval: RetrievalContext,
 ) {
   const sourceText = formatRetrievedContext(retrieval.documents);
@@ -130,7 +131,16 @@ async function callTextModel(
       },
       {
         role: "user",
-        content: `الدرس: ${lesson}\nالمفهوم: ${concept}\nسياق المحاولة والتحليل: ${context || "لا توجد محاولة محللة"}\nسؤال الطالب: ${question}\n\nعقد المعرفة المسترجعة من ChromaDB:\n${sourceText}`,
+        content: [
+          `الدرس: ${lesson}`,
+          `المفهوم: ${concept}`,
+          `الموضوع الذي يدرسه الطالب الآن: ${topicContext || "لا يوجد موضوع إبداعي محدد"}`,
+          `سياق المحاولة والتحليل: ${context || "لا توجد محاولة محللة"}`,
+          `سؤال الطالب: ${question}`,
+          "",
+          "عقد المعرفة المسترجعة من ChromaDB:",
+          sourceText,
+        ].join("\n"),
       },
     ],
     { temperature: 0.2, maxOutputTokens: 900 },
@@ -168,25 +178,30 @@ router.post("/fahim/analyze-attempt", async (req, res): Promise<void> => {
 });
 
 router.post("/fahim/message", async (req, res): Promise<void> => {
-  const { question, lesson, concept, context } = req.body as Record<string, unknown>;
+  const { question, lesson, concept, context, topicContext } = req.body as Record<string, unknown>;
   if (
     typeof question !== "string" ||
     !question.trim() ||
     typeof lesson !== "string" ||
     typeof concept !== "string" ||
-    (context !== undefined && typeof context !== "string")
+    (context !== undefined && typeof context !== "string") ||
+    (topicContext !== undefined && typeof topicContext !== "string")
   ) {
     res.status(400).json({ error: "invalid_message_payload" });
     return;
   }
 
   try {
-    const retrieval = await retrieveGroundedKnowledge(`${lesson} ${concept} ${question}`, { nResults: 8 });
+    const retrieval = await retrieveGroundedKnowledge(
+      [lesson, concept, question, typeof topicContext === "string" ? topicContext : ""].filter(Boolean).join(" "),
+      { nResults: 8 },
+    );
     const answer = await callTextModel(
       question,
       lesson,
       concept,
       typeof context === "string" ? context : "",
+      typeof topicContext === "string" ? topicContext : "",
       retrieval,
     );
     res.json({ answer, grounding: retrieval.grounding });

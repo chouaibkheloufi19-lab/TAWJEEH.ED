@@ -45,7 +45,7 @@ type ProgramEntry = {
   title: string;
   subject: string;
   kind: ProgramKind;
-  agent: 'فهيم' | 'دليل' | 'تمارين';
+  agent: 'فهيم' | 'دليل' | 'تمارين' | 'وكيل التمارين الإبداعي';
   completed: boolean;
   slot?: 1 | 2 | 3;
   track?: SessionTrack;
@@ -99,7 +99,7 @@ function createGroundedSlots(
   if (modules.length < 3) return [];
   const tracks = [
     { time: '08:30', duration: '25–40 دقيقة', kind: 'مكتسبات' as const, foundationTitle: 'تثبيت أساسيات الحركة', agent: 'فهيم' as const, slot: 1 as const, track: 'theory' as const, endRule: 'تنتهي عندما تشرح الفكرة بكلماتك' },
-    { time: '12:00', duration: 'حتى حل تمرينين', kind: 'حصة تطبيقية' as const, foundationTitle: 'تطبيق على القوى والتسارع', agent: 'تمارين' as const, slot: 2 as const, track: 'application' as const, endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
+    { time: '12:00', duration: 'حتى حل موضوعين', kind: 'حصة تطبيقية' as const, foundationTitle: 'موضوعات إبداعية على القوى والتسارع', agent: 'وكيل التمارين الإبداعي' as const, slot: 2 as const, track: 'application' as const, endRule: 'تتوقف عند أول إجابة تحتاج تصحيحًا' },
     { time: '17:30', duration: 'حتى إجابة التحقق', kind: 'مراجعة' as const, foundationTitle: 'مراجعة ما تم فهمه', agent: 'دليل' as const, slot: 3 as const, track: 'application' as const, endRule: 'تنتهي بعد إجابة قصيرة تثبت التقدم' },
   ];
   return tracks.map((track, index) => ({
@@ -181,7 +181,7 @@ function toProgramEntry(entry: ScheduleEntry): ProgramEntry {
     title: entry.title,
     subject: normalizeProgramSubject(entry.subject),
     kind: isTheory ? 'مكتسبات' : isPractical ? 'حصة تطبيقية' : 'مراجعة',
-    agent: isTheory ? 'فهيم' : isPractical ? 'تمارين' : 'دليل',
+    agent: isTheory ? 'فهيم' : isPractical ? 'وكيل التمارين الإبداعي' : 'دليل',
     completed: entry.completed,
     remediationLabel: entry.remediation_label,
     missed: entry.missed,
@@ -196,6 +196,7 @@ const agentProfiles = {
   فهيم: { image: owlAgentTeal, role: 'يفتح الفكرة', tone: 'fahim' },
   دليل: { image: owlAgentThinking, role: 'يثبت الفهم', tone: 'dalil' },
   تمارين: { image: owlAgentSuccess, role: 'يحوّلها إلى تطبيق', tone: 'exercises' },
+  'وكيل التمارين الإبداعي': { image: owlAgentSuccess, role: 'يبني موضوعات مختلفة', tone: 'exercises' },
 } as const;
 
 function ProgramMiniAgent({ agent }: { agent: ProgramEntry['agent'] }) {

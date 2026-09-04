@@ -12,6 +12,7 @@ import {
 import {
   ACADEMIC_EXAM_PROMPT,
   ADAPTIVE_EXERCISE_PROMPT,
+  CREATIVE_EXERCISE_TOPICS_PROMPT,
   EXERCISE_GENERATION_PROMPT,
   FRIENDLY_TUTOR_PROMPT,
   GROUNDED_CONTENT_RULES,
@@ -62,6 +63,25 @@ type GeneratedExercise = {
   answer: string;
   hint: string;
   solution: string;
+  sourceDocuments: SourceDocument[];
+  sourceNodeIds: string[];
+  grounding: Grounding;
+};
+
+type GeneratedCreativeTopics = {
+  status: "generated";
+  mode: "creative_topic";
+  agent: "exercises";
+  lessonTitle: string;
+  solutionSummary: string;
+  ideas: Array<{
+    title: string;
+    approach: string;
+    steps: string[];
+    creativeTwist: string;
+    expectedOutcome: string;
+    sourceNodeIds: string[];
+  }>;
   sourceDocuments: SourceDocument[];
   sourceNodeIds: string[];
   grounding: Grounding;
@@ -243,6 +263,96 @@ async function generateExercise(
   };
 }
 
+async function generateCreativeExerciseTopics(
+  lesson: string,
+  level: string,
+  activeConcept: string,
+  attemptContext: string,
+  retrieval: RetrievalContext,
+): Promise<GeneratedCreativeTopics> {
+  const content = await callXaiTextModel(
+    [
+      {
+        role: "system",
+        content: [
+          ADAPTIVE_EXERCISE_PROMPT,
+          CREATIVE_EXERCISE_TOPICS_PROMPT,
+          GROUNDED_CONTENT_RULES,
+          LEARNER_SAFE_OUTPUT_RULES,
+          "أنت الآن وكيل التمارين نفسه، لكن بوضع توليد موضوعات إبداعية. أعد الحل المركزي ثم 3 موضوعات مختلفة على الأقل. يجب أن يستشهد كل موضوع بالعقد التي بُني عليها، ويجب أن تكون كل العقد المستخدمة ضمن المصادر المسترجعة.",
+          "هذه الواجهة تحتاج JSON فقط؛ لا تضف أي نص خارج الكائن.",
+          'أعد الشكل التالي: {"lessonTitle":"عنوان من المصادر","solutionSummary":"الفكرة المركزية والحل الأكاديمي المختصر","ideas":[{"title":"عنوان موضوع إبداعي","approach":"الفكرة وطريقة البدء","steps":["خطوة 1","خطوة 2","خطوة 3"],"creativeTwist":"سؤال أو زاوية مفاجئة","expectedOutcome":"ما الذي سيثبته الطالب","sourceNodeIds":["node-id"]}],"sourceNodeIds":["node-id"]}',
+        ].join("\n\n"),
+      },
+      {
+        role: "user",
+        content: [
+          `عنوان الدرس: ${lesson}`,
+          `مستوى الطالب: ${level || "3AS"}`,
+          `المفهوم الحالي: ${activeConcept || "المفهوم الحالي"}`,
+          `سجل الأخطاء أو رغبة الطالب: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
+          "غطِّ كل المفاهيم المختلفة الممكنة في عقد المعرفة، ولا تعتمد على مقتطف واحد فقط.",
+          "عقد المتجه المسترجعة من ChromaDB:",
+          formatRetrievedContext(retrieval.documents),
+        ].join("\n"),
+      },
+    ],
+    { temperature: 0.75, maxOutputTokens: 2600 },
+  );
+  const candidate = content.match(/\{[\s\S]*\}/)?.[0];
+  if (!candidate) throw new Error("Creative exercise agent returned non-JSON content");
+  const parsed = JSON.parse(candidate) as Partial<GeneratedCreativeTopics>;
+  if (
+    typeof parsed.lessonTitle !== "string" ||
+    typeof parsed.solutionSummary !== "string" ||
+    !Array.isArray(parsed.ideas) ||
+    parsed.ideas.length < 3 ||
+    !Array.isArray(parsed.sourceNodeIds)
+  ) {
+    throw new Error("Creative exercise agent returned an incomplete response");
+  }
+
+  const ideas = parsed.ideas.slice(0, 5).map((idea, index) => {
+    if (
+      !idea ||
+      typeof idea.title !== "string" ||
+      typeof idea.approach !== "string" ||
+      !Array.isArray(idea.steps) ||
+      idea.steps.length < 3 ||
+      typeof idea.creativeTwist !== "string" ||
+      typeof idea.expectedOutcome !== "string"
+    ) {
+      throw new Error(`Creative exercise agent returned an invalid topic at index ${index}`);
+    }
+    const steps = idea.steps
+      .filter((step): step is string => typeof step === "string" && Boolean(step.trim()))
+      .slice(0, 5);
+    if (steps.length < 3) {
+      throw new Error(`Creative exercise agent returned too few steps at index ${index}`);
+    }
+    return {
+      title: idea.title.trim(),
+      approach: idea.approach.trim(),
+      steps,
+      creativeTwist: idea.creativeTwist.trim(),
+      expectedOutcome: idea.expectedOutcome.trim(),
+      sourceNodeIds: assertGroundedNodeIds(idea.sourceNodeIds, retrieval),
+    };
+  });
+
+  return {
+    status: "generated",
+    mode: "creative_topic",
+    agent: "exercises",
+    lessonTitle: parsed.lessonTitle.trim(),
+    solutionSummary: parsed.solutionSummary.trim(),
+    ideas,
+    sourceDocuments: sourceDocumentsFrom(retrieval.documents),
+    sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
+    grounding: retrieval.grounding,
+  };
+}
+
 router.post("/lesson/generate", async (req, res): Promise<void> => {
   const { lesson, level, activeConcept, attemptContext } = req.body as Record<string, unknown>;
   if (
@@ -283,13 +393,14 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
 });
 
 router.post("/lesson/exercise", async (req, res): Promise<void> => {
-  const { lesson, level, activeConcept, attemptContext } = req.body as Record<string, unknown>;
+  const { lesson, level, activeConcept, attemptContext, mode } = req.body as Record<string, unknown>;
   if (
     typeof lesson !== "string" ||
     lesson.trim().length < 2 ||
     (level !== undefined && typeof level !== "string") ||
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
-    (attemptContext !== undefined && typeof attemptContext !== "string")
+    (attemptContext !== undefined && typeof attemptContext !== "string") ||
+    (mode !== undefined && mode !== "standard" && mode !== "creative_topic")
   ) {
     res.status(400).json({ error: "invalid_exercise_generation_payload" });
     return;
@@ -306,8 +417,27 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       .map((error) => `${error.concept_title}: ${error.error_tag}`)
       .join(" | ");
     const retrieval = await retrieveGroundedKnowledge(
-      [lesson, activeConcept, historicalErrors, "تمارين"].filter((value): value is string => Boolean(value)).join(" "),
+      [
+        lesson,
+        activeConcept,
+        historicalErrors,
+        mode === "creative_topic"
+          ? "موضوعات تطبيقية إبداعية، وضعيات، تجارب ذهنية، تمثيل بصري، وتحديات تغطي كل مكتسبات المنهاج"
+          : "تمارين",
+      ].filter((value): value is string => Boolean(value)).join(" "),
+      mode === "creative_topic" ? { nResults: 50 } : undefined,
     );
+    if (mode === "creative_topic") {
+      const generatedTopics = await generateCreativeExerciseTopics(
+        lesson,
+        typeof level === "string" ? level : "",
+        typeof activeConcept === "string" ? activeConcept : "",
+        [typeof attemptContext === "string" ? attemptContext : "", historicalErrors].filter(Boolean).join(" | "),
+        retrieval,
+      );
+      res.json(generatedTopics);
+      return;
+    }
     const generated = await generateExercise(
       lesson,
       typeof level === "string" ? level : "",
@@ -323,7 +453,9 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       ? "لم يتم إعداد مزود الذكاء الاصطناعي بعد."
       : errorMessage.startsWith("Exercise generator responded with")
         ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
-        : "تعذر توليد التمرين من المصادر حاليًا. أعد المحاولة بعد قليل.";
+        : mode === "creative_topic"
+          ? "تعذر توليد الموضوعات الإبداعية من المصادر حاليًا. أعد المحاولة بعد قليل."
+          : "تعذر توليد التمرين من المصادر حاليًا. أعد المحاولة بعد قليل.";
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error: error instanceof KnowledgeGroundingError ? error.code : "exercise_generation_failed",
       message,

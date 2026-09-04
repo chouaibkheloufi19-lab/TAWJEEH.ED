@@ -4273,6 +4273,10 @@ button { cursor: pointer; }
   border-radius: 11px;
   background: rgba(255, 255, 255, .72);
 }
+.lesson-creative-idea.is-selected {
+  border-color: #8d7bc1;
+  box-shadow: 0 0 0 2px rgba(141, 123, 193, .12);
+}
 .lesson-creative-idea-title {
   display: flex;
   align-items: center;
@@ -4323,6 +4327,29 @@ button { cursor: pointer; }
   font-size: 8px;
   font-weight: 750;
   line-height: 1.6;
+}
+.lesson-creative-ask {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: fit-content;
+  padding: 6px 9px;
+  border: 1px solid #cfc5e7;
+  border-radius: 8px;
+  color: #66558e;
+  font-size: 8px;
+  font-weight: 850;
+  background: #f8f5ff;
+  cursor: pointer;
+}
+.lesson-creative-ask:hover:not(:disabled) {
+  border-color: #8d7bc1;
+  background: #f0ebff;
+}
+.lesson-creative-ask:disabled {
+  opacity: .6;
+  cursor: not-allowed;
 }
 .lesson-composer:not(.is-disabled) {
   background: #f7fbf5;
