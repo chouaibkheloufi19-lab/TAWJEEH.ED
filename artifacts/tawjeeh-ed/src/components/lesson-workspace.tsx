@@ -286,6 +286,7 @@ const attemptBankKey = 'tawjeeh.attempt.bank.v1';
 const profileKey = 'user.profile';
 const examDateKey = 'tawjeeh.exam.baccalaureate-date';
 const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
+const currentLessonTopicKey = 'tawjeeh.lesson.current-topic.v1';
 const lessonId = 'newton-motion';
 const partnerDetails: Record<ActivePartner, {
   name: string;
@@ -361,6 +362,25 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
     };
   } catch {
     return fallback;
+  }
+}
+
+function readCurrentLessonTopic(): { title: string; subject: string } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(currentLessonTopicKey) || '{}') as {
+      title?: unknown;
+      subject?: unknown;
+    };
+    if (typeof parsed.title !== 'string' || !parsed.title.trim()) return null;
+    return {
+      title: parsed.title.trim(),
+      subject: typeof parsed.subject === 'string' && parsed.subject.trim()
+        ? parsed.subject.trim()
+        : 'العلوم الفيزيائية',
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -538,7 +558,9 @@ function drawBoard(
 }
 
 export function LessonWorkspace() {
-  const fixedLessonTitle = 'قوانين نيوتن والحركة';
+  const [currentLessonTopic] = useState(readCurrentLessonTopic);
+  const fixedLessonTitle = currentLessonTopic?.title ?? 'قوانين نيوتن والحركة';
+  const fixedLessonSubject = currentLessonTopic?.subject ?? 'العلوم الفيزيائية';
   const [, setLocation] = useLocation();
   const { user } = useUser();
   const registrationAt = user?.createdAt ?? null;
@@ -1540,7 +1562,7 @@ export function LessonWorkspace() {
     <section className="lesson-workspace" dir="rtl" data-testid="lesson-workspace">
       <header className="lesson-workspace-header">
         <div className="lesson-title-block">
-          <span className="lesson-kicker"><Sparkles size={13} /> جلسة تثبيت · علوم فيزيائية</span>
+                 <span className="lesson-kicker"><Sparkles size={13} /> جلسة تثبيت · {fixedLessonSubject}</span>
           <h1>قوانين نيوتن والحركة</h1>
           <p>فكرة واحدة، محاولة قصيرة، ثم علامة واضحة على ما فهمته.</p>
         </div>
@@ -1742,7 +1764,7 @@ export function LessonWorkspace() {
              role={isBoardImmersive ? 'dialog' : undefined}
            >
           <div className="lesson-teaching-header">
-            <div>
+             <div>
                 <span className="lesson-panel-kicker"><Volume2 size={13} /> طبقة 1 · {handoffComplete ? 'لوح الدرس' : 'لوح فهيم'}</span>
                <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
                <p>إيقاع مقترح · {activeSection.duration} · {activeSection.label}</p>
@@ -1797,7 +1819,7 @@ export function LessonWorkspace() {
               <div className="lesson-topic-studio-head">
                 <div>
                   <span className="lesson-topic-kicker"><BookOpen size={12} /> موضوع الدرس داخل مساحة التفاعل</span>
-                  <h3>موضوع تطبيقي شامل · قوانين نيوتن والحركة</h3>
+                   <h3>موضوع تطبيقي شامل · {fixedLessonTitle}</h3>
                   <p>اقرأ المطلوب، اسأل عن أي نقطة، ثم حوّل كل مكتسبات المنهاج إلى تطبيق إبداعي.</p>
                 </div>
                 <button type="button" className="lesson-topic-toggle" onClick={() => setTopicStudioOpen((open) => !open)} aria-expanded={topicStudioOpen} data-testid="button-toggle-topic-studio">
@@ -2012,7 +2034,11 @@ export function LessonWorkspace() {
                  <button type="button" onClick={clearBoard} disabled={!lessonToolsActive} aria-label="مسح الكتابة" data-testid="button-whiteboard-clear"><Eraser size={15} /></button>
               </div>
             </div>
-            <div className="lesson-canvas-shell">
+             <div className="lesson-canvas-shell">
+                <div className="lesson-board-topic-label" aria-label={`موضوع الدرس: ${fixedLessonTitle}`}>
+                  <span>موضوع الدرس</span>
+                  <strong>{fixedLessonTitle}</strong>
+                </div>
                 <canvas ref={canvasRef} className={`lesson-whiteboard-canvas ${boardMode === 'highlight' ? 'is-highlighting' : ''} ${!lessonToolsActive ? 'is-locked' : ''}`} onPointerDown={lessonToolsActive ? (boardMode === 'highlight' ? selectBoardRegion : startDrawing) : undefined} onPointerMove={lessonToolsActive && boardMode === 'pen' ? continueDrawing : undefined} onPointerUp={lessonToolsActive && boardMode === 'pen' ? finishDrawing : undefined} onPointerCancel={lessonToolsActive && boardMode === 'pen' ? finishDrawing : undefined} aria-label="لوح تفاعلي للكتابة والرسم والتحديد" data-testid="canvas-lesson-whiteboard" />
                <div className="lesson-board-hotspots" aria-label="مناطق اللوح القابلة للتحديد">
                  {hotspots.map((region) => (

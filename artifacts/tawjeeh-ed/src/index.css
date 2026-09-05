@@ -2176,6 +2176,9 @@ button { cursor: pointer; }
 .lesson-whiteboard-toolbar button:hover, .lesson-whiteboard-toolbar button.is-selected { border-color: #bedbd2; color: var(--lesson-teal); background: #e9f4ef; }
 .lesson-canvas-shell { position: relative; overflow: hidden; border: 1px solid #e0e5d9; border-radius: 10px; background: var(--lesson-paper); }
 .lesson-whiteboard-canvas { position: relative; z-index: 0; display: block; width: 100%; height: 228px; touch-action: none; cursor: crosshair; }
+.lesson-board-topic-label { position: absolute; top: 12px; right: 16px; left: 16px; z-index: 2; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(54, 103, 104, .16); pointer-events: none; color: #315c66; }
+.lesson-board-topic-label span { font-size: 9px; font-weight: 900; color: #8a6a2c; }
+.lesson-board-topic-label strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 15px; font-weight: 900; }
 .lesson-whiteboard-canvas.is-locked { cursor: not-allowed; }
 .lesson-whiteboard-canvas.is-highlighting { cursor: pointer; }
 .lesson-board-hotspots { position: absolute; inset: 0; z-index: 1; pointer-events: none; }

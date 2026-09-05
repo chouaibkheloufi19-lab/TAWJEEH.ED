@@ -75,6 +75,7 @@ function addDays(dateValue: string, days: number) {
 const today = localDate();
 const examDateKey = 'tawjeeh.exam.baccalaureate-date';
 const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
+const currentLessonTopicKey = 'tawjeeh.lesson.current-topic.v1';
 function normalizeProgramSubject(subject?: string) {
   return subject === 'الرياضيات' ? 'الرياضيات' : 'الفيزياء';
 }
@@ -481,6 +482,11 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
 
   const startEntry = (entry: ProgramEntry) => {
     sessionStorage.setItem('tawjeeh.program.lesson-access.v1', '1');
+    localStorage.setItem(currentLessonTopicKey, JSON.stringify({
+      id: entry.id,
+      title: entry.title,
+      subject: entry.subject,
+    }));
     if (entry.kind === 'مكتسبات' || entry.kind === 'حصة تطبيقية' || entry.kind === 'مراجعة') {
       setLocation(`/lesson/${entry.id}`);
     }
