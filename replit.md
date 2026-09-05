@@ -8,7 +8,7 @@
 - `pnpm --filter @workspace/tawjeeh-ed run dev` — run the web app (Vite uses the workflow-provided `PORT`)
 - `pnpm --filter @workspace/api-server run dev` — run the API server (workflow port 8080)
 - `cd ../.. && uv run python3 -m knowledge_base.cli serve --port 8001` — run the knowledge-base service
-- `Run Tawjeeh preview` — start the web app, API server, and knowledge-base services together in the Replit preview
+- `Run Tawjeeh preview` — run `bash scripts/start-tawjeeh.sh` to install dependencies, refresh the knowledge index when needed, and start the web app, API server, and knowledge-base services together
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -16,8 +16,8 @@
 - Durable learning policy defaults are stored in `learning_policy`: a 50% error rate creates an emergency remediation module, and 70 daily points is the on-track target.
 - Profile and learning APIs include `/api/learning/profile-summary`, `/api/learning/remedial-modules`, `/api/learning/notifications`, `/api/learning/daily-points`, `/api/learning/weekly-quiz-eligibility`, and `/api/learning/benchmark-lock`.
 - `POST /api/learning/profile-summary/pdf` creates a real PDF in App Storage and returns metadata plus an authenticated download path.
-- Replit workflow: `Tawjeeh preview` runs `PORT=25786 BASE_PATH=/ pnpm --filter @workspace/tawjeeh-ed run dev`
-- Vite serves the web app on port `25786` with `BASE_PATH=/`; the workflow is the source of truth for the Replit preview
+- Replit workflow: `Tawjeeh preview` runs `bash scripts/start-tawjeeh.sh`
+- Vite serves the web app on port `25786` with `BASE_PATH=/`; the launcher supervises the API on `8080` and Knowledge Base on `8001`
 - Required setup: Replit PostgreSQL (`DATABASE_URL` is managed automatically), `DEEPSEEK_API_KEY` for text generation, and Replit-managed Clerk Auth
 - Optional env: `KNOWLEDGE_BASE_URL` (defaults to `http://127.0.0.1:8001/knowledge`), `DEEPSEEK_MODEL` (defaults to `deepseek-chat`), `DEEPSEEK_BASE_URL` (defaults to `https://api.deepseek.com`), and `GROK_VISION_MODEL` for the optional image-analysis path
 - `python main.py index-assets --directory attached_assets --catalog knowledge_base/catalog.json` — inventory and index the educational library

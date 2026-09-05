@@ -13,19 +13,6 @@ KNOWLEDGE_BASE_URL="${KNOWLEDGE_BASE_URL:-http://127.0.0.1:${KNOWLEDGE_PORT}/kno
 kb_pid=""
 api_pid=""
 
-missing_auth_vars=()
-for required_auth_var in CLERK_SECRET_KEY CLERK_PUBLISHABLE_KEY VITE_CLERK_PUBLISHABLE_KEY; do
-  if [[ -z "${!required_auth_var:-}" ]]; then
-    missing_auth_vars+=("$required_auth_var")
-  fi
-done
-if (( ${#missing_auth_vars[@]} > 0 )); then
-  echo "[tawjeeh] Clerk Auth is not configured for this environment." >&2
-  echo "[tawjeeh] Open the Replit Auth pane to provision development credentials." >&2
-  echo "[tawjeeh] Missing variables: ${missing_auth_vars[*]}" >&2
-  exit 1
-fi
-
 cleanup() {
   local exit_code=$?
   trap - EXIT INT TERM
@@ -61,6 +48,19 @@ echo "[tawjeeh] Installing Python dependencies from uv.lock"
 uv sync --locked
 
 "$ROOT_DIR/scripts/ensure-knowledge-base.sh"
+
+missing_auth_vars=()
+for required_auth_var in CLERK_SECRET_KEY CLERK_PUBLISHABLE_KEY VITE_CLERK_PUBLISHABLE_KEY; do
+  if [[ -z "${!required_auth_var:-}" ]]; then
+    missing_auth_vars+=("$required_auth_var")
+  fi
+done
+if (( ${#missing_auth_vars[@]} > 0 )); then
+  echo "[tawjeeh] Clerk Auth is not configured for this environment." >&2
+  echo "[tawjeeh] Open the Replit Auth pane to provision development credentials." >&2
+  echo "[tawjeeh] Missing variables: ${missing_auth_vars[*]}" >&2
+  exit 1
+fi
 
 echo "[tawjeeh] Starting Python knowledge-base service on ${KNOWLEDGE_PORT}"
 KNOWLEDGE_BASE_HOST=127.0.0.1 \
