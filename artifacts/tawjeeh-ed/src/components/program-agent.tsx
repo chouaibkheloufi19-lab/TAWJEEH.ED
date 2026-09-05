@@ -313,7 +313,7 @@ function ProgramPlanSession({
 
 export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [, setLocation] = useLocation();
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const [entries, setEntries] = useState<ProgramEntry[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'notifications'>('overview');
   const [showAllPlanDays, setShowAllPlanDays] = useState(false);
@@ -658,9 +658,9 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
                  </div>
               </div>
                <div className="program-ten-day-list">
-                 {readinessQuery.isLoading ? (
+                  {!isUserLoaded || !user || readinessQuery.isLoading ? (
                    <div className="program-empty-state" role="status">نحضّر وحدات المنهاج لبناء برنامجك...</div>
-                 ) : readinessQuery.isError || groundedSlots.length < 3 ? (
+                  ) : readinessQuery.isError || (readinessQuery.data && groundedSlots.length < 3) ? (
                    <div className="program-empty-state" role="alert">تعذر تحميل وحدات المنهاج الآن. أعد المحاولة بعد قليل.</div>
                  ) : visiblePlan.map(({ date, dayNumber, sessions }) => (
                    <section className="program-day-card" key={date} data-testid={`card-program-day-${dayNumber}`}>
