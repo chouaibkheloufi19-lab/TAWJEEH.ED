@@ -893,6 +893,57 @@ function MathFraction({ numerator, denominator }: { numerator: ReactNode; denomi
   );
 }
 
+const creativeExamTopics = [
+  {
+    label: 'وضعية تطبيقية',
+    title: 'مسار طائرة مسيّرة فوق وادٍ',
+    scenario: 'تتحرك طائرة مسيّرة على مسار رأسي، ويقاس ارتفاعها بالدالة h(t) = −t² + 8t + 2 حيث t بالثواني و h بالمتر.',
+    data: '0 ≤ t ≤ 8 ، h(t) = −t² + 8t + 2',
+    tasks: [
+      'حدّد زمن بلوغ الطائرة أقصى ارتفاع واحسب هذا الارتفاع.',
+      'حدّد اللحظة التي تعود فيها إلى ارتفاع 2 m.',
+      'فسّر إشارة h′(t) في مرحلتي الصعود والنزول.',
+    ],
+    twist: 'هل يمكن اختيار لحظة هبوط آمنة إذا كان سطح الوادي عند h = 0؟ برّر حسابيًا.',
+  },
+  {
+    label: 'تجربة ومحاكاة',
+    title: 'تبريد عيّنة في مخبر الفيزياء',
+    scenario: 'تسجّل تجربة مخبرية درجة حرارة عيّنة كل دقيقة. بعد تحويل القياسات، تمثل القيم المتتالية بنموذج رجوعي يقترب من درجة حرارة الغرفة.',
+    data: 'u₀ = 86 ، uₙ₊₁ = 0.75uₙ + 5',
+    tasks: [
+      'احسب u₁ و u₂ و u₃، ثم خمّن اتجاه تغير المتتالية.',
+      'عرّف vₙ = uₙ − 20 وأثبت أنها هندسية.',
+      'احسب درجة الحرارة الحدّية وفسّر معناها في التجربة.',
+    ],
+    twist: 'غيّر معامل التبريد إلى 0.6 وتوقع كيف يتغير عدد القياسات اللازمة للاقتراب من 20°.',
+  },
+  {
+    label: 'قراءة بيانية',
+    title: 'منحنى سرعة سيارة في طريق مائل',
+    scenario: 'يمثل المنحنى v(t) سرعة سيارة خلال اختبار فرملة. لا يُطلب حفظ الرسم؛ المطلوب استخراج المعلومات من شكل السرعة بدلالة الزمن.',
+    data: 'v(0) = 18 m/s ، v(6) = 0 m/s ، والمقطع بينهما مستقيم',
+    tasks: [
+      'احسب التسارع خلال مرحلة الفرملة من ميل المنحنى.',
+      'احسب المسافة المقطوعة باستعمال مساحة الشكل تحت منحنى v(t).',
+      'حدّد ما إذا كانت السيارة تتوقف قبل علامة تبعد 50 m.',
+    ],
+    twist: 'اقترح تعديلًا واحدًا في الفرملة يجعل التوقف يتم قبل العلامة مع تبرير أثره على الميل.',
+  },
+  {
+    label: 'تحدٍّ عكسي',
+    title: 'أعد بناء الدالة من آثارها',
+    scenario: 'يظهر منحنى دالة ناطقة له مقارب عمودي x = 1 ومقارب مائل y = x + 2، ويمر بالنقطة A(0;1).',
+    data: 'f(x) = x + 2 + a/(x − 1) ، و f(0) = 1',
+    tasks: [
+      'عيّن العدد الحقيقي a انطلاقًا من النقطة A.',
+      'احسب f′(x) ثم حدّد نقاط انعدام المشتقة إن وجدت.',
+      'أنشئ جدول التغيرات وادرس الوضع النسبي مع المقارب المائل.',
+    ],
+    twist: 'تحقق من أن اختيار a يجعل المعطيات الثلاثة متوافقة، ثم اشرح لماذا لا يكفي المقارب وحده لتحديد الدالة.',
+  },
+] as const;
+
 function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
   return (
     <Shell title="موضوع تجريبي">
@@ -1023,9 +1074,42 @@ function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
           </ol>
         </section>
 
+        <section className="exam-paper-section exam-paper-creative-section">
+          <div className="exam-paper-section-heading">
+            <span>الموضوعات الإبداعية</span>
+            <b>اختر موضوعًا واحدًا</b>
+          </div>
+          <p className="exam-paper-creative-intro">
+            هذه مسارات مختلفة من مكتسبات الرياضيات والفيزياء. ليست إعادة صياغة للتمرين السابق:
+            اختر زاوية واحدة، ابدأ بالمعطيات، ثم اكتب تبريرك خطوة خطوة.
+          </p>
+          <div className="creative-exam-grid">
+            {creativeExamTopics.map((topic, index) => (
+              <article className="creative-exam-topic" key={topic.title} data-testid={`card-creative-exam-topic-${index + 1}`}>
+                <div className="creative-exam-topic-head">
+                  <span>{topic.label}</span>
+                  <b>موضوع {index + 1}</b>
+                </div>
+                <h3>{topic.title}</h3>
+                <p>{topic.scenario}</p>
+                <div className="creative-exam-data" dir="ltr">{topic.data}</div>
+                <ol>
+                  {topic.tasks.map((task) => <li key={task}>{task}</li>)}
+                </ol>
+                <div className="creative-exam-twist">
+                  <strong>السؤال المفاجئ:</strong> {topic.twist}
+                </div>
+                <button type="button" className="creative-exam-start" onClick={() => window.alert(`ابدأ من المعطيات في موضوع: ${topic.title}`)} data-testid={`button-start-creative-topic-${index + 1}`}>
+                  ابدأ بهذا الموضوع
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <footer className="exam-paper-footer">
           <span>انتهى الموضوع</span>
-          <span>بالتوفيق والنجاح</span>
+          <span>اختر مسارك، ثم ابدأ من المعطيات</span>
         </footer>
       </article>
     </Shell>

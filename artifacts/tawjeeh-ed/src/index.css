@@ -1725,11 +1725,28 @@ button { cursor: pointer; }
 .math-fraction > span { display: block; padding: 0 .18em; white-space: nowrap; }
 .math-fraction > span:first-child { padding-bottom: .14em; border-bottom: 1.5px solid currentColor; }
 .math-fraction > span:last-child { padding-top: .14em; }
+.exam-paper-creative-section { padding-bottom: 10px; }
+.exam-paper-creative-intro { padding: 10px 12px; border-radius: 10px; color: #385965 !important; background: #f4fbff; }
+.creative-exam-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.creative-exam-topic { display: flex; flex-direction: column; gap: 7px; padding: 13px; border: 1px solid #d8d3eb; border-radius: 14px; background: linear-gradient(145deg, #fcfbff, #f5f0ff); }
+.creative-exam-topic-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.creative-exam-topic-head span { color: #7562a8; font-size: 9px; font-weight: 950; }
+.creative-exam-topic-head b { padding: 3px 7px; border-radius: 999px; color: #fff; background: #7562a8; font-size: 8px; }
+.creative-exam-topic h3 { margin: 0; color: #173b4a; font-size: 14px; font-weight: 950; }
+.creative-exam-topic p { margin: 0 !important; font-size: 10px !important; line-height: 1.9 !important; }
+.creative-exam-data { padding: 7px 8px; border: 1px solid #c8c0e4; border-radius: 8px; color: #3e3268; background: rgba(255, 255, 255, .8); font-family: var(--app-font-mono); font-size: 10px; font-weight: 900; text-align: center; }
+.creative-exam-topic ol { margin: 2px 0 0 !important; padding-right: 18px !important; }
+.creative-exam-topic li { margin: 4px 0 !important; font-size: 10px !important; line-height: 1.75 !important; }
+.creative-exam-twist { margin-top: auto; padding: 7px 8px; border-right: 3px solid #d49b35; border-radius: 7px; color: #6d5428; background: #fff8e8; font-size: 9px; line-height: 1.8; }
+.creative-exam-twist strong { color: #9a6b18; }
+.creative-exam-start { align-self: flex-start; margin-top: 3px; padding: 6px 10px; border: 1px solid #8d7bc1; border-radius: 8px; color: #5d4c94; background: #fff; font-size: 9px; font-weight: 900; cursor: pointer; }
+.creative-exam-start:hover { color: #fff; background: #7562a8; }
 .exam-paper-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 34px; padding-top: 14px; border-top: 2px solid #164d58; color: #55717a; font-size: 10px; font-weight: 900; }
 @media (max-width: 720px) {
   .generated-exam-card { grid-template-columns: 44px minmax(0, 1fr); }
   .generated-exam-icon { width: 44px; height: 44px; border-radius: 13px; }
   .generated-exam-action { grid-column: 1 / -1; width: 100%; }
+  .creative-exam-grid { grid-template-columns: 1fr; }
   .exam-paper-header { grid-template-columns: 1fr 1fr; }
   .exam-paper-brand { display: none; }
   .exam-paper-header-left { text-align: left; }
