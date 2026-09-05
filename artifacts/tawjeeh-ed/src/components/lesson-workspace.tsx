@@ -1628,123 +1628,6 @@ export function LessonWorkspace() {
        )}
 
        <div className={`lesson-grid ${isLessonRailCollapsed ? 'has-collapsed-rail' : ''}`}>
-         <section className="lesson-independent-topic-board" aria-label="لوحة الموضوع المستقل" data-testid="card-independent-topic-board">
-           <div className="lesson-independent-topic-head">
-             <div>
-               <span className="lesson-panel-kicker"><Sparkles size={13} /> تطبيق مستقل</span>
-               <h2>ولّد موضوعك بعد الحصة</h2>
-               <p>موضوع قصير وواضح، بعد الدرس النظري أو بدونه.</p>
-             </div>
-             <span className="lesson-independent-topic-mark" aria-hidden="true"><PenLine size={18} /></span>
-           </div>
-           <div className="lesson-independent-topic-surface">
-             {topicForStudio ? (
-               <>
-                 <span className="lesson-independent-topic-label">الموضوع المقترح</span>
-                 <h3>{topicForStudio.title}</h3>
-                 <p>{topicForStudio.required || topicForStudio.approach}</p>
-                 <div className="lesson-independent-topic-details">
-                   <span><b>الخطوة الأولى</b>{topicForStudio.steps[0] || 'استخرج المعطيات المهمة.'}</span>
-                   <span><b>النتيجة</b>{topicForStudio.expectedOutcome || 'طبّق الفكرة في وضعية جديدة.'}</span>
-                 </div>
-                 <button type="button" className="lesson-independent-topic-open" onClick={() => openCreativeTopic(topicForStudio)} data-testid="button-open-independent-topic">
-                   <Maximize2 size={13} /> افتح الموضوع
-                 </button>
-               </>
-             ) : (
-               <div className="lesson-independent-topic-empty">
-                 <span>لا يوجد موضوع بعد</span>
-                 <p>اضغط الزر ليبني لك فهيم موضوعًا تطبيقيًا من مصادر المنهاج.</p>
-               </div>
-             )}
-           </div>
-            <div className="lesson-interactive-board-grid">
-              <section className="lesson-board-explanation" aria-label="الشرح التفاعلي">
-                <div className="lesson-board-explanation-head">
-                  <div>
-                    <span className="lesson-board-eyebrow"><BookOpen size={12} /> الشرح داخل الصبورة</span>
-                    <h3>{displayedTitle}</h3>
-                  </div>
-                  <button
-                    type="button"
-                    className="lesson-board-generate-explanation"
-                    onClick={() => void generateLesson()}
-                    disabled={!lessonToolsActive || lessonGenerationState === 'generating'}
-                    data-testid="button-generate-board-explanation"
-                  >
-                    {lessonGenerationState === 'generating' ? <LoaderCircle size={13} className="lesson-spin-icon" /> : <Sparkles size={13} />}
-                    {lessonGenerationState === 'generating' ? 'يُحضّر...' : 'ولّد الشرح'}
-                  </button>
-                </div>
-                <div className="lesson-board-explanation-copy">
-                  <span>الفكرة الأساسية</span>
-                  <p>
-                    {displayedExplanation.replace(`${displayedHighlight} `, '')}{' '}
-                    <button
-                      type="button"
-                      className={`lesson-board-highlight ${highlightedPart === displayedHighlight ? 'is-selected' : ''}`}
-                      onClick={() => { pauseNarration(); setHighlightedPart(displayedHighlight); }}
-                      aria-pressed={highlightedPart === displayedHighlight}
-                      data-testid="button-board-highlight-concept"
-                    >
-                      {displayedHighlight}
-                    </button>
-                  </p>
-                </div>
-                {generatedLesson?.objective && (
-                  <div className="lesson-board-objective"><strong>هدف الشرح</strong><span>{generatedLesson.objective}</span></div>
-                )}
-                {lessonGenerationState === 'error' && (
-                  <div className="lesson-board-generation-error" role="alert" data-testid="status-board-explanation-error">
-                    <span>{lessonGenerationError}</span>
-                    <button type="button" onClick={() => void generateLesson()} data-testid="button-retry-board-explanation">إعادة المحاولة</button>
-                  </div>
-                )}
-              </section>
-              <aside className={`lesson-board-narrator ${isPlaying ? 'is-speaking' : ''}`} aria-label="فهيم يشرح داخل الصبورة">
-                <div className="lesson-board-narrator-visual">
-                  <video
-                    ref={owlVideoRef}
-                    src={owlThinkingVideo}
-                    muted
-                    playsInline
-                    loop
-                    poster={owlLogoPath}
-                    onTimeUpdate={(event) => {
-                      const video = event.currentTarget;
-                      if (video.duration > 0 && Number.isFinite(video.duration)) {
-                        setNarrationProgress((video.currentTime / video.duration) * 100);
-                      }
-                    }}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                    aria-label="فهيم يشرح الدرس"
-                    data-testid="video-board-fahim"
-                  />
-                </div>
-                <div className="lesson-board-narrator-copy">
-                  <span>فهيم معك</span>
-                  <strong>{isPlaying ? 'يشرح الفكرة الآن' : 'اضغط ليستكمل الشرح'}</strong>
-                  <div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div>
-                </div>
-                <button type="button" className="lesson-board-narrator-toggle" onClick={toggleNarration} disabled={!lessonToolsActive} data-testid="button-toggle-board-narration">
-                  {isPlaying ? <Pause size={14} /> : <Play size={14} />}
-                  {isPlaying ? 'إيقاف الشرح' : 'شغّل الشرح'}
-                </button>
-              </aside>
-            </div>
-           {creativeTopicError && <p className="lesson-independent-topic-error" role="alert" data-testid="status-independent-topic-error">{creativeTopicError}</p>}
-           <button
-             type="button"
-             className="lesson-independent-topic-generate"
-             onClick={() => void generateCreativeTopic(undefined, true)}
-             disabled={!lessonToolsActive || isThinking || chatCircuitOpen}
-             data-testid="button-generate-independent-topic"
-           >
-             {isThinking ? <LoaderCircle size={14} className="lesson-spin-icon" /> : <Sparkles size={14} />}
-             {isThinking ? 'يُحضّر الموضوع...' : topicForStudio ? 'ولّد موضوعًا آخر' : 'ولّد موضوعًا'}
-           </button>
-         </section>
           <aside className={`lesson-panel lesson-path-panel ${isLessonRailCollapsed ? 'is-collapsed' : ''}`} aria-label="مسار إتقان الطالب">
           <div className="lesson-panel-heading">
             <div>
@@ -1895,7 +1778,7 @@ export function LessonWorkspace() {
         </section>
 
            <section
-             className={`lesson-panel lesson-teaching-panel legacy-topic-theory-panel ${isBoardImmersive ? 'is-immersive' : ''}`}
+              className={`lesson-panel lesson-teaching-panel ${isBoardImmersive ? 'is-immersive' : ''}`}
              aria-label={handoffComplete ? 'مساحة الدرس والتمرين والحل' : 'السبورة الذكية لفهيم'}
              aria-modal={isBoardImmersive ? 'true' : undefined}
              role={isBoardImmersive ? 'dialog' : undefined}
