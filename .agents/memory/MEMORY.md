@@ -7,3 +7,4 @@
 - [Knowledge filter aliases](knowledge-filter-aliases.md) — normalize learner-facing subject and year labels at the service boundary before retrieval.
 - [Chroma index reload](chroma-index-reload.md) — rebuild and restart the knowledge service before trusting imported vector readiness.
 - [DeepSeek topic generation](deepseek-topic-generation.md) — structured educational generation uses server-side DeepSeek JSON responses, not a silent provider fallback.
+- [Lesson UI cascade](lesson-ui-cascade.md) — final lesson board overrides must come after legacy stylesheet blocks.

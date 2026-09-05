@@ -593,6 +593,7 @@ export function LessonWorkspace() {
   const [attemptBank, setAttemptBank] = useState<AttemptBankItem[]>(readAttemptBank);
   const [generatedExercise, setGeneratedExercise] = useState<GeneratedExercise | null>(null);
   const [creativeIdeas, setCreativeIdeas] = useState<CreativeIdeasResponse | null>(null);
+  const [creativeTopicError, setCreativeTopicError] = useState('');
   const [selectedCreativeTopic, setSelectedCreativeTopic] = useState<CreativeIdea | null>(null);
   const [copilotQuestion, setCopilotQuestion] = useState('');
   const [topicStudioOpen, setTopicStudioOpen] = useState(true);
@@ -1048,9 +1049,10 @@ export function LessonWorkspace() {
     );
   };
 
-  const generateCreativeTopic = async (completedTopic?: CreativeIdea): Promise<CreativeIdeasResponse | null> => {
+  const generateCreativeTopic = async (completedTopic?: CreativeIdea, independent = false): Promise<CreativeIdeasResponse | null> => {
     if (!ragReady || isThinking || chatCircuitOpen) return null;
-    setActivePartner('exercises');
+    if (!independent) setActivePartner('exercises');
+    setCreativeTopicError('');
     setIsThinking(true);
     if (completedTopic) setTopicCompletionState('analyzing');
     try {
@@ -1061,14 +1063,16 @@ export function LessonWorkspace() {
         body: JSON.stringify({
           lesson: fixedLessonTitle,
           level: '3AS',
-          activeConcept: activeSection.title,
+           activeConcept: independent ? 'تطبيق مستقل' : activeSection.title,
            mode: 'creative_topic',
            attemptContext: [
-             'حوّل الموضوع إلى تطبيقات إبداعية قابلة للدراسة الآن، لا إلى أفكار عامة فقط.',
+             independent
+               ? 'ولّد موضوعات تطبيقية مستقلة يمكن للطالب البدء بها بعد الحصة النظرية أو دون ربطها بقسم نظري محدد. اجعل كل موضوع مختصرًا وواضحًا وقابلًا للتنفيذ.'
+               : 'حوّل الموضوع إلى تطبيقات إبداعية قابلة للدراسة الآن، لا إلى أفكار عامة فقط.',
              completedTopic ? `الموضوع المنجز الذي يجب تحليله قبل الانتقال: ${completedTopic.title}. حلل معطياته، نقطة بدايته، المطلوب، والعائق الإبداعي قبل اقتراح الموضوع التالي.` : '',
              completedTopic ? `تفاصيل الموضوع المنجز: ${completedTopic.approach} | ${completedTopic.steps.join(' | ')} | ${completedTopic.creativeTwist} | ${completedTopic.expectedOutcome}` : '',
-             generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
-             sourceExcerpt,
+             !independent && generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
+             !independent ? sourceExcerpt : '',
            ].filter(Boolean).join('\n'),
         }),
       });
@@ -1078,6 +1082,7 @@ export function LessonWorkspace() {
       }
        const generated = payload as CreativeIdeasResponse;
        setCreativeIdeas(generated);
+       setCreativeTopicError('');
        setTopicAnalysis(generated.solutionSummary);
        if (completedTopic) {
          const nextTopic = generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0];
@@ -1088,23 +1093,31 @@ export function LessonWorkspace() {
        } else if (!selectedCreativeTopic) {
          setSelectedCreativeTopic(generated.ideas[0]);
        }
-        setMessages((current) => [...current, {
-        id: `topic-creative-${Date.now()}`,
-        role: 'assistant',
-          text: completedTopic
-            ? `حللت معطيات «${completedTopic.title}» وفتحت لك الموضوع التالي مباشرة: «${(generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0]).title}».`
-            : `بنى لك وكيل التمارين ${generated.ideas.length} موضوعات مختلفة من مصادر المنهاج. افتح أي موضوع لبدء دراسته في مساحة كاملة.`,
-      }]);
+       if (!independent) {
+         setMessages((current) => [...current, {
+           id: `topic-creative-${Date.now()}`,
+           role: 'assistant',
+           text: completedTopic
+             ? `حللت معطيات «${completedTopic.title}» وفتحت لك الموضوع التالي مباشرة: «${(generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0]).title}».`
+             : `بنى لك وكيل التمارين ${generated.ideas.length} موضوعات مختلفة من مصادر المنهاج. افتح أي موضوع لبدء دراسته في مساحة كاملة.`,
+         }]);
+       }
        return generated;
       } catch (error) {
        if (completedTopic) setTopicCompletionState('error');
-        setMessages((current) => [...current, {
-          id: `topic-generation-error-${Date.now()}`,
-          role: 'assistant',
-          text: error instanceof Error && error.message
-            ? error.message
-            : 'تعذر توليد الموضوعات الآن. أعد المحاولة بعد قليل.',
-        }]);
+        const errorText = error instanceof Error ? error.message : String(error);
+        const readableError = /402|insufficient balance/i.test(errorText)
+          ? 'توليد الموضوع متوقف مؤقتًا لأن رصيد خدمة الذكاء الاصطناعي غير كافٍ.'
+          : 'تعذر توليد الموضوع الآن. أعد المحاولة بعد قليل.';
+        if (independent) {
+          setCreativeTopicError(readableError);
+        } else {
+          setMessages((current) => [...current, {
+            id: `topic-generation-error-${Date.now()}`,
+            role: 'assistant',
+            text: readableError,
+          }]);
+        }
         setChatCircuitOpen(false);
        return null;
     } finally {
@@ -1615,6 +1628,48 @@ export function LessonWorkspace() {
        )}
 
        <div className={`lesson-grid ${isLessonRailCollapsed ? 'has-collapsed-rail' : ''}`}>
+         <section className="lesson-independent-topic-board" aria-label="لوحة الموضوع المستقل" data-testid="card-independent-topic-board">
+           <div className="lesson-independent-topic-head">
+             <div>
+               <span className="lesson-panel-kicker"><Sparkles size={13} /> تطبيق مستقل</span>
+               <h2>ولّد موضوعك بعد الحصة</h2>
+               <p>موضوع قصير وواضح، بعد الدرس النظري أو بدونه.</p>
+             </div>
+             <span className="lesson-independent-topic-mark" aria-hidden="true"><PenLine size={18} /></span>
+           </div>
+           <div className="lesson-independent-topic-surface">
+             {topicForStudio ? (
+               <>
+                 <span className="lesson-independent-topic-label">الموضوع المقترح</span>
+                 <h3>{topicForStudio.title}</h3>
+                 <p>{topicForStudio.required || topicForStudio.approach}</p>
+                 <div className="lesson-independent-topic-details">
+                   <span><b>الخطوة الأولى</b>{topicForStudio.steps[0] || 'استخرج المعطيات المهمة.'}</span>
+                   <span><b>النتيجة</b>{topicForStudio.expectedOutcome || 'طبّق الفكرة في وضعية جديدة.'}</span>
+                 </div>
+                 <button type="button" className="lesson-independent-topic-open" onClick={() => openCreativeTopic(topicForStudio)} data-testid="button-open-independent-topic">
+                   <Maximize2 size={13} /> افتح الموضوع
+                 </button>
+               </>
+             ) : (
+               <div className="lesson-independent-topic-empty">
+                 <span>لا يوجد موضوع بعد</span>
+                 <p>اضغط الزر ليبني لك فهيم موضوعًا تطبيقيًا من مصادر المنهاج.</p>
+               </div>
+             )}
+           </div>
+           {creativeTopicError && <p className="lesson-independent-topic-error" role="alert" data-testid="status-independent-topic-error">{creativeTopicError}</p>}
+           <button
+             type="button"
+             className="lesson-independent-topic-generate"
+             onClick={() => void generateCreativeTopic(undefined, true)}
+             disabled={!lessonToolsActive || isThinking || chatCircuitOpen}
+             data-testid="button-generate-independent-topic"
+           >
+             {isThinking ? <LoaderCircle size={14} className="lesson-spin-icon" /> : <Sparkles size={14} />}
+             {isThinking ? 'يُحضّر الموضوع...' : topicForStudio ? 'ولّد موضوعًا آخر' : 'ولّد موضوعًا'}
+           </button>
+         </section>
           <aside className={`lesson-panel lesson-path-panel ${isLessonRailCollapsed ? 'is-collapsed' : ''}`} aria-label="مسار إتقان الطالب">
           <div className="lesson-panel-heading">
             <div>
@@ -1765,7 +1820,7 @@ export function LessonWorkspace() {
         </section>
 
            <section
-             className={`lesson-panel lesson-teaching-panel ${isBoardImmersive ? 'is-immersive' : ''}`}
+             className={`lesson-panel lesson-teaching-panel legacy-topic-theory-panel ${isBoardImmersive ? 'is-immersive' : ''}`}
              aria-label={handoffComplete ? 'مساحة الدرس والتمرين والحل' : 'السبورة الذكية لفهيم'}
              aria-modal={isBoardImmersive ? 'true' : undefined}
              role={isBoardImmersive ? 'dialog' : undefined}
