@@ -66,7 +66,7 @@ import {
 type LessonSectionId = 'definition' | 'worked-example' | 'graph' | 'practice' | 'recap';
 type BoardMode = 'pen' | 'highlight';
 type Point = { x: number; y: number };
-type ActivePartner = 'dalil' | 'exercises' | 'creative';
+type ActivePartner = 'dalil' | 'exercises';
 type SpeechRecognitionEventLike = {
   results: ArrayLike<ArrayLike<{ transcript: string }>>;
 };
@@ -295,15 +295,9 @@ const partnerDetails: Record<ActivePartner, {
   },
   exercises: {
     name: 'وكيل التمارين',
-    role: 'شريك التطبيق',
-    description: 'يحوّل الفكرة إلى تدريب قصير على مستواك.',
-    prompt: 'اختر مفهومًا، وسأعطيك خطوة تدريبية واحدة لتبدأ بها.',
-  },
-  creative: {
-    name: 'وكيل التمارين الإبداعي',
-    role: 'شريك الموضوعات',
-    description: 'يبني موضوعات مختلفة من نفس المكتسبات ويجعلك تبدأ بالمحاولة.',
-    prompt: 'اكتب المسألة أو الفكرة التي تريد تطويرها، وسأبني لك موضوعات مختلفة قابلة للدراسة.',
+    role: 'شريك التطبيق والموضوعات',
+    description: 'يبني تمرينًا مباشرًا أو موضوعات إبداعية من المكتسبات نفسها.',
+    prompt: 'اطلب تمرينًا أو موضوعات مختلفة، وسأبدأ بالحل ثم أبني لك مسارًا قابلًا للدراسة.',
   },
 };
 
@@ -999,7 +993,7 @@ export function LessonWorkspace() {
 
   const generateCreativeTopic = async () => {
     if (!ragReady || isThinking || chatCircuitOpen) return;
-    setActivePartner('creative');
+    setActivePartner('exercises');
     setIsThinking(true);
     try {
        const response = await fetchWithTimeout('/api/lesson/exercise', {
@@ -1132,10 +1126,9 @@ export function LessonWorkspace() {
         : `مرجع الدرس الحالي: ${sourceExcerpt}`;
       let reply = activePartner === 'dalil'
         ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source?.title}»`}: ${source?.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقل إلى التطبيق.' : 'ابدأ من هذه الفكرة، ثم قارنها بما يظهر على اللوح.'}`
-        : activePartner === 'exercises'
-          ? 'جهزت لك تدريبًا مرتبطًا بدرس قوانين نيوتن والحركة.'
-          : 'سأثبت الحل أولًا، ثم أفتح لك أكثر من طريق إبداعي لفهمه.';
+        : 'سأثبت الفكرة أولًا، ثم أبني لك تطبيقًا مناسبًا لها.';
       if (activePartner === 'exercises') {
+        const wantsCreativeTopics = /موضوع|إبداع|فكرة|مسار|تطبيقات مختلفة|زاوية/.test(cleanText);
         const response = await fetchWithTimeout('/api/lesson/exercise', {
           method: 'POST',
           credentials: 'include',
@@ -1147,51 +1140,28 @@ export function LessonWorkspace() {
             attemptContext: analysis
               ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`
               : targetedConcept || cleanText,
+            ...(wantsCreativeTopics ? { mode: 'creative_topic' } : {}),
           }),
         });
-       const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
-       if (!response.ok || payload.status !== 'generated' || !payload.prompt || !Array.isArray(payload.sourceNodeIds) || payload.grounding?.status !== 'ready') {
-          throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
-        }
-        setGeneratedExercise(payload as GeneratedExercise);
-        setExerciseAnswer('');
-        setExerciseFeedback(null);
-        setShowExerciseSolution(false);
-        reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من محتوى الدرس. ابدأ بكتابة المعطيات والخطوة الأولى.`;
-      }
-       if (activePartner === 'creative') {
-               const response = await fetchWithTimeout('/api/lesson/exercise', {
-           method: 'POST',
-           credentials: 'include',
-           headers: { 'content-type': 'application/json' },
-           body: JSON.stringify({
-             lesson: 'قوانين نيوتن والحركة',
-             level: '3AS',
-             activeConcept: activeSection.title,
-              mode: 'creative_topic',
-              attemptContext: [
-               activeSource ? `مرجع الدرس الحالي: ${activeSource.source} ص ${activeSource.page}` : '',
-               analysis ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}` : '',
-               sourceExcerpt,
-                `طلب الطالب: ${cleanText}`,
-                `اعتمد على جميع مكتسبات قاعدة المعرفة المتاحة وعددها ${foundationalSources.length}.`,
-              ].filter(Boolean).join('\n'),
-           }),
-         });
-         const payload = await response.json() as Partial<CreativeIdeasResponse> & { message?: string };
-         if (
-           !response.ok ||
-           payload.status !== 'generated' ||
-           !payload.solutionSummary ||
-           !Array.isArray(payload.ideas) ||
-           payload.ideas.length < 3 ||
-           payload.grounding?.status !== 'ready'
-         ) {
-           throw new Error(payload.message || 'تعذر توليد الحل والأفكار الإبداعية');
-         }
-         setCreativeIdeas(payload as CreativeIdeasResponse);
-          reply = `استخدمت منطق وكيل التمارين، فبدأت بالحل ثم بنيت لك ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة. اختر واحدًا وابدأ من خطواته.`;
+        if (wantsCreativeTopics) {
+          const payload = await response.json() as Partial<CreativeIdeasResponse> & { message?: string };
+          if (!response.ok || payload.status !== 'generated' || !payload.solutionSummary || !Array.isArray(payload.ideas) || payload.ideas.length < 3 || payload.grounding?.status !== 'ready') {
+            throw new Error(payload.message || 'تعذر توليد الحل والموضوعات الإبداعية');
+          }
+          setCreativeIdeas(payload as CreativeIdeasResponse);
+          reply = `بدأ وكيل التمارين بالحل، ثم بنى لك ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة. اختر واحدًا وابدأ من خطواته.`;
+        } else {
+          const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
+          if (!response.ok || payload.status !== 'generated' || !payload.prompt || !Array.isArray(payload.sourceNodeIds) || payload.grounding?.status !== 'ready') {
+            throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
+          }
+          setGeneratedExercise(payload as GeneratedExercise);
+          setExerciseAnswer('');
+          setExerciseFeedback(null);
+          setShowExerciseSolution(false);
+          reply = `جهز لك وكيل التمارين تدريبًا على «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
        }
+      }
       setMessages((current) => [...current, {
         id: `partner-answer-${Date.now()}`,
         role: 'assistant',
@@ -1612,7 +1582,7 @@ export function LessonWorkspace() {
          <section className="lesson-panel lesson-conversation-panel" aria-label={handoffComplete ? 'التواصل مع شركاء التعلّم' : 'حديثك مع فهيم'}>
            <div className="lesson-panel-heading lesson-conversation-heading">
              <div className="lesson-fahim-chip">
-                <span className={`lesson-fahim-avatar ${handoffComplete ? 'is-handoff' : ''}`}><img src={handoffComplete ? (activePartner === 'dalil' ? owlAgentTeal : activePartner === 'creative' ? owlAgentViolet : owlAgentGold) : (isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal)} alt={handoffComplete ? `${activePartnerDetails.name}، ${activePartnerDetails.role}` : 'فهيم، مساعد تثبيت المفاهيم'} /></span>
+                <span className={`lesson-fahim-avatar ${handoffComplete ? 'is-handoff' : ''}`}><img src={handoffComplete ? (activePartner === 'dalil' ? owlAgentTeal : owlAgentViolet) : (isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal)} alt={handoffComplete ? `${activePartnerDetails.name}، ${activePartnerDetails.role}` : 'فهيم، مساعد تثبيت المفاهيم'} /></span>
                  <span><strong>{handoffComplete ? activePartnerDetails.name : 'فهيم'}</strong><small>{handoffComplete ? activePartnerDetails.role : faheemActive ? 'تفاعل وتغذية راجعة' : 'اكتمل التسليم إلى الشريكين'}</small></span>
              </div>
               <span className={`lesson-live-state ${isThinking || analysisState === 'analyzing' ? 'is-working' : ''}`}><i />{handoffComplete ? (isThinking ? 'يراجع الآن' : 'متاح') : !faheemActive ? 'تم التسليم' : analysisState === 'analyzing' ? 'يحلل الصورة' : isThinking ? 'يكتب الآن' : 'جاهز'}</span>
@@ -1629,11 +1599,11 @@ export function LessonWorkspace() {
                      role="tab"
                      aria-selected={active}
                      title={details.description}
-                      className={`lesson-agent-option ${active ? 'is-active' : ''} ${partner === 'exercises' ? 'is-exercises' : partner === 'creative' ? 'is-creative' : 'is-dalil'}`}
+                      className={`lesson-agent-option ${active ? 'is-active' : ''} ${partner === 'exercises' ? 'is-exercises' : 'is-dalil'}`}
                      onClick={() => switchPartner(partner)}
                      data-testid={`button-switch-agent-${partner}`}
                    >
-                      <span className="lesson-agent-option-icon">{partner === 'dalil' ? <Lightbulb size={15} /> : partner === 'creative' ? <Sparkles size={15} /> : <PenLine size={15} />}</span>
+                      <span className="lesson-agent-option-icon">{partner === 'dalil' ? <Lightbulb size={15} /> : <PenLine size={15} />}</span>
                      <span><strong>{details.name}</strong><small>{details.role}</small></span>
                      {active && <Check size={14} aria-hidden="true" />}
                    </button>
@@ -1649,10 +1619,10 @@ export function LessonWorkspace() {
                  {message.id === 'chat-api-fallback' && <button type="button" className="lesson-generation-error-button" onClick={() => window.location.reload()} data-testid="button-refresh-lesson-chat"><RotateCcw size={12} /> تحديث الصفحة</button>}
               </article>
             ))}
-             {activePartner === 'creative' && creativeIdeas && (
+             {activePartner === 'exercises' && creativeIdeas && (
                <article className="lesson-creative-card" data-testid="card-creative-ideas">
                  <div className="lesson-creative-card-head">
-                   <div><span><Sparkles size={12} /> وكيل التمارين الإبداعي · الحل أولًا</span><strong>{creativeIdeas.lessonTitle}</strong></div>
+                   <div><span><Sparkles size={12} /> وكيل التمارين · موضوعات إبداعية · الحل أولًا</span><strong>{creativeIdeas.lessonTitle}</strong></div>
                    <small>{creativeIdeas.ideas.length} أفكار</small>
                  </div>
                  <p className="lesson-creative-solution">{creativeIdeas.solutionSummary}</p>

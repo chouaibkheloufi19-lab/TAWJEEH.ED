@@ -945,6 +945,8 @@ const creativeExamTopics = [
 ] as const;
 
 function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+
   return (
     <Shell title="موضوع تجريبي">
       <div className="exam-paper-toolbar">
@@ -1076,13 +1078,19 @@ function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
 
         <section className="exam-paper-section exam-paper-creative-section">
           <div className="exam-paper-section-heading">
-            <span>الموضوعات الإبداعية</span>
+            <span>موضوعات وكيل التمارين</span>
             <b>اختر موضوعًا واحدًا</b>
           </div>
           <p className="exam-paper-creative-intro">
-            هذه مسارات مختلفة من مكتسبات الرياضيات والفيزياء. ليست إعادة صياغة للتمرين السابق:
-            اختر زاوية واحدة، ابدأ بالمعطيات، ثم اكتب تبريرك خطوة خطوة.
+            ولّد وكيل التمارين هذه المسارات من مكتسبات مختلفة في الرياضيات والفيزياء. ليست إعادة صياغة
+            للتمرين السابق: لكل موضوع وضعية ومعطيات ومطلوب وتحدٍّ خاص. اختر زاوية واحدة وابدأ من المعطيات.
           </p>
+          {selectedTopic && (
+            <div className="exam-paper-topic-selected" role="status" data-testid="status-selected-creative-topic">
+              <CheckCircle2 size={15} />
+              <span>اخترت موضوع «{selectedTopic}». ابدأ بكتابة المعطيات ثم رتّب خطوات الحل.</span>
+            </div>
+          )}
           <div className="creative-exam-grid">
             {creativeExamTopics.map((topic, index) => (
               <article className="creative-exam-topic" key={topic.title} data-testid={`card-creative-exam-topic-${index + 1}`}>
@@ -1091,16 +1099,25 @@ function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
                   <b>موضوع {index + 1}</b>
                 </div>
                 <h3>{topic.title}</h3>
-                <p>{topic.scenario}</p>
+                <div className="creative-exam-field">
+                  <span>الوضعية</span>
+                  <p>{topic.scenario}</p>
+                </div>
+                <div className="creative-exam-field">
+                  <span>المعطيات</span>
                 <div className="creative-exam-data" dir="ltr">{topic.data}</div>
+                </div>
+                <div className="creative-exam-field">
+                  <span>المطلوب</span>
                 <ol>
                   {topic.tasks.map((task) => <li key={task}>{task}</li>)}
                 </ol>
-                <div className="creative-exam-twist">
-                  <strong>السؤال المفاجئ:</strong> {topic.twist}
                 </div>
-                <button type="button" className="creative-exam-start" onClick={() => window.alert(`ابدأ من المعطيات في موضوع: ${topic.title}`)} data-testid={`button-start-creative-topic-${index + 1}`}>
-                  ابدأ بهذا الموضوع
+                <div className="creative-exam-twist">
+                  <strong>التحدّي الخاص:</strong> {topic.twist}
+                </div>
+                <button type="button" className="creative-exam-start" onClick={() => setSelectedTopic(topic.title)} data-testid={`button-start-creative-topic-${index + 1}`}>
+                  {selectedTopic === topic.title ? 'هذا موضوعي' : 'اختر هذا الموضوع'}
                 </button>
               </article>
             ))}
