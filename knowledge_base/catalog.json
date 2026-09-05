@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "generated_at": "2026-09-05T13:08:32.086159+00:00",
+  "generated_at": "2026-09-05T13:30:55.005570+00:00",
   "assets_root": "attached_assets",
   "stats": {
-    "needs_review": 283,
-    "indexed": 50,
+    "needs_review": 285,
+    "indexed": 51,
     "excluded_media": 9,
     "duplicate_source": 49,
     "excluded_reference": 1,
-    "total_assets": 392,
-    "indexed_chunks": 676
+    "total_assets": 395,
+    "indexed_chunks": 683
   },
   "sources": [
     {
@@ -3735,6 +3735,48 @@
         "reference"
       ],
       "indexed_source_hash": "c1ae1d52bee740a9d8315d84f5c813935ae67900c44582d57c8dbb233546bfa0"
+    },
+    {
+      "source_id": "9313b36f8f1bb2fe9cd17fc1be138d33be6ec0cd003ee5da69dfc43f1df48328",
+      "source_file": "image_1788614062220.png",
+      "asset_path": "attached_assets/image_1788614062220.png",
+      "source_type": "png",
+      "bytes": 49896,
+      "sha256": "9313b36f8f1bb2fe9cd17fc1be138d33be6ec0cd003ee5da69dfc43f1df48328",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "unspecified",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "lesson_key": "general",
+      "content_type": "reference",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "مراجعة عامة",
+      "concepts": "مراجعة عامة",
+      "prerequisites": "",
+      "lesson_keys": "general",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "غير محدد · مراجعة عامة",
+      "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
+      "pages": 1,
+      "chunks": 0,
+      "first_page": 0,
+      "extraction_method": "none",
+      "extraction_methods": {
+        "empty": 1
+      },
+      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "reference"
+      ],
+      "indexed_source_hash": "9313b36f8f1bb2fe9cd17fc1be138d33be6ec0cd003ee5da69dfc43f1df48328"
     },
     {
       "source_id": "dbb8966407793c9c3e5f361c1cdfe8a5933880e94065548e20a633bb1368ea6e",
@@ -13934,6 +13976,90 @@
       "indexed_source_hash": "19e58e568e0d0d7a724bac4452566bcdfa4ba9eaddef19984940c23e39b1b972"
     },
     {
+      "source_id": "3bbffd7662e9c255297c61da8826d85b89e565bd0fdde71789191690be0d32f5",
+      "source_file": "تمارين_قراءات_بيانية_1788614577488.pdf",
+      "asset_path": "attached_assets/تمارين_قراءات_بيانية_1788614577488.pdf",
+      "source_type": "pdf",
+      "bytes": 2128889,
+      "sha256": "3bbffd7662e9c255297c61da8826d85b89e565bd0fdde71789191690be0d32f5",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "unspecified",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "lesson_key": "general",
+      "content_type": "exercise",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "مراجعة عامة",
+      "concepts": "مراجعة عامة",
+      "prerequisites": "",
+      "lesson_keys": "general",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "تمارين قراءات بيانية",
+      "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
+      "pages": 12,
+      "chunks": 0,
+      "first_page": 0,
+      "extraction_method": "none",
+      "extraction_methods": {
+        "empty": 12
+      },
+      "summary": "محتوى تعليمي مصنّف ضمن تمارين قراءات بيانية.",
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "exercise"
+      ],
+      "indexed_source_hash": "3bbffd7662e9c255297c61da8826d85b89e565bd0fdde71789191690be0d32f5"
+    },
+    {
+      "source_id": "30ca03f2af1175a5241766d5ae0753b370d127d1ce609c66ac48fcd36fcf22d9",
+      "source_file": "تمارين_قراءات_بيانية_ملاحظات_محررة.txt",
+      "asset_path": "attached_assets/تمارين_قراءات_بيانية_ملاحظات_محررة.txt",
+      "source_type": "txt",
+      "bytes": 14581,
+      "sha256": "30ca03f2af1175a5241766d5ae0753b370d127d1ce609c66ac48fcd36fcf22d9",
+      "subject": "الرياضيات",
+      "subject_id": "mathematics",
+      "curriculum_year": "third_secondary",
+      "stream": "mathematics",
+      "term": "unspecified",
+      "unit": "الدوال العددية",
+      "lesson": "الدوال",
+      "lesson_key": "functions",
+      "content_type": "solution",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "الدوال,الدالة",
+      "concepts": "الدوال,الدالة",
+      "prerequisites": "",
+      "lesson_keys": "functions",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "تمارين قراءات بيانية ملاحظات محررة",
+      "status": "indexed",
+      "review_reason": "",
+      "pages": 1,
+      "chunks": 7,
+      "first_page": 1,
+      "extraction_method": "text",
+      "extraction_methods": {
+        "text": 1
+      },
+      "summary": "المصدر الأصلي: تمارين_قراءات_بيانية_1788614577488.pdf",
+      "tags": [
+        "الدوال",
+        "الدوال العددية",
+        "solution"
+      ],
+      "indexed_source_hash": "30ca03f2af1175a5241766d5ae0753b370d127d1ce609c66ac48fcd36fcf22d9"
+    },
+    {
       "source_id": "c45d4f309f20600d213529fccd14745e40f4960952b891ea148a6a740cd289ed",
       "source_file": "تمرين_بكالوريا_1788342118800.pdf",
       "asset_path": "attached_assets/تمرين_بكالوريا_1788342118800.pdf",
@@ -15401,6 +15527,24 @@
         "الدوال",
         "الدوال العددية",
         "assessment"
+      ]
+    },
+    {
+      "id": "30ca03f2af1175a5241766d5ae0753b370d127d1ce609c66ac48fcd36fcf22d9",
+      "title": "تمارين قراءات بيانية ملاحظات محررة",
+      "summary": "المصدر الأصلي: تمارين_قراءات_بيانية_1788614577488.pdf",
+      "subject": "الرياضيات",
+      "curriculum_year": "third_secondary",
+      "unit": "الدوال العددية",
+      "lesson": "الدوال",
+      "type": "solution",
+      "difficulty": "mixed",
+      "source": "تمارين_قراءات_بيانية_ملاحظات_محررة.txt",
+      "page": 1,
+      "tags": [
+        "الدوال",
+        "الدوال العددية",
+        "solution"
       ]
     },
     {
