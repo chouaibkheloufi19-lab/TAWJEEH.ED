@@ -12,6 +12,8 @@ import {
   Lightbulb,
   LoaderCircle,
   Maximize2,
+  Mic,
+  MicOff,
   MessageCircle,
   Minimize2,
   Pause,
@@ -64,6 +66,20 @@ type LessonSectionId = 'definition' | 'worked-example' | 'graph' | 'practice' | 
 type BoardMode = 'pen' | 'highlight';
 type Point = { x: number; y: number };
 type ActivePartner = 'dalil' | 'exercises' | 'creative';
+type SpeechRecognitionEventLike = {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+};
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
 type LessonSection = {
   id: LessonSectionId;
@@ -539,6 +555,8 @@ export function LessonWorkspace() {
   const [session, setSession] = useState<LessonSession>(() => readSession(evaluationPlan.mode));
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [voiceError, setVoiceError] = useState('');
   const [highlightedPart, setHighlightedPart] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [narrationProgress, setNarrationProgress] = useState(0);
@@ -572,6 +590,7 @@ export function LessonWorkspace() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const owlVideoRef = useRef<HTMLVideoElement>(null);
   const drawingRef = useRef<Point[]>([]);
+  const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const knowledgeParams = useMemo(() => ({ subject: 'العلوم الفيزيائية', curriculum_year: '3AS' }), []);
   const knowledgeQuery = useListKnowledge(knowledgeParams, { query: { queryKey: getListKnowledgeQueryKey(knowledgeParams), staleTime: 5 * 60 * 1000 } });
   const knowledgeCards = useMemo(() => (knowledgeQuery.data as KnowledgeCard[] | undefined) ?? [], [knowledgeQuery.data]);
@@ -821,6 +840,10 @@ export function LessonWorkspace() {
       window.speechSynthesis?.cancel();
     };
   }, [isPlaying]);
+
+  useEffect(() => () => {
+    speechRecognitionRef.current?.stop();
+  }, []);
 
   useEffect(() => {
     setNarrationProgress(0);
@@ -1471,6 +1494,48 @@ export function LessonWorkspace() {
     setIsPlaying(false);
   };
 
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      speechRecognitionRef.current?.stop();
+      return;
+    }
+    const speechWindow = window as Window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      setVoiceError('الإملاء الصوتي غير متاح في هذا المتصفح. اكتب سؤالك بدلًا من ذلك.');
+      return;
+    }
+    setVoiceError('');
+    const recognition = new Recognition();
+    recognition.lang = 'ar-SA';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0]?.transcript ?? '')
+        .join(' ')
+        .trim();
+      if (transcript) {
+        setQuestion((current) => `${current} ${transcript}`.trim());
+      }
+    };
+    recognition.onerror = () => {
+      setVoiceError('لم نلتقط الصوت بوضوح. حاول مرة أخرى أو اكتب سؤالك.');
+      setIsListening(false);
+      speechRecognitionRef.current = null;
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+      speechRecognitionRef.current = null;
+    };
+    speechRecognitionRef.current = recognition;
+    setIsListening(true);
+    recognition.start();
+  };
+
   return (
     <section className="lesson-workspace" dir="rtl" data-testid="lesson-workspace">
       <header className="lesson-workspace-header">
@@ -1642,6 +1707,7 @@ export function LessonWorkspace() {
             <label className="lesson-composer-label" htmlFor="lesson-question"><span>{handoffComplete ? `اكتب إلى ${activePartnerDetails.name}` : 'سؤال أو ملاحظة'}</span><span>العنصر الحالي: {activeSection.label}</span></label>
             <div className="lesson-composer-box">
                 <textarea id="lesson-question" value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!faheemActive && !handoffComplete} placeholder={handoffComplete ? activePartnerDetails.prompt : faheemActive ? 'مثال: لماذا يستمر الراكب في الحركة؟' : 'اكتمل التسليم إلى دليل ووكيل التمارين'} rows={2} data-testid="input-lesson-question" />
+                <button type="button" className={`lesson-icon-button lesson-voice-button ${isListening ? 'is-listening' : ''}`} onClick={toggleVoiceInput} disabled={!lessonToolsActive || (!faheemActive && !handoffComplete) || isThinking} aria-label={isListening ? 'إيقاف الإملاء الصوتي' : 'تسجيل سؤال صوتي'} aria-pressed={isListening} data-testid="button-voice-question">{isListening ? <MicOff size={17} /> : <Mic size={17} />}</button>
                 <button type="button" className="lesson-icon-button" onClick={() => attachmentInputRef.current?.click()} disabled={!lessonToolsActive} aria-label="إرفاق صورة الحل" data-testid="button-attach-handwritten"><ImagePlus size={17} /></button>
                 <button type="submit" className="lesson-send-button" aria-label={`إرسال السؤال إلى ${handoffComplete ? activePartnerDetails.name : 'فهيم'}`} disabled={(!faheemActive && !handoffComplete) || !question.trim() || isThinking} data-testid="button-send-lesson-question"><Send size={16} /></button>
             </div>
@@ -1654,6 +1720,7 @@ export function LessonWorkspace() {
               </div>
             )}
             {attachmentError && <p className="lesson-field-error" role="alert" data-testid="status-attachment-error">{attachmentError}</p>}
+             {voiceError && <p className="lesson-field-error lesson-voice-error" role="alert" data-testid="status-voice-error">{voiceError}</p>}
              {(isThinking || analysisState === 'analyzing') && <div className="lesson-thinking" role="status" data-testid="status-ai-generation"><LoaderCircle size={14} /><span>{analysisState === 'analyzing' ? 'فهيم يقرأ المحاولة ويبحث عن أول خطأ...' : `${handoffComplete ? activePartnerDetails.name : 'فهيم'} يراجع الخطوة...`}</span><i /></div>}
             {analysisState === 'error' && <div className="lesson-analysis-error" role="alert" data-testid="status-attempt-analysis-error"><span>{analysisError}</span><button type="button" onClick={() => { if (session.attachment) void analyzeAttempt(session.attachment, session.attachmentName ?? 'محاولة'); }}>إعادة التحليل</button></div>}
             {analysis && (

@@ -5597,3 +5597,237 @@ button { cursor: pointer; }
     grid-column: 1 / -1;
   }
 }
+
+/* Tawjeeh lesson workspace: board first, Faheem second, mastery last.
+   The grid is intentionally ltr so the visual order stays stable while every
+   panel keeps its Arabic reading direction. */
+.lesson-workspace {
+  --lesson-board-width: minmax(0, 1.58fr);
+  --lesson-chat-width: minmax(300px, .94fr);
+  --lesson-progress-width: minmax(198px, .6fr);
+  --lesson-workspace-gap: 14px;
+}
+
+.lesson-grid,
+.lesson-grid.has-collapsed-rail {
+  display: grid;
+  width: 100%;
+  grid-template-columns: var(--lesson-board-width) var(--lesson-chat-width) var(--lesson-progress-width);
+  grid-template-areas: 'teaching convo path';
+  align-items: start;
+  gap: var(--lesson-workspace-gap);
+  direction: ltr;
+}
+
+.lesson-grid > .lesson-panel {
+  min-width: 0;
+  direction: rtl;
+}
+
+.lesson-teaching-panel {
+  grid-area: teaching;
+  min-width: 0;
+  border-top: 3px solid var(--brand-teal);
+  background:
+    linear-gradient(145deg, rgba(234, 245, 248, .98), rgba(255, 253, 248, .98) 70%),
+    var(--lesson-paper);
+  box-shadow: 0 16px 34px rgba(21, 66, 86, .1);
+}
+
+.lesson-conversation-panel {
+  grid-area: convo;
+  min-width: 0;
+  min-height: 100%;
+  border-top: 3px solid #6a93ba;
+  background:
+    linear-gradient(180deg, rgba(239, 247, 250, .98), rgba(255, 253, 248, .98) 62%),
+    var(--lesson-paper);
+}
+
+.lesson-path-panel {
+  grid-area: path;
+  position: sticky;
+  top: 16px;
+  min-width: 0;
+  border-top: 3px solid #8a9f72;
+  background:
+    linear-gradient(160deg, rgba(242, 247, 238, .98), rgba(255, 253, 248, .98) 70%),
+    var(--lesson-paper);
+}
+
+.lesson-teaching-panel,
+.lesson-conversation-panel,
+.lesson-path-panel {
+  overflow: hidden;
+}
+
+/* Give the teaching surface a clear visual lead without changing the
+   underlying board, graph, narration, upload, or quiz interactions. */
+.lesson-teaching-header {
+  padding: 18px 19px 15px;
+  border-bottom: 1px solid rgba(169, 201, 213, .7);
+  background: linear-gradient(100deg, rgba(226, 241, 246, .72), rgba(255, 253, 248, .35));
+}
+
+.lesson-teaching-header h2 {
+  font-size: clamp(18px, 1.8vw, 24px);
+}
+
+.lesson-whiteboard-wrap {
+  margin: 0 16px 16px;
+  padding: 12px;
+  border: 1px solid #c4dce4;
+  border-radius: 16px;
+  background: rgba(255, 253, 248, .88);
+  box-shadow: 0 10px 22px rgba(35, 80, 95, .07);
+}
+
+.lesson-canvas-shell {
+  min-height: 300px;
+  border-radius: 11px;
+}
+
+.lesson-whiteboard-canvas {
+  min-height: 300px;
+}
+
+.lesson-messages {
+  min-height: 270px;
+  max-height: min(58vh, 650px);
+}
+
+.lesson-conversation-heading {
+  padding: 16px 15px 12px;
+  border-bottom: 1px solid rgba(176, 204, 214, .75);
+}
+
+.lesson-composer {
+  margin-top: auto;
+}
+
+.lesson-path-panel .lesson-panel-heading {
+  padding: 15px 14px 12px;
+}
+
+.lesson-path-panel .lesson-progress-meter {
+  padding: 12px 14px;
+}
+
+.lesson-path-list {
+  padding: 0 10px 12px;
+}
+
+.lesson-path-item {
+  min-width: 0;
+}
+
+.lesson-path-copy {
+  min-width: 0;
+}
+
+.lesson-voice-button.is-listening {
+  color: #fff;
+  border-color: #b25b5b;
+  background: #b25b5b;
+  box-shadow: 0 0 0 4px rgba(178, 91, 91, .14);
+}
+
+.lesson-voice-error {
+  margin-top: 7px;
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .lesson-workspace {
+    --lesson-board-width: minmax(0, 1.34fr);
+    --lesson-chat-width: minmax(270px, .93fr);
+    --lesson-progress-width: minmax(184px, .62fr);
+    --lesson-workspace-gap: 10px;
+  }
+
+  .lesson-teaching-header,
+  .lesson-conversation-heading {
+    padding-inline: 13px;
+  }
+
+  .lesson-whiteboard-wrap {
+    margin-inline: 11px;
+    padding: 9px;
+  }
+
+  .lesson-canvas-shell,
+  .lesson-whiteboard-canvas {
+    min-height: 260px;
+  }
+
+  .lesson-path-panel .lesson-panel-heading {
+    padding-inline: 10px;
+  }
+
+  .lesson-path-panel .lesson-panel-heading h2 {
+    font-size: 16px;
+  }
+
+  .lesson-path-panel .lesson-panel-heading p {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 900px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'teaching'
+      'convo'
+      'path';
+    gap: 11px;
+  }
+
+  .lesson-path-panel {
+    position: static;
+  }
+
+  .lesson-messages {
+    max-height: none;
+    min-height: 220px;
+  }
+
+  .lesson-canvas-shell,
+  .lesson-whiteboard-canvas {
+    min-height: 330px;
+  }
+}
+
+@media (max-width: 580px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    gap: 9px;
+  }
+
+  .lesson-teaching-header {
+    padding: 14px 12px 12px;
+  }
+
+  .lesson-teaching-header h2 {
+    font-size: 18px;
+  }
+
+  .lesson-whiteboard-wrap {
+    margin-inline: 9px;
+    padding: 8px;
+  }
+
+  .lesson-canvas-shell,
+  .lesson-whiteboard-canvas {
+    min-height: 270px;
+  }
+
+  .lesson-path-panel .lesson-path-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .lesson-path-panel .lesson-path-item {
+    min-height: 58px;
+    padding-inline: 4px;
+  }
+}
