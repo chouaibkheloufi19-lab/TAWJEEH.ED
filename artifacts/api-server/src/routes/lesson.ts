@@ -454,7 +454,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       : errorMessage.startsWith("Exercise generator responded with")
         ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
         : mode === "creative_topic"
-          ? "تعذر توليد الموضوعات الإبداعية من المصادر حاليًا. أعد المحاولة بعد قليل."
+          ? "تعذر الاتصال بخدمة التعلّم الآن."
           : "تعذر توليد التمرين من المصادر حاليًا. أعد المحاولة بعد قليل.";
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error: error instanceof KnowledgeGroundingError ? error.code : "exercise_generation_failed",

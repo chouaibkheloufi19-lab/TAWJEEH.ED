@@ -49,6 +49,7 @@ import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
 import { useUser } from '@clerk/react';
 import { useLocation } from 'wouter';
+import { fetchWithTimeout } from '@/lib/request';
 import {
   canCompleteEvaluation,
   getEvaluationBlocker,
@@ -544,6 +545,7 @@ export function LessonWorkspace() {
   const [noteStatus, setNoteStatus] = useState('محفوظ محليًا');
   const [attachmentError, setAttachmentError] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [chatCircuitOpen, setChatCircuitOpen] = useState(false);
   const [analysis, setAnalysis] = useState<AttemptAnalysis | null>(null);
   const [analysisState, setAnalysisState] = useState<'idle' | 'analyzing' | 'ready' | 'error'>('idle');
   const [analysisError, setAnalysisError] = useState('');
@@ -669,6 +671,17 @@ export function LessonWorkspace() {
     return details;
   }, [activePartner, examMode?.reduce_passive_explanation]);
   const intensiveExamMode = examMode?.mode === 'pre_exam' || examMode?.mode === 'error_stack';
+
+  const openChatCircuit = () => {
+    setChatCircuitOpen(true);
+    setMessages((current) => current.some((message) => message.id === 'chat-api-fallback')
+      ? current
+      : [...current, {
+          id: 'chat-api-fallback',
+          role: 'assistant',
+          text: 'تعذر الاتصال بخدمة التعلّم الآن. حدّث الصفحة للمتابعة.',
+        }]);
+  };
 
   useEffect(() => {
     setSession((current) => {
@@ -943,7 +956,7 @@ export function LessonWorkspace() {
 
   const askCopilotQuestion = async (text: string, topic = selectedCreativeTopic) => {
     const cleanText = text.trim();
-    if (!cleanText || !ragReady || isThinking) return;
+    if (!cleanText || !ragReady || isThinking || chatCircuitOpen) return;
     const topicContext = topic
       ? [
           `عنوان الموضوع الإبداعي: ${topic.title}`,
@@ -957,7 +970,7 @@ export function LessonWorkspace() {
     setCopilotQuestion('');
     setIsThinking(true);
     try {
-      const response = await fetch('/api/fahim/message', {
+      const response = await fetchWithTimeout('/api/fahim/message', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -979,11 +992,7 @@ export function LessonWorkspace() {
       if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
       setMessages((current) => [...current, { id: `copilot-answer-${Date.now()}`, role: 'assistant', text: payload.answer as string }]);
     } catch {
-      setMessages((current) => [...current, {
-        id: `copilot-error-${Date.now()}`,
-        role: 'assistant',
-        text: 'تعذر تشغيل كوبيلوت الموضوع الآن. أعد السؤال بعد لحظات.',
-      }]);
+      openChatCircuit();
     } finally {
       setIsThinking(false);
     }
@@ -995,11 +1004,11 @@ export function LessonWorkspace() {
   };
 
   const generateCreativeTopic = async () => {
-    if (!ragReady || isThinking) return;
+    if (!ragReady || isThinking || chatCircuitOpen) return;
     setActivePartner('creative');
     setIsThinking(true);
     try {
-       const response = await fetch('/api/lesson/exercise', {
+       const response = await fetchWithTimeout('/api/lesson/exercise', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -1025,12 +1034,8 @@ export function LessonWorkspace() {
         role: 'assistant',
          text: `بنى لك وكيل التمارين ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة من مصادر المنهاج. ستجدها في بطاقة التمرين الإبداعي أدناه.`,
       }]);
-    } catch (error) {
-      setMessages((current) => [...current, {
-        id: `topic-creative-error-${Date.now()}`,
-        role: 'assistant',
-        text: error instanceof Error ? error.message : 'تعذر توليد المسارات الإبداعية من المصادر الآن.',
-      }]);
+    } catch {
+      openChatCircuit();
     } finally {
       setIsThinking(false);
     }
@@ -1055,7 +1060,7 @@ export function LessonWorkspace() {
   }, [agentsAvailable, activeSource]);
 
   const askFahim = async (text: string) => {
-    if (!faheemActive || !ragReady) return;
+    if (!faheemActive || !ragReady || chatCircuitOpen) return;
     const cleanText = text.trim();
     if (!cleanText) return;
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: 'user', text: cleanText }]);
@@ -1065,7 +1070,7 @@ export function LessonWorkspace() {
       ? `توقف الشرح عند الثانية ${Math.round(session.pausedMoment.second)} من عرض «${session.pausedMoment.lessonTitle}». المقطع الموقوف: ${session.pausedMoment.explanation}`
       : '';
     try {
-      const response = await fetch('/api/fahim/message', {
+      const response = await fetchWithTimeout('/api/fahim/message', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -1086,7 +1091,7 @@ export function LessonWorkspace() {
       if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
       setMessages((current) => [...current, { id: `answer-${Date.now()}`, role: 'assistant', text: payload.answer as string }]);
     } catch {
-      setMessages((current) => [...current, { id: `answer-error-${Date.now()}`, role: 'assistant', text: 'تعذر الوصول إلى فهيم الآن. احتفظت بسؤالك؛ حاول الإرسال مرة أخرى بعد لحظات.' }]);
+      openChatCircuit();
     } finally {
       setIsThinking(false);
     }
@@ -1104,6 +1109,7 @@ export function LessonWorkspace() {
   };
 
   const askPartner = async (text: string) => {
+    if (chatCircuitOpen) return;
     if (!handoffComplete) {
       await askFahim(text);
       return;
@@ -1136,7 +1142,7 @@ export function LessonWorkspace() {
           ? 'جهزت لك تدريبًا مرتبطًا بدرس قوانين نيوتن والحركة.'
           : 'سأثبت الحل أولًا، ثم أفتح لك أكثر من طريق إبداعي لفهمه.';
       if (activePartner === 'exercises') {
-        const response = await fetch('/api/lesson/exercise', {
+        const response = await fetchWithTimeout('/api/lesson/exercise', {
           method: 'POST',
           credentials: 'include',
           headers: { 'content-type': 'application/json' },
@@ -1160,7 +1166,7 @@ export function LessonWorkspace() {
         reply = `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}» من محتوى الدرس. ابدأ بكتابة المعطيات والخطوة الأولى.`;
       }
        if (activePartner === 'creative') {
-               const response = await fetch('/api/lesson/exercise', {
+               const response = await fetchWithTimeout('/api/lesson/exercise', {
            method: 'POST',
            credentials: 'include',
            headers: { 'content-type': 'application/json' },
@@ -1198,13 +1204,7 @@ export function LessonWorkspace() {
         text: reply,
       }]);
     } catch {
-      setMessages((current) => [...current, {
-        id: `partner-answer-error-${Date.now()}`,
-        role: 'assistant',
-        text: activePartner === 'dalil'
-          ? 'تعذر فتح بطاقة المصدر الآن. بقيت الفكرة على اللوح، ويمكنك إعادة السؤال بعد لحظات.'
-          : 'تعذر تجهيز التدريب الآن. ابدأ بالسؤال الأول في بطاقة التثبيت، وسأتابع معك من هناك.',
-      }]);
+      openChatCircuit();
     } finally {
       setIsThinking(false);
     }
@@ -1306,6 +1306,7 @@ export function LessonWorkspace() {
   };
 
   const generateExerciseForStudent = async (attemptContext: string) => {
+    if (chatCircuitOpen) return;
     if (!ragReady) {
       setMessages((current) => [...current, {
         id: `exercise-not-ready-${Date.now()}`,
@@ -1316,7 +1317,7 @@ export function LessonWorkspace() {
     }
     setIsThinking(true);
     try {
-      const response = await fetch('/api/lesson/exercise', {
+      const response = await fetchWithTimeout('/api/lesson/exercise', {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
@@ -1343,12 +1344,8 @@ export function LessonWorkspace() {
           ? 'بنيت لك تمرينًا يعالج موضع الخطأ من الدرس وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.'
           : 'جهزت لك تمرينًا مناسبًا للمفهوم الحالي. حاول وحدك أولًا، ثم اطلب التلميح عند الحاجة.',
       }]);
-    } catch (error) {
-      setMessages((current) => [...current, {
-        id: `exercise-error-${Date.now()}`,
-        role: 'assistant',
-        text: error instanceof Error ? error.message : 'تعذر تجهيز تمرين مؤسس على المعرفة.',
-      }]);
+    } catch {
+      openChatCircuit();
     } finally {
       setIsThinking(false);
     }
@@ -1609,10 +1606,11 @@ export function LessonWorkspace() {
              </div>
            )}
            <div className="lesson-messages" aria-live="polite" data-testid="region-fahim-messages">
-            {messages.map((message) => (
+             {messages.map((message) => (
               <article key={message.id} className={`lesson-message ${message.role === 'assistant' ? 'is-assistant' : 'is-user'}`} data-testid={`message-lesson-${message.id}`}>
                  <div className="lesson-message-meta">{message.role === 'assistant' ? <><Sparkles size={11} /> {handoffComplete ? activePartnerDetails.name : 'فهيم'}</> : 'أنت'}<span className="lesson-message-time">{getTimeLabel()}</span></div>
                 <p>{message.text}</p>
+                 {message.id === 'chat-api-fallback' && <button type="button" className="lesson-generation-error-button" onClick={() => window.location.reload()} data-testid="button-refresh-lesson-chat"><RotateCcw size={12} /> تحديث الصفحة</button>}
               </article>
             ))}
              {activePartner === 'creative' && creativeIdeas && (
@@ -1752,7 +1750,7 @@ export function LessonWorkspace() {
                     <div><strong>التثبيت</strong><span>اختر مفهومًا من خريطة الإتقان في الطبقة الثالثة لتفتح مثالًا وتمرينًا مرتبطين به.</span></div>
                   </div>
                   <div className="lesson-topic-actions">
-                    <button type="button" className="lesson-topic-primary" onClick={() => void generateCreativeTopic()} disabled={!lessonToolsActive || isThinking} data-testid="button-generate-topic-creative">
+                    <button type="button" className="lesson-topic-primary" onClick={() => void generateCreativeTopic()} disabled={!lessonToolsActive || isThinking || chatCircuitOpen} data-testid="button-generate-topic-creative">
                       {isThinking ? <LoaderCircle size={13} className="lesson-spin-icon" /> : <Sparkles size={13} />} ولّد تطبيقات إبداعية من كل المكتسبات
                     </button>
                     <button type="button" className="lesson-topic-secondary" onClick={() => setLocation('/exam-preview')} data-testid="button-open-full-topic">
@@ -1764,8 +1762,8 @@ export function LessonWorkspace() {
                       <span className="lesson-copilot-label"><MessageCircle size={13} /> سؤال الكوبيلوت</span>
                      <small>{selectedCreativeTopic ? `الموضوع المحدد: ${selectedCreativeTopic.title}` : 'اسأل عن الموضوع أو عن أي خطوة فيه'}</small>
                     </div>
-                    <input value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} disabled={!lessonToolsActive || isThinking} placeholder="مثال: كيف أختار القانون المناسب في الوضعية؟" aria-label="سؤال الكوبيلوت عن الموضوع" data-testid="input-topic-copilot-question" />
-                    <button type="submit" disabled={!lessonToolsActive || !copilotQuestion.trim() || isThinking} aria-label="إرسال سؤال الكوبيلوت" data-testid="button-send-topic-copilot"><Send size={15} /></button>
+                    <input value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} disabled={!lessonToolsActive || isThinking || chatCircuitOpen} placeholder="مثال: كيف أختار القانون المناسب في الوضعية؟" aria-label="سؤال الكوبيلوت عن الموضوع" data-testid="input-topic-copilot-question" />
+                    <button type="submit" disabled={!lessonToolsActive || !copilotQuestion.trim() || isThinking || chatCircuitOpen} aria-label="إرسال سؤال الكوبيلوت" data-testid="button-send-topic-copilot"><Send size={15} /></button>
                   </form>
                 </div>
               )}
@@ -1864,7 +1862,7 @@ export function LessonWorkspace() {
                 <button type="button" className="lesson-play-button" onClick={toggleNarration} disabled={!lessonToolsActive} aria-label={isPlaying ? 'إيقاف الشرح الصوتي' : 'تشغيل الشرح الصوتي'} data-testid="button-toggle-narration">{isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
                  <div className="lesson-narration-copy"><strong>{isPlaying ? `${handoffComplete ? activePartnerDetails.name : 'فهيم'} يشرح لك بالصوت...` : 'الشرح الصوتي جاهز'}</strong><span>{isPlaying ? displayedExplanation : 'شغّل العرض وصوته، ثم أوقفه واسأل عن أي لحظة.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
             </div>
-              <form className={`lesson-board-question ${!lessonToolsActive ? 'is-disabled' : ''}`} onSubmit={(event) => { event.preventDefault(); void (handoffComplete ? askPartner(question || `ساعدني في فهم ${activeSection.label}`) : askFahim(question || `ساعدني في فهم ${activeSection.label}`)); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!lessonToolsActive} placeholder={handoffComplete ? `اكتب إلى ${activePartnerDetails.name} عن اللوح` : faheemActive ? 'اسأل فهيم عن اللوح' : 'اكتمل التسليم إلى الشريكين'} aria-label={`سؤال ${handoffComplete ? activePartnerDetails.name : 'فهيم'} عن اللوح`} data-testid="input-board-question" /><button type="submit" disabled={!lessonToolsActive} aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
+              <form className={`lesson-board-question ${!lessonToolsActive || chatCircuitOpen ? 'is-disabled' : ''}`} onSubmit={(event) => { event.preventDefault(); void (handoffComplete ? askPartner(question || `ساعدني في فهم ${activeSection.label}`) : askFahim(question || `ساعدني في فهم ${activeSection.label}`)); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!lessonToolsActive || chatCircuitOpen} placeholder={handoffComplete ? `اكتب إلى ${activePartnerDetails.name} عن اللوح` : faheemActive ? 'اسأل فهيم عن اللوح' : 'اكتمل التسليم إلى الشريكين'} aria-label={`سؤال ${handoffComplete ? activePartnerDetails.name : 'فهيم'} عن اللوح`} data-testid="input-board-question" /><button type="submit" disabled={!lessonToolsActive || chatCircuitOpen} aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
           </div>
           <div className="lesson-examples">
              <div className="lesson-examples-heading">
@@ -1876,7 +1874,7 @@ export function LessonWorkspace() {
                  type="button"
                  className="lesson-generate-exercise-button"
                  onClick={() => void generateExerciseForStudent(`تمرين مباشر على مفهوم ${activeSection.title}`)}
-                 disabled={!lessonToolsActive || isThinking}
+                  disabled={!lessonToolsActive || isThinking || chatCircuitOpen}
                  data-testid="button-generate-student-exercise"
                >
                  {isThinking ? <LoaderCircle size={12} className="lesson-spin-icon" /> : <Sparkles size={12} />}
