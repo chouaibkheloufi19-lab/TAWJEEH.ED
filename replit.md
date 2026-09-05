@@ -13,6 +13,9 @@
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- Durable learning policy defaults are stored in `learning_policy`: a 50% error rate creates an emergency remediation module, and 70 daily points is the on-track target.
+- Profile and learning APIs include `/api/learning/profile-summary`, `/api/learning/remedial-modules`, `/api/learning/notifications`, `/api/learning/daily-points`, `/api/learning/weekly-quiz-eligibility`, and `/api/learning/benchmark-lock`.
+- `POST /api/learning/profile-summary/pdf` creates a real PDF in App Storage and returns metadata plus an authenticated download path.
 - Replit workflows: `artifacts/tawjeeh-ed: web`, `artifacts/api-server: API Server`, and `artifacts/api-server: Knowledge Base`
 - Required setup: Replit PostgreSQL (`DATABASE_URL` is managed automatically), the connected xAI integration for text and vision generation, and Replit-managed Clerk Auth
 - Optional env: `KNOWLEDGE_BASE_URL` (defaults to `http://127.0.0.1:8001/knowledge`), `XAI_MODEL` or `GROK_TEXT_MODEL` (otherwise the first compatible text model is discovered at runtime), and `GROK_VISION_MODEL`

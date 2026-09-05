@@ -66,6 +66,118 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorBankResponse"
+  /learning/profile-summary:
+    get:
+      operationId: getProfileSummary
+      tags: [learning]
+      summary: Get the durable profile summary and learning policy
+      responses:
+        "200":
+          description: Profile summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileSummary"
+  /learning/profile-summary/pdf:
+    post:
+      operationId: createProfileSummaryPdf
+      tags: [learning]
+      summary: Generate a profile summary PDF in App Storage
+      responses:
+        "201":
+          description: Generated PDF metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileSummaryExport"
+  /learning/profile-summary/pdf/{exportId}:
+    get:
+      operationId: downloadProfileSummaryPdf
+      tags: [learning]
+      summary: Download a generated profile summary PDF
+      parameters:
+        - name: exportId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: PDF export not found
+  /learning/remedial-modules:
+    get:
+      operationId: getRemedialModules
+      tags: [learning]
+      summary: Get prioritized remedial modules
+      responses:
+        "200":
+          description: Remedial modules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemedialModulesResponse"
+  /learning/notifications:
+    get:
+      operationId: getLearningNotifications
+      tags: [learning]
+      summary: Get learning notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningNotificationsResponse"
+  /learning/daily-points:
+    get:
+      operationId: getDailyPoints
+      tags: [learning]
+      summary: Get durable daily points against the configured target
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Daily points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyPoints"
+  /learning/weekly-quiz-eligibility:
+    get:
+      operationId: getWeeklyQuizEligibility
+      tags: [learning]
+      summary: Check weekly quiz eligibility
+      responses:
+        "200":
+          description: Weekly quiz eligibility
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeeklyQuizEligibility"
+  /learning/benchmark-lock:
+    get:
+      operationId: getBenchmarkLock
+      tags: [learning]
+      summary: Check whether the benchmark assessment is locked
+      responses:
+        "200":
+          description: Benchmark lock state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BenchmarkLock"
   /learning/exam-mode:
     get:
       operationId: getExamMode
@@ -941,4 +1053,155 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/QuizAttemptRecord"
+    LearningPolicy:
+      type: object
+      required: [emergency_error_rate, daily_points_target]
+      properties:
+        emergency_error_rate:
+          type: number
+          format: float
+        daily_points_target:
+          type: integer
+    ProfileSummaryExport:
+      type: object
+      required: [id, file_name, object_path, content_type, size_bytes, created_at, download_path]
+      properties:
+        id:
+          type: integer
+        file_name:
+          type: string
+        object_path:
+          type: string
+        content_type:
+          type: string
+        size_bytes:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        download_path:
+          type: string
+    ProfileSummary:
+      type: object
+      required: [profile, metrics, daily_points, policy, exports]
+      properties:
+        profile:
+          $ref: "#/components/schemas/StudentProfile"
+        metrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConceptMetric"
+        daily_points:
+          $ref: "#/components/schemas/DailyPoints"
+        policy:
+          $ref: "#/components/schemas/LearningPolicy"
+        exports:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileSummaryExport"
+    RemedialModule:
+      type: object
+      required: [concept_id, concept_title, lesson_id, lesson_title, error_rate, errors_count, priority, schedule_entry_id]
+      properties:
+        concept_id:
+          type: string
+        concept_title:
+          type: string
+        lesson_id:
+          type: string
+        lesson_title:
+          type: string
+        error_rate:
+          type: number
+        errors_count:
+          type: integer
+        priority:
+          type: string
+          enum: [emergency, high, review]
+        schedule_entry_id:
+          type: [integer, "null"]
+    RemedialModulesResponse:
+      type: object
+      required: [modules, policy]
+      properties:
+        modules:
+          type: array
+          items:
+            $ref: "#/components/schemas/RemedialModule"
+        policy:
+          $ref: "#/components/schemas/LearningPolicy"
+    LearningNotification:
+      type: object
+      required: [id, type, title, body, severity, created_at, read]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [emergency, schedule, points, benchmark]
+        title:
+          type: string
+        body:
+          type: string
+        severity:
+          type: string
+          enum: [high, medium, info]
+        created_at:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+    LearningNotificationsResponse:
+      type: object
+      required: [notifications]
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningNotification"
+    DailyPoints:
+      type: object
+      required: [date, points, target, on_track, remaining]
+      properties:
+        date:
+          type: string
+          format: date
+        points:
+          type: integer
+        target:
+          type: integer
+        on_track:
+          type: boolean
+        remaining:
+          type: integer
+    WeeklyQuizEligibility:
+      type: object
+      required: [week_start, week_end, points, target, eligible, reason]
+      properties:
+        week_start:
+          type: string
+          format: date
+        week_end:
+          type: string
+          format: date
+        points:
+          type: integer
+        target:
+          type: integer
+        eligible:
+          type: boolean
+        reason:
+          type: string
+    BenchmarkLock:
+      type: object
+      required: [benchmark_id, locked, reason, unlock_requirement]
+      properties:
+        benchmark_id:
+          type: string
+        locked:
+          type: boolean
+        reason:
+          type: string
+        unlock_requirement:
+          type: string
 

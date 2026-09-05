@@ -117,6 +117,150 @@ export const GetErrorBankResponse = zod.object({
 
 
 /**
+ * @summary Get the durable profile summary and learning policy
+ */
+export const GetProfileSummaryResponse = zod.object({
+  "profile": zod.object({
+  "name": zod.string(),
+  "grade": zod.string(),
+  "streak": zod.number(),
+  "avatar": zod.string()
+}),
+  "metrics": zod.array(zod.object({
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "concept_id": zod.string(),
+  "concept_title": zod.string(),
+  "attempts": zod.int(),
+  "errors_count": zod.int(),
+  "error_rate": zod.number(),
+  "last_error_tag": zod.string()
+})),
+  "daily_points": zod.object({
+  "date": zod.coerce.date(),
+  "points": zod.int(),
+  "target": zod.int(),
+  "on_track": zod.boolean(),
+  "remaining": zod.int()
+}),
+  "policy": zod.object({
+  "emergency_error_rate": zod.number(),
+  "daily_points_target": zod.int()
+}),
+  "exports": zod.array(zod.object({
+  "id": zod.int(),
+  "file_name": zod.string(),
+  "object_path": zod.string(),
+  "content_type": zod.string(),
+  "size_bytes": zod.int(),
+  "created_at": zod.coerce.date(),
+  "download_path": zod.string()
+}))
+})
+
+
+/**
+ * @summary Generate a profile summary PDF in App Storage
+ */
+export const CreateProfileSummaryPdfResponse = zod.object({
+  "id": zod.int(),
+  "file_name": zod.string(),
+  "object_path": zod.string(),
+  "content_type": zod.string(),
+  "size_bytes": zod.int(),
+  "created_at": zod.coerce.date(),
+  "download_path": zod.string()
+})
+
+
+/**
+ * @summary Download a generated profile summary PDF
+ */
+export const DownloadProfileSummaryPdfParams = zod.object({
+  "exportId": zod.coerce.number().int()
+})
+
+export const DownloadProfileSummaryPdfResponse = zod.unknown()
+
+
+/**
+ * @summary Get prioritized remedial modules
+ */
+export const GetRemedialModulesResponse = zod.object({
+  "modules": zod.array(zod.object({
+  "concept_id": zod.string(),
+  "concept_title": zod.string(),
+  "lesson_id": zod.string(),
+  "lesson_title": zod.string(),
+  "error_rate": zod.number(),
+  "errors_count": zod.int(),
+  "priority": zod.enum(['emergency', 'high', 'review']),
+  "schedule_entry_id": zod.int().nullable()
+})),
+  "policy": zod.object({
+  "emergency_error_rate": zod.number(),
+  "daily_points_target": zod.int()
+})
+})
+
+
+/**
+ * @summary Get learning notifications
+ */
+export const GetLearningNotificationsResponse = zod.object({
+  "notifications": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.enum(['emergency', 'schedule', 'points', 'benchmark']),
+  "title": zod.string(),
+  "body": zod.string(),
+  "severity": zod.enum(['high', 'medium', 'info']),
+  "created_at": zod.coerce.date(),
+  "read": zod.boolean()
+}))
+})
+
+
+/**
+ * @summary Get durable daily points against the configured target
+ */
+export const GetDailyPointsQueryParams = zod.object({
+  "date": zod.date().optional()
+})
+
+export const GetDailyPointsResponse = zod.object({
+  "date": zod.coerce.date(),
+  "points": zod.int(),
+  "target": zod.int(),
+  "on_track": zod.boolean(),
+  "remaining": zod.int()
+})
+
+
+/**
+ * @summary Check weekly quiz eligibility
+ */
+export const GetWeeklyQuizEligibilityResponse = zod.object({
+  "week_start": zod.coerce.date(),
+  "week_end": zod.coerce.date(),
+  "points": zod.int(),
+  "target": zod.int(),
+  "eligible": zod.boolean(),
+  "reason": zod.string()
+})
+
+
+/**
+ * @summary Check whether the benchmark assessment is locked
+ */
+export const GetBenchmarkLockResponse = zod.object({
+  "benchmark_id": zod.string(),
+  "locked": zod.boolean(),
+  "reason": zod.string(),
+  "unlock_requirement": zod.string()
+})
+
+
+/**
  * @summary Get the active baccalaureate preparation mode
  */
 export const GetExamModeQueryParams = zod.object({

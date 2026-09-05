@@ -409,6 +409,116 @@ export interface QuizAttemptsResponse {
   attempts: QuizAttemptRecord[];
 }
 
+export interface LearningPolicy {
+  emergency_error_rate: number;
+  daily_points_target: number;
+}
+
+export interface ProfileSummaryExport {
+  id: number;
+  file_name: string;
+  object_path: string;
+  content_type: string;
+  size_bytes: number;
+  created_at: string;
+  download_path: string;
+}
+
+export interface DailyPoints {
+  date: string;
+  points: number;
+  target: number;
+  on_track: boolean;
+  remaining: number;
+}
+
+export interface ProfileSummary {
+  profile: StudentProfile;
+  metrics: ConceptMetric[];
+  daily_points: DailyPoints;
+  policy: LearningPolicy;
+  exports: ProfileSummaryExport[];
+}
+
+export type RemedialModulePriority = typeof RemedialModulePriority[keyof typeof RemedialModulePriority];
+
+
+export const RemedialModulePriority = {
+  emergency: 'emergency',
+  high: 'high',
+  review: 'review',
+} as const;
+
+export interface RemedialModule {
+  concept_id: string;
+  concept_title: string;
+  lesson_id: string;
+  lesson_title: string;
+  error_rate: number;
+  errors_count: number;
+  priority: RemedialModulePriority;
+  /** @nullable */
+  schedule_entry_id: number | null;
+}
+
+export interface RemedialModulesResponse {
+  modules: RemedialModule[];
+  policy: LearningPolicy;
+}
+
+export type LearningNotificationType = typeof LearningNotificationType[keyof typeof LearningNotificationType];
+
+
+export const LearningNotificationType = {
+  emergency: 'emergency',
+  schedule: 'schedule',
+  points: 'points',
+  benchmark: 'benchmark',
+} as const;
+
+export type LearningNotificationSeverity = typeof LearningNotificationSeverity[keyof typeof LearningNotificationSeverity];
+
+
+export const LearningNotificationSeverity = {
+  high: 'high',
+  medium: 'medium',
+  info: 'info',
+} as const;
+
+export interface LearningNotification {
+  id: string;
+  type: LearningNotificationType;
+  title: string;
+  body: string;
+  severity: LearningNotificationSeverity;
+  created_at: string;
+  read: boolean;
+}
+
+export interface LearningNotificationsResponse {
+  notifications: LearningNotification[];
+}
+
+export interface WeeklyQuizEligibility {
+  week_start: string;
+  week_end: string;
+  points: number;
+  target: number;
+  eligible: boolean;
+  reason: string;
+}
+
+export interface BenchmarkLock {
+  benchmark_id: string;
+  locked: boolean;
+  reason: string;
+  unlock_requirement: string;
+}
+
+export type GetDailyPointsParams = {
+date?: string;
+};
+
 export type GetExamModeParams = {
 /**
  * Target baccalaureate date in YYYY-MM-DD format

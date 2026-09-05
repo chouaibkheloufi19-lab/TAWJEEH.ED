@@ -1,16 +1,19 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, lt } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import type { Request } from "express";
 import {
   db,
   learningAttemptsTable,
   quizAttemptsTable,
+  learningPolicyTable,
+  profileSummaryExportsTable,
   studyScheduleTable,
   summaryBankTable,
 } from "@workspace/db";
 
 export const EMERGENCY_REMEDIATION_LABEL = "غرفة إنعاش مستعجلة";
 export const ERROR_RATE_THRESHOLD = 0.5;
+export const DAILY_POINTS_TARGET = 70;
 export const OFFICIAL_SUMMARY_STAMP = "TAWJEEH.ED · OFFICIAL";
 export const OFFICIAL_SUMMARY_LOGO = "tawjeeh-owl-transparent.png";
 const DEFAULT_BACCALAUREATE_MONTH = 5;
@@ -86,6 +89,101 @@ export type ExamMode = {
   reduce_passive_explanation: boolean;
   error_concepts: ConceptMetric[];
 };
+
+export type LearningPolicyView = {
+  emergency_error_rate: number;
+  daily_points_target: number;
+};
+
+export type ProfileSummary = {
+  profile: {
+    name: string;
+    grade: string;
+    streak: number;
+    avatar: string;
+  };
+  metrics: ConceptMetric[];
+  daily_points: DailyPoints;
+  policy: LearningPolicyView;
+  exports: ProfileSummaryExportView[];
+};
+
+export type RemedialModule = {
+  concept_id: string;
+  concept_title: string;
+  lesson_id: string;
+  lesson_title: string;
+  error_rate: number;
+  errors_count: number;
+  priority: "emergency" | "high" | "review";
+  schedule_entry_id: number | null;
+};
+
+export type LearningNotification = {
+  id: string;
+  type: "emergency" | "schedule" | "points" | "benchmark";
+  title: string;
+  body: string;
+  severity: "high" | "medium" | "info";
+  created_at: string;
+  read: false;
+};
+
+export type DailyPoints = {
+  date: string;
+  points: number;
+  target: number;
+  on_track: boolean;
+  remaining: number;
+};
+
+export type WeeklyQuizEligibility = {
+  week_start: string;
+  week_end: string;
+  points: number;
+  target: number;
+  eligible: boolean;
+  reason: string;
+};
+
+export type BenchmarkLock = {
+  benchmark_id: string;
+  locked: boolean;
+  reason: string;
+  unlock_requirement: string;
+};
+
+export type ProfileSummaryExportView = {
+  id: number;
+  file_name: string;
+  object_path: string;
+  content_type: string;
+  size_bytes: number;
+  created_at: string;
+  download_path: string;
+};
+
+async function getLearningPolicyRow() {
+  await db
+    .insert(learningPolicyTable)
+    .values({
+      id: 1,
+      emergencyErrorRate: ERROR_RATE_THRESHOLD,
+      dailyPointsTarget: DAILY_POINTS_TARGET,
+    })
+    .onConflictDoNothing();
+  const [policy] = await db.select().from(learningPolicyTable).where(eq(learningPolicyTable.id, 1)).limit(1);
+  if (!policy) throw new Error("Learning policy could not be loaded");
+  return policy;
+}
+
+export async function getLearningPolicy(): Promise<LearningPolicyView> {
+  const policy = await getLearningPolicyRow();
+  return {
+    emergency_error_rate: policy.emergencyErrorRate,
+    daily_points_target: policy.dailyPointsTarget,
+  };
+}
 
 export function getUserId(req: Request): string | null {
   const auth = getAuth(req);
@@ -188,9 +286,10 @@ export async function getExamMode(userId: string, requestedExamDate?: string): P
     ? requestedExamDate
     : process.env.BACCALAUREATE_DATE ?? defaultBaccalaureateDate();
   const daysUntil = daysUntilDate(examDate);
+  const policy = await getLearningPolicyRow();
   const { metrics } = await listSummaryBank(userId);
   const errorConcepts = metrics
-    .filter((metric) => metric.errors_count > 0 && metric.error_rate >= ERROR_RATE_THRESHOLD)
+    .filter((metric) => metric.errors_count > 0 && metric.error_rate >= policy.emergencyErrorRate)
     .sort((a, b) => b.errors_count - a.errors_count || b.error_rate - a.error_rate)
     .slice(0, 8);
   const isPreExam = daysUntil >= 0 && daysUntil <= 56;
@@ -350,7 +449,8 @@ export async function recordLearningAttempt(
   if (!metric) throw new Error("Learning attempt metric could not be calculated");
 
   let remediation: ScheduleEntry | null = null;
-  if (!input.isCorrect && metric.error_rate > ERROR_RATE_THRESHOLD) {
+  const policy = await getLearningPolicyRow();
+  if (!input.isCorrect && metric.error_rate >= policy.emergencyErrorRate) {
     const current = await db
       .select()
       .from(studyScheduleTable)
@@ -619,6 +719,7 @@ async function applyMissedTheoryPenalty(
 
 async function applySchedulePenalties(userId: string) {
   const today = new Date().toISOString().slice(0, 10);
+  const policy = await getLearningPolicyRow();
   const rows = await db
     .select()
     .from(studyScheduleTable)
@@ -658,7 +759,7 @@ async function applySchedulePenalties(userId: string) {
     const points = quizAttempts
       .filter((attempt) => attempt.completedAt.toISOString().slice(0, 10) === scheduledDate)
       .reduce((total, attempt) => total + attempt.pointsEarned, 0);
-    if (points >= 70) continue;
+    if (points >= policy.dailyPointsTarget) continue;
     await addWeekendVolumePenalty(
       userId,
       `daily-quiz-points:${scheduledDate}`,
@@ -751,4 +852,230 @@ export async function listQuizAttempts(userId: string) {
       completed_at: row.completedAt.toISOString(),
     })),
   };
+}
+
+function utcDateOnly(value = new Date()) {
+  return value.toISOString().slice(0, 10);
+}
+
+function dateAtUtcStart(dateValue: string) {
+  return new Date(`${dateValue}T00:00:00.000Z`);
+}
+
+function addCalendarDays(dateValue: string, days: number) {
+  const date = dateAtUtcStart(dateValue);
+  date.setUTCDate(date.getUTCDate() + days);
+  return utcDateOnly(date);
+}
+
+function mondayOfWeek(dateValue: string) {
+  const date = dateAtUtcStart(dateValue);
+  const day = date.getUTCDay();
+  date.setUTCDate(date.getUTCDate() - (day === 0 ? 6 : day - 1));
+  return utcDateOnly(date);
+}
+
+function toProfileSummaryExport(row: typeof profileSummaryExportsTable.$inferSelect): ProfileSummaryExportView {
+  return {
+    id: row.id,
+    file_name: row.fileName,
+    object_path: row.objectPath,
+    content_type: row.contentType,
+    size_bytes: row.sizeBytes,
+    created_at: row.createdAt.toISOString(),
+    download_path: `/api/learning/profile-summary/pdf/${row.id}`,
+  };
+}
+
+export async function getDailyPoints(userId: string, dateValue = utcDateOnly()): Promise<DailyPoints> {
+  const policy = await getLearningPolicyRow();
+  const nextDate = addCalendarDays(dateValue, 1);
+  const attempts = await db
+    .select({ points: quizAttemptsTable.pointsEarned })
+    .from(quizAttemptsTable)
+    .where(
+      and(
+        eq(quizAttemptsTable.userId, userId),
+        gte(quizAttemptsTable.completedAt, dateAtUtcStart(dateValue)),
+        lt(quizAttemptsTable.completedAt, dateAtUtcStart(nextDate)),
+      ),
+    );
+  const points = attempts.reduce((total, attempt) => total + attempt.points, 0);
+  return {
+    date: dateValue,
+    points,
+    target: policy.dailyPointsTarget,
+    on_track: points >= policy.dailyPointsTarget,
+    remaining: Math.max(0, policy.dailyPointsTarget - points),
+  };
+}
+
+export async function getWeeklyQuizEligibility(userId: string, dateValue = utcDateOnly()): Promise<WeeklyQuizEligibility> {
+  const policy = await getLearningPolicyRow();
+  const weekStart = mondayOfWeek(dateValue);
+  const weekEnd = addCalendarDays(weekStart, 6);
+  const attempts = await db
+    .select({ points: quizAttemptsTable.pointsEarned })
+    .from(quizAttemptsTable)
+    .where(
+      and(
+        eq(quizAttemptsTable.userId, userId),
+        gte(quizAttemptsTable.completedAt, dateAtUtcStart(weekStart)),
+        lt(quizAttemptsTable.completedAt, dateAtUtcStart(addCalendarDays(weekEnd, 1))),
+      ),
+    );
+  const points = attempts.reduce((total, attempt) => total + attempt.points, 0);
+  const eligible = points >= policy.dailyPointsTarget;
+  return {
+    week_start: weekStart,
+    week_end: weekEnd,
+    points,
+    target: policy.dailyPointsTarget,
+    eligible,
+    reason: eligible
+      ? "بلغت هدف النقاط الأسبوعية ويمكنك بدء الكويز الأسبوعي."
+      : `تحتاج إلى ${Math.max(0, policy.dailyPointsTarget - points)} نقطة إضافية لفتح الكويز الأسبوعي.`,
+  };
+}
+
+export async function getBenchmarkLock(userId: string): Promise<BenchmarkLock> {
+  const data = await listSummaryBank(userId);
+  const unit = data.summaries.find((summary) => summary.lesson_id === "newton-motion");
+  const unlocked = Boolean(unit && unit.concepts.length > 0 && unit.concepts.every((concept) => (concept.mastery ?? 0) >= 100));
+  return {
+    benchmark_id: "mechanics-unit",
+    locked: !unlocked,
+    reason: unlocked
+      ? "اكتملت مفاهيم وحدة الميكانيك."
+      : "يُفتح التقييم المعياري بعد إتقان مفاهيم وحدة الميكانيك.",
+    unlock_requirement: "إتمام جميع مفاهيم وحدة الميكانيك بنسبة إتقان 100%.",
+  };
+}
+
+export async function listRemedialModules(userId: string): Promise<{ modules: RemedialModule[]; policy: LearningPolicyView }> {
+  const [summary, policy, schedule] = await Promise.all([
+    listSummaryBank(userId),
+    getLearningPolicy(),
+    db.select().from(studyScheduleTable).where(and(eq(studyScheduleTable.userId, userId), eq(studyScheduleTable.completed, false))),
+  ]);
+  const modules = summary.metrics
+    .filter((metric) => metric.errors_count > 0)
+    .sort((a, b) => b.error_rate - a.error_rate || b.errors_count - a.errors_count)
+    .map((metric) => ({
+      concept_id: metric.concept_id,
+      concept_title: metric.concept_title,
+      lesson_id: metric.lesson_id,
+      lesson_title: metric.lesson_title,
+      error_rate: metric.error_rate,
+      errors_count: metric.errors_count,
+      priority: metric.error_rate >= policy.emergency_error_rate
+        ? "emergency" as const
+        : metric.error_rate >= 0.25
+          ? "high" as const
+          : "review" as const,
+      schedule_entry_id:
+        schedule.find((row) => row.lessonId === metric.lesson_id && row.conceptId === metric.concept_id)?.id ?? null,
+    }));
+  return { modules, policy };
+}
+
+export async function listLearningNotifications(userId: string): Promise<{ notifications: LearningNotification[] }> {
+  const [summary, schedule, policy, yesterdayPoints, benchmark] = await Promise.all([
+    listSummaryBank(userId),
+    listLearningSchedule(userId),
+    getLearningPolicy(),
+    getDailyPoints(userId, addCalendarDays(utcDateOnly(), -1)),
+    getBenchmarkLock(userId),
+  ]);
+  const now = new Date().toISOString();
+  const notifications: LearningNotification[] = [];
+  for (const metric of summary.metrics.filter((item) => item.errors_count > 0 && item.error_rate >= policy.emergency_error_rate).slice(0, 5)) {
+    notifications.push({
+      id: `emergency:${metric.lesson_id}:${metric.concept_id}`,
+      type: "emergency",
+      title: EMERGENCY_REMEDIATION_LABEL,
+      body: `${metric.concept_title}: معدل الخطأ ${Math.round(metric.error_rate * 100)}%.`,
+      severity: "high",
+      created_at: now,
+      read: false,
+    });
+  }
+  const missed = schedule.filter((entry) => entry.missed).slice(0, 3);
+  for (const entry of missed) {
+    notifications.push({
+      id: `schedule:${entry.id}`,
+      type: "schedule",
+      title: "حصة فائتة تحتاج إلى تعويض",
+      body: `${entry.title} في ${entry.scheduled_date}.`,
+      severity: "medium",
+      created_at: now,
+      read: false,
+    });
+  }
+  if (!yesterdayPoints.on_track) {
+    notifications.push({
+      id: `points:${yesterdayPoints.date}`,
+      type: "points",
+      title: "هدف النقاط اليومية لم يكتمل",
+      body: `أحرزت ${yesterdayPoints.points} من ${yesterdayPoints.target} نقطة أمس.`,
+      severity: "medium",
+      created_at: now,
+      read: false,
+    });
+  }
+  if (benchmark.locked) {
+    notifications.push({
+      id: "benchmark:mechanics-unit",
+      type: "benchmark",
+      title: "التقييم المعياري مقفل",
+      body: benchmark.reason,
+      severity: "info",
+      created_at: now,
+      read: false,
+    });
+  }
+  return { notifications };
+}
+
+export async function getProfileSummary(userId: string): Promise<ProfileSummary> {
+  const [summary, dailyPoints, policy, exports] = await Promise.all([
+    listSummaryBank(userId),
+    getDailyPoints(userId),
+    getLearningPolicy(),
+    db.select().from(profileSummaryExportsTable).where(eq(profileSummaryExportsTable.userId, userId)).orderBy(desc(profileSummaryExportsTable.createdAt)).limit(10),
+  ]);
+  return {
+    profile: { name: "ياسين", grade: "السنة الثالثة ثانوي", streak: 0, avatar: "ي" },
+    metrics: summary.metrics,
+    daily_points: dailyPoints,
+    policy,
+    exports: exports.map(toProfileSummaryExport),
+  };
+}
+
+export async function saveProfileSummaryExport(
+  userId: string,
+  input: { objectPath: string; fileName: string; sizeBytes: number },
+): Promise<ProfileSummaryExportView> {
+  const [row] = await db
+    .insert(profileSummaryExportsTable)
+    .values({
+      userId,
+      objectPath: input.objectPath,
+      fileName: input.fileName,
+      contentType: "application/pdf",
+      sizeBytes: input.sizeBytes,
+    })
+    .returning();
+  if (!row) throw new Error("Profile summary export could not be saved");
+  return toProfileSummaryExport(row);
+}
+
+export async function getProfileSummaryExport(userId: string, exportId: number) {
+  const [row] = await db
+    .select()
+    .from(profileSummaryExportsTable)
+    .where(and(eq(profileSummaryExportsTable.id, exportId), eq(profileSummaryExportsTable.userId, userId)))
+    .limit(1);
+  return row ?? null;
 }

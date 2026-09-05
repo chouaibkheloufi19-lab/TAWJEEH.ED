@@ -21,9 +21,12 @@ import type {
 
 import type {
   AgentReadiness,
+  BenchmarkLock,
+  DailyPoints,
   Dashboard,
   ErrorBankResponse,
   ExamMode,
+  GetDailyPointsParams,
   GetExamModeParams,
   GetKnowledgeStatus503,
   GroundedError,
@@ -34,17 +37,22 @@ import type {
   KnowledgeStatus,
   LearningAttemptInput,
   LearningAttemptResponse,
+  LearningNotificationsResponse,
   LessonCompletionInput,
   ListKnowledgeParams,
   ListQuizzesParams,
+  ProfileSummary,
+  ProfileSummaryExport,
   Quiz,
   QuizAttemptInput,
   QuizAttemptsResponse,
   QuizResult,
+  RemedialModulesResponse,
   ScheduleEntry,
   ScheduleUpdateInput,
   SummaryBankItem,
-  SummaryBankResponse
+  SummaryBankResponse,
+  WeeklyQuizEligibility
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -371,6 +379,623 @@ export function useGetErrorBank<TData = Awaited<ReturnType<typeof getErrorBank>>
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetErrorBankQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetProfileSummaryUrl = () => {
+
+
+
+
+  return `/api/learning/profile-summary`
+}
+
+/**
+ * @summary Get the durable profile summary and learning policy
+ */
+export const getProfileSummary = async ( options?: Parameters<typeof customFetch>[1]): Promise<ProfileSummary> => {
+
+  return customFetch<ProfileSummary>(getGetProfileSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetProfileSummaryQueryKey = () => {
+    return [
+    `/api/learning/profile-summary`
+    ] as const;
+    }
+
+
+export const getGetProfileSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getProfileSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProfileSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetProfileSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProfileSummary>>> = ({ signal }) => getProfileSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProfileSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetProfileSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getProfileSummary>>>
+export type GetProfileSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the durable profile summary and learning policy
+ */
+
+export function useGetProfileSummary<TData = Awaited<ReturnType<typeof getProfileSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProfileSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetProfileSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateProfileSummaryPdfUrl = () => {
+
+
+
+
+  return `/api/learning/profile-summary/pdf`
+}
+
+/**
+ * @summary Generate a profile summary PDF in App Storage
+ */
+export const createProfileSummaryPdf = async ( options?: Parameters<typeof customFetch>[1]): Promise<ProfileSummaryExport> => {
+
+  return customFetch<ProfileSummaryExport>(getCreateProfileSummaryPdfUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCreateProfileSummaryPdfMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProfileSummaryPdf>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createProfileSummaryPdf>>, TError,void, TContext> => {
+
+const mutationKey = ['createProfileSummaryPdf'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createProfileSummaryPdf>>, void> = () => {
+
+
+          return  createProfileSummaryPdf(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateProfileSummaryPdfMutationResult = NonNullable<Awaited<ReturnType<typeof createProfileSummaryPdf>>>
+
+    export type CreateProfileSummaryPdfMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate a profile summary PDF in App Storage
+ */
+export const useCreateProfileSummaryPdf = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProfileSummaryPdf>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createProfileSummaryPdf>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCreateProfileSummaryPdfMutationOptions(options));
+    }
+
+export const getDownloadProfileSummaryPdfUrl = (exportId: number,) => {
+
+
+
+
+  return `/api/learning/profile-summary/pdf/${exportId}`
+}
+
+/**
+ * @summary Download a generated profile summary PDF
+ */
+export const downloadProfileSummaryPdf = async (exportId: number, options?: Parameters<typeof customFetch>[1]): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadProfileSummaryPdfUrl(exportId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadProfileSummaryPdfQueryKey = (exportId: number,) => {
+    return [
+    `/api/learning/profile-summary/pdf/${exportId}`
+    ] as const;
+    }
+
+
+export const getDownloadProfileSummaryPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadProfileSummaryPdf>>, TError = ErrorType<void>>(exportId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadProfileSummaryPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadProfileSummaryPdfQueryKey(exportId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadProfileSummaryPdf>>> = ({ signal }) => downloadProfileSummaryPdf(exportId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: exportId !== null && exportId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadProfileSummaryPdf>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadProfileSummaryPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadProfileSummaryPdf>>>
+export type DownloadProfileSummaryPdfQueryError = ErrorType<void>
+
+
+/**
+ * @summary Download a generated profile summary PDF
+ */
+
+export function useDownloadProfileSummaryPdf<TData = Awaited<ReturnType<typeof downloadProfileSummaryPdf>>, TError = ErrorType<void>>(
+ exportId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadProfileSummaryPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadProfileSummaryPdfQueryOptions(exportId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRemedialModulesUrl = () => {
+
+
+
+
+  return `/api/learning/remedial-modules`
+}
+
+/**
+ * @summary Get prioritized remedial modules
+ */
+export const getRemedialModules = async ( options?: Parameters<typeof customFetch>[1]): Promise<RemedialModulesResponse> => {
+
+  return customFetch<RemedialModulesResponse>(getGetRemedialModulesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRemedialModulesQueryKey = () => {
+    return [
+    `/api/learning/remedial-modules`
+    ] as const;
+    }
+
+
+export const getGetRemedialModulesQueryOptions = <TData = Awaited<ReturnType<typeof getRemedialModules>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRemedialModules>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRemedialModulesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRemedialModules>>> = ({ signal }) => getRemedialModules({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRemedialModules>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRemedialModulesQueryResult = NonNullable<Awaited<ReturnType<typeof getRemedialModules>>>
+export type GetRemedialModulesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get prioritized remedial modules
+ */
+
+export function useGetRemedialModules<TData = Awaited<ReturnType<typeof getRemedialModules>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRemedialModules>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRemedialModulesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetLearningNotificationsUrl = () => {
+
+
+
+
+  return `/api/learning/notifications`
+}
+
+/**
+ * @summary Get learning notifications
+ */
+export const getLearningNotifications = async ( options?: Parameters<typeof customFetch>[1]): Promise<LearningNotificationsResponse> => {
+
+  return customFetch<LearningNotificationsResponse>(getGetLearningNotificationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLearningNotificationsQueryKey = () => {
+    return [
+    `/api/learning/notifications`
+    ] as const;
+    }
+
+
+export const getGetLearningNotificationsQueryOptions = <TData = Awaited<ReturnType<typeof getLearningNotifications>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningNotifications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLearningNotificationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLearningNotifications>>> = ({ signal }) => getLearningNotifications({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLearningNotifications>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLearningNotificationsQueryResult = NonNullable<Awaited<ReturnType<typeof getLearningNotifications>>>
+export type GetLearningNotificationsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get learning notifications
+ */
+
+export function useGetLearningNotifications<TData = Awaited<ReturnType<typeof getLearningNotifications>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningNotifications>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLearningNotificationsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDailyPointsUrl = (params?: GetDailyPointsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/learning/daily-points?${stringifiedParams}` : `/api/learning/daily-points`
+}
+
+/**
+ * @summary Get durable daily points against the configured target
+ */
+export const getDailyPoints = async (params?: GetDailyPointsParams, options?: Parameters<typeof customFetch>[1]): Promise<DailyPoints> => {
+
+  return customFetch<DailyPoints>(getGetDailyPointsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDailyPointsQueryKey = (params?: GetDailyPointsParams,) => {
+    return [
+    `/api/learning/daily-points`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDailyPointsQueryOptions = <TData = Awaited<ReturnType<typeof getDailyPoints>>, TError = ErrorType<unknown>>(params?: GetDailyPointsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDailyPoints>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDailyPointsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDailyPoints>>> = ({ signal }) => getDailyPoints(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDailyPoints>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDailyPointsQueryResult = NonNullable<Awaited<ReturnType<typeof getDailyPoints>>>
+export type GetDailyPointsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get durable daily points against the configured target
+ */
+
+export function useGetDailyPoints<TData = Awaited<ReturnType<typeof getDailyPoints>>, TError = ErrorType<unknown>>(
+ params?: GetDailyPointsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDailyPoints>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDailyPointsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetWeeklyQuizEligibilityUrl = () => {
+
+
+
+
+  return `/api/learning/weekly-quiz-eligibility`
+}
+
+/**
+ * @summary Check weekly quiz eligibility
+ */
+export const getWeeklyQuizEligibility = async ( options?: Parameters<typeof customFetch>[1]): Promise<WeeklyQuizEligibility> => {
+
+  return customFetch<WeeklyQuizEligibility>(getGetWeeklyQuizEligibilityUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWeeklyQuizEligibilityQueryKey = () => {
+    return [
+    `/api/learning/weekly-quiz-eligibility`
+    ] as const;
+    }
+
+
+export const getGetWeeklyQuizEligibilityQueryOptions = <TData = Awaited<ReturnType<typeof getWeeklyQuizEligibility>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWeeklyQuizEligibility>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWeeklyQuizEligibilityQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWeeklyQuizEligibility>>> = ({ signal }) => getWeeklyQuizEligibility({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWeeklyQuizEligibility>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWeeklyQuizEligibilityQueryResult = NonNullable<Awaited<ReturnType<typeof getWeeklyQuizEligibility>>>
+export type GetWeeklyQuizEligibilityQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Check weekly quiz eligibility
+ */
+
+export function useGetWeeklyQuizEligibility<TData = Awaited<ReturnType<typeof getWeeklyQuizEligibility>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWeeklyQuizEligibility>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWeeklyQuizEligibilityQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetBenchmarkLockUrl = () => {
+
+
+
+
+  return `/api/learning/benchmark-lock`
+}
+
+/**
+ * @summary Check whether the benchmark assessment is locked
+ */
+export const getBenchmarkLock = async ( options?: Parameters<typeof customFetch>[1]): Promise<BenchmarkLock> => {
+
+  return customFetch<BenchmarkLock>(getGetBenchmarkLockUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBenchmarkLockQueryKey = () => {
+    return [
+    `/api/learning/benchmark-lock`
+    ] as const;
+    }
+
+
+export const getGetBenchmarkLockQueryOptions = <TData = Awaited<ReturnType<typeof getBenchmarkLock>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBenchmarkLock>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBenchmarkLockQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBenchmarkLock>>> = ({ signal }) => getBenchmarkLock({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBenchmarkLock>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBenchmarkLockQueryResult = NonNullable<Awaited<ReturnType<typeof getBenchmarkLock>>>
+export type GetBenchmarkLockQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Check whether the benchmark assessment is locked
+ */
+
+export function useGetBenchmarkLock<TData = Awaited<ReturnType<typeof getBenchmarkLock>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBenchmarkLock>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBenchmarkLockQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

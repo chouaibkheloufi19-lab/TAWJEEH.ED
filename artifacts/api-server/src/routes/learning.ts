@@ -3,11 +3,20 @@ import {
   CompleteLessonBody,
   CompleteLessonParams,
   CompleteLessonResponse,
+  GetBenchmarkLockResponse,
+  GetDailyPointsQueryParams,
+  GetDailyPointsResponse,
   GetDashboardResponse,
   GetErrorBankResponse,
   GetExamModeResponse,
+  GetLearningNotificationsResponse,
   GetLearningScheduleResponse,
+  GetProfileSummaryResponse,
+  GetRemedialModulesResponse,
   GetSummaryBankResponse,
+  GetWeeklyQuizEligibilityResponse,
+  CreateProfileSummaryPdfResponse,
+  DownloadProfileSummaryPdfParams,
   RecordLearningAttemptBody,
   RecordLearningAttemptResponse,
   UpdateLearningScheduleBody,
@@ -17,13 +26,23 @@ import {
 import {
   getUserId,
   getExamMode,
+  getBenchmarkLock,
+  getDailyPoints,
+  getProfileSummary,
+  getProfileSummaryExport,
+  getWeeklyQuizEligibility,
+  listLearningNotifications,
+  listRemedialModules,
   listErrorBank,
   listLearningSchedule,
   listSummaryBank,
   recordLearningAttempt,
   saveLessonSummary,
   updateLearningSchedule,
+  saveProfileSummaryExport,
 } from "../lib/learning-store";
+import { savePrivatePdf, readPrivatePdf } from "../lib/generated-file-storage";
+import { buildProfileSummaryPdf } from "../lib/profile-summary-pdf";
 import {
   assertGroundedNodeIds,
   retrieveGroundedKnowledge,
@@ -84,6 +103,116 @@ router.get("/learning/error-bank", async (req, res): Promise<void> => {
   }
   const data = await listErrorBank(userId);
   res.json(GetErrorBankResponse.parse(data));
+});
+
+router.get("/learning/profile-summary", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  res.json(GetProfileSummaryResponse.parse(await getProfileSummary(userId)));
+});
+
+router.post("/learning/profile-summary/pdf", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  try {
+    const summary = await getProfileSummary(userId);
+    const bytes = buildProfileSummaryPdf(summary);
+    const objectPath = await savePrivatePdf(bytes, userId);
+    const data = await saveProfileSummaryExport(userId, {
+      objectPath,
+      fileName: `tawjeeh-profile-summary-${new Date().toISOString().slice(0, 10)}.pdf`,
+      sizeBytes: bytes.length,
+    });
+    res.status(201).json(CreateProfileSummaryPdfResponse.parse(data));
+  } catch (error) {
+    req.log.error({ error }, "Profile summary PDF generation failed");
+    res.status(500).json({ error: "profile_summary_pdf_failed" });
+  }
+});
+
+router.get("/learning/profile-summary/pdf/:exportId", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const params = DownloadProfileSummaryPdfParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const exportRow = await getProfileSummaryExport(userId, params.data.exportId);
+  if (!exportRow) {
+    res.status(404).json({ error: "PDF export not found" });
+    return;
+  }
+  const file = await readPrivatePdf(exportRow.objectPath);
+  if (!file) {
+    res.status(404).json({ error: "PDF object not found" });
+    return;
+  }
+  res.type(file.contentType);
+  res.setHeader("Content-Disposition", `attachment; filename="${exportRow.fileName}"`);
+  res.send(file.bytes);
+});
+
+router.get("/learning/remedial-modules", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  res.json(GetRemedialModulesResponse.parse(await listRemedialModules(userId)));
+});
+
+router.get("/learning/notifications", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  res.json(GetLearningNotificationsResponse.parse(await listLearningNotifications(userId)));
+});
+
+router.get("/learning/daily-points", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const parsed = GetDailyPointsQueryParams.safeParse({
+    date: typeof req.query.date === "string" ? req.query.date : undefined,
+  });
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const date = parsed.data.date?.toISOString().slice(0, 10);
+  res.json(GetDailyPointsResponse.parse(await getDailyPoints(userId, date)));
+});
+
+router.get("/learning/weekly-quiz-eligibility", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  res.json(GetWeeklyQuizEligibilityResponse.parse(await getWeeklyQuizEligibility(userId)));
+});
+
+router.get("/learning/benchmark-lock", async (req, res): Promise<void> => {
+  const userId = getUserId(req);
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  res.json(GetBenchmarkLockResponse.parse(await getBenchmarkLock(userId)));
 });
 
 router.get("/learning/exam-mode", async (req, res): Promise<void> => {
