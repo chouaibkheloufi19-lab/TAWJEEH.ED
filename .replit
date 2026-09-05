@@ -9,60 +9,6 @@ args = ["pnpm", "store", "prune"]
 env = { "CI" = "true" }
 
 [workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Tawjeeh Preview"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Tawjeeh API"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Tawjeeh Knowledge Base"
-
-[[workflows.workflow]]
-name = "Tawjeeh Preview"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "PORT=25786 BASE_PATH=/ pnpm --filter @workspace/tawjeeh-ed run dev"
-waitForPort = 25786
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[workflows.workflow]]
-name = "Tawjeeh API"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
-waitForPort = 8080
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow]]
-name = "Tawjeeh Knowledge Base"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "uv run python3 -m knowledge_base.cli serve --host 0.0.0.0 --port 8001"
-waitForPort = 8001
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [agent]
 stack = "PNPM_WORKSPACE"
