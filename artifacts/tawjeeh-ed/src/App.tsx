@@ -160,9 +160,9 @@ const clerkAppearance = {
 };
 
 const navItems = [
-  { href: '/profile', label: 'ملف شخصي', icon: UserRound },
-  { href: '/program', label: 'البرنامج الدراسي', icon: CalendarDays },
-  { href: '/quizzes', label: 'الكويزات الأسبوعية', icon: BrainCircuit },
+  { href: '/profile', label: 'الصفحة الشخصية', icon: UserRound },
+  { href: '/program', label: 'تبويب التفاعل', icon: MessageCircle },
+  { href: '/quizzes', label: 'تبويب الكويزات والنقاط', icon: Trophy },
 ];
 
 function Logo({ compact = false }: { compact?: boolean }) {
@@ -200,7 +200,7 @@ function AgentAvatar({ size = 'md', pose = 'default' }: { size?: 'sm' | 'md' | '
 function NavLinks({ mobile = false, compact = false }: { mobile?: boolean; compact?: boolean }) {
   const [location] = useLocation();
   return (
-    <nav className={mobile ? 'mobile-nav' : `mt-12 flex flex-col gap-2 ${compact ? 'lesson-sidebar-links' : ''}`} aria-label="التنقل الرئيسي">
+    <nav className={mobile ? 'bottom-nav' : `mt-12 flex flex-col gap-2 ${compact ? 'lesson-sidebar-links' : ''}`} aria-label="التنقل الرئيسي">
       {navItems.map(({ href, label, icon: Icon }) => {
         const active = href === '/' ? location === '/' : location.startsWith(href);
         return (
@@ -225,7 +225,6 @@ function Sidebar({ compact = false }: { compact?: boolean }) {
   return (
     <aside className={`sidebar fixed inset-y-0 right-0 z-10 hidden w-[252px] flex-col px-5 py-7 lg:flex ${compact ? 'is-compact' : ''}`}>
       <Logo compact={compact} />
-      <NavLinks compact={compact} />
       <div className="lesson-sidebar-card mt-auto overflow-hidden rounded-2xl border border-[#b3e5fc] bg-[#004b75] p-4">
         <div className="mb-3 flex items-start justify-between">
           <span className="tag bg-[#e6f6fb] text-[#004b75]">مساحة هادئة</span>
@@ -326,6 +325,131 @@ function AuthWelcome() {
   );
 }
 
+type SubscriptionPlan = 'free' | 'seasonal' | 'advanced';
+
+const subscriptionPlans: Array<{
+  id: SubscriptionPlan;
+  name: string;
+  englishName: string;
+  description: string;
+  badge?: string;
+  icon: typeof Sparkles;
+}> = [
+  {
+    id: 'free',
+    name: 'المجانية',
+    englishName: 'Free',
+    description: 'ابدأ بخطوات واضحة، وتابع أساسيات التعلم بهدوء.',
+    icon: UserRound,
+  },
+  {
+    id: 'seasonal',
+    name: 'الموسمية',
+    englishName: 'Seasonal',
+    description: 'خطة مكثفة للمراجعة، التفاعل، والكويزات خلال الموسم.',
+    badge: 'الأكثر اختيارًا',
+    icon: CalendarDays,
+  },
+  {
+    id: 'advanced',
+    name: 'الراقية / المتقدمة',
+    englishName: 'Advanced',
+    description: 'تجربة أوسع مع أدوات التثبيت والتدريب الذكي المتقدم.',
+    icon: Sparkles,
+  },
+];
+
+function OnboardingPlansModal({ onComplete }: { onComplete: (plan: SubscriptionPlan) => void }) {
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+
+  return (
+    <div className="onboarding-backdrop" role="presentation">
+      <section className="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" dir="rtl">
+        <div className="onboarding-intro">
+          <div className="onboarding-owl-wrap">
+            <AgentAvatar size="lg" pose="guiding" />
+            <span className="onboarding-owl-glow" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="onboarding-kicker">مرحبًا بك في توجيه</span>
+            <h1 id="onboarding-title">لنرتّب مساحتك التعليمية.</h1>
+            <p>أنا البومة الزرقاء. اختر الخطة التي تشبه هدفك، ثم ادخل إلى تبويباتك الثلاثة من الشريط السفلي.</p>
+          </div>
+        </div>
+        <div className="onboarding-tabs-preview" aria-label="تبويبات توجيه الرئيسية">
+          <span><UserRound size={13} /> الصفحة الشخصية</span>
+          <span><MessageCircle size={13} /> تبويب التفاعل</span>
+          <span><Trophy size={13} /> الكويزات والنقاط</span>
+        </div>
+        <div className="onboarding-plans-heading">
+          <span className="onboarding-kicker">خطط الاشتراك</span>
+          <strong>اختر الخطة الأقرب إلى رحلتك</strong>
+        </div>
+        <div className="onboarding-plans">
+          {subscriptionPlans.map((plan) => {
+            const Icon = plan.icon;
+            const selected = selectedPlan === plan.id;
+            return (
+              <button
+                type="button"
+                key={plan.id}
+                className={`onboarding-plan ${selected ? 'is-selected' : ''}`}
+                onClick={() => setSelectedPlan(plan.id)}
+                aria-pressed={selected}
+                data-testid={`button-plan-${plan.id}`}
+              >
+                {plan.badge && <span className="onboarding-plan-badge">{plan.badge}</span>}
+                <span className="onboarding-plan-icon"><Icon size={18} /></span>
+                <span className="onboarding-plan-name">{plan.name}</span>
+                <strong>{plan.englishName}</strong>
+                <small>{plan.description}</small>
+                <span className="onboarding-plan-check">{selected ? <CheckCircle2 size={17} /> : 'اختر'}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="onboarding-footer">
+          <span><CheckCircle2 size={15} /> يمكنك البدء من الخطة المجانية واختيار ما يناسبك الآن.</span>
+          <button
+            type="button"
+            className="primary-button"
+            disabled={!selectedPlan}
+            onClick={() => selectedPlan && onComplete(selectedPlan)}
+            data-testid="button-confirm-onboarding-plan"
+          >
+            دخول إلى مساحتي <ArrowLeft size={16} />
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function OnboardingGate({ children }: { children: ReactNode }) {
+  const { user } = useUser();
+  const onboardingKey = `tawjeeh.onboarding.plan.v1:${user?.id ?? 'current'}`;
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(() => {
+    try {
+      const stored = localStorage.getItem(onboardingKey);
+      return stored === 'free' || stored === 'seasonal' || stored === 'advanced' ? stored : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const completeOnboarding = (plan: SubscriptionPlan) => {
+    localStorage.setItem(onboardingKey, plan);
+    setSelectedPlan(plan);
+  };
+
+  return (
+    <>
+      {children}
+      {!selectedPlan && <OnboardingPlansModal onComplete={completeOnboarding} />}
+    </>
+  );
+}
+
 function HomeRedirect() {
   const { isLoaded, isSignedIn } = useAuth();
   const [, setLocation] = useLocation();
@@ -343,7 +467,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return <AuthLoading />;
   if (!isSignedIn) return <Redirect to="/sign-in" />;
-  return <>{children}</>;
+  return <OnboardingGate>{children}</OnboardingGate>;
 }
 
 function ProgramLessonRoute() {
@@ -661,7 +785,7 @@ function ProfilePage() {
           <div className="profile-id-icon" aria-hidden="true"><UserRound size={22} /></div>
         </div>
         <div className="profile-actions">
-          <Link href="/program" className="primary-button"><CalendarDays size={16} /> افتح برنامجك الدراسي</Link>
+          <Link href="/program" className="primary-button"><MessageCircle size={16} /> افتح مساحة التفاعل</Link>
           <button type="button" className="secondary-button" onClick={() => { sessionStorage.removeItem('tawjeeh.program.lesson-access.v1'); void signOut({ redirectUrl: `${basePath}/sign-in` }); }} data-testid="button-sign-out"><LogOut size={16} /> تسجيل الخروج</button>
         </div>
         <div className="profile-learning-grid">
@@ -988,7 +1112,7 @@ function QuizzesPage() {
     .reduce((total, attempt: QuizAttemptRecord) => total + attempt.points_earned, 0);
   if (selectedQuiz) return <Shell title="جلسة تدريب"><QuizAttempt quiz={selectedQuiz} examDate={examDate} onExit={() => { setSelectedQuiz(null); setLocation('/quizzes'); }} onScore={(result) => { void attemptsQuery.refetch(); void queryClient.invalidateQueries({ queryKey: getGetErrorBankQueryKey() }); void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() }); if (result.mode !== 'standard') void quizzesQuery.refetch(); }} /></Shell>;
   return (
-    <Shell title="الاختبارات الأسبوعية">
+     <Shell title="الكويزات والنقاط">
        <section className="mb-5 flex items-end justify-between gap-4 rounded-[1.35rem] border border-[#2e8b7b] bg-[#e8f8f5] p-6 md:p-8">
          <div><p className="eyebrow mb-2 text-[#2e8b7b]">كويزاتك الأسبوعية</p><h2 className="display text-[26px] md:text-[34px]">اختبر فهمك، بهدوء.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-[#64748b]">الأول يتابع مستواك وما ظهر في محاولاتك، والثاني تحدٍّ عام صعب بعد إتمام الوحدة.</p><p className="mt-2 text-xs font-bold text-[#2e8b7b]">{mistakeCount ? `تم رصد ${mistakeCount} محاولات للمراجعة هذا الأسبوع.` : 'ستتكوّن مراجعتك من إجاباتك ومحاولاتك القادمة.'}</p></div>
          <div className="hidden rounded-2xl bg-[#e6f6fb] p-4 text-[#005689] sm:block"><Target size={32} strokeWidth={1.5} /></div>
@@ -1099,7 +1223,7 @@ function Router() {
         <Route path="/sign-up/*?" component={SignUpPage} />
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/profile" component={() => <ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-         <Route path="/program" component={() => <ProtectedRoute><Shell title="البرنامج الدراسي"><ProgramAgent /></Shell></ProtectedRoute>} />
+         <Route path="/program" component={() => <ProtectedRoute><Shell title="التفاعل"><ProgramAgent /></Shell></ProtectedRoute>} />
         <Route path="/lesson/:id" component={() => <ProtectedRoute><ProgramLessonRoute /></ProtectedRoute>} />
         <Route path="/library" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
         <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
