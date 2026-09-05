@@ -1537,6 +1537,8 @@ button { cursor: pointer; }
 .program-plan-control { display: grid; gap: 4px; color: #7a9299; font-size: 8px; font-weight: 850; }
 .program-plan-control input, .program-plan-control select { width: 100%; min-height: 32px; padding: 0 7px; border: 1px solid #d5e8e8; border-radius: 8px; color: #264b5c; font-family: inherit; font-size: 10px; font-weight: 800; background: #fbfefe; outline: none; }
 .program-plan-control input:focus, .program-plan-control select:focus { border-color: #26c6da; box-shadow: 0 0 0 3px rgba(38, 198, 218, .1); }
+.program-plan-agent-choice { display: grid; gap: 4px; min-width: 104px; color: #7a9299; font-size: 8px; font-weight: 850; }
+.program-plan-agent-choice strong { min-height: 32px; display: flex; align-items: center; padding: 0 7px; border: 1px solid #d5e8e8; border-radius: 8px; color: #264b5c; font-size: 10px; font-weight: 800; background: #f1faf6; }
 .program-plan-start { min-height: 32px; padding: 0 9px; border: 1px solid #c5e3e5; border-radius: 8px; color: #005689; font-family: inherit; font-size: 9px; font-weight: 900; background: #f4fbfb; }
 .program-plan-start:hover { border-color: #26c6da; background: #e6f6fb; }
 .program-later-card { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; padding: 12px 13px; border: 1px dashed #b9dcd5; border-radius: 13px; color: #426d70; background: #f1faf6; }

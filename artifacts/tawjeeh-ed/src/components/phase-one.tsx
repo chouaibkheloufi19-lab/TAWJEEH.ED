@@ -361,7 +361,7 @@ export function PlannerIntakeCard({
 
         <div className="phase-one-later-note" role="note" data-testid="text-planner-later-note">
           <strong>لا تحتاج إلى معرفة جدولك الآن.</strong>
-          <span>عندما تعرف اختبارًا أو فرضًا أو بحثًا لاحقًا، أضفه من داخل المخطّط فقط.</span>
+          <span>أدخل موعد الاختبار فقط لاحقًا، واترك للوكيل اختيار ما تحتاجه من تطبيقات.</span>
         </div>
 
         {error && <p className="phase-one-form-error" role="alert" data-testid="status-planner-error">{error}</p>}
