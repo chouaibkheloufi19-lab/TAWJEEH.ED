@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  ArrowLeft,
   BarChart3,
+  BrainCircuit,
   BookOpen,
   Check,
   CheckCircle2,
@@ -155,6 +157,10 @@ type CreativeIdea = {
   creativeTwist: string;
   expectedOutcome: string;
   sourceNodeIds: string[];
+  situation?: string;
+  data?: string;
+  required?: string;
+  challenge?: string;
 };
 
 type CreativeIdeasResponse = {
@@ -568,6 +574,10 @@ export function LessonWorkspace() {
   const [selectedCreativeTopic, setSelectedCreativeTopic] = useState<CreativeIdea | null>(null);
   const [copilotQuestion, setCopilotQuestion] = useState('');
   const [topicStudioOpen, setTopicStudioOpen] = useState(true);
+  const [isTopicImmersive, setIsTopicImmersive] = useState(false);
+  const [selectedTopicExcerpt, setSelectedTopicExcerpt] = useState('');
+  const [topicAnalysis, setTopicAnalysis] = useState('');
+  const [topicCompletionState, setTopicCompletionState] = useState<'idle' | 'analyzing' | 'advanced' | 'error'>('idle');
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
   const [lessonGenerationState, setLessonGenerationState] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
   const [lessonGenerationError, setLessonGenerationError] = useState('');
@@ -629,6 +639,7 @@ export function LessonWorkspace() {
     ? generatedLesson.explanation
     : 'يُحضّر شرح الدرس من محتوى المنهاج، وسيظهر هنا بعد اكتمال التحضير.';
   const displayedHighlight = ragReady && generatedLesson ? generatedLesson.highlight : 'فكرة الدرس';
+  const topicForStudio = selectedCreativeTopic ?? creativeIdeas?.ideas[0] ?? null;
   const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
   const totalExamples = lessonSections.length;
   const totalCompleted = lessonSections.filter((section) => session.gradedExamples[`${section.id}-grounded`] === 'correct').length;
@@ -826,11 +837,11 @@ export function LessonWorkspace() {
   }, [activeSection.id]);
 
   useEffect(() => {
-    document.body.style.overflow = isBoardImmersive ? 'hidden' : '';
+    document.body.style.overflow = isBoardImmersive || isTopicImmersive ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isBoardImmersive]);
+  }, [isBoardImmersive, isTopicImmersive]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -942,7 +953,7 @@ export function LessonWorkspace() {
     }
   };
 
-  const askCopilotQuestion = async (text: string, topic = selectedCreativeTopic) => {
+  const askCopilotQuestion = async (text: string, topic = selectedCreativeTopic, focusText = '') => {
     const cleanText = text.trim();
     if (!cleanText || !ragReady || isThinking || chatCircuitOpen) return;
     const topicContext = topic
@@ -971,6 +982,7 @@ export function LessonWorkspace() {
             generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
             sourceExcerpt ? `المكتسب المرتبط حاليًا: ${sourceExcerpt}` : '',
             topicContext,
+            focusText ? `الجزء الذي حدده الطالب من الموضوع: ${focusText}` : '',
             `عدد مكتسبات قاعدة المعرفة المتاحة: ${foundationalSources.length}`,
           ].filter(Boolean).join('\n'),
           topicContext,
@@ -991,10 +1003,34 @@ export function LessonWorkspace() {
     void askCopilotQuestion(`ساعدني في فهم موضوع «${topic.title}» وابدأ معي بالخطوة الأولى.`, topic);
   };
 
-  const generateCreativeTopic = async () => {
-    if (!ragReady || isThinking || chatCircuitOpen) return;
+  const openCreativeTopic = (topic: CreativeIdea) => {
+    setSelectedCreativeTopic(topic);
+    setSelectedTopicExcerpt('');
+    setTopicCompletionState('idle');
+    setIsTopicImmersive(true);
+  };
+
+  const captureSelectedTopicText = () => {
+    const selected = window.getSelection()?.toString().trim() ?? '';
+    if (selected.length >= 8) {
+      setSelectedTopicExcerpt(selected.slice(0, 420));
+    }
+  };
+
+  const askAboutSelectedTopicExcerpt = () => {
+    if (!selectedTopicExcerpt || !topicForStudio) return;
+    void askCopilotQuestion(
+      `حلل الجزء المحدد من الموضوع ثم اطرح سؤالين قصيرين عليه، من السهل إلى المركب، من دون كشف الحل.`,
+      topicForStudio,
+      selectedTopicExcerpt,
+    );
+  };
+
+  const generateCreativeTopic = async (completedTopic?: CreativeIdea): Promise<CreativeIdeasResponse | null> => {
+    if (!ragReady || isThinking || chatCircuitOpen) return null;
     setActivePartner('exercises');
     setIsThinking(true);
+    if (completedTopic) setTopicCompletionState('analyzing');
     try {
        const response = await fetchWithTimeout('/api/lesson/exercise', {
         method: 'POST',
@@ -1007,6 +1043,8 @@ export function LessonWorkspace() {
            mode: 'creative_topic',
            attemptContext: [
              'حوّل الموضوع إلى تطبيقات إبداعية قابلة للدراسة الآن، لا إلى أفكار عامة فقط.',
+             completedTopic ? `الموضوع المنجز الذي يجب تحليله قبل الانتقال: ${completedTopic.title}. حلل معطياته، نقطة بدايته، المطلوب، والعائق الإبداعي قبل اقتراح الموضوع التالي.` : '',
+             completedTopic ? `تفاصيل الموضوع المنجز: ${completedTopic.approach} | ${completedTopic.steps.join(' | ')} | ${completedTopic.creativeTwist} | ${completedTopic.expectedOutcome}` : '',
              generatedLesson?.objective ? `هدف الدرس: ${generatedLesson.objective}` : '',
              sourceExcerpt,
            ].filter(Boolean).join('\n'),
@@ -1016,17 +1054,38 @@ export function LessonWorkspace() {
       if (!response.ok || payload.status !== 'generated' || !payload.solutionSummary || !Array.isArray(payload.ideas) || payload.ideas.length < 3 || payload.grounding?.status !== 'ready') {
         throw new Error(payload.message || 'تعذر توليد المسارات الإبداعية');
       }
-      setCreativeIdeas(payload as CreativeIdeasResponse);
+       const generated = payload as CreativeIdeasResponse;
+       setCreativeIdeas(generated);
+       setTopicAnalysis(generated.solutionSummary);
+       if (completedTopic) {
+         const nextTopic = generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0];
+         setSelectedCreativeTopic(nextTopic);
+         setSelectedTopicExcerpt('');
+         setIsTopicImmersive(true);
+         setTopicCompletionState('advanced');
+       } else if (!selectedCreativeTopic) {
+         setSelectedCreativeTopic(generated.ideas[0]);
+       }
         setMessages((current) => [...current, {
         id: `topic-creative-${Date.now()}`,
         role: 'assistant',
-         text: `بنى لك وكيل التمارين ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة من مصادر المنهاج. ستجدها في بطاقة التمرين الإبداعي أدناه.`,
+          text: completedTopic
+            ? `حللت معطيات «${completedTopic.title}» وفتحت لك الموضوع التالي مباشرة: «${(generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0]).title}».`
+            : `بنى لك وكيل التمارين ${generated.ideas.length} موضوعات مختلفة من مصادر المنهاج. افتح أي موضوع لبدء دراسته في مساحة كاملة.`,
       }]);
-    } catch {
+       return generated;
+     } catch {
+       if (completedTopic) setTopicCompletionState('error');
       openChatCircuit();
+       return null;
     } finally {
       setIsThinking(false);
     }
+  };
+
+  const completeCreativeTopic = async () => {
+    if (!topicForStudio || isThinking || chatCircuitOpen) return;
+    await generateCreativeTopic(topicForStudio);
   };
 
   useEffect(() => {
@@ -1634,8 +1693,8 @@ export function LessonWorkspace() {
                        <ol>{idea.steps.map((step, stepIndex) => <li key={`${idea.title}-step-${stepIndex}`}>{step}</li>)}</ol>
                        <div className="lesson-creative-twist"><Lightbulb size={12} /><span><strong>اللمسة الإبداعية:</strong> {idea.creativeTwist}</span></div>
                        <small className="lesson-creative-outcome">ما ستتعلمه: {idea.expectedOutcome}</small>
-                      <button type="button" className="lesson-creative-ask" onClick={() => askAboutCreativeTopic(idea)} disabled={isThinking} data-testid={`button-ask-creative-topic-${index + 1}`}>
-                        <MessageCircle size={12} /> اسأل التعليم الذكي عن هذا الموضوع
+                       <button type="button" className="lesson-creative-ask" onClick={() => openCreativeTopic(idea)} disabled={isThinking} data-testid={`button-ask-creative-topic-${index + 1}`}>
+                         <Maximize2 size={12} /> افتح الموضوع والكوبيلوت
                       </button>
                      </div>
                    ))}
@@ -1757,12 +1816,46 @@ export function LessonWorkspace() {
                     <div><strong>طريقة العمل</strong><span>ابدأ بالمعطيات، اكتب القانون المناسب، برّر النتيجة، واطلب من فهيم توضيح أي خطوة.</span></div>
                     <div><strong>التثبيت</strong><span>اختر مفهومًا من خريطة الإتقان في الطبقة الثالثة لتفتح مثالًا وتمرينًا مرتبطين به.</span></div>
                   </div>
+                  {topicForStudio && (
+                    <article className="lesson-topic-featured" data-testid="card-featured-topic">
+                      <div className="lesson-topic-featured-copy">
+                        <span><Sparkles size={12} /> الموضوع الحالي · تحليل قابل للتحديد</span>
+                        <h4>{topicForStudio.title}</h4>
+                        <p>{topicForStudio.approach}</p>
+                        <div className="lesson-topic-featured-meta">
+                          <span>{topicForStudio.steps.length} خطوات</span>
+                          <span>مبني على المصادر</span>
+                          <span>اضغط للتركيز</span>
+                        </div>
+                      </div>
+                      <button type="button" className="lesson-topic-open-button" onClick={() => openCreativeTopic(topicForStudio)} data-testid="button-open-featured-topic">
+                        <Maximize2 size={14} /> افتح الموضوع كاملًا
+                      </button>
+                    </article>
+                  )}
+                  {creativeIdeas && (
+                    <div className="lesson-topic-mini-list" aria-label="الموضوعات المتاحة">
+                      {creativeIdeas.ideas.map((idea, index) => (
+                        <button
+                          type="button"
+                          key={`${idea.title}-${index}`}
+                          className={`lesson-topic-mini-item ${topicForStudio?.title === idea.title ? 'is-active' : ''}`}
+                          onClick={() => openCreativeTopic(idea)}
+                          data-testid={`button-open-topic-${index + 1}`}
+                        >
+                          <span>{index + 1}</span>
+                          <strong>{idea.title}</strong>
+                          <small>فتح</small>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <div className="lesson-topic-actions">
                     <button type="button" className="lesson-topic-primary" onClick={() => void generateCreativeTopic()} disabled={!lessonToolsActive || isThinking || chatCircuitOpen} data-testid="button-generate-topic-creative">
                       {isThinking ? <LoaderCircle size={13} className="lesson-spin-icon" /> : <Sparkles size={13} />} ولّد تطبيقات إبداعية من كل المكتسبات
                     </button>
-                    <button type="button" className="lesson-topic-secondary" onClick={() => setLocation('/exam-preview')} data-testid="button-open-full-topic">
-                      <BookOpen size={13} /> فتح الموضوع الكامل
+                     <button type="button" className="lesson-topic-secondary" onClick={() => topicForStudio ? openCreativeTopic(topicForStudio) : setLocation('/exam-preview')} data-testid="button-open-full-topic">
+                       <Maximize2 size={13} /> فتح الموضوع بملء الشاشة
                     </button>
                   </div>
                   <form className="lesson-copilot-form" onSubmit={(event) => { event.preventDefault(); void askCopilotQuestion(copilotQuestion); }}>
@@ -1776,6 +1869,82 @@ export function LessonWorkspace() {
                 </div>
               )}
             </section>
+            {isTopicImmersive && topicForStudio && (
+              <div className="lesson-topic-immersive" role="presentation">
+                <section className="lesson-topic-immersive-card" role="dialog" aria-modal="true" aria-label={`موضوع ${topicForStudio.title}`} data-testid="dialog-topic-immersive">
+                  <header className="lesson-topic-immersive-head">
+                    <div>
+                      <span className="lesson-topic-kicker"><BookOpen size={13} /> مساحة الموضوع · وكيل التمارين</span>
+                      <h3>{topicForStudio.title}</h3>
+                      <p>اقرأ المعطيات، ظلّل أي جزء، ثم اطلب من الكوبيلوت أن يبني عليه أسئلة.</p>
+                    </div>
+                    <button type="button" className="lesson-topic-close" onClick={() => setIsTopicImmersive(false)} aria-label="إغلاق مساحة الموضوع" data-testid="button-close-topic-immersive"><X size={18} /></button>
+                  </header>
+                  <div className="lesson-topic-immersive-grid">
+                    <article
+                      className="lesson-topic-paper"
+                      onMouseUp={captureSelectedTopicText}
+                      onTouchEnd={captureSelectedTopicText}
+                      data-testid="article-topic-paper"
+                    >
+                      <div className="lesson-topic-paper-label"><span>موضوع تطبيقي</span><small>تحديد ذكي مفعّل</small></div>
+                      <h4>{topicForStudio.title}</h4>
+                      <div className="lesson-topic-data-block">
+                        <strong>الوضعية والمعطيات</strong>
+                        <p>{topicForStudio.situation || topicForStudio.approach}</p>
+                        <ul>
+                          {topicForStudio.steps.slice(0, 3).map((step, index) => <li key={`${topicForStudio.title}-full-step-${index}`}>{step}</li>)}
+                        </ul>
+                      </div>
+                      <div className="lesson-topic-data-block">
+                        <strong>المطلوب</strong>
+                        <p>{topicForStudio.required || topicForStudio.expectedOutcome}</p>
+                      </div>
+                      <div className="lesson-topic-challenge">
+                        <strong>التحدّي الخاص</strong>
+                        <p>{topicForStudio.challenge || topicForStudio.creativeTwist}</p>
+                      </div>
+                      {selectedTopicExcerpt && (
+                        <div className="lesson-topic-selection" role="status" data-testid="status-selected-topic-excerpt">
+                          <span>الجزء المحدد</span>
+                          <p>«{selectedTopicExcerpt}»</p>
+                          <button type="button" onClick={askAboutSelectedTopicExcerpt} disabled={isThinking || chatCircuitOpen} data-testid="button-ask-selected-topic">
+                            <MessageCircle size={13} /> اطرح أسئلة على الجزء المحدد
+                          </button>
+                        </div>
+                      )}
+                      <small className="lesson-topic-selection-hint">اسحب لتحديد جملة أو معطى داخل الموضوع.</small>
+                    </article>
+                    <aside className="lesson-topic-immersive-side">
+                      <div className="lesson-topic-analysis-card">
+                        <span><BrainCircuit size={13} /> تحليل المعطيات قبل التقدم</span>
+                        <strong>{topicCompletionState === 'analyzing' ? 'أحلل الموضوع وأبحث عن التالي...' : 'نقطة البدء واضحة'}</strong>
+                        <p>{topicAnalysis || 'ابدأ من الوضعية، استخرج ما هو معلوم، ثم اربط كل خطوة بالمطلوب قبل اختيار القانون.'}</p>
+                        <div className="lesson-topic-analysis-points">
+                          <span><b>1</b> المعطيات</span>
+                          <span><b>2</b> المطلوب</span>
+                          <span><b>3</b> العائق</span>
+                        </div>
+                      </div>
+                      <form className="lesson-topic-immersive-copilot" onSubmit={(event) => { event.preventDefault(); void askCopilotQuestion(copilotQuestion, topicForStudio, selectedTopicExcerpt); }}>
+                        <div className="lesson-copilot-label"><MessageCircle size={13} /> كوبيلوت خفيف</div>
+                        <p>اسأل عن معنى، خطوة، معطى، أو اطلب سؤالًا جديدًا على الجزء المحدد.</p>
+                        <textarea value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} disabled={isThinking || chatCircuitOpen} placeholder="مثال: ما أول سؤال يجب أن أطرحه على هذه المعطيات؟" rows={4} aria-label="سؤال كوبيلوت الموضوع" data-testid="input-immersive-topic-copilot" />
+                        <button type="submit" disabled={!copilotQuestion.trim() || isThinking || chatCircuitOpen} data-testid="button-send-immersive-topic-copilot">
+                          {isThinking ? <LoaderCircle size={14} className="lesson-spin-icon" /> : <Send size={14} />} أجبني عن الموضوع
+                        </button>
+                      </form>
+                      <button type="button" className="lesson-topic-complete-button" onClick={() => void completeCreativeTopic()} disabled={isThinking || chatCircuitOpen} data-testid="button-complete-topic">
+                        {topicCompletionState === 'analyzing' ? <LoaderCircle size={14} className="lesson-spin-icon" /> : <ArrowLeft size={14} />}
+                        {topicCompletionState === 'analyzing' ? 'تحليل المعطيات وتوليد التالي...' : 'أنهيت الموضوع · افتح التالي'}
+                      </button>
+                      {topicCompletionState === 'advanced' && <p className="lesson-topic-advance-status" role="status" data-testid="status-topic-advanced">تم تحليل الموضوع وفتح موضوع جديد لك مباشرة.</p>}
+                      {topicCompletionState === 'error' && <p className="lesson-topic-advance-status is-error" role="alert">تعذر توليد الموضوع التالي الآن. أعد المحاولة.</p>}
+                    </aside>
+                  </div>
+                </section>
+              </div>
+            )}
            {lessonGenerationState === 'error' && (
              <div className="lesson-generation-error" role="alert" data-testid="status-lesson-generation-error">
                <span>{lessonGenerationError}</span>
