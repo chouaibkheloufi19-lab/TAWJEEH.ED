@@ -14,3 +14,9 @@ Imported pnpm workspaces can also contain a lockfile that lags a generated or sc
 **Why:** The imported workspace required a non-frozen install because the root lockfile did not include a dependency already declared by the imported scaffold.
 
 **How to apply:** Treat this as an import hygiene issue, preserve the existing workspace structure, and rerun the relevant package build after reconciliation.
+
+After managed Clerk provisioning, imported combined workflows can keep stale environment values and occupy the same API port as newly registered artifact workflows.
+
+**Why:** Restarting only the new managed API workflow can fail with `EADDRINUSE`, while the old process continues serving requests without the newly provisioned Clerk secret.
+
+**How to apply:** Prefer the registered artifact workflows after provisioning; stop/remove the legacy combined workflow before restarting the managed API service.
