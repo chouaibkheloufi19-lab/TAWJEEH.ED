@@ -249,7 +249,7 @@ export function OwlOnboarding({
       <footer className="phase-one-footer">
         <span data-testid="text-phase-one-footer">لطلاب البكالوريا الجزائرية</span>
         <span className="phase-one-footer-rule" />
-        <span>توجيه · ٢٠٢٤</span>
+         <span>توجيه · 2024</span>
       </footer>
     </section>
   );

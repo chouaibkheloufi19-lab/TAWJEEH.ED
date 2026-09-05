@@ -233,7 +233,7 @@ const lessonSections: LessonSection[] = [
     id: 'definition',
     label: 'التعريف',
     shortLabel: 'فكرة الدرس',
-    duration: '٣ دقائق',
+     duration: '3 دقائق',
     title: 'ما الذي يغيّر الحركة؟',
     explanation: 'الجسم يحافظ على حالته من السكون أو الحركة المنتظمة ما لم تؤثر فيه قوة محصلة.',
     highlight: 'يحافظ على حالته',
@@ -243,7 +243,7 @@ const lessonSections: LessonSection[] = [
     id: 'worked-example',
     label: 'مثال محلول',
     shortLabel: 'نطبّق الفكرة',
-    duration: '٨ دقائق',
+     duration: '8 دقائق',
     title: 'مثال من الحافلة',
     explanation: 'عند توقف الحافلة فجأة يستمر جسم الراكب في الحركة إلى الأمام، لأن حالته الحركية لم تتغير لحظيًا.',
     highlight: 'يستمر جسم الراكب في الحركة',
@@ -253,7 +253,7 @@ const lessonSections: LessonSection[] = [
     id: 'graph',
     label: 'تمثيل بياني',
     shortLabel: 'نرى العلاقة',
-    duration: '٦ دقائق',
+     duration: '6 دقائق',
     title: 'الحركة على الرسم',
     explanation: 'يمثل ميل منحنى الموضع بدلالة الزمن السرعة، بينما يكشف تغير الميل عن تغير الحركة.',
     highlight: 'ميل منحنى الموضع',
@@ -263,7 +263,7 @@ const lessonSections: LessonSection[] = [
     id: 'practice',
     label: 'تدريب',
     shortLabel: 'جرّب بنفسك',
-    duration: '١٠ دقائق',
+     duration: '10 دقائق',
     title: 'قوة محصلة، خطوة خطوة',
     explanation: 'القوة المحصلة هي مجموع القوى المؤثرة، واتجاهها هو الذي يحدد تغير الحركة.',
     highlight: 'مجموع القوى المؤثرة',
@@ -273,7 +273,7 @@ const lessonSections: LessonSection[] = [
     id: 'recap',
     label: 'خلاصة',
     shortLabel: 'نثبت المكتسب',
-    duration: '٤ دقائق',
+     duration: '4 دقائق',
     title: 'القانون الثاني لنيوتن',
     explanation: 'يتناسب التسارع طرديًا مع القوة المحصلة وعكسيًا مع الكتلة: F = m × a.',
     highlight: 'التسارع طرديًا مع القوة',
@@ -1294,8 +1294,8 @@ export function LessonWorkspace() {
       event.target.value = '';
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setAttachmentError('حجم الصورة يجب أن يكون أقل من ٥ ميغابايت.');
+     if (file.size > 5 * 1024 * 1024) {
+       setAttachmentError('حجم الصورة يجب أن يكون أقل من 5 ميغابايت.');
       event.target.value = '';
       return;
     }
@@ -1550,7 +1550,7 @@ export function LessonWorkspace() {
             <span>
               {session.concludedAt
                 ? 'فهيم أنهى التقييم · التسليم جاهز'
-                : `${evaluationPlan.title} · اليوم ${evaluationPlan.mode === 'fixed-foundation' ? `${Math.min(evaluationDay, 10)} / ١٠` : evaluationDay}`}
+                 : `${evaluationPlan.title} · اليوم ${evaluationPlan.mode === 'fixed-foundation' ? `${Math.min(evaluationDay, 10)} / 10` : evaluationDay}`}
             </span>
             <strong>{progress}٪</strong>
           </div>
@@ -1626,7 +1626,7 @@ export function LessonWorkspace() {
                   aria-current={active ? 'step' : undefined}
                   data-testid={`button-lesson-section-${section.id}`}
                 >
-                  <span className="lesson-path-node">{done ? <Check size={15} /> : `٠${index + 1}`}</span>
+                   <span className="lesson-path-node">{done ? <Check size={15} /> : `${index + 1}`}</span>
                   <span className="lesson-path-copy"><strong>{section.label}</strong><small>{active ? displayedTitle : section.shortLabel}</small>{source && <em>من {source.source}</em>}</span>
                   {active && <span className="lesson-path-current" aria-hidden="true" />}
                 </button>

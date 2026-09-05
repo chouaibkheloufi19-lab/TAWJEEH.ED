@@ -34,9 +34,9 @@ export function getEvaluationPlan(registrationAt: Date | string | null | undefin
       activeAgent: 'faheem',
       title: 'تدارك للمكتسبات القبلية',
       description: 'مسار تأسيسي لعشرة أيام، يقوده فهيم خطوة خطوة. تبدأ كل جلسة في وقتها وتبقى مفتوحة حتى يكتمل الفهم.',
-      durationLabel: 'مسار ١٠ أيام',
+      durationLabel: 'مسار 10 أيام',
       durationDays: 10,
-      windowLabel: 'نافذة البداية · ١ سبتمبر — ١٥ أكتوبر',
+      windowLabel: 'نافذة البداية · 1 سبتمبر — 15 أكتوبر',
     };
   }
 

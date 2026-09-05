@@ -782,7 +782,7 @@ async function applySchedulePenalties(userId: string) {
       userId,
       `daily-quiz-points:${scheduledDate}`,
       null,
-      "مضاعفة حجم نهاية الأسبوع بسبب عدم بلوغ ٧٠ نقطة يومية",
+      "مضاعفة حجم نهاية الأسبوع بسبب عدم بلوغ 70 نقطة يومية",
     );
   }
 }

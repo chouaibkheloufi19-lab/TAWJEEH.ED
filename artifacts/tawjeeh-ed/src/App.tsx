@@ -250,7 +250,7 @@ function Topbar({ title }: { title: string }) {
     <header className="mb-7 flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
         <div>
-          <p className="eyebrow mb-1">الأربعاء، ١٢ جوان ٢٠٢٤</p>
+           <p className="eyebrow mb-1">الأربعاء، 12 جوان 2024</p>
           <h1 className="display text-[23px] md:text-[28px]" data-testid="text-page-title">{title}</h1>
         </div>
       </div>
@@ -804,7 +804,7 @@ function ProfilePage() {
           <section className="surface profile-metrics-card">
            <div className="flex items-start justify-between gap-3"><div><p className="eyebrow mb-1">إشارات الفهم</p><h3 className="display text-lg">المفاهيم التي تحتاج إنعاشًا</h3></div><span className="profile-metric-count">{weakConcepts.length}</span></div>
            <div className="profile-metrics-list">
-             {summaryQuery.isLoading ? <p className="profile-bank-empty">نحلل محاولاتك...</p> : weakConcepts.length ? weakConcepts.map((metric) => <div className="profile-metric-row" key={`${metric.lesson_id}-${metric.concept_id}`}><div><strong>{metric.concept_title}</strong><span>{metric.errors_count} أخطاء من {metric.attempts} محاولات · {Math.round(metric.error_rate * 100)}٪</span></div><span className="profile-emergency-tag">غرفة إنعاش مستعجلة</span></div>) : <p className="profile-bank-empty">لا توجد فجوة تتجاوز ٥٠٪ بعد. استمري في المحاولة، فكل إجابة تحسّن الخريطة.</p>}
+              {summaryQuery.isLoading ? <p className="profile-bank-empty">نحلل محاولاتك...</p> : weakConcepts.length ? weakConcepts.map((metric) => <div className="profile-metric-row" key={`${metric.lesson_id}-${metric.concept_id}`}><div><strong>{metric.concept_title}</strong><span>{metric.errors_count} أخطاء من {metric.attempts} محاولات · {Math.round(metric.error_rate * 100)}٪</span></div><span className="profile-emergency-tag">غرفة إنعاش مستعجلة</span></div>) : <p className="profile-bank-empty">لا توجد فجوة تتجاوز 50٪ بعد. استمري في المحاولة، فكل إجابة تحسّن الخريطة.</p>}
            </div>
           </section>
         </div>
@@ -1225,7 +1225,7 @@ function QuizzesPage() {
            <div className="phase-one-score-values"><strong data-testid="text-daily-score">{dailyScore}</strong><span>/ 70 نقطة</span></div>
          </div>
          <div className="phase-one-score-track" aria-label="التقدم نحو الحد اليومي"><span style={{ width: `${Math.min(100, Math.round((dailyScore / 70) * 100))}%` }} /></div>
-         <div className="phase-one-score-footer"><span><CheckCircle2 size={14} /> الحد المطلوب اليومي: ٧٠ نقطة</span><span><Trophy size={14} /> مؤشر النجاح: ١٠ / ٢٠ في المعدل</span><span>{dailyScore >= 70 ? 'أتممت حد اليوم' : `تبقّى ${Math.max(0, 70 - dailyScore)} نقطة`}</span></div>
+          <div className="phase-one-score-footer"><span><CheckCircle2 size={14} /> الحد المطلوب اليومي: 70 نقطة</span><span><Trophy size={14} /> مؤشر النجاح: 10 / 20 في المعدل</span><span>{dailyScore >= 70 ? 'أتممت حد اليوم' : `تبقّى ${Math.max(0, 70 - dailyScore)} نقطة`}</span></div>
        </section>
        {hardAttempts.length > 0 && <section className="quiz-attempt-history" data-testid="card-unit-assessment-history"><div><span className="eyebrow">سجل تقييم الوحدة</span><h3 className="display text-lg">نتائج التحدّي عالي الصعوبة</h3></div><div className="quiz-attempt-history-list">{hardAttempts.slice(0, 5).map((attempt: QuizAttemptRecord) => <div className="quiz-attempt-history-row" key={attempt.id}><span><strong>{attempt.score}%</strong><small>{attempt.correct} من {attempt.total} · {attempt.completed_at.slice(0, 10)}</small></span><b className={attempt.passed ? 'passed' : 'retry'}>{attempt.passed ? 'اجتاز' : 'يحتاج محاولة أخرى'}</b></div>)}</div></section>}
       {quizzesQuery.isLoading ? <LoadingState label="نحضّر تمارين مناسبة لك..." /> : quizzesQuery.isError ? <ErrorState onRetry={() => quizzesQuery.refetch()} /> : quizzes.length === 0 ? <EmptyState title="لا توجد اختبارات بعد" body="ستجد هنا تدريبات الوحدات والاختبار الأسبوعي عند توفرها." /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} onStart={() => setSelectedQuiz(quiz)} />)}</div>}

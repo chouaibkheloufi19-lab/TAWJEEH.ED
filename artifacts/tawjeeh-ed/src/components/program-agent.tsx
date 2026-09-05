@@ -230,7 +230,7 @@ function ProgramEntryCard({
       <div className={`program-entry-icon ${tone}`}><Icon size={19} /></div>
       <div className="program-entry-content">
         <div className="program-entry-meta">
-          <span className={`program-kind ${tone}`}>{entry.remediationLabel ?? (entry.slot ? `الحصة ${entry.slot} من ٣` : entry.kind)}</span>
+           <span className={`program-kind ${tone}`}>{entry.remediationLabel ?? (entry.slot ? `الحصة ${entry.slot} من 3` : entry.kind)}</span>
           <span>{entry.subject}</span>
         </div>
         <h3>{entry.title}</h3>
@@ -275,7 +275,7 @@ function ProgramPlanSession({
     <article className="program-plan-session" data-testid={`card-plan-day-${dayNumber}-slot-${entry.slot}`}>
       <div className={`program-plan-session-icon ${tone}`}><Icon size={17} /></div>
       <div className="program-plan-session-copy">
-        <span>الحصة {entry.slot} من ٣</span>
+         <span>الحصة {entry.slot} من 3</span>
         <strong>{entry.title}</strong>
         <small>{entry.agent} · {entry.track === 'theory' ? 'فهم الفكرة' : 'تطبيق وتثبيت'}</small>
       </div>
@@ -573,11 +573,11 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           </div>
         </div>
           <div className="program-rhythm-strip" aria-label="إيقاع خطة العشرة أيام">
-              <div><strong>١٠</strong><span>أيام واضحة</span></div>
+               <div><strong>10</strong><span>أيام واضحة</span></div>
             <i />
-             <div><strong>٣</strong><span>حصص لكل يوم</span></div>
+              <div><strong>3</strong><span>حصص لكل يوم</span></div>
             <i />
-             <div><strong>٢</strong><span>مادتان أو أكثر</span></div>
+              <div><strong>2</strong><span>مادتان أو أكثر</span></div>
               <span className="program-rhythm-note"><Clock3 size={13} /> عدّل وقت الحصة فقط · الباقي يحدده فهيم</span>
           </div>
       </section>
@@ -613,7 +613,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
               {penaltyEntries.slice(0, 6).map((entry) => (
                 <div key={entry.id} className="program-penalty-row">
                   <div><strong>{entry.title}</strong><small>{entry.remediationLabel ?? (entry.missed ? 'حصة فائتة تحتاج تعويضًا' : 'تعديل تلقائي')}</small></div>
-                  <span>{entry.volumeMultiplier && entry.volumeMultiplier > 1 ? '×٢ نهاية الأسبوع' : formatDate(entry.date)}</span>
+                   <span>{entry.volumeMultiplier && entry.volumeMultiplier > 1 ? '×2 نهاية الأسبوع' : formatDate(entry.date)}</span>
                 </div>
               ))}
             </div>
@@ -623,7 +623,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           <div className="program-side-card program-phase-card">
             <div className="program-card-kicker"><Sparkles size={14} /> المسار الحالي</div>
             <h3>{plannerWindow.inFoundation ? 'المكتسبات الأساسية' : 'الدراسة الفعلية'}</h3>
-            <p>{plannerWindow.inFoundation ? `فهيم يقودك في اليوم ${Math.min(plannerWindow.day, 10)} من ١٠ لتثبيت المفاهيم السابقة.` : 'اكتملت المرحلة التأسيسية. تظهر هنا محاور المنهاج للدراسة الفعلية خطوةً خطوة.'}</p>
+             <p>{plannerWindow.inFoundation ? `فهيم يقودك في اليوم ${Math.min(plannerWindow.day, 10)} من 10 لتثبيت المفاهيم السابقة.` : 'اكتملت المرحلة التأسيسية. تظهر هنا محاور المنهاج للدراسة الفعلية خطوةً خطوة.'}</p>
             <div className="program-progress-label"><span>التقدم</span><strong>{plannerWindow.progress}٪</strong></div>
             <div className="program-progress"><span style={{ width: `${plannerWindow.progress}%` }} /></div>
             <div className="program-phase-days">{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((day) => <span key={day} className={day < plannerWindow.day ? 'done' : day === plannerWindow.day ? 'current' : ''}>{day < plannerWindow.day ? <Check size={11} /> : day}</span>)}</div>
@@ -634,7 +634,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
         <section className="program-agent-workspace">
           <div className="program-workspace-toolbar">
             <div className="program-tabs" role="tablist" aria-label="واجهة البرنامج الدراسي">
-              <button type="button" className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')} role="tab" aria-selected={activeTab === 'overview'} data-testid="tab-program-overview"><CalendarDays size={16} /> خطة ١٠ أيام</button>
+               <button type="button" className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')} role="tab" aria-selected={activeTab === 'overview'} data-testid="tab-program-overview"><CalendarDays size={16} /> خطة 10 أيام</button>
               <button type="button" className={activeTab === 'notifications' ? 'active' : ''} onClick={() => setActiveTab('notifications')} role="tab" aria-selected={activeTab === 'notifications'} data-testid="tab-program-notifications"><Bell size={16} /> التنبيهات</button>
             </div>
           </div>
@@ -642,9 +642,9 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
            {activeTab === 'overview' && (
              <div className="program-plan-content">
               <div className="program-schedule-intro">
-                 <div><span className="program-card-kicker"><CalendarDays size={14} /> الخطة الأساسية · ١٠ أيام</span><h3>اضبط حصصك قبل أن تبدأ.</h3><p>لكل يوم ثلاث خطوات: فهم، تطبيق، ثم تثبيت. يمكنك تعديل التوقيت والمادة من هنا في أي وقت.</p></div>
+                  <div><span className="program-card-kicker"><CalendarDays size={14} /> الخطة الأساسية · 10 أيام</span><h3>اضبط حصصك قبل أن تبدأ.</h3><p>لكل يوم ثلاث خطوات: فهم، تطبيق، ثم تثبيت. يمكنك تعديل التوقيت والمادة من هنا في أي وقت.</p></div>
                  <div className="program-schedule-intro-tools">
-                   <div className="program-plan-summary"><strong>{showAllPlanDays ? '٣٠' : '٣'}</strong><span>{showAllPlanDays ? 'حصة قابلة للضبط' : `حصص اليوم · اليوم ${focusedPlanDay}`}</span></div>
+                    <div className="program-plan-summary"><strong>{showAllPlanDays ? '30' : '3'}</strong><span>{showAllPlanDays ? 'حصة قابلة للضبط' : `حصص اليوم · اليوم ${focusedPlanDay}`}</span></div>
                    <button
                      type="button"
                      className="program-plan-view-toggle"
