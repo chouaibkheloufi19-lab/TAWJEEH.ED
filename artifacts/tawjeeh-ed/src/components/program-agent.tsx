@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useUser } from '@clerk/react';
 import {
   Bell,
   BellOff,
@@ -26,6 +27,7 @@ import {
   type ExamMode,
   type ScheduleEntry,
 } from '@workspace/api-client-react';
+import { getAgentReadinessQueryOptions } from '@/lib/agent-readiness';
 import owlAgentTeal from '@assets/agent-guiding-cropped.png';
 import owlAgentThinking from '@assets/agent-thinking-cropped.png';
 import owlAgentSuccess from '@assets/agent-success-cropped.png';
@@ -312,6 +314,7 @@ function ProgramPlanSession({
 
 export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [, setLocation] = useLocation();
+  const { user } = useUser();
   const [entries, setEntries] = useState<ProgramEntry[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'notifications'>('overview');
   const [showAllPlanDays, setShowAllPlanDays] = useState(false);
@@ -328,17 +331,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
       refetchInterval: 10_000,
     },
   });
-  const readinessQuery = useQuery<{ status: string; foundationalModules: FoundationalModule[] }>({
-    queryKey: ['program-agent-readiness'],
-    queryFn: async () => {
-      const response = await fetch('/api/agents/readiness', { credentials: 'include' });
-      const payload = await response.json() as { status?: string; foundationalModules?: FoundationalModule[]; message?: string };
-      if (!response.ok) throw new Error(payload.message || 'تعذر تحميل وحدات المنهاج');
-      return { status: payload.status ?? 'unavailable', foundationalModules: payload.foundationalModules ?? [] };
-    },
-    staleTime: 5 * 60_000,
-    retry: 1,
-  });
+  const readinessQuery = useQuery(getAgentReadinessQueryOptions(user?.id));
   const foundationWindowActive = useMemo(() => {
     const start = new Date(`${entryDate}T12:00:00`);
     const current = new Date(`${today}T12:00:00`);

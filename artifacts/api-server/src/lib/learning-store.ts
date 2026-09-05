@@ -514,6 +514,14 @@ function isPracticalSession(row: typeof studyScheduleTable.$inferSelect) {
   return value.includes("practical") || value.includes("تطبيق") || value.includes("تمرين") || value.includes("exercise");
 }
 
+function hasPendingTheoryRollover(rows: (typeof studyScheduleTable.$inferSelect)[]) {
+  return rows.some(
+    (row) =>
+      !row.completed &&
+      (row.penaltyType === "missed_theory" || row.penaltyType === "shifted_after_missed_theory"),
+  );
+}
+
 function nextWeekendDates(today: string) {
   const start = new Date(`${today}T12:00:00Z`);
   const dates: string[] = [];
@@ -645,6 +653,16 @@ async function applyMissedTheoryPenalty(
 ) {
   const penaltyKey = `missed-theory:${source.id}`;
   if (source.penaltyKey) return;
+  if (hasPendingTheoryRollover(rows)) {
+    const penaltyKey = `missed-theory-deferred:${source.id}`;
+    await db
+      .update(studyScheduleTable)
+      .set({ penaltyKey, penaltyType: "missed_theory_deferred" })
+      .where(eq(studyScheduleTable.id, source.id));
+    source.penaltyKey = penaltyKey;
+    source.penaltyType = "missed_theory_deferred";
+    return;
+  }
   const next = rows
     .filter((row) => !row.completed && !row.penaltyKey)
     .filter((row) => `${row.scheduledDate}T${row.time}` > `${source.scheduledDate}T${source.time}`)

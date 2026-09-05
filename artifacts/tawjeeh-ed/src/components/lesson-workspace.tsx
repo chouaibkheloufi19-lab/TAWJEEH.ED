@@ -43,6 +43,7 @@ import {
   type ExamMode,
   type KnowledgeCard,
 } from '@workspace/api-client-react';
+import { getAgentReadinessQueryOptions } from '@/lib/agent-readiness';
 import owlAgentGold from '@assets/agent-success-cropped.png';
 import owlAgentMint from '@assets/agent-guiding-cropped.png';
 import owlAgentTeal from '@assets/agent-creation-cropped.png';
@@ -594,37 +595,7 @@ export function LessonWorkspace() {
   const knowledgeParams = useMemo(() => ({ subject: 'العلوم الفيزيائية', curriculum_year: '3AS' }), []);
   const knowledgeQuery = useListKnowledge(knowledgeParams, { query: { queryKey: getListKnowledgeQueryKey(knowledgeParams), staleTime: 5 * 60 * 1000 } });
   const knowledgeCards = useMemo(() => (knowledgeQuery.data as KnowledgeCard[] | undefined) ?? [], [knowledgeQuery.data]);
-  const agentReadinessQuery = useQuery<{
-    status: 'ready';
-    retrieval: {
-      status: 'ready';
-      query: string;
-      retrievedNodeIds: string[];
-      sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
-    };
-    foundationalModules: FoundationalModule[];
-    agents: Record<string, { status: 'ready'; role: string; nodeIds: string[] }>;
-  }>({
-    queryKey: ['agent-readiness'],
-    queryFn: async () => {
-      const response = await fetch('/api/agents/readiness', { credentials: 'include' });
-      const payload = await response.json() as { message?: string };
-      if (!response.ok) throw new Error(payload.message || 'لا تتوفر مواد الدرس الآن. أعد المحاولة بعد قليل.');
-      return payload as {
-        status: 'ready';
-        retrieval: {
-          status: 'ready';
-          query: string;
-          retrievedNodeIds: string[];
-          sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
-        };
-        foundationalModules: FoundationalModule[];
-        agents: Record<string, { status: 'ready'; role: string; nodeIds: string[] }>;
-      };
-    },
-    staleTime: 60_000,
-    retry: 1,
-  });
+  const agentReadinessQuery = useQuery(getAgentReadinessQueryOptions(user?.id));
   const foundationalSources = useMemo<KnowledgeCard[]>(
     () => (agentReadinessQuery.data?.foundationalModules ?? []).map((module) => ({
       id: module.nodeId,
