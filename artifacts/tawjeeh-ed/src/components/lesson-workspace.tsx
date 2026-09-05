@@ -1825,9 +1825,9 @@ export function LessonWorkspace() {
             <section className={`lesson-topic-studio ${topicStudioOpen ? 'is-open' : ''}`} aria-label="موضوع الدرس وتوليده">
               <div className="lesson-topic-studio-head">
                 <div>
-                  <span className="lesson-topic-kicker"><BookOpen size={12} /> موضوع الدرس داخل مساحة التفاعل</span>
-                   <h3>موضوع تطبيقي شامل · {fixedLessonTitle}</h3>
-                  <p>اقرأ المطلوب، اسأل عن أي نقطة، ثم حوّل كل مكتسبات المنهاج إلى تطبيق إبداعي.</p>
+                   <span className="lesson-topic-kicker"><BookOpen size={12} /> الخطوة الأولى · افهم الموضوع</span>
+                    <h3>مساحة بناء الموضوع</h3>
+                   <p>ثلاث خطوات صغيرة تفصلك عن بداية الحل. لا تشتت نفسك بين البطاقات؛ اتبع المسار من الأعلى إلى الأسفل.</p>
                 </div>
                 <button type="button" className="lesson-topic-toggle" onClick={() => setTopicStudioOpen((open) => !open)} aria-expanded={topicStudioOpen} data-testid="button-toggle-topic-studio">
                   {topicStudioOpen ? 'طي الموضوع' : 'عرض الموضوع'}
@@ -1835,20 +1835,20 @@ export function LessonWorkspace() {
               </div>
               {topicStudioOpen && (
                 <div className="lesson-topic-studio-body">
-                  <div className="lesson-topic-meta">
-                    <span>المستوى: السنة الثالثة ثانوي</span>
-                    <span>النمط: موضوع + تعلم ذكي</span>
-                    <span>{foundationalSources.length || '—'} مكتسبات مرتبطة بالمصادر</span>
+                   <div className="lesson-topic-meta" aria-label="ملخص الموضوع">
+                     <span><b>الموضوع</b>{fixedLessonTitle}</span>
+                     <span><b>المستوى</b>السنة الثالثة ثانوي</span>
+                     <span><b>المصادر</b>{foundationalSources.length || '—'} مكتسبات مرتبطة</span>
                   </div>
-                  <div className="lesson-topic-brief">
-                    <div><strong>المطلوب</strong><span>فسّر القصور الذاتي والقوة المحصلة، اربطهما بالتسارع، ثم طبّق القوانين على وضعية حركة واقعية.</span></div>
-                    <div><strong>طريقة العمل</strong><span>ابدأ بالمعطيات، اكتب القانون المناسب، برّر النتيجة، واطلب من فهيم توضيح أي خطوة.</span></div>
-                    <div><strong>التثبيت</strong><span>اختر مفهومًا من خريطة الإتقان في الطبقة الثالثة لتفتح مثالًا وتمرينًا مرتبطين به.</span></div>
+                   <div className="lesson-topic-brief" aria-label="مسار إنجاز الموضوع">
+                     <div><span className="lesson-topic-brief-index">01</span><strong>افهم المطلوب</strong><span>فسّر القصور الذاتي والقوة المحصلة، ثم اربطهما بالتسارع في وضعية حركة واقعية.</span></div>
+                     <div><span className="lesson-topic-brief-index">02</span><strong>ابنِ الحل</strong><span>استخرج المعطيات، اختر القانون المناسب، وبرّر كل نتيجة قبل الانتقال.</span></div>
+                     <div><span className="lesson-topic-brief-index">03</span><strong>ثبّت الفكرة</strong><span>اختر تطبيقًا من القائمة، ثم اسأل فهيم عن أي خطوة توقفت عندها.</span></div>
                   </div>
                   {topicForStudio && (
-                    <article className="lesson-topic-featured" data-testid="card-featured-topic">
+                     <article className="lesson-topic-featured" data-testid="card-featured-topic">
                       <div className="lesson-topic-featured-copy">
-                        <span><Sparkles size={12} /> الموضوع الحالي · تحليل قابل للتحديد</span>
+                         <span><Sparkles size={12} /> الخطوة التالية · اختر تطبيقًا واحدًا</span>
                         <h4>{topicForStudio.title}</h4>
                         <p>{topicForStudio.approach}</p>
                         <div className="lesson-topic-featured-meta">
@@ -1857,13 +1857,15 @@ export function LessonWorkspace() {
                           <span>اضغط للتركيز</span>
                         </div>
                       </div>
-                      <button type="button" className="lesson-topic-open-button" onClick={() => openCreativeTopic(topicForStudio)} data-testid="button-open-featured-topic">
-                        <Maximize2 size={14} /> افتح الموضوع كاملًا
+                       <button type="button" className="lesson-topic-open-button" onClick={() => openCreativeTopic(topicForStudio)} data-testid="button-open-featured-topic">
+                         <Maximize2 size={14} /> ابدأ بهذا الموضوع
                       </button>
                     </article>
                   )}
                   {creativeIdeas && (
-                    <div className="lesson-topic-mini-list" aria-label="الموضوعات المتاحة">
+                     <div className="lesson-topic-options" aria-label="الموضوعات المتاحة">
+                       <div className="lesson-topic-options-heading"><span>موضوعات أخرى</span><small>اختر ما يناسبك</small></div>
+                       <div className="lesson-topic-mini-list">
                       {creativeIdeas.ideas.map((idea, index) => (
                         <button
                           type="button"
@@ -1874,23 +1876,24 @@ export function LessonWorkspace() {
                         >
                           <span>{index + 1}</span>
                           <strong>{idea.title}</strong>
-                          <small>فتح</small>
+                           <small>اختيار</small>
                         </button>
                       ))}
+                       </div>
                     </div>
                   )}
                   <div className="lesson-topic-actions">
                     <button type="button" className="lesson-topic-primary" onClick={() => void generateCreativeTopic()} disabled={!lessonToolsActive || isThinking || chatCircuitOpen} data-testid="button-generate-topic-creative">
-                      {isThinking ? <LoaderCircle size={13} className="lesson-spin-icon" /> : <Sparkles size={13} />} ولّد تطبيقات إبداعية من كل المكتسبات
+                       {isThinking ? <LoaderCircle size={13} className="lesson-spin-icon" /> : <Sparkles size={13} />} ولّد 3 تطبيقات جديدة
                     </button>
                      <button type="button" className="lesson-topic-secondary" onClick={() => topicForStudio ? openCreativeTopic(topicForStudio) : setLocation('/exam-preview')} data-testid="button-open-full-topic">
-                       <Maximize2 size={13} /> فتح الموضوع بملء الشاشة
+                        <Maximize2 size={13} /> افتح مساحة التركيز
                     </button>
                   </div>
                   <form className="lesson-copilot-form" onSubmit={(event) => { event.preventDefault(); void askCopilotQuestion(copilotQuestion); }}>
                     <div>
-                      <span className="lesson-copilot-label"><MessageCircle size={13} /> سؤال الكوبيلوت</span>
-                     <small>{selectedCreativeTopic ? `الموضوع المحدد: ${selectedCreativeTopic.title}` : 'اسأل عن الموضوع أو عن أي خطوة فيه'}</small>
+                       <span className="lesson-copilot-label"><MessageCircle size={13} /> توقفت في خطوة؟</span>
+                      <small>{selectedCreativeTopic ? `يساعدك الآن في: ${selectedCreativeTopic.title}` : 'اكتب سؤالك قبل أن تبدأ التطبيق'}</small>
                     </div>
                     <input value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} disabled={!lessonToolsActive || isThinking || chatCircuitOpen} placeholder="مثال: كيف أختار القانون المناسب في الوضعية؟" aria-label="سؤال الكوبيلوت عن الموضوع" data-testid="input-topic-copilot-question" />
                     <button type="submit" disabled={!lessonToolsActive || !copilotQuestion.trim() || isThinking || chatCircuitOpen} aria-label="إرسال سؤال الكوبيلوت" data-testid="button-send-topic-copilot"><Send size={15} /></button>
