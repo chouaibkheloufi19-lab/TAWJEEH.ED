@@ -29,7 +29,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=25786 BASE_PATH=/ pnpm --filter @workspace/tawjeeh-ed run dev"
+args = "bash scripts/start-tawjeeh.sh"
 waitForPort = 25786
 
 [agent]
