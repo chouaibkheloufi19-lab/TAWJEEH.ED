@@ -10,7 +10,7 @@ import {
   FRIENDLY_TUTOR_PROMPT,
   GROUNDED_CONTENT_RULES,
 } from "../lib/ai-prompts";
-import { callXaiTextModel } from "../lib/ai-provider";
+import { callDeepSeekTextModel } from "../lib/ai-provider";
 
 const router: IRouter = Router();
 const connectors = new ReplitConnectors();
@@ -119,7 +119,7 @@ async function callTextModel(
   retrieval: RetrievalContext,
 ) {
   const sourceText = formatRetrievedContext(retrieval.documents);
-  return callXaiTextModel(
+  return callDeepSeekTextModel(
     [
       {
         role: "system",

@@ -12,7 +12,7 @@ import {
   GROUNDED_CONTENT_RULES,
   LEARNER_SAFE_OUTPUT_RULES,
 } from "../lib/ai-prompts";
-import { callXaiTextModel } from "../lib/ai-provider";
+import { callDeepSeekTextModel } from "../lib/ai-provider";
 
 const router: IRouter = Router();
 
@@ -106,7 +106,7 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
       ).join(" "),
       { nResults: 50 },
     );
-    const content = await callXaiTextModel(
+    const content = await callDeepSeekTextModel(
       [
         {
           role: "system",
@@ -132,7 +132,7 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
           ].join("\n"),
         },
       ],
-      { temperature: 0.35, maxOutputTokens: 2200 },
+      { temperature: 0.35, maxOutputTokens: 2200, jsonMode: true },
     );
     const parsed = extractCreativeIdeas(content, retrieval);
     res.json({

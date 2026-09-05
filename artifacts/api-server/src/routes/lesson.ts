@@ -19,7 +19,7 @@ import {
   LEARNER_SAFE_OUTPUT_RULES,
   LESSON_GENERATION_PROMPT,
 } from "../lib/ai-prompts";
-import { callXaiTextModel } from "../lib/ai-provider";
+import { callDeepSeekTextModel } from "../lib/ai-provider";
 
 const router: IRouter = Router();
 
@@ -87,11 +87,44 @@ type GeneratedCreativeTopics = {
   grounding: Grounding;
 };
 
+function extractJsonObject(text: string, label: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1]?.trim();
+  if (fenced) return fenced;
+
+  const start = text.indexOf("{");
+  if (start < 0) throw new Error(`${label} returned non-JSON content`);
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < text.length; index += 1) {
+    const character = text[index];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (character === "\\" && inString) {
+      escaped = true;
+      continue;
+    }
+    if (character === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (character === "{") depth += 1;
+    if (character === "}") {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, index + 1);
+    }
+  }
+  throw new Error(`${label} returned incomplete JSON`);
+}
+
 function extractGeneratedLesson(
   text: string,
 ): Omit<GeneratedLesson, "grounding"> {
-  const candidate = text.match(/\{[\s\S]*\}/)?.[0];
-  if (!candidate) throw new Error("Lesson generator returned non-JSON content");
+  const candidate = extractJsonObject(text, "Lesson generator");
   const parsed = JSON.parse(candidate) as Partial<GeneratedLesson>;
   if (
     typeof parsed.lessonTitle !== "string" ||
@@ -160,7 +193,7 @@ async function generateLesson(
   retrieval: RetrievalContext,
 ) {
   const sourceText = formatRetrievedContext(retrieval.documents);
-  const content = await callXaiTextModel(
+  const content = await callDeepSeekTextModel(
     [
       {
         role: "system",
@@ -187,7 +220,7 @@ async function generateLesson(
         ].join("\n"),
       },
     ],
-    { temperature: 0.15, maxOutputTokens: 1800 },
+    { temperature: 0.15, maxOutputTokens: 1800, jsonMode: true },
   );
   const parsed = extractGeneratedLesson(content);
   return {
@@ -206,7 +239,7 @@ async function generateExercise(
   retrieval: RetrievalContext,
 ): Promise<GeneratedExercise> {
   const sourceText = formatRetrievedContext(retrieval.documents);
-  const content = await callXaiTextModel(
+  const content = await callDeepSeekTextModel(
     [
       {
         role: "system",
@@ -233,10 +266,9 @@ async function generateExercise(
         ].join("\n"),
       },
     ],
-    { temperature: 0.15, maxOutputTokens: 1200 },
+    { temperature: 0.15, maxOutputTokens: 1200, jsonMode: true },
   );
-  const candidate = content.match(/\{[\s\S]*\}/)?.[0];
-  if (!candidate) throw new Error("Exercise generator returned non-JSON content");
+  const candidate = extractJsonObject(content, "Exercise generator");
   const parsed = JSON.parse(candidate) as Partial<GeneratedExercise>;
   if (
     typeof parsed.lessonTitle !== "string" ||
@@ -270,7 +302,7 @@ async function generateCreativeExerciseTopics(
   attemptContext: string,
   retrieval: RetrievalContext,
 ): Promise<GeneratedCreativeTopics> {
-  const content = await callXaiTextModel(
+  const content = await callDeepSeekTextModel(
     [
       {
         role: "system",
@@ -279,7 +311,7 @@ async function generateCreativeExerciseTopics(
           CREATIVE_EXERCISE_TOPICS_PROMPT,
           GROUNDED_CONTENT_RULES,
           LEARNER_SAFE_OUTPUT_RULES,
-          "أنت الآن وكيل التمارين نفسه، لكن بوضع توليد موضوعات إبداعية. أعد الحل المركزي ثم 3 موضوعات مختلفة على الأقل. يجب أن يستشهد كل موضوع بالعقد التي بُني عليها، ويجب أن تكون كل العقد المستخدمة ضمن المصادر المسترجعة.",
+          "أنت الآن وكيل التمارين نفسه، لكن بوضع توليد موضوعات إبداعية. أعد الحل المركزي ثم 3 موضوعات مختلفة بالضبط. يجب أن يستشهد كل موضوع بالعقد التي بُني عليها، ويجب أن تكون كل العقد المستخدمة ضمن المصادر المسترجعة.",
           "هذه الواجهة تحتاج JSON فقط؛ لا تضف أي نص خارج الكائن.",
           'أعد الشكل التالي: {"lessonTitle":"عنوان من المصادر","solutionSummary":"الفكرة المركزية والحل الأكاديمي المختصر","ideas":[{"title":"عنوان موضوع إبداعي","approach":"الفكرة وطريقة البدء","steps":["خطوة 1","خطوة 2","خطوة 3"],"creativeTwist":"سؤال أو زاوية مفاجئة","expectedOutcome":"ما الذي سيثبته الطالب","sourceNodeIds":["node-id"]}],"sourceNodeIds":["node-id"]}',
         ].join("\n\n"),
@@ -297,16 +329,18 @@ async function generateCreativeExerciseTopics(
         ].join("\n"),
       },
     ],
-    { temperature: 0.75, maxOutputTokens: 2600 },
+    { temperature: 0.65, maxOutputTokens: 2200, jsonMode: true },
   );
-  const candidate = content.match(/\{[\s\S]*\}/)?.[0];
-  if (!candidate) throw new Error("Creative exercise agent returned non-JSON content");
+  const candidate = extractJsonObject(content, "Creative exercise agent");
   const parsed = JSON.parse(candidate) as Partial<GeneratedCreativeTopics>;
   if (
     typeof parsed.lessonTitle !== "string" ||
     typeof parsed.solutionSummary !== "string" ||
     !Array.isArray(parsed.ideas) ||
     parsed.ideas.length < 3 ||
+    typeof parsed.lessonTitle !== "string" ||
+    parsed.lessonTitle.trim().length < 2 ||
+    parsed.ideas.some((idea) => !idea || typeof idea !== "object") ||
     !Array.isArray(parsed.sourceNodeIds)
   ) {
     throw new Error("Creative exercise agent returned an incomplete response");
@@ -425,7 +459,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
           ? "موضوعات تطبيقية إبداعية، وضعيات، تجارب ذهنية، تمثيل بصري، وتحديات تغطي كل مكتسبات المنهاج"
           : "تمارين",
       ].filter((value): value is string => Boolean(value)).join(" "),
-      mode === "creative_topic" ? { nResults: 50 } : undefined,
+      mode === "creative_topic" ? { nResults: 24 } : undefined,
     );
     if (mode === "creative_topic") {
       const generatedTopics = await generateCreativeExerciseTopics(
@@ -451,7 +485,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     req.log.error({ error: errorMessage }, "Exercise generation failed");
     const message = errorMessage.includes("DEEPSEEK_API_KEY")
       ? "لم يتم إعداد مزود الذكاء الاصطناعي بعد."
-      : errorMessage.startsWith("Exercise generator responded with")
+      : errorMessage.startsWith("DeepSeek provider responded with")
         ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
         : mode === "creative_topic"
           ? "تعذر الاتصال بخدمة التعلّم الآن."

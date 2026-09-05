@@ -1,34 +1,20 @@
-import { ReplitConnectors } from "@replit/connectors-sdk";
-
 type ChatMessage = {
   role: "system" | "user" | "assistant";
   content: string;
-};
-
-type LanguageModel = {
-  id?: unknown;
-  input_modalities?: unknown;
-  output_modalities?: unknown;
-};
-
-type LanguageModelsResponse = {
-  models?: unknown;
 };
 
 type ChatCompletionResponse = {
   choices?: Array<{ message?: { content?: unknown } }>;
 };
 
-const MODEL_DISCOVERY_TIMEOUT_MS = 15_000;
-const CHAT_TIMEOUT_MS = 30_000;
-const MODEL_CACHE_TTL_MS = 10 * 60_000;
-
-let cachedTextModel: { id: string; expiresAt: number } | undefined;
+const CHAT_TIMEOUT_MS = 45_000;
+const DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com";
+const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
 
 function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
-      reject(new Error(`xAI request timed out after ${milliseconds}ms`));
+      reject(new Error(`DeepSeek request timed out after ${milliseconds}ms`));
     }, milliseconds);
     promise.then(
       (value) => {
@@ -48,68 +34,31 @@ async function readProviderError(response: Response): Promise<string> {
   return body.replace(/\s+/g, " ").trim().slice(0, 320);
 }
 
-function supportsText(model: LanguageModel): boolean {
-  const inputs = Array.isArray(model.input_modalities) ? model.input_modalities : [];
-  const outputs = Array.isArray(model.output_modalities) ? model.output_modalities : [];
-  return (
-    inputs.includes("text") &&
-    outputs.includes("text") &&
-    typeof model.id === "string" &&
-    !/vision|image|video/i.test(model.id)
-  );
-}
-
-async function resolveTextModel(): Promise<string> {
-  const configuredModel = process.env.XAI_MODEL ?? process.env.GROK_TEXT_MODEL;
-  if (configuredModel?.trim()) return configuredModel.trim();
-
-  if (cachedTextModel && cachedTextModel.expiresAt > Date.now()) {
-    return cachedTextModel.id;
-  }
-
-  const connectors = new ReplitConnectors();
-  const response = await withTimeout(
-    connectors.proxy("xai", "/v1/language-models", { method: "GET" }),
-    MODEL_DISCOVERY_TIMEOUT_MS,
-  );
-  if (!response.ok) {
-    const providerError = await readProviderError(response);
-    throw new Error(
-      `xAI model discovery responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
-    );
-  }
-
-  const payload = (await response.json()) as LanguageModelsResponse;
-  const models = Array.isArray(payload.models)
-    ? payload.models.filter((model): model is LanguageModel => Boolean(model) && typeof model === "object")
-    : [];
-  const textModel = models.find(supportsText);
-  if (!textModel || typeof textModel.id !== "string") {
-    throw new Error("xAI returned no compatible text model");
-  }
-
-  cachedTextModel = {
-    id: textModel.id,
-    expiresAt: Date.now() + MODEL_CACHE_TTL_MS,
-  };
-  return textModel.id;
-}
-
-export async function callXaiTextModel(
+export async function callDeepSeekTextModel(
   messages: ChatMessage[],
-  options: { temperature: number; maxOutputTokens: number },
+  options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
 ): Promise<string> {
-  const connectors = new ReplitConnectors();
-  const model = await resolveTextModel();
+  const apiKey = process.env.DEEPSEEK_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error("DEEPSEEK_API_KEY is not configured");
+  }
+  const baseUrl = (
+    process.env.DEEPSEEK_BASE_URL?.trim() || DEFAULT_DEEPSEEK_BASE_URL
+  ).replace(/\/$/, "");
+  const model = process.env.DEEPSEEK_MODEL?.trim() || DEFAULT_DEEPSEEK_MODEL;
   const response = await withTimeout(
-    connectors.proxy("xai", "/v1/chat/completions", {
+    fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+      },
       body: JSON.stringify({
         model,
         temperature: options.temperature,
-        max_completion_tokens: options.maxOutputTokens,
+        max_tokens: options.maxOutputTokens,
         messages,
+        ...(options.jsonMode ? { response_format: { type: "json_object" } } : {}),
       }),
     }),
     CHAT_TIMEOUT_MS,
@@ -117,14 +66,14 @@ export async function callXaiTextModel(
   if (!response.ok) {
     const providerError = await readProviderError(response);
     throw new Error(
-      `xAI provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
+      `DeepSeek provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
     );
   }
 
   const payload = (await response.json()) as ChatCompletionResponse;
   const content = payload.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) {
-    throw new Error("xAI provider returned no content");
+    throw new Error("DeepSeek provider returned no content");
   }
   return content.trim();
 }

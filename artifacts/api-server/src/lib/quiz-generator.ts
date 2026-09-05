@@ -11,7 +11,7 @@ import {
   GROUNDED_CONTENT_RULES,
   LEARNER_SAFE_OUTPUT_RULES,
 } from "./ai-prompts";
-import { callXaiTextModel } from "./ai-provider";
+import { callDeepSeekTextModel } from "./ai-provider";
 
 export type GroundedQuizQuestion = {
   id: string;
@@ -81,7 +81,7 @@ export async function generateGroundedQuizQuestions(input: {
   const promptPolicy = input.mode === "pre_exam" || input.mode === "error_stack"
     ? ACADEMIC_EXAM_PROMPT
     : ADAPTIVE_EXERCISE_PROMPT;
-  const content = await callXaiTextModel(
+  const content = await callDeepSeekTextModel(
     [
       {
         role: "system",
@@ -106,7 +106,7 @@ export async function generateGroundedQuizQuestions(input: {
         ].join("\n"),
       },
     ],
-    { temperature: 0, maxOutputTokens: 1800 },
+    { temperature: 0, maxOutputTokens: 1800, jsonMode: true },
   );
   return { questions: parseQuestions(content, retrieval), retrieval };
 }

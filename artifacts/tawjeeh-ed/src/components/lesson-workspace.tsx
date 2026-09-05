@@ -1096,9 +1096,16 @@ export function LessonWorkspace() {
             : `بنى لك وكيل التمارين ${generated.ideas.length} موضوعات مختلفة من مصادر المنهاج. افتح أي موضوع لبدء دراسته في مساحة كاملة.`,
       }]);
        return generated;
-     } catch {
+      } catch (error) {
        if (completedTopic) setTopicCompletionState('error');
-      openChatCircuit();
+        setMessages((current) => [...current, {
+          id: `topic-generation-error-${Date.now()}`,
+          role: 'assistant',
+          text: error instanceof Error && error.message
+            ? error.message
+            : 'تعذر توليد الموضوعات الآن. أعد المحاولة بعد قليل.',
+        }]);
+        setChatCircuitOpen(false);
        return null;
     } finally {
       setIsThinking(false);
