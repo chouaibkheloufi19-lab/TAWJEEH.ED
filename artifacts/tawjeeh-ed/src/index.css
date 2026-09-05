@@ -2416,6 +2416,365 @@ button { cursor: pointer; }
   .auth-followup-footer { display: grid; gap: 6px; text-align: center; }
 }
 
+/* Tawjeeh learning flow polish — a warmer, more companion-led treatment for the two core spaces. */
+.program-agent-page {
+  gap: 16px;
+}
+.program-agent-hero {
+  min-height: 218px;
+  padding: clamp(20px, 3vw, 30px);
+  border-color: rgba(126, 203, 213, .46);
+  background:
+    radial-gradient(circle at 83% 26%, rgba(112, 217, 221, .22), transparent 10rem),
+    radial-gradient(circle at 10% 96%, rgba(247, 210, 135, .17), transparent 13rem),
+    linear-gradient(125deg, #073b58 0%, #075b70 57%, #0e7280 100%);
+  box-shadow: 0 22px 46px rgba(5, 55, 76, .16);
+}
+.program-agent-hero::before {
+  content: '';
+  position: absolute;
+  inset: 20px auto auto 28%;
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgba(211, 244, 239, .22);
+  border-radius: 50%;
+  box-shadow: 0 0 0 18px rgba(211, 244, 239, .05), 0 0 0 38px rgba(211, 244, 239, .03);
+}
+.program-agent-hero::after {
+  right: -76px;
+  bottom: -174px;
+  border-color: rgba(213, 247, 239, .22);
+  box-shadow: 0 0 0 24px rgba(213, 247, 239, .08), 0 0 0 48px rgba(213, 247, 239, .05);
+}
+.program-agent-heading h2 {
+  color: #f5fbfa;
+  font-size: clamp(25px, 3.2vw, 38px);
+}
+.program-agent-heading p {
+  max-width: 560px;
+  color: #cbe9e8;
+}
+.program-agent-status {
+  color: #b4f1df;
+}
+.program-agent-status span {
+  background: #91e3c9;
+  box-shadow: 0 0 0 4px rgba(145, 227, 201, .16);
+}
+.program-agent-avatar {
+  border-color: rgba(222, 248, 244, .45);
+  background: linear-gradient(145deg, #bfe8e8, #5bb5c5);
+  box-shadow: 0 16px 30px rgba(1, 37, 58, .24);
+}
+.program-agent-avatar i {
+  border-color: #07536a;
+  background: #91e3c9;
+}
+.program-notification-button {
+  border-color: rgba(211, 244, 239, .35);
+  color: #e6f6f1;
+  background: rgba(5, 55, 76, .35);
+}
+.program-notification-button:hover {
+  border-color: #b8eee0;
+  color: #073b58;
+  background: #e8f7f3;
+}
+.program-planner-button {
+  border-color: #f5ce7d;
+  color: #073b58;
+  background: #f7d58d;
+  box-shadow: 0 9px 18px rgba(2, 35, 50, .18);
+}
+.program-planner-button:hover {
+  background: #ffe3a8;
+}
+.program-rhythm-strip {
+  border-color: rgba(205, 241, 234, .27);
+  background: rgba(3, 44, 63, .26);
+}
+.program-rhythm-strip > div strong,
+.program-rhythm-strip > div span,
+.program-rhythm-note {
+  color: #e4f8f2;
+}
+.program-rhythm-strip > i {
+  background: rgba(199, 237, 231, .38);
+}
+.program-agent-layout {
+  grid-template-columns: minmax(244px, .68fr) minmax(0, 1.8fr);
+  gap: 16px;
+}
+.program-agent-aside {
+  position: sticky;
+  top: 22px;
+}
+.program-side-card {
+  border-color: #b9dfe0;
+  background:
+    linear-gradient(160deg, rgba(232, 248, 245, .92), rgba(255, 255, 255, .98) 72%);
+  box-shadow: 0 12px 28px rgba(24, 77, 84, .08);
+}
+.program-phase-card h3 {
+  color: #073b58;
+  font-size: 19px;
+}
+.program-phase-days span.current {
+  box-shadow: 0 0 0 4px rgba(47, 138, 165, .14);
+}
+.program-side-note {
+  border-color: #c9e1dd;
+  color: #1d6b72;
+  background: #eef8f4;
+}
+.program-agent-workspace {
+  overflow: hidden;
+  border: 1px solid #c7e1e2;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .77);
+  box-shadow: 0 14px 32px rgba(29, 74, 76, .06);
+}
+.program-workspace-toolbar {
+  padding: 9px 12px;
+  border-color: #d6e9e7;
+  background: rgba(247, 252, 250, .9);
+}
+.program-tabs button {
+  min-height: 40px;
+  padding-inline: 14px;
+}
+.program-tabs button.active {
+  color: #075b70;
+  background: #dff2ed;
+  box-shadow: inset 0 -2px 0 #2f8aa5;
+}
+.program-plan-content {
+  padding: clamp(15px, 2.3vw, 24px);
+}
+.program-schedule-intro {
+  margin-bottom: 20px;
+  padding: 3px 2px 14px;
+  border-bottom: 1px dashed #cfe3df;
+}
+.program-schedule-intro h3 {
+  font-size: 22px;
+}
+.program-day-card {
+  padding: 15px;
+  border-color: #d3e6e4;
+  background: linear-gradient(135deg, #fffefa, #f4fbf8);
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+.program-day-card:hover {
+  transform: translateY(-2px);
+  border-color: #9dccca;
+  box-shadow: 0 12px 24px rgba(27, 102, 103, .08);
+}
+.program-day-heading {
+  margin-bottom: 12px;
+  padding-bottom: 11px;
+}
+.program-day-number {
+  color: #0b7d80;
+}
+.program-day-status {
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #14655d;
+  background: #e4f4ed;
+}
+.program-plan-session {
+  border-color: #e2efec;
+  background: rgba(255, 255, 255, .82);
+  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+.program-plan-session:hover {
+  transform: translateX(-2px);
+  border-color: #a8d7d1;
+  background: #fff;
+}
+.program-plan-session-copy strong {
+  color: #164d58;
+}
+.program-exam-mode-card {
+  border-color: #c3e2e2;
+  background: linear-gradient(110deg, #f6fbf8, #fffdf5);
+}
+
+.lesson-workspace {
+  --lesson-line: #c9e0dc;
+  --lesson-paper: #fffdf8;
+  --lesson-mist: #eaf6f2;
+  --lesson-aqua: #d8f0ec;
+  --lesson-teal: #087782;
+  --lesson-navy: #103f55;
+}
+.lesson-workspace-header {
+  align-items: flex-start;
+  padding: 4px 4px 4px;
+}
+.lesson-title-block h1 {
+  font-size: clamp(26px, 3.1vw, 40px);
+}
+.lesson-title-block p {
+  color: #5f7d80;
+}
+.lesson-header-controls {
+  align-items: end;
+}
+.lesson-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 29px;
+  padding: 0 10px;
+  border: 1px solid #b9d9d7;
+  border-radius: 999px;
+  color: #176a73;
+  font-size: 9px;
+  font-weight: 900;
+  background: #f0f8f4;
+  transition: transform .2s ease, background .2s ease, border-color .2s ease;
+}
+.lesson-back-button:hover {
+  transform: translateY(-1px);
+  border-color: #087782;
+  background: #e1f2ed;
+}
+.lesson-evaluation-banner {
+  border-color: #b9dcd8;
+  background: linear-gradient(108deg, #eaf7f1, #fff9e9);
+  box-shadow: 0 8px 20px rgba(28, 83, 83, .04);
+}
+.lesson-grid {
+  grid-template-columns: minmax(228px, .7fr) minmax(330px, 1fr) minmax(430px, 1.45fr);
+  gap: 14px;
+}
+.lesson-panel {
+  border-color: #c9e0dc;
+  box-shadow: 0 14px 30px rgba(29, 74, 76, .07);
+}
+.lesson-path-panel {
+  background: linear-gradient(160deg, #e7f5ef, #fffdf8 64%);
+}
+.lesson-conversation-panel {
+  background: linear-gradient(160deg, #f1effb, #fffdf8 64%);
+}
+.lesson-teaching-panel {
+  border-top-color: #e4a28d;
+  background: linear-gradient(160deg, #fff0e8, #fffaf1 64%);
+}
+.lesson-path-item.is-active {
+  border-color: #9fcfc5;
+  background: #dff1eb;
+  box-shadow: inset 0 0 0 1px rgba(8, 119, 130, .06);
+}
+.lesson-path-item.is-active .lesson-path-node {
+  color: #fff;
+  border-color: #087782;
+  background: #087782;
+}
+.lesson-path-item.is-done .lesson-path-node {
+  border-color: #2e896e;
+  background: #2e896e;
+}
+.lesson-chat-header {
+  background: rgba(248, 247, 253, .72);
+}
+.lesson-fahim-avatar {
+  box-shadow: 0 8px 18px rgba(49, 102, 122, .16);
+}
+.lesson-message.is-assistant {
+  border-color: #c9d8ea;
+  background: #f6f7fc;
+}
+.lesson-message.is-user {
+  border-color: #b6ddd3;
+  background: #e5f5ee;
+}
+.lesson-whiteboard-wrap {
+  border-color: #d4cba7;
+  box-shadow: 0 12px 26px rgba(108, 89, 47, .08);
+}
+.lesson-whiteboard-canvas {
+  min-height: 285px;
+}
+
+@media (max-width: 1050px) {
+  .program-agent-aside {
+    position: static;
+  }
+  .lesson-grid {
+    grid-template-columns: minmax(210px, .72fr) minmax(320px, 1fr);
+  }
+  .lesson-teaching-panel {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 760px) {
+  .program-agent-hero {
+    min-height: 0;
+  }
+  .program-agent-heading h2 {
+    font-size: 28px;
+  }
+  .program-agent-actions {
+    width: 100%;
+  }
+  .program-agent-actions > button {
+    flex: 1;
+  }
+  .lesson-workspace-header {
+    flex-direction: column;
+    gap: 11px;
+  }
+  .lesson-header-controls,
+  .lesson-back-button,
+  .lesson-header-status,
+  .lesson-conclude-wrap,
+  .lesson-conclude-button {
+    width: 100%;
+  }
+  .lesson-header-controls {
+    align-items: stretch;
+  }
+  .lesson-back-button,
+  .lesson-header-status,
+  .lesson-conclude-button {
+    justify-content: center;
+  }
+  .lesson-grid {
+    grid-template-columns: 1fr;
+  }
+  .lesson-teaching-panel {
+    grid-column: auto;
+  }
+  .lesson-whiteboard-canvas {
+    min-height: 220px;
+  }
+}
+@media (max-width: 520px) {
+  .program-agent-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .program-agent-actions > button {
+    width: 100%;
+  }
+  .program-rhythm-strip > div {
+    min-width: 62px;
+  }
+  .program-rhythm-strip > div strong {
+    font-size: 16px;
+  }
+  .program-rhythm-note {
+    font-size: 8px;
+  }
+  .program-day-card {
+    padding: 11px;
+  }
+}
+
 /* Phase one presentation — a quiet editorial entrance for the Blue Owl and Planner Agent. */
 .phase-one-onboarding,
 .phase-one-planner-shell {
@@ -7749,5 +8108,100 @@ button { cursor: pointer; }
   .lesson-independent-topic-generate {
     width: calc(100% - 32px);
     margin-inline: 16px;
+  }
+}
+
+/* Three horizontal learning layers: mastery path → live dialogue → live board. */
+.lesson-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.lesson-grid > .lesson-panel {
+  width: 100%;
+  min-width: 0;
+}
+
+.lesson-path-panel {
+  order: 1;
+}
+
+.lesson-conversation-panel {
+  order: 2;
+  position: relative;
+  min-height: 430px;
+}
+
+.lesson-teaching-panel {
+  order: 3;
+}
+
+.lesson-layer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin: 14px 18px -2px;
+  padding: 6px 10px;
+  border: 1px solid #c5dce9;
+  border-radius: 999px;
+  color: #236783;
+  background: #eef8fd;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.lesson-path-panel .lesson-path-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.lesson-path-panel .lesson-path-item {
+  min-height: 92px;
+}
+
+.lesson-conversation-panel .lesson-messages {
+  min-height: 250px;
+}
+
+.lesson-teaching-panel .lesson-whiteboard-wrap {
+  min-height: 360px;
+}
+
+.lesson-teaching-panel .lesson-whiteboard-canvas {
+  min-height: 310px;
+}
+
+@media (max-width: 900px) {
+  .lesson-path-panel .lesson-path-list {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+  }
+
+  .lesson-path-panel .lesson-path-item {
+    flex: 0 0 172px;
+  }
+
+  .lesson-conversation-panel {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .lesson-layer-badge {
+    margin-inline: 14px;
+  }
+
+  .lesson-path-panel .lesson-path-item {
+    flex-basis: 154px;
+  }
+
+  .lesson-teaching-panel .lesson-whiteboard-wrap,
+  .lesson-teaching-panel .lesson-whiteboard-canvas {
+    min-height: 230px;
   }
 }

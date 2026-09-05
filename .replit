@@ -9,6 +9,28 @@ args = ["pnpm", "store", "prune"]
 env = { "CI" = "true" }
 
 [workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Tawjeeh preview"
+
+[[workflows.workflow]]
+name = "Tawjeeh preview"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=25786 BASE_PATH=/ pnpm --filter @workspace/tawjeeh-ed run dev"
+waitForPort = 25786
 
 [agent]
 stack = "PNPM_WORKSPACE"

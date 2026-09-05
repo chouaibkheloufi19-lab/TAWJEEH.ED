@@ -1583,10 +1583,18 @@ export function LessonWorkspace() {
       <header className="lesson-workspace-header">
         <div className="lesson-title-block">
                  <span className="lesson-kicker"><Sparkles size={13} /> جلسة تثبيت · {fixedLessonSubject}</span>
-          <h1>قوانين نيوتن والحركة</h1>
-          <p>فكرة واحدة، محاولة قصيرة، ثم علامة واضحة على ما فهمته.</p>
+          <h1>{displayedTitle}</h1>
+          <p>اليوم {Math.min(evaluationDay, 10)} من رحلتك · فكرة واحدة، محاولة قصيرة، ثم علامة واضحة على ما فهمته.</p>
         </div>
         <div className="lesson-header-controls">
+          <button
+            type="button"
+            className="lesson-back-button"
+            onClick={() => setLocation('/program')}
+            data-testid="button-back-to-program"
+          >
+            <ArrowLeft size={14} /> العودة إلى المسار
+          </button>
           <div className="lesson-header-status" role="status" data-testid="status-lesson-progress">
             <span className="lesson-status-dot" aria-hidden="true" />
             <span>
@@ -1628,10 +1636,10 @@ export function LessonWorkspace() {
        )}
 
        <div className={`lesson-grid ${isLessonRailCollapsed ? 'has-collapsed-rail' : ''}`}>
-          <aside className={`lesson-panel lesson-path-panel ${isLessonRailCollapsed ? 'is-collapsed' : ''}`} aria-label="مسار إتقان الطالب">
+           <aside className={`lesson-panel lesson-path-panel ${isLessonRailCollapsed ? 'is-collapsed' : ''}`} aria-label="الطبقة الأولى: مسار إتقان الطالب" data-layer="mastery-path">
           <div className="lesson-panel-heading">
             <div>
-               <span className="lesson-panel-kicker"><BookOpen size={13} /> خريطة الإتقان</span>
+                <span className="lesson-panel-kicker"><BookOpen size={13} /> طبقة 1 · مسار الطالب</span>
                <h2>طريق الفهم</h2>
                <p>نثبت خطوة قبل أن نفتح التي بعدها.</p>
             </div>
@@ -1680,7 +1688,8 @@ export function LessonWorkspace() {
           {knowledgeQuery.isError && <p className="lesson-source-status is-error">تعذر تحميل الإحالات؛ بقيت أدوات الجلسة متاحة.</p>}
         </aside>
 
-         <section className="lesson-panel lesson-conversation-panel" aria-label={handoffComplete ? 'التواصل مع شركاء التعلّم' : 'حديثك مع فهيم'}>
+          <section className="lesson-panel lesson-conversation-panel" aria-label={handoffComplete ? 'الطبقة الثانية: التواصل مع شركاء التعلّم' : 'الطبقة الثانية: حديثك مع فهيم'} data-layer="ai-conversation">
+            <div className="lesson-layer-badge"><MessageCircle size={13} /> طبقة 2 · الحوار المباشر</div>
            <div className="lesson-panel-heading lesson-conversation-heading">
              <div className="lesson-fahim-chip">
                 <span className={`lesson-fahim-avatar ${handoffComplete ? 'is-handoff' : ''}`}><img src={handoffComplete ? (activePartner === 'dalil' ? owlAgentTeal : owlAgentViolet) : (isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal)} alt={handoffComplete ? `${activePartnerDetails.name}، ${activePartnerDetails.role}` : 'فهيم، مساعد تثبيت المفاهيم'} /></span>
@@ -1779,13 +1788,14 @@ export function LessonWorkspace() {
 
            <section
               className={`lesson-panel lesson-teaching-panel ${isBoardImmersive ? 'is-immersive' : ''}`}
-             aria-label={handoffComplete ? 'مساحة الدرس والتمرين والحل' : 'السبورة الذكية لفهيم'}
+              aria-label={handoffComplete ? 'الطبقة الثالثة: مساحة الدرس والتمرين والحل' : 'الطبقة الثالثة: السبورة الذكية لفهيم'}
+              data-layer="live-board"
              aria-modal={isBoardImmersive ? 'true' : undefined}
              role={isBoardImmersive ? 'dialog' : undefined}
            >
           <div className="lesson-teaching-header">
              <div>
-                <span className="lesson-panel-kicker"><Volume2 size={13} /> طبقة 1 · {handoffComplete ? 'لوح الدرس' : 'لوح فهيم'}</span>
+                 <span className="lesson-panel-kicker"><Volume2 size={13} /> طبقة 3 · {handoffComplete ? 'السبورة والمواضيع' : 'السبورة الحية'}</span>
                <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
                <p>إيقاع مقترح · {activeSection.duration} · {activeSection.label}</p>
                 {activeSource && <span className="lesson-source-badge"><BookOpen size={12} /> مصدر مباشر · {activeSource.source} · ص {activeSource.page}</span>}
@@ -2050,7 +2060,7 @@ export function LessonWorkspace() {
           </div>
           <div className="lesson-whiteboard-wrap">
             <div className="lesson-whiteboard-toolbar">
-                <span><BarChart3 size={14} /> لوح الدرس · انقري على الجزء غير الواضح</span>
+                 <span><BarChart3 size={14} /> السبورة الحية · اضغط على أي جزء لتلقين فهيم</span>
               <div>
                 <button type="button" className={boardMode === 'pen' ? 'is-selected' : ''} onClick={() => setBoardMode('pen')} disabled={!lessonToolsActive} aria-label="أداة الكتابة" data-testid="button-whiteboard-pen"><PenLine size={15} /></button>
                   <button type="button" className={boardMode === 'highlight' ? 'is-selected' : ''} onClick={() => setBoardMode('highlight')} disabled={!lessonToolsActive} aria-label="أداة التظليل والنقر" data-testid="button-whiteboard-highlight"><Highlighter size={15} /></button>

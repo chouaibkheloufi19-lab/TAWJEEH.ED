@@ -563,9 +563,9 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           <div className="program-agent-heading">
             <ProgramAgentAvatar size="lg" />
             <div>
-               <div className="program-agent-status"><span /> برنامجك الدراسي</div>
-                <h2>خطتك الكاملة لعشرة أيام.</h2>
-                  <p>يختار فهيم المادة والمحور والتطبيق المناسب لمستواك تلقائيًا. اضبط وقت الحصة فقط، وشاهد مسارك الكامل قبل أن تبدأ.</p>
+               <div className="program-agent-status"><span /> فهيم يرافقك اليوم</div>
+                <h2>اليوم {Math.min(plannerWindow.day, 10)} من رحلة العشرة أيام.</h2>
+                  <p>خطوة هادئة اليوم تكفي. يختار فهيم المادة والمحور والتطبيق المناسب لمستواك، ثم يبقى قريبًا حتى تثبت الفكرة.</p>
             </div>
           </div>
           <div className="program-agent-actions">
@@ -579,11 +579,11 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
           </div>
         </div>
           <div className="program-rhythm-strip" aria-label="إيقاع خطة العشرة أيام">
-               <div><strong>10</strong><span>أيام واضحة</span></div>
+               <div><strong>{Math.min(plannerWindow.day, 10)}</strong><span>يومك الحالي</span></div>
             <i />
               <div><strong>3</strong><span>حصص لكل يوم</span></div>
             <i />
-              <div><strong>2</strong><span>مادتان أو أكثر</span></div>
+              <div><strong>{plannerWindow.progress}٪</strong><span>من المسار</span></div>
               <span className="program-rhythm-note"><Clock3 size={13} /> عدّل وقت الحصة فقط · الباقي يحدده فهيم</span>
           </div>
       </section>
