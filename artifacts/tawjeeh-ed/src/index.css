@@ -8251,3 +8251,218 @@ button { cursor: pointer; }
     min-height: 230px;
   }
 }
+
+/* Focused interaction room: the final block intentionally overrides the
+   historical lesson layout rules above. Keep the live board, flow log, and
+   conversation visible without making them compete for attention. */
+.lesson-workspace {
+  --interaction-ink: #123c4b;
+  --interaction-muted: #607681;
+  --interaction-line: #dce9e8;
+  --interaction-surface: #ffffff;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding: clamp(14px, 2vw, 28px);
+  gap: 14px;
+  background: #f4f8f7;
+}
+
+.lesson-workspace-header {
+  margin: 0;
+  padding: clamp(18px, 2.5vw, 30px);
+  border: 1px solid var(--interaction-line);
+  border-radius: 22px;
+  background: var(--interaction-surface);
+  box-shadow: 0 12px 30px rgba(23, 61, 70, .05);
+}
+
+.lesson-title-block h1 {
+  color: var(--interaction-ink);
+  letter-spacing: -.035em;
+}
+
+.lesson-title-block p,
+.lesson-panel-heading p,
+.lesson-teaching-header p {
+  color: var(--interaction-muted);
+}
+
+.lesson-sync-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 11px 14px;
+  border: 1px solid #b9dcd5;
+  border-radius: 14px;
+  color: #23665d;
+  background: #effaf6;
+}
+
+.lesson-sync-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+}
+
+.lesson-sync-strip span.is-saving {
+  color: #8a641c;
+}
+
+.lesson-sync-strip span.is-error {
+  color: #a23c4d;
+}
+
+.lesson-sync-strip strong {
+  color: var(--interaction-ink);
+}
+
+.lesson-sync-strip small {
+  color: #66817d;
+}
+
+.lesson-grid,
+.lesson-grid.has-collapsed-rail {
+  display: grid;
+  grid-template-columns: minmax(270px, .78fr) minmax(0, 1.45fr);
+  grid-template-rows: auto minmax(280px, auto);
+  align-items: start;
+  gap: 14px;
+}
+
+.lesson-grid > .lesson-panel {
+  width: auto;
+  min-width: 0;
+  border: 1px solid var(--interaction-line);
+  border-radius: 18px;
+  background: var(--interaction-surface);
+  box-shadow: 0 10px 24px rgba(23, 61, 70, .045);
+}
+
+.lesson-teaching-panel {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  order: unset;
+  overflow: hidden;
+}
+
+.lesson-path-panel {
+  grid-column: 1;
+  grid-row: 1;
+  order: unset;
+}
+
+.lesson-conversation-panel {
+  grid-column: 1;
+  grid-row: 2;
+  order: unset;
+  min-height: 0;
+}
+
+.lesson-path-panel .lesson-path-list {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.lesson-path-panel .lesson-path-item {
+  min-height: 70px;
+}
+
+.lesson-activity-log {
+  margin: 14px;
+  border: 1px solid #e2eceb;
+  border-radius: 13px;
+  background: #fbfdfc;
+}
+
+.lesson-activity-log-heading {
+  padding: 11px 12px;
+  border-bottom: 1px solid #e8f0ef;
+}
+
+.lesson-activity-log-list {
+  max-height: 210px;
+  overflow: auto;
+}
+
+.lesson-teaching-panel .lesson-whiteboard-wrap {
+  min-height: 390px;
+  margin-inline: clamp(14px, 2vw, 24px);
+  border: 1px solid #d7e5e2;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.lesson-teaching-panel .lesson-whiteboard-canvas {
+  min-height: 330px;
+}
+
+.lesson-note-card,
+.lesson-summary-card,
+.lesson-bank {
+  border-color: #dce9e8;
+  box-shadow: none;
+}
+
+.lesson-composer,
+.lesson-teaching-footer {
+  border-color: #e2eceb;
+}
+
+@media (max-width: 980px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .lesson-grid > .lesson-panel,
+  .lesson-teaching-panel,
+  .lesson-path-panel,
+  .lesson-conversation-panel {
+    width: 100%;
+    order: unset;
+  }
+
+  .lesson-teaching-panel {
+    order: 1;
+  }
+
+  .lesson-path-panel {
+    order: 2;
+  }
+
+  .lesson-conversation-panel {
+    order: 3;
+  }
+}
+
+@media (max-width: 560px) {
+  .lesson-workspace {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .lesson-workspace-header {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .lesson-sync-strip {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    border-radius: 12px;
+  }
+
+  .lesson-teaching-panel .lesson-whiteboard-wrap {
+    margin-inline: 10px;
+  }
+
+  .lesson-teaching-panel .lesson-whiteboard-canvas {
+    min-height: 270px;
+  }
+}

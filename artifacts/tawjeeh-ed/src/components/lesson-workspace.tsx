@@ -196,6 +196,7 @@ type LessonSession = {
   attachment: string | null;
   attachmentName: string | null;
   whiteboardStrokes: Point[][];
+  whiteboardStrokesBySection: Partial<Record<LessonSectionId, Point[][]>>;
   flowNotes: Partial<Record<LessonSectionId, string>>;
   startedAt: string;
   concludedAt: string | null;
@@ -321,6 +322,7 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
     attachment: null,
     attachmentName: null,
     whiteboardStrokes: [],
+    whiteboardStrokesBySection: {},
     flowNotes: {},
     startedAt: new Date().toISOString(),
     concludedAt: null,
@@ -350,6 +352,18 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
       whiteboardStrokes: Array.isArray(parsed.whiteboardStrokes)
         ? parsed.whiteboardStrokes.filter((stroke): stroke is Point[] => Array.isArray(stroke) && stroke.every((point) => typeof point?.x === 'number' && typeof point?.y === 'number'))
         : [],
+      whiteboardStrokesBySection: parsed.whiteboardStrokesBySection && typeof parsed.whiteboardStrokesBySection === 'object'
+        ? Object.fromEntries(
+            Object.entries(parsed.whiteboardStrokesBySection)
+              .filter(([key, value]) => lessonSections.some((section) => section.id === key) && Array.isArray(value))
+              .map(([key, value]) => [
+                key,
+                (value as unknown[]).filter((stroke): stroke is Point[] => Array.isArray(stroke) && stroke.every((point) => typeof point?.x === 'number' && typeof point?.y === 'number')),
+              ]),
+          ) as Partial<Record<LessonSectionId, Point[][]>>
+        : parsed.whiteboardStrokes?.length
+          ? { [active]: parsed.whiteboardStrokes }
+          : {},
       flowNotes: parsed.flowNotes && typeof parsed.flowNotes === 'object'
         ? Object.fromEntries(Object.entries(parsed.flowNotes).filter(([key, value]) => lessonSections.some((section) => section.id === key) && typeof value === 'string')) as Partial<Record<LessonSectionId, string>>
         : {},
@@ -697,15 +711,15 @@ export function LessonWorkspace() {
   }, [activePartner, examMode?.reduce_passive_explanation]);
   const intensiveExamMode = examMode?.mode === 'pre_exam' || examMode?.mode === 'error_stack';
   const whiteboardAssets = useMemo<WhiteboardAsset[]>(() => {
-    const strokes = session.whiteboardStrokes.map((points, index) => ({
-      id: `${lessonId}:${activeSection.id}:stroke:${index}`,
+    const strokes = lessonSections.flatMap((section) => (session.whiteboardStrokesBySection[section.id] ?? []).map((points, index) => ({
+      id: `${lessonId}:${section.id}:stroke:${index}`,
       kind: 'stroke' as const,
-      section_id: activeSection.id,
-      label: `رسم ${index + 1} · ${activeSection.label}`,
+      section_id: section.id,
+      label: `رسم ${index + 1} · ${section.label}`,
       data: { points },
       created_at: session.startedAt,
-    }));
-    const annotations = [
+    })));
+    const annotationCandidates: Array<WhiteboardAsset | null> = [
       highlightedPart
         ? {
             id: `${lessonId}:${activeSection.id}:annotation:highlight`,
@@ -726,9 +740,10 @@ export function LessonWorkspace() {
             created_at: session.startedAt,
           }
         : null,
-    ].filter((asset): asset is WhiteboardAsset => Boolean(asset));
+    ];
+    const annotations = annotationCandidates.filter((asset): asset is WhiteboardAsset => asset !== null);
     return [...strokes, ...annotations];
-  }, [activeSection.id, activeSection.label, highlightedPart, session.note, session.startedAt, session.whiteboardStrokes]);
+  }, [activeSection.id, activeSection.label, highlightedPart, session.note, session.startedAt, session.whiteboardStrokesBySection]);
 
   const buildSessionSummary = (completedAt: string): LocalSummary => ({
     id: `summary-${lessonId}`,
@@ -885,7 +900,7 @@ export function LessonWorkspace() {
     session.concludedAt,
     session.flowNotes,
     session.note,
-    session.whiteboardStrokes,
+    session.whiteboardStrokesBySection,
     sourceExcerpt,
   ]);
 
@@ -949,12 +964,12 @@ export function LessonWorkspace() {
        rect.width,
        rect.height,
        activeSection.id,
-       session.whiteboardStrokes,
+        session.whiteboardStrokesBySection[activeSection.id] ?? [],
        boardMode,
        highlightedPart,
        Boolean(generatedLesson),
      );
-  }, [activeSection.id, boardMode, highlightedPart, session.whiteboardStrokes]);
+  }, [activeSection.id, boardMode, highlightedPart, session.whiteboardStrokesBySection]);
 
   const selectSection = (section: LessonSection) => {
     if (section.id === activeSection.id) return;
@@ -1554,6 +1569,13 @@ export function LessonWorkspace() {
     });
     if (!region) return;
     setHighlightedPart(region.label);
+    setSession((current) => ({
+      ...current,
+      flowNotes: {
+        ...current.flowNotes,
+        [activeSection.id]: `حُدّد «${region.label}» على السبورة، وأصبح جاهزًا للشرح.`,
+      },
+    }));
     setMessages((current) => [...current, {
       id: `highlight-${Date.now()}`,
       role: 'assistant',
@@ -1578,7 +1600,7 @@ export function LessonWorkspace() {
       rect.width,
       rect.height,
       activeSection.id,
-      [...session.whiteboardStrokes, drawingRef.current],
+      [...(session.whiteboardStrokesBySection[activeSection.id] ?? []), drawingRef.current],
       boardMode,
       highlightedPart,
       Boolean(generatedLesson),
@@ -1587,11 +1609,31 @@ export function LessonWorkspace() {
 
   const finishDrawing = () => {
     if (!drawingRef.current.length) return;
-    setSession((current) => ({ ...current, whiteboardStrokes: [...current.whiteboardStrokes, drawingRef.current] }));
+    const completedStroke = drawingRef.current;
+    setSession((current) => {
+      const strokes = [...(current.whiteboardStrokesBySection[activeSection.id] ?? []), completedStroke];
+      return {
+        ...current,
+        whiteboardStrokes: strokes,
+        whiteboardStrokesBySection: { ...current.whiteboardStrokesBySection, [activeSection.id]: strokes },
+        flowNotes: {
+          ...current.flowNotes,
+          [activeSection.id]: `أضيف رسم إلى السبورة في خطوة «${activeSection.label}».`,
+        },
+      };
+    });
     drawingRef.current = [];
   };
 
-  const clearBoard = () => setSession((current) => ({ ...current, whiteboardStrokes: [] }));
+  const clearBoard = () => setSession((current) => ({
+    ...current,
+    whiteboardStrokes: [],
+    whiteboardStrokesBySection: { ...current.whiteboardStrokesBySection, [activeSection.id]: [] },
+    flowNotes: {
+      ...current.flowNotes,
+      [activeSection.id]: `مُسحت رسومات السبورة في خطوة «${activeSection.label}».`,
+    },
+  }));
 
   const toggleNarration = () => {
     if (isPlaying) {
@@ -1697,9 +1739,12 @@ export function LessonWorkspace() {
       </header>
 
       <div className="lesson-sync-strip" role="status" data-testid="status-live-sync">
-        <span><CheckCircle2 size={14} /> المزامنة الحية مفعّلة</span>
+        <span className={summarySaveState === 'error' ? 'is-error' : summarySaveState === 'saving' ? 'is-saving' : ''}>
+          <CheckCircle2 size={14} />
+          {summarySaveState === 'error' ? 'تحتاج المزامنة إلى إعادة المحاولة' : summarySaveState === 'saving' ? 'تُحفظ التغييرات الآن' : 'المزامنة الحية مفعّلة'}
+        </span>
         <strong>السبورة ↔ بنك الملخصات</strong>
-        <small>{whiteboardAssets.length} عناصر محفوظة · {Object.keys(session.flowNotes).length} خطوات موثقة</small>
+        <small>{whiteboardAssets.length} عناصر محفوظة · {Object.keys(session.flowNotes).length} خطوات موثقة · كل تغيير يُربط تلقائيًا</small>
       </div>
 
        <div className={`lesson-evaluation-banner ${phase4Active ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
