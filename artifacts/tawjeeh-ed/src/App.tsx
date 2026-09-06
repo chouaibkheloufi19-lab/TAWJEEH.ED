@@ -78,6 +78,7 @@ import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } fr
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LessonWorkspace } from '@/components/lesson-workspace';
 import { MathPractice } from '@/components/math-practice';
+import { ExamBoard } from '@/components/exam-board';
 import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/phase-one';
 import { ProgramAgent } from '@/components/program-agent';
 import { fetchWithTimeout } from '@/lib/request';
@@ -944,7 +945,7 @@ const creativeExamTopics = [
   },
 ] as const;
 
-function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
+function LegacyGeneratedExamPaper({ onExit }: { onExit: () => void }) {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
   return (
@@ -1131,6 +1132,10 @@ function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
       </article>
     </Shell>
   );
+}
+
+function GeneratedExamPaper({ onExit }: { onExit: () => void }) {
+  return <ExamBoard onExit={onExit} />;
 }
 
 function QuizAttempt({ quiz, examDate, onExit, onScore }: { quiz: Quiz; examDate?: string; onExit: () => void; onScore: (result: QuizResult) => void }) {
