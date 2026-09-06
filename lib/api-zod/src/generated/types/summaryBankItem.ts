@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SummaryConcept } from './summaryConcept';
+import type { WhiteboardAsset } from './whiteboardAsset';
 
 export interface SummaryBankItem {
   id: number;
@@ -14,6 +15,7 @@ export interface SummaryBankItem {
   subject: string;
   summary: string;
   concepts: SummaryConcept[];
+  whiteboard_assets: WhiteboardAsset[];
   grounding_query: string;
   grounding_node_ids: string[];
   completed_at: string;

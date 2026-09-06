@@ -9,6 +9,18 @@ export type SummaryConcept = {
   mastery?: number;
 };
 
+export type WhiteboardAsset = {
+  id: string;
+  kind: "stroke" | "annotation" | "diagram";
+  sectionId: string;
+  label: string;
+  data: {
+    points?: Array<{ x: number; y: number }>;
+    text?: string;
+  };
+  createdAt: string;
+};
+
 export const summaryBankTable = pgTable("summary_bank", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   userId: text("user_id").notNull(),
@@ -17,6 +29,7 @@ export const summaryBankTable = pgTable("summary_bank", {
   subject: text("subject").notNull(),
   summary: text("summary").notNull(),
   concepts: jsonb("concepts").$type<SummaryConcept[]>().notNull(),
+  whiteboardAssets: jsonb("whiteboard_assets").$type<WhiteboardAsset[]>().notNull().default([]),
   groundingQuery: text("grounding_query").notNull().default(""),
   groundingNodeIds: jsonb("grounding_node_ids").$type<string[]>().notNull().default([]),
   officialStamp: text("official_stamp").notNull().default("TAWJEEH.ED · OFFICIAL"),

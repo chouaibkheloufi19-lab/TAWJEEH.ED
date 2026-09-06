@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "generated_at": "2026-09-06T08:40:06.928752+00:00",
+  "generated_at": "2026-09-06T19:53:45.274291+00:00",
   "assets_root": "attached_assets",
   "stats": {
     "needs_review": 288,
-    "indexed": 51,
+    "indexed": 52,
     "excluded_media": 9,
     "duplicate_source": 49,
     "excluded_reference": 1,
-    "total_assets": 398,
-    "indexed_chunks": 683
+    "total_assets": 399,
+    "indexed_chunks": 685
   },
   "sources": [
     {
@@ -4736,6 +4736,48 @@
       "status": "duplicate_source",
       "canonical_source": "Pasted--SYSTEM-PROMPT-USER-FRIENDLY-TUTOR-EXERCISE-ENGINE-1-CO_1788492989462.txt",
       "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
+    },
+    {
+      "source_id": "1a005eb5f820298051eb13ae37b6ebecc71c47c5ab49744ddb94fad81acdaf31",
+      "source_file": "Pasted-Role-Task-Definition-You-are-acting-as-a-Lead-Full-Stac_1788723165208.txt",
+      "asset_path": "attached_assets/Pasted-Role-Task-Definition-You-are-acting-as-a-Lead-Full-Stac_1788723165208.txt",
+      "source_type": "txt",
+      "bytes": 2691,
+      "sha256": "1a005eb5f820298051eb13ae37b6ebecc71c47c5ab49744ddb94fad81acdaf31",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "unspecified",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "الدوال العددية",
+      "lesson": "الدوال",
+      "lesson_key": "functions",
+      "content_type": "summary",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "الدوال",
+      "concepts": "الدوال",
+      "prerequisites": "",
+      "lesson_keys": "functions",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "Pasted Role Task Definition You are acting as a Lead Full Stac",
+      "status": "indexed",
+      "review_reason": "",
+      "pages": 1,
+      "chunks": 2,
+      "first_page": 1,
+      "extraction_method": "text",
+      "extraction_methods": {
+        "text": 1
+      },
+      "summary": "Role & Task Definition:You are acting as a Lead Full-Stack Engineer and Principal UI/UX Architect. Your task is to refactor, redesign, and heavily simplify the Interaction / Engagement Page while strictly maintaining and enforcing the application's underlying visual-data synchronization workflows.1. CORE DESIGN & SIMPLIFICATION RULES (NON-NEGOTIABLE)Ultra-Mi",
+      "tags": [
+        "الدوال",
+        "الدوال العددية",
+        "summary"
+      ],
+      "indexed_source_hash": "1a005eb5f820298051eb13ae37b6ebecc71c47c5ab49744ddb94fad81acdaf31"
     },
     {
       "source_id": "7662cf5d232782cc8c4771f634042c524da034477154e3b695459911c3fb3fcb",
@@ -15491,6 +15533,24 @@
         "مراجعة عامة",
         "غير محدد",
         "reference"
+      ]
+    },
+    {
+      "id": "1a005eb5f820298051eb13ae37b6ebecc71c47c5ab49744ddb94fad81acdaf31",
+      "title": "Pasted Role Task Definition You are acting as a Lead Full Stac",
+      "summary": "Role & Task Definition:You are acting as a Lead Full-Stack Engineer and Principal UI/UX Architect. Your task is to refactor, redesign, and heavily simplify the Interaction / Engagement Page while strictly maintaining and enforcing the application's underlying visual-data synchronization workflows.1. CORE DESIGN & SIMPLIFICATION RULES (NON-NEGOTIABLE)Ultra-Mi",
+      "subject": "غير محدد",
+      "curriculum_year": "unspecified",
+      "unit": "الدوال العددية",
+      "lesson": "الدوال",
+      "type": "summary",
+      "difficulty": "mixed",
+      "source": "Pasted-Role-Task-Definition-You-are-acting-as-a-Lead-Full-Stac_1788723165208.txt",
+      "page": 1,
+      "tags": [
+        "الدوال",
+        "الدوال العددية",
+        "summary"
       ]
     },
     {

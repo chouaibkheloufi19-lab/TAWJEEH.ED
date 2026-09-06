@@ -69,3 +69,7 @@ export * from './summaryBankItem';
 export * from './summaryBankResponse';
 export * from './summaryConcept';
 export * from './weeklyQuizEligibility';
+export * from './whiteboardAsset';
+export * from './whiteboardAssetData';
+export * from './whiteboardAssetDataPointsItem';
+export * from './whiteboardAssetKind';

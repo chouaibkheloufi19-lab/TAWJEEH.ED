@@ -10,6 +10,7 @@ import {
   studyScheduleTable,
   summaryBankTable,
 } from "@workspace/db";
+import type { WhiteboardAsset } from "@workspace/db";
 
 export const EMERGENCY_REMEDIATION_LABEL = "غرفة إنعاش مستعجلة";
 export const ERROR_RATE_THRESHOLD = 0.5;
@@ -33,6 +34,7 @@ export type SummaryBankItem = {
   subject: string;
   summary: string;
   concepts: SummaryConcept[];
+  whiteboard_assets: WhiteboardAsset[];
   completed_at: string;
   official_stamp: string;
   logo: string;
@@ -199,6 +201,7 @@ export function toSummaryBankItem(row: typeof summaryBankTable.$inferSelect): Su
     subject: row.subject,
     summary: row.summary,
     concepts: row.concepts,
+    whiteboard_assets: row.whiteboardAssets,
     completed_at: row.completedAt.toISOString(),
     official_stamp: row.officialStamp,
     logo: row.logo,
@@ -367,6 +370,7 @@ export async function saveLessonSummary(
     subject: string;
     summary: string;
     concepts: SummaryConcept[];
+    whiteboardAssets: WhiteboardAsset[];
     groundingQuery: string;
     groundingNodeIds: string[];
   },
@@ -386,6 +390,7 @@ export async function saveLessonSummary(
             subject: input.subject,
             summary: input.summary,
             concepts: input.concepts,
+            whiteboardAssets: input.whiteboardAssets,
             groundingQuery: input.groundingQuery,
             groundingNodeIds: input.groundingNodeIds,
             officialStamp: OFFICIAL_SUMMARY_STAMP,
@@ -405,6 +410,7 @@ export async function saveLessonSummary(
             subject: input.subject,
             summary: input.summary,
             concepts: input.concepts,
+            whiteboardAssets: input.whiteboardAssets,
             groundingQuery: input.groundingQuery,
             groundingNodeIds: input.groundingNodeIds,
             officialStamp: OFFICIAL_SUMMARY_STAMP,

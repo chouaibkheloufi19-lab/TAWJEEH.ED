@@ -68,6 +68,34 @@ export interface SummaryConcept {
   mastery?: number;
 }
 
+export type WhiteboardAssetKind = typeof WhiteboardAssetKind[keyof typeof WhiteboardAssetKind];
+
+
+export const WhiteboardAssetKind = {
+  stroke: 'stroke',
+  annotation: 'annotation',
+  diagram: 'diagram',
+} as const;
+
+export type WhiteboardAssetDataPointsItem = {
+  x: number;
+  y: number;
+};
+
+export type WhiteboardAssetData = {
+  points?: WhiteboardAssetDataPointsItem[];
+  text?: string;
+};
+
+export interface WhiteboardAsset {
+  id: string;
+  kind: WhiteboardAssetKind;
+  section_id: string;
+  label: string;
+  data: WhiteboardAssetData;
+  created_at: string;
+}
+
 export interface SummaryBankItem {
   id: number;
   lesson_id: string;
@@ -75,6 +103,7 @@ export interface SummaryBankItem {
   subject: string;
   summary: string;
   concepts: SummaryConcept[];
+  whiteboard_assets: WhiteboardAsset[];
   grounding_query: string;
   grounding_node_ids: string[];
   completed_at: string;
@@ -110,6 +139,7 @@ export interface LessonCompletionInput {
   mastery?: number;
   /** @minItems 1 */
   concepts: SummaryConcept[];
+  whiteboard_assets: WhiteboardAsset[];
   /** @minLength 2 */
   grounding_query: string;
   /** @minItems 1 */

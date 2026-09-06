@@ -546,9 +546,39 @@ components:
           type: number
           minimum: 0
           maximum: 100
+    WhiteboardAsset:
+      type: object
+      required: [id, kind, section_id, label, data, created_at]
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [stroke, annotation, diagram]
+        section_id:
+          type: string
+        label:
+          type: string
+        data:
+          type: object
+          properties:
+            points:
+              type: array
+              items:
+                type: object
+                required: [x, y]
+                properties:
+                  x:
+                    type: number
+                  y:
+                    type: number
+            text:
+              type: string
+        created_at:
+          type: string
     SummaryBankItem:
       type: object
-      required: [id, lesson_id, lesson_title, subject, summary, concepts, grounding_query, grounding_node_ids, completed_at, official_stamp, logo]
+      required: [id, lesson_id, lesson_title, subject, summary, concepts, whiteboard_assets, grounding_query, grounding_node_ids, completed_at, official_stamp, logo]
       properties:
         id:
           type: integer
@@ -564,6 +594,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/SummaryConcept"
+        whiteboard_assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhiteboardAsset"
         grounding_query:
           type: string
         grounding_node_ids:
@@ -610,7 +644,7 @@ components:
           type: string
     LessonCompletionInput:
       type: object
-      required: [lesson_id, lesson_title, subject, summary, concepts, grounding_query, grounding_node_ids]
+      required: [lesson_id, lesson_title, subject, summary, concepts, whiteboard_assets, grounding_query, grounding_node_ids]
       properties:
         lesson_id:
           type: string
@@ -629,6 +663,10 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/SummaryConcept"
+        whiteboard_assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhiteboardAsset"
         grounding_query:
           type: string
           minLength: 2

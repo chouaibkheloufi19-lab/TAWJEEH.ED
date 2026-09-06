@@ -248,6 +248,7 @@ router.post("/learning/lessons/:lessonId/complete", async (req, res): Promise<vo
       subject: body.data.subject,
       summary: body.data.summary,
       concepts: body.data.concepts,
+      whiteboardAssets: body.data.whiteboard_assets,
       groundingQuery: retrieval.query,
       groundingNodeIds,
     });

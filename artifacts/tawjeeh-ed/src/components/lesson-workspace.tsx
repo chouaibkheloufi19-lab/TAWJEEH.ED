@@ -44,6 +44,7 @@ import {
   useRecordLearningAttempt,
   type ExamMode,
   type KnowledgeCard,
+  type WhiteboardAsset,
 } from '@workspace/api-client-react';
 import { getAgentReadinessQueryOptions } from '@/lib/agent-readiness';
 import owlAgentGold from '@assets/agent-success-cropped.png';
@@ -195,6 +196,7 @@ type LessonSession = {
   attachment: string | null;
   attachmentName: string | null;
   whiteboardStrokes: Point[][];
+  flowNotes: Partial<Record<LessonSectionId, string>>;
   startedAt: string;
   concludedAt: string | null;
   evaluationMode: EvaluationMode;
@@ -210,6 +212,7 @@ type LocalSummary = {
   subject: string;
   summary: string;
   concepts: { id: string; title: string; summary: string; mastery: number }[];
+  whiteboard_assets: WhiteboardAsset[];
   startedAt: string;
   completedAt: string;
   progress: number;
@@ -318,6 +321,7 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
     attachment: null,
     attachmentName: null,
     whiteboardStrokes: [],
+    flowNotes: {},
     startedAt: new Date().toISOString(),
     concludedAt: null,
     evaluationMode: defaultEvaluationMode,
@@ -346,6 +350,9 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
       whiteboardStrokes: Array.isArray(parsed.whiteboardStrokes)
         ? parsed.whiteboardStrokes.filter((stroke): stroke is Point[] => Array.isArray(stroke) && stroke.every((point) => typeof point?.x === 'number' && typeof point?.y === 'number'))
         : [],
+      flowNotes: parsed.flowNotes && typeof parsed.flowNotes === 'object'
+        ? Object.fromEntries(Object.entries(parsed.flowNotes).filter(([key, value]) => lessonSections.some((section) => section.id === key) && typeof value === 'string')) as Partial<Record<LessonSectionId, string>>
+        : {},
       startedAt: typeof parsed.startedAt === 'string' ? parsed.startedAt : fallback.startedAt,
       concludedAt: typeof parsed.concludedAt === 'string' ? parsed.concludedAt : null,
       evaluationMode: parsed.evaluationMode === 'fixed-foundation' || parsed.evaluationMode === 'adaptive-accelerated'
@@ -689,6 +696,95 @@ export function LessonWorkspace() {
     return details;
   }, [activePartner, examMode?.reduce_passive_explanation]);
   const intensiveExamMode = examMode?.mode === 'pre_exam' || examMode?.mode === 'error_stack';
+  const whiteboardAssets = useMemo<WhiteboardAsset[]>(() => {
+    const strokes = session.whiteboardStrokes.map((points, index) => ({
+      id: `${lessonId}:${activeSection.id}:stroke:${index}`,
+      kind: 'stroke' as const,
+      section_id: activeSection.id,
+      label: `رسم ${index + 1} · ${activeSection.label}`,
+      data: { points },
+      created_at: session.startedAt,
+    }));
+    const annotations = [
+      highlightedPart
+        ? {
+            id: `${lessonId}:${activeSection.id}:annotation:highlight`,
+            kind: 'annotation' as const,
+            section_id: activeSection.id,
+            label: 'تحديد على السبورة',
+            data: { text: highlightedPart },
+            created_at: session.startedAt,
+          }
+        : null,
+      session.note.trim()
+        ? {
+            id: `${lessonId}:${activeSection.id}:annotation:note`,
+            kind: 'annotation' as const,
+            section_id: activeSection.id,
+            label: 'ملاحظة مرتبطة بالمسار',
+            data: { text: session.note.trim() },
+            created_at: session.startedAt,
+          }
+        : null,
+    ].filter((asset): asset is WhiteboardAsset => Boolean(asset));
+    return [...strokes, ...annotations];
+  }, [activeSection.id, activeSection.label, highlightedPart, session.note, session.startedAt, session.whiteboardStrokes]);
+
+  const buildSessionSummary = (completedAt: string): LocalSummary => ({
+    id: `summary-${lessonId}`,
+    lessonId,
+    lessonTitle: fixedLessonTitle,
+    subject: fixedLessonSubject,
+    summary: `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّت ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعت الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
+    concepts: lessonSections.map((section) => {
+      const mastered = session.gradedExamples[`${section.id}-grounded`] === 'correct' ? 1 : 0;
+      return {
+        id: section.id,
+        title: generatedLesson?.elements.find((item) => item.kind === elementKindForSection(section.id))?.title ?? section.label,
+        summary: sourceForSection(section, foundationalSources)?.summary || 'لا يوجد مقتطف مسترجع لهذا المفهوم بعد.',
+        mastery: mastered * 100,
+      };
+    }),
+    whiteboard_assets: whiteboardAssets,
+    startedAt: session.startedAt,
+    completedAt,
+    progress,
+    officialStamp: 'TAWJEEH.ED · OFFICIAL',
+    logo: 'tawjeeh-owl-transparent.png',
+    groundingQuery: agentReadinessQuery.data?.retrieval.query ?? '',
+    groundingNodeIds: agentReadinessQuery.data?.retrieval.retrievedNodeIds ?? [],
+  });
+
+  const syncSummary = (summary: LocalSummary, state: 'saving' | 'saved' | 'error' = 'saving') => {
+    saveSummaryToProfile(summary);
+    setSummaryPreview(summary);
+    setSummarySaveState(state);
+    completeLessonMutation.mutate({
+      lessonId,
+      data: {
+        lesson_id: lessonId,
+        lesson_title: summary.lessonTitle,
+        subject: summary.subject,
+        summary: summary.summary,
+        whiteboard_assets: summary.whiteboard_assets,
+        grounding_query: summary.groundingQuery,
+        grounding_node_ids: summary.groundingNodeIds,
+        concepts: summary.concepts.map(({ id, title, summary: conceptSummary, mastery }) => ({
+          id,
+          title,
+          summary: conceptSummary,
+          mastery,
+        })),
+      },
+    }, {
+      onSuccess: () => {
+        setSummarySaveState('saved');
+        void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getListQuizzesQueryKey() });
+      },
+      onError: () => setSummarySaveState('error'),
+    });
+  };
 
   const openChatCircuit = () => {
     setChatCircuitOpen(true);
@@ -739,32 +835,9 @@ export function LessonWorkspace() {
       setSummarySaveState('error');
       return;
     }
-    if (!retry && (!evaluationComplete || session.concludedAt || summarySaveState !== 'idle')) return;
+    if (!retry && (!evaluationComplete || session.concludedAt)) return;
     const completedAt = new Date().toISOString();
-    const localSummary: LocalSummary = {
-      id: `summary-${lessonId}`,
-      lessonId,
-      lessonTitle: 'قوانين نيوتن والحركة',
-      subject: 'العلوم الفيزيائية',
-      summary: `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّت ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعت الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
-      concepts: lessonSections.map((section) => {
-        const mastered = session.gradedExamples[`${section.id}-grounded`] === 'correct' ? 1 : 0;
-        return {
-          id: section.id,
-          title: generatedLesson?.elements.find((item) => item.kind === elementKindForSection(section.id))?.title ?? section.label,
-          summary: sourceForSection(section, foundationalSources)?.summary || 'لا يوجد مقتطف مسترجع لهذا المفهوم بعد.',
-          mastery: mastered * 100,
-        };
-      }),
-      startedAt: session.startedAt,
-      completedAt,
-      progress,
-      officialStamp: 'TAWJEEH.ED · OFFICIAL',
-      logo: 'tawjeeh-owl-transparent.png',
-      groundingQuery: agentReadinessQuery.data?.retrieval.query ?? '',
-      groundingNodeIds: agentReadinessQuery.data?.retrieval.retrievedNodeIds ?? [],
-    };
-    saveSummaryToProfile(localSummary);
+    const localSummary = buildSessionSummary(completedAt);
     setSummaryPreview(localSummary);
     setSummarySaveState('saving');
     setSession((current) => ({
@@ -778,30 +851,7 @@ export function LessonWorkspace() {
       role: 'assistant',
       text: 'اكتملت الخطوة التأسيسية. فهيم سلّم لك المساحة بهدوء: دليل يشرح عندما تتعقد الفكرة، وتمارين تساعدك عندما تكون جاهزًا للتطبيق.',
     }]);
-    completeLessonMutation.mutate({
-      lessonId,
-      data: {
-        lesson_id: lessonId,
-        lesson_title: localSummary.lessonTitle,
-        subject: localSummary.subject,
-        summary: localSummary.summary,
-          grounding_query: localSummary.groundingQuery,
-          grounding_node_ids: localSummary.groundingNodeIds,
-        concepts: localSummary.concepts.map(({ id, title, summary: conceptSummary, mastery }) => ({
-          id,
-          title,
-          summary: conceptSummary,
-          mastery,
-        })),
-      },
-    }, {
-      onSuccess: () => {
-        setSummarySaveState('saved');
-        void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
-        void queryClient.invalidateQueries({ queryKey: getListQuizzesQueryKey() });
-      },
-      onError: () => setSummarySaveState('error'),
-    });
+    syncSummary(localSummary);
   };
 
   useEffect(() => {
@@ -820,6 +870,24 @@ export function LessonWorkspace() {
       setNoteStatus('تعذر الحفظ المحلي');
     }
   }, [session]);
+
+  useEffect(() => {
+    if (!ragReady || session.concludedAt) return;
+    const timeout = window.setTimeout(() => {
+      syncSummary(buildSessionSummary(new Date().toISOString()));
+    }, 700);
+    return () => window.clearTimeout(timeout);
+  }, [
+    activeSection.id,
+    highlightedPart,
+    progress,
+    ragReady,
+    session.concludedAt,
+    session.flowNotes,
+    session.note,
+    session.whiteboardStrokes,
+    sourceExcerpt,
+  ]);
 
   useEffect(() => {
     window.localStorage.setItem(attemptBankKey, JSON.stringify(attemptBank));
@@ -890,7 +958,14 @@ export function LessonWorkspace() {
 
   const selectSection = (section: LessonSection) => {
     if (section.id === activeSection.id) return;
-    setSession((current) => ({ ...current, activeConcept: section.id }));
+    setSession((current) => ({
+      ...current,
+      activeConcept: section.id,
+      flowNotes: {
+        ...current.flowNotes,
+        [section.id]: `انتقلنا إلى «${section.label}». ${section.prompt}`,
+      },
+    }));
     setMessages((current) => [...current, { id: `section-${section.id}-${Date.now()}`, role: 'assistant', text: `انتقلنا إلى «${section.label}». ${section.prompt}` }]);
   };
 
@@ -906,6 +981,12 @@ export function LessonWorkspace() {
         ? [...current.completedExamples.filter((id) => id !== exampleId), exampleId]
         : current.completedExamples.filter((id) => id !== exampleId),
       gradedExamples: { ...current.gradedExamples, [exampleId]: isCorrect ? 'correct' : 'incorrect' },
+      flowNotes: {
+        ...current.flowNotes,
+        [activeSection.id]: isCorrect
+          ? `ثُبّتت خطوة «${example.title}» بإجابة صحيحة.`
+          : `تحتاج خطوة «${example.title}» إلى مراجعة قبل التقدم.`,
+      },
     }));
     recordAttemptMutation.mutate({
       data: {
@@ -1615,6 +1696,12 @@ export function LessonWorkspace() {
         </div>
       </header>
 
+      <div className="lesson-sync-strip" role="status" data-testid="status-live-sync">
+        <span><CheckCircle2 size={14} /> المزامنة الحية مفعّلة</span>
+        <strong>السبورة ↔ بنك الملخصات</strong>
+        <small>{whiteboardAssets.length} عناصر محفوظة · {Object.keys(session.flowNotes).length} خطوات موثقة</small>
+      </div>
+
        <div className={`lesson-evaluation-banner ${phase4Active ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
         <div>
             <span className="lesson-panel-kicker"><Sparkles size={13} /> {phase4Active ? 'اكتملت المرحلة التأسيسية' : 'محتوى الدرس جاهز'}</span>
@@ -1684,6 +1771,17 @@ export function LessonWorkspace() {
             })}
           </div>
           <div className="lesson-path-note"><Lightbulb size={15} /><span>المحتوى مرتبط ببطاقات المعرفة المصدرية، وتظهر الإحالة عند توفرها.</span></div>
+           <div className="lesson-activity-log" aria-label="سجل نشاط سير العناصر" data-testid="panel-activity-log">
+             <div className="lesson-activity-log-heading"><span><MessageCircle size={13} /> ما يُدوّن على سير العناصر</span><small>يتحدّث مع كل خطوة</small></div>
+             <div className="lesson-activity-log-list">
+               {lessonSections.map((section) => (
+                 <div className={`lesson-activity-log-item ${section.id === activeSection.id ? 'is-active' : ''}`} key={section.id}>
+                   <span>{section.label}</span>
+                   <p>{session.flowNotes[section.id] || 'بانتظار أول تفاعل في هذه الخطوة.'}</p>
+                 </div>
+               ))}
+             </div>
+           </div>
           {knowledgeQuery.isLoading && <p className="lesson-source-status"><LoaderCircle size={13} /> نتحقق من مصادر الدرس...</p>}
           {knowledgeQuery.isError && <p className="lesson-source-status is-error">تعذر تحميل الإحالات؛ بقيت أدوات الجلسة متاحة.</p>}
         </aside>
@@ -2201,7 +2299,7 @@ export function LessonWorkspace() {
           </div>
           <div className="lesson-note-card">
             <div className="lesson-note-header"><strong><Save size={13} /> ملاحظتك</strong><span>{noteStatus}</span></div>
-            <textarea value={session.note} onChange={(event) => { setNoteStatus('يُحفظ الآن'); setSession((current) => ({ ...current, note: event.target.value })); }} placeholder="اكتب علاقة تريد تذكرها..." aria-label="ملاحظة الدرس" data-testid="input-lesson-note" />
+            <textarea value={session.note} onChange={(event) => { const value = event.target.value; setNoteStatus('يُحفظ الآن'); setSession((current) => ({ ...current, note: value, flowNotes: { ...current.flowNotes, [activeSection.id]: value.trim() ? `ملاحظة مرتبطة بـ«${activeSection.label}»: ${value.trim()}` : current.flowNotes[activeSection.id] } })); }} placeholder="اكتب علاقة تريد تذكرها..." aria-label="ملاحظة الدرس" data-testid="input-lesson-note" />
              <button type="button" className="lesson-save-note" onClick={() => { try { window.localStorage.setItem(sessionKey, JSON.stringify({ ...session, attachment: null })); setNoteStatus('حُفظت الملاحظة'); } catch { setNoteStatus('تعذر حفظ الملاحظة'); } }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
               {(session.concludedAt || summarySaveState !== 'idle') && <div className="lesson-summary-status" role="status" data-testid="status-summary-bank">
                 <span>{summarySaveState === 'saved' ? 'حُفظ الملخص في ملفك وبنك الملخصات.' : summarySaveState === 'saving' ? 'نحفظ ملخص الجلسة في ملفك...' : summarySaveState === 'error' ? 'حُفظ محليًا، وتعذر مزامنة بنك الملخصات.' : 'سيُحفظ ملخص الجلسة تلقائيًا.'}</span>

@@ -73,6 +73,7 @@ import {
   type QuizAttemptRecord,
   type QuizResult,
   type SummaryBankItem,
+  type WhiteboardAsset,
 } from '@workspace/api-client-react';
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -696,6 +697,7 @@ function ProfilePage() {
     logo?: string;
      groundingQuery?: string;
      groundingNodeIds?: string[];
+     whiteboard_assets?: WhiteboardAsset[];
   }>>([]);
   const summaryQuery = useGetSummaryBank({
     query: {
@@ -725,6 +727,7 @@ function ProfilePage() {
       logo: summary.logo ?? 'tawjeeh-owl-transparent.png',
        grounding_query: summary.groundingQuery ?? '',
        grounding_node_ids: summary.groundingNodeIds ?? [],
+      whiteboard_assets: summary.whiteboard_assets ?? [],
     }));
   const serverSummaries = summaryBank?.summaries ?? [];
   const summaries = [...serverSummaries, ...localSummaryCards.filter((local) => !serverSummaries.some((item) => item.lesson_id === local.lesson_id))];
@@ -793,7 +796,7 @@ function ProfilePage() {
           <section className="surface profile-bank-card">
             <div className="profile-bank-heading"><div><p className="eyebrow mb-1">أثر جلساتك</p><div className="flex flex-wrap items-center gap-2"><h3 className="display text-lg">بنك الملخصات</h3><span className="profile-official-stamp" data-testid="stamp-official-summary">TAWJEEH.ED · OFFICIAL</span></div></div></div>
             <div className="profile-bank-list">
-               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.map((summary: SummaryBankItem) => <div className={`profile-summary-item ${focusedConcept?.summaryId === summary.id ? 'is-focused' : ''}`} ref={(element) => { summaryRefs.current[String(summary.id)] = element; }} key={summary.id} data-testid={`card-summary-${summary.id}`}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.map((concept) => <span ref={(element) => { conceptRefs.current[`${summary.id}:${concept.id}`] = element; }} className={focusedConcept?.summaryId === summary.id && focusedConcept.conceptId === concept.id ? 'is-focused' : ''} key={concept.id}>{concept.title}</span>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكمل عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعود إليه قبل المراجعة.</p>}
+               {summaryQuery.isLoading ? <p className="profile-bank-empty">نسترجع ملخصات جلساتك...</p> : summaries.length ? summaries.map((summary: SummaryBankItem) => <div className={`profile-summary-item ${focusedConcept?.summaryId === summary.id ? 'is-focused' : ''}`} ref={(element) => { summaryRefs.current[String(summary.id)] = element; }} key={summary.id} data-testid={`card-summary-${summary.id}`}><div className="profile-summary-item-heading"><FileText size={15} /><strong>{summary.lesson_title}</strong><small>{summary.completed_at.slice(0, 10)}</small></div><p>{summary.summary}</p><div className="profile-summary-concepts">{summary.concepts.map((concept) => <span ref={(element) => { conceptRefs.current[`${summary.id}:${concept.id}`] = element; }} className={focusedConcept?.summaryId === summary.id && focusedConcept.conceptId === concept.id ? 'is-focused' : ''} key={concept.id}>{concept.title}</span>)}</div><div className="profile-summary-assets" aria-label="عناصر السبورة المحفوظة"><strong><PenLine size={12} /> السبورة الحية</strong><span>{summary.whiteboard_assets.length ? `${summary.whiteboard_assets.length} عناصر مرتبطة بالجلسة` : 'لا توجد رسومات أو تعليقات بعد'}</span>{summary.whiteboard_assets.slice(0, 3).map((asset) => <small key={asset.id}>{asset.label}{asset.data.text ? ` · ${asset.data.text.slice(0, 42)}` : ''}</small>)}</div></div>) : savedNotes.length ? savedNotes.map((note, index) => <div className="profile-bank-item" key={`${note}-${index}`}><FileText size={15} /><span>{note.slice(0, 90)}{note.length > 90 ? '…' : ''}</span></div>) : <p className="profile-bank-empty">أكمل عناصر جلسة فهيم، وسيظهر ملخصها هنا لتعود إليه قبل المراجعة.</p>}
             </div>
           </section>
           <section className="surface profile-bank-card">

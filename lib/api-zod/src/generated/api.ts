@@ -80,6 +80,20 @@ export const GetSummaryBankResponse = zod.object({
   "summary": zod.string(),
   "mastery": zod.number().min(getSummaryBankResponseSummariesItemConceptsItemMasteryMin).max(getSummaryBankResponseSummariesItemConceptsItemMasteryMax).optional()
 })),
+  "whiteboard_assets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['stroke', 'annotation', 'diagram']),
+  "section_id": zod.string(),
+  "label": zod.string(),
+  "data": zod.object({
+  "points": zod.array(zod.object({
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "text": zod.string().optional()
+}),
+  "created_at": zod.string()
+})),
   "grounding_query": zod.string(),
   "grounding_node_ids": zod.array(zod.string()),
   "completed_at": zod.string(),
@@ -322,6 +336,20 @@ export const CompleteLessonBody = zod.object({
   "summary": zod.string(),
   "mastery": zod.number().min(completeLessonBodyConceptsItemMasteryMin).max(completeLessonBodyConceptsItemMasteryMax).optional()
 })).min(1),
+  "whiteboard_assets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['stroke', 'annotation', 'diagram']),
+  "section_id": zod.string(),
+  "label": zod.string(),
+  "data": zod.object({
+  "points": zod.array(zod.object({
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "text": zod.string().optional()
+}),
+  "created_at": zod.string()
+})),
   "grounding_query": zod.string().min(completeLessonBodyGroundingQueryMin),
   "grounding_node_ids": zod.array(zod.string()).min(1)
 })
@@ -342,6 +370,20 @@ export const CompleteLessonResponse = zod.object({
   "title": zod.string(),
   "summary": zod.string(),
   "mastery": zod.number().min(completeLessonResponseConceptsItemMasteryMin).max(completeLessonResponseConceptsItemMasteryMax).optional()
+})),
+  "whiteboard_assets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['stroke', 'annotation', 'diagram']),
+  "section_id": zod.string(),
+  "label": zod.string(),
+  "data": zod.object({
+  "points": zod.array(zod.object({
+  "x": zod.number(),
+  "y": zod.number()
+})).optional(),
+  "text": zod.string().optional()
+}),
+  "created_at": zod.string()
 })),
   "grounding_query": zod.string(),
   "grounding_node_ids": zod.array(zod.string()),

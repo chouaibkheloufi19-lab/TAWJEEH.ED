@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SummaryConcept } from './summaryConcept';
+import type { WhiteboardAsset } from './whiteboardAsset';
 
 export interface LessonCompletionInput {
   lesson_id: string;
@@ -19,6 +20,7 @@ export interface LessonCompletionInput {
   mastery?: number;
   /** @minItems 1 */
   concepts: SummaryConcept[];
+  whiteboard_assets: WhiteboardAsset[];
   /** @minLength 2 */
   grounding_query: string;
   /** @minItems 1 */
