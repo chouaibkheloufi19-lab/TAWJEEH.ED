@@ -29,7 +29,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash scripts/start-tawjeeh.sh"
+args = "cd /home/runner/workspace && bash scripts/start-tawjeeh.sh"
 waitForPort = 25786
 
 [agent]
