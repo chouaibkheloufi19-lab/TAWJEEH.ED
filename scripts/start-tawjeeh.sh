@@ -56,10 +56,14 @@ for required_auth_var in CLERK_SECRET_KEY CLERK_PUBLISHABLE_KEY VITE_CLERK_PUBLI
   fi
 done
 if (( ${#missing_auth_vars[@]} > 0 )); then
-  echo "[tawjeeh] Clerk Auth is not configured for this environment." >&2
-  echo "[tawjeeh] Open the Replit Auth pane to provision development credentials." >&2
+  if [[ "${NODE_ENV:-development}" == "production" ]]; then
+    echo "[tawjeeh] Clerk Auth is required in production." >&2
+    echo "[tawjeeh] Open the Replit Auth pane to provision development credentials." >&2
+    echo "[tawjeeh] Missing variables: ${missing_auth_vars[*]}" >&2
+    exit 1
+  fi
+  echo "[tawjeeh] Clerk Auth is not configured; starting development preview with mock authentication." >&2
   echo "[tawjeeh] Missing variables: ${missing_auth_vars[*]}" >&2
-  exit 1
 fi
 
 echo "[tawjeeh] Starting Python knowledge-base service on ${KNOWLEDGE_PORT}"

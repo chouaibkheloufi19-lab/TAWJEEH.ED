@@ -8466,3 +8466,65 @@ button { cursor: pointer; }
     min-height: 270px;
   }
 }
+
+.dev-auth-banner {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 8px 14px;
+  color: #6f4f13;
+  background: #fff7dc;
+  border-bottom: 1px solid #ead49a;
+  font-size: 12px;
+}
+
+.dev-auth-banner span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #fffaf0;
+  background: #9b741f;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.dev-auth-banner strong {
+  color: #60440e;
+}
+
+.dev-auth-banner small {
+  color: #866d36;
+}
+
+.auth-config-error {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 24px;
+  color: #123c4b;
+  background: #f4f8f7;
+  text-align: center;
+}
+
+.auth-config-error > div {
+  max-width: 520px;
+  padding: 32px;
+  border: 1px solid #dce9e8;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(23, 61, 70, .06);
+}
+
+.auth-config-error h1 {
+  margin: 8px 0;
+  font-size: clamp(24px, 4vw, 36px);
+}
+
+.auth-config-error p {
+  color: #607681;
+  line-height: 1.8;
+}

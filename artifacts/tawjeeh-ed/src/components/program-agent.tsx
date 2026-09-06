@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useUser } from '@clerk/react';
+import { useAppUser } from '@/lib/app-auth';
 import {
   Bell,
   BellOff,
@@ -314,7 +314,7 @@ function ProgramPlanSession({
 
 export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   const [, setLocation] = useLocation();
-  const { user, isLoaded: isUserLoaded } = useUser();
+  const { user, isLoaded: isUserLoaded } = useAppUser();
   const [entries, setEntries] = useState<ProgramEntry[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'notifications'>('overview');
   const [showAllPlanDays, setShowAllPlanDays] = useState(false);

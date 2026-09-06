@@ -53,7 +53,7 @@ import owlAgentTeal from '@assets/agent-creation-cropped.png';
 import owlAgentViolet from '@assets/agent-thinking-cropped.png';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
-import { useUser } from '@clerk/react';
+import { useAppUser } from '@/lib/app-auth';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
 import {
@@ -583,7 +583,7 @@ export function LessonWorkspace() {
   const fixedLessonTitle = currentLessonTopic?.title ?? 'قوانين نيوتن والحركة';
   const fixedLessonSubject = currentLessonTopic?.subject ?? 'العلوم الفيزيائية';
   const [, setLocation] = useLocation();
-  const { user } = useUser();
+  const { user } = useAppUser();
   const registrationAt = user?.createdAt ?? null;
   const evaluationPlan = useMemo<EvaluationPlan>(() => getEvaluationPlan(registrationAt), [registrationAt]);
   const queryClient = useQueryClient();

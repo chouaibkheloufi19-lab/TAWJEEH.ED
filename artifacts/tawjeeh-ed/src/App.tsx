@@ -2,12 +2,8 @@ import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useStat
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import {
   ClerkProvider,
-  Show,
   SignIn,
   SignUp,
-  useAuth,
-  useClerk,
-  useUser,
 } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
@@ -83,6 +79,7 @@ import { ExamBoard } from '@/components/exam-board';
 import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/phase-one';
 import { ProgramAgent } from '@/components/program-agent';
 import { fetchWithTimeout } from '@/lib/request';
+import { ClerkAuthBridge, MockAuthProvider, useAppAuth, useAppClerk, useAppUser } from '@/lib/app-auth';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlAgentMint from '@assets/agent-guiding-cropped.png';
 import owlAgentTeal from '@assets/agent-creation-cropped.png';
@@ -98,10 +95,7 @@ const clerkPubKey = publishableKeyFromHost(
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const examDateKey = 'tawjeeh.exam.baccalaureate-date';
 const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
-
-if (!clerkPubKey) {
-  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in environment');
-}
+const isMockAuth = !clerkPubKey && import.meta.env.DEV;
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
@@ -245,7 +239,7 @@ function Sidebar({ compact = false }: { compact?: boolean }) {
 
 function Topbar({ title }: { title: string }) {
   const [noticeOpen, setNoticeOpen] = useState(false);
-  const { user } = useUser();
+  const { user } = useAppUser();
   const displayName = user?.firstName || user?.username || user?.primaryEmailAddress?.emailAddress?.split('@')[0] || 'الطالب';
   const initials = displayName.slice(0, 1);
   return (
@@ -428,7 +422,7 @@ function OnboardingPlansModal({ onComplete }: { onComplete: (plan: SubscriptionP
 }
 
 function OnboardingGate({ children }: { children: ReactNode }) {
-  const { user } = useUser();
+  const { user } = useAppUser();
   const onboardingKey = `tawjeeh.onboarding.plan.v1:${user?.id ?? 'current'}`;
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(() => {
     try {
@@ -453,7 +447,7 @@ function OnboardingGate({ children }: { children: ReactNode }) {
 }
 
 function HomeRedirect() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAppAuth();
   const [, setLocation] = useLocation();
 
   // Keep the preview useful even when Clerk is still loading in the dev iframe.
@@ -466,7 +460,7 @@ function HomeRedirect() {
 }
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAppAuth();
   if (!isLoaded) return <AuthLoading />;
   if (!isSignedIn) return <Redirect to="/sign-in" />;
   return <OnboardingGate>{children}</OnboardingGate>;
@@ -528,7 +522,7 @@ function AuthPageFrame({
 }
 
 function SignInPage() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useAppAuth();
   if (isSignedIn) return <Redirect to="/profile" />;
   return (
     <AuthPageFrame mode="login">
@@ -542,7 +536,7 @@ function SignInPage() {
 }
 
 function SignUpPage() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useAppAuth();
   if (isSignedIn) return <Redirect to="/profile" />;
   return (
     <AuthPageFrame mode="register">
@@ -561,7 +555,7 @@ function ExamPreviewRoute() {
 }
 
 function ClerkQueryClientCacheInvalidator() {
-  const { addListener } = useClerk();
+  const { addListener } = useAppClerk();
   const previousUserId = useRef<string | null | undefined>(undefined);
   useEffect(() => {
     const unsubscribe = addListener(({ user }) => {
@@ -613,7 +607,7 @@ function EmptyState({ title, body, action }: { title: string; body: string; acti
 function DashboardPage() {
   const dashboardQuery = useGetDashboard({ query: { queryKey: getGetDashboardQueryKey() } });
   const dashboard = dashboardQuery.data as Dashboard | undefined;
-  const { user } = useUser();
+  const { user } = useAppUser();
   const [completed, setCompleted] = useState<string[]>([]);
   const [startedId, setStartedId] = useState<string | null>(null);
   useEffect(() => {
@@ -679,8 +673,8 @@ function DashboardPage() {
 }
 
 function ProfilePage() {
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { user } = useAppUser();
+  const { signOut } = useAppClerk();
   const [location, setLocation] = useLocation();
   const displayName = user?.firstName || user?.username || 'الطالب';
   const email = user?.primaryEmailAddress?.emailAddress || 'لم يضف بريدًا إلكترونيًا';
@@ -1343,8 +1337,43 @@ function Router() {
   );
 }
 
+function MockAuthBanner() {
+  return (
+    <div className="dev-auth-banner" role="status" data-testid="banner-mock-auth">
+      <span>وضع المعاينة</span>
+      <strong>المصادقة التجريبية مفعّلة</strong>
+      <small>أضف مفاتيح Clerk من Auth لتجربة تسجيل الدخول الحقيقي.</small>
+    </div>
+  );
+}
+
+function ProductionAuthConfigurationError() {
+  return (
+    <main className="auth-config-error" dir="rtl">
+      <div>
+        <span className="auth-form-kicker">إعداد مطلوب قبل النشر</span>
+        <h1>لم تُجهّز مصادقة Clerk بعد.</h1>
+        <p>أضف مفاتيح Clerk المُدارة من Replit، ثم أعد تشغيل التطبيق. لن نستخدم مصادقة تجريبية في الإنتاج.</p>
+      </div>
+    </main>
+  );
+}
+
 function App() {
   const [, setLocation] = useLocation();
+  if (!clerkPubKey && !import.meta.env.DEV) return <ProductionAuthConfigurationError />;
+
+  if (isMockAuth) {
+    return (
+      <MockAuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <MockAuthBanner />
+          <Router />
+        </QueryClientProvider>
+      </MockAuthProvider>
+    );
+  }
+
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
@@ -1393,10 +1422,12 @@ function App() {
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
-      <QueryClientProvider client={queryClient}>
-        <ClerkQueryClientCacheInvalidator />
-        <Router />
-      </QueryClientProvider>
+      <ClerkAuthBridge>
+        <QueryClientProvider client={queryClient}>
+          <ClerkQueryClientCacheInvalidator />
+          <Router />
+        </QueryClientProvider>
+      </ClerkAuthBridge>
     </ClerkProvider>
   );
 }

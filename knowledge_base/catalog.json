@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-09-06T19:53:45.274291+00:00",
+  "generated_at": "2026-09-06T20:54:51.732881+00:00",
   "assets_root": "attached_assets",
   "stats": {
     "needs_review": 288,
     "indexed": 52,
     "excluded_media": 9,
-    "duplicate_source": 49,
+    "duplicate_source": 50,
     "excluded_reference": 1,
-    "total_assets": 399,
+    "total_assets": 400,
     "indexed_chunks": 685
   },
   "sources": [
@@ -4778,6 +4778,17 @@
         "summary"
       ],
       "indexed_source_hash": "1a005eb5f820298051eb13ae37b6ebecc71c47c5ab49744ddb94fad81acdaf31"
+    },
+    {
+      "source_id": "1a005eb5f820298051eb13ae37b6ebecc71c47c5ab49744ddb94fad81acdaf31",
+      "source_file": "Pasted-Role-Task-Definition-You-are-acting-as-a-Lead-Full-Stac_1788727121013.txt",
+      "asset_path": "attached_assets/Pasted-Role-Task-Definition-You-are-acting-as-a-Lead-Full-Stac_1788727121013.txt",
+      "source_type": "txt",
+      "bytes": 2691,
+      "sha256": "1a005eb5f820298051eb13ae37b6ebecc71c47c5ab49744ddb94fad81acdaf31",
+      "status": "duplicate_source",
+      "canonical_source": "Pasted-Role-Task-Definition-You-are-acting-as-a-Lead-Full-Stac_1788723165208.txt",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "7662cf5d232782cc8c4771f634042c524da034477154e3b695459911c3fb3fcb",

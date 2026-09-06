@@ -37,14 +37,34 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json({ limit: "8mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
+const hasClerkCredentials = Boolean(
+  process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY,
 );
+
+if (hasClerkCredentials) {
+  app.use(
+    clerkMiddleware((req) => ({
+      publishableKey: publishableKeyFromHost(
+        getClerkProxyHost(req) ?? "",
+        process.env.CLERK_PUBLISHABLE_KEY,
+      ),
+    })),
+  );
+} else if (process.env.NODE_ENV !== "production") {
+  // Development previews remain usable without Clerk credentials. This identity
+  // is never installed in production and keeps protected local routes testable.
+  app.use((req, _res, next) => {
+    const requestWithAuth = req as typeof req & {
+      auth: () => { userId: string; sessionClaims: { userId: string } };
+    };
+    requestWithAuth.auth = () =>
+      ({
+        userId: "mock-student",
+        sessionClaims: { userId: "mock-student" },
+      });
+    next();
+  });
+}
 
 app.use("/api", router);
 
