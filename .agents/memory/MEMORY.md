@@ -8,3 +8,4 @@
 - [Chroma index reload](chroma-index-reload.md) — rebuild and restart the knowledge service before trusting imported vector readiness.
 - [DeepSeek topic generation](deepseek-topic-generation.md) — structured educational generation uses server-side DeepSeek JSON responses, not a silent provider fallback.
 - [Lesson UI cascade](lesson-ui-cascade.md) — final lesson board overrides must come after legacy stylesheet blocks.
+- [Quiz session persistence](quiz-session-persistence.md) — shared weekly quizzes must be database-backed and keyed by quiz type, unit, and ISO week.

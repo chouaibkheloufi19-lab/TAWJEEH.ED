@@ -188,7 +188,11 @@ export async function getLearningPolicy(): Promise<LearningPolicyView> {
 }
 
 export function getUserId(req: Request): string | null {
-  const auth = getAuth(req);
+  const auth = process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY
+    ? getAuth(req)
+    : (req as Request & {
+        auth?: () => { userId?: string; sessionClaims?: { userId?: string } };
+      }).auth?.();
   if (typeof auth?.userId === "string" && auth.userId) return auth.userId;
   return typeof auth?.sessionClaims?.userId === "string" ? auth.sessionClaims.userId : null;
 }
@@ -827,6 +831,7 @@ export async function updateLearningSchedule(userId: string, scheduleId: number,
 export async function recordQuizAttempt(
   userId: string,
   input: {
+    quizSessionId?: number;
     quizId: string;
     quizTitle: string;
     score: number;
@@ -841,6 +846,7 @@ export async function recordQuizAttempt(
     .insert(quizAttemptsTable)
     .values({
       userId,
+      quizSessionId: input.quizSessionId,
       quizId: input.quizId,
       quizTitle: input.quizTitle,
       score: input.score,

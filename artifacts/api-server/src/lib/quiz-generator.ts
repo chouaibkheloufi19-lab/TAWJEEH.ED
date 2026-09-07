@@ -11,7 +11,7 @@ import {
   GROUNDED_CONTENT_RULES,
   LEARNER_SAFE_OUTPUT_RULES,
 } from "./ai-prompts";
-import { callDeepSeekTextModel } from "./ai-provider";
+import { callDeepSeekTextModelWithRetry } from "./ai-provider";
 
 export type GroundedQuizQuestion = {
   id: string;
@@ -33,15 +33,19 @@ type GeneratedQuestion = {
   sourceNodeIds?: unknown;
 };
 
-function parseQuestions(text: string, retrieval: RetrievalContext): GroundedQuizQuestion[] {
+function parseQuestions(
+  text: string,
+  retrieval: RetrievalContext,
+  questionCount: number,
+): GroundedQuizQuestion[] {
   const candidate = text.match(/\{[\s\S]*\}/)?.[0];
   if (!candidate) throw new Error("Exercises Agent returned non-JSON content");
   const parsed = JSON.parse(candidate) as { questions?: GeneratedQuestion[] };
-  if (!Array.isArray(parsed.questions) || parsed.questions.length < 3) {
-    throw new Error("Exercises Agent returned too few questions");
+  if (!Array.isArray(parsed.questions) || parsed.questions.length < questionCount) {
+    throw new Error(`Exercises Agent returned fewer than ${questionCount} questions`);
   }
 
-  const questions = parsed.questions.slice(0, 8).map((question, index) => {
+  const questions = parsed.questions.slice(0, questionCount).map((question, index) => {
     const options = Array.isArray(question.options)
       ? question.options.filter((item): item is string => typeof item === "string" && Boolean(item.trim()))
       : [];
@@ -73,7 +77,9 @@ export async function generateGroundedQuizQuestions(input: {
   mode: string;
   level: string;
   errorContext: string;
+  questionCount?: number;
 }): Promise<{ questions: GroundedQuizQuestion[]; retrieval: RetrievalContext }> {
+  const questionCount = Math.max(3, Math.min(input.questionCount ?? 6, 12));
   const retrieval = await retrieveGroundedKnowledge(
     [input.lesson, input.level, input.mode, input.errorContext, "اختبار وتمارين"].filter(Boolean).join(" "),
     { nResults: 10 },
@@ -81,7 +87,7 @@ export async function generateGroundedQuizQuestions(input: {
   const promptPolicy = input.mode === "pre_exam" || input.mode === "error_stack"
     ? ACADEMIC_EXAM_PROMPT
     : ADAPTIVE_EXERCISE_PROMPT;
-  const content = await callDeepSeekTextModel(
+  const content = await callDeepSeekTextModelWithRetry(
     [
       {
         role: "system",
@@ -90,7 +96,7 @@ export async function generateGroundedQuizQuestions(input: {
           EXERCISE_GENERATION_PROMPT,
           GROUNDED_CONTENT_RULES,
           LEARNER_SAFE_OUTPUT_RULES,
-          "هذه الواجهة تفاعلية، لذلك أعد أسئلة اختيار من متعدد بالعربية بصيغة JSON فقط. رتّب الأسئلة من الأساسيات إلى التطبيق ثم سؤال التحدي، مع مراعاة سجل الأخطاء لتحديد الأولوية. يجب أن تكون كل الخيارات والإجابة الصحيحة مدعومة بالمصادر.",
+          `هذه الواجهة تفاعلية، لذلك أعد ${questionCount} سؤال اختيار من متعدد بالعربية بصيغة JSON فقط. رتّب الأسئلة من الأساسيات إلى التطبيق ثم سؤال التحدي، مع مراعاة سجل الأخطاء لتحديد الأولوية. يجب أن تكون كل الخيارات والإجابة الصحيحة مدعومة بالمصادر.`,
           'أعد الشكل: {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctOption":"...","conceptId":"...","conceptTitle":"...","sourceNodeIds":["node-id"]}]}',
         ].join("\n\n"),
       },
@@ -106,7 +112,8 @@ export async function generateGroundedQuizQuestions(input: {
         ].join("\n"),
       },
     ],
-    { temperature: 0, maxOutputTokens: 1800, jsonMode: true },
+    { temperature: 0, maxOutputTokens: 2400, jsonMode: true },
+    { maxAttempts: 3, baseDelayMs: 500 },
   );
-  return { questions: parseQuestions(content, retrieval), retrieval };
+  return { questions: parseQuestions(content, retrieval, questionCount), retrieval };
 }

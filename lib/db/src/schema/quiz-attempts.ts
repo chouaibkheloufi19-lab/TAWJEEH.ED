@@ -1,8 +1,12 @@
 import { boolean, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { quizSessionsTable } from "./quiz-sessions";
 
 export const quizAttemptsTable = pgTable("quiz_attempts", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   userId: text("user_id").notNull(),
+  quizSessionId: integer("quiz_session_id").references(() => quizSessionsTable.id, {
+    onDelete: "set null",
+  }),
   quizId: text("quiz_id").notNull(),
   quizTitle: text("quiz_title").notNull(),
   score: integer("score").notNull(),
