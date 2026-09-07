@@ -117,6 +117,19 @@ GET  /api/knowledge/status
 POST /api/knowledge/query
 ```
 
+AI generation routes (authenticated):
+
+```text
+POST /api/ai/generate-explanation
+POST /api/ai/generate-exercises
+```
+
+Both routes accept JSON and return structured Arabic content. The explanation
+request uses `lesson_title` and `content`; the exercises request also accepts
+`exercise_count` (1–10) and `exercise_types` (`mcq`, `true_false`, or
+`practical`). The server keeps the DeepSeek credential private, validates the
+model response, and retries transient provider failures and malformed JSON.
+
 ## Environment variables
 
 Never commit secret values. Configure secrets with Replit Secrets or the

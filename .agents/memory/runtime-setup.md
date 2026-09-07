@@ -20,3 +20,9 @@ After managed Clerk provisioning, imported combined workflows can keep stale env
 **Why:** Restarting only the new managed API workflow can fail with `EADDRINUSE`, while the old process continues serving requests without the newly provisioned Clerk secret.
 
 **How to apply:** Prefer the registered artifact workflows after provisioning; stop/remove the legacy combined workflow before restarting the managed API service.
+
+In development without Clerk credentials, the API's local identity shim must be read from `req.auth` directly; calling Clerk's `getAuth(req)` still throws because Clerk middleware was never registered.
+
+**Why:** Clerk's helper does not treat a hand-installed development `req.auth` function as registered Clerk middleware, even when the app intentionally provides a mock identity.
+
+**How to apply:** Keep the development bypass at the route guard boundary and never weaken the production Clerk middleware path.
