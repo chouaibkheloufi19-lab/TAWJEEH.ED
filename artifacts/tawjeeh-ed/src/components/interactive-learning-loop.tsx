@@ -32,6 +32,22 @@ type ConceptStep = {
   graphPoints?: Array<{ x: number; y: number; label?: string }>;
 };
 
+export type RoadmapStageId = 'intro' | 'concept' | 'formula' | 'example';
+
+export type LessonBoardSync = {
+  stage: RoadmapStageId;
+  stageLabel: string;
+  stageShortLabel: string;
+  sectionId: string;
+  phase: LoopPhase;
+  stepIndex: number;
+  totalSteps: number;
+  title: string;
+  detail: string;
+  formula: string;
+  visual: ConceptStep['visual'];
+};
+
 type GroundedLesson = {
   explanation: string;
   highlight: string;
@@ -68,6 +84,7 @@ type InteractiveLearningLoopProps = {
   fallbackResource?: KnowledgeCard | null;
   groundedLesson?: GroundedLesson | null;
   groundedExercise?: GroundedExercise | null;
+  onBoardSync?: (sync: LessonBoardSync) => void;
 };
 
 const sectionKeywords: Record<string, string[]> = {
@@ -85,6 +102,30 @@ const formulaBySection: Record<string, string> = {
   practice: 'ΣF⃗ = ∑ القوى المؤثرة',
   recap: 'F = m × a',
 };
+
+const roadmapStages: Array<{ id: RoadmapStageId; label: string; shortLabel: string; description: string }> = [
+  { id: 'intro', label: 'المقدمة', shortLabel: 'Intro', description: 'نفتح السؤال ونحدد المعطى.' },
+  { id: 'concept', label: 'المفهوم', shortLabel: 'Concept', description: 'نسمي الفكرة المركزية.' },
+  { id: 'formula', label: 'العلاقة', shortLabel: 'Formula', description: 'نثبت العلاقة أو القاعدة.' },
+  { id: 'example', label: 'المثال', shortLabel: 'Example', description: 'نطبق ونتحقق.' },
+];
+
+function roadmapIndexForStage(stage: RoadmapStageId, totalSteps: number): number {
+  if (totalSteps <= 1) return 0;
+  if (stage === 'intro') return 0;
+  if (stage === 'concept') return Math.min(1, totalSteps - 1);
+  if (stage === 'formula') return Math.min(2, totalSteps - 1);
+  return totalSteps - 1;
+}
+
+function roadmapStageForStep(phase: LoopPhase, stepIndex: number, totalSteps: number): RoadmapStageId {
+  if (phase === 'solution') return 'example';
+  if (stepIndex <= 0) return 'intro';
+  if (totalSteps <= 2) return stepIndex >= totalSteps - 1 ? 'formula' : 'concept';
+  if (stepIndex === 1) return 'concept';
+  if (stepIndex === 2) return 'formula';
+  return 'example';
+}
 
 function normalizeArabic(value: string): string {
   return value
@@ -262,6 +303,7 @@ export function InteractiveLearningLoop({
   fallbackResource,
   groundedLesson,
   groundedExercise,
+  onBoardSync,
 }: InteractiveLearningLoopProps) {
   const [selectedResourceId, setSelectedResourceId] = useState('');
   const [phase, setPhase] = useState<LoopPhase>('explain');
@@ -319,6 +361,27 @@ export function InteractiveLearningLoop({
     : conceptSteps[activeStep];
   const activeGraphPath = graphPath(activeBoardStep?.graphPoints ?? []);
   const explanationComplete = phase !== 'explain' || activeStep >= conceptSteps.length - 1;
+  const activeStepIndex = phase === 'solution' ? solutionStep : activeStep;
+  const activeStepTotal = phase === 'solution' ? solutionSteps.length : conceptSteps.length;
+  const currentRoadmapStage = roadmapStageForStep(phase, activeStepIndex, activeStepTotal);
+  const currentRoadmapStageIndex = roadmapStages.findIndex((stage) => stage.id === currentRoadmapStage);
+  const boardSync = useMemo<LessonBoardSync | null>(() => {
+    if (!activeBoardStep || !activeStepTotal) return null;
+    const stage = roadmapStages.find((item) => item.id === currentRoadmapStage) ?? roadmapStages[0];
+    return {
+      stage: stage.id,
+      stageLabel: stage.label,
+      stageShortLabel: stage.shortLabel,
+      sectionId: section.id,
+      phase,
+      stepIndex: activeStepIndex,
+      totalSteps: activeStepTotal,
+      title: activeBoardStep.title,
+      detail: activeBoardStep.detail,
+      formula: activeBoardStep.formula,
+      visual: activeBoardStep.visual,
+    };
+  }, [activeBoardStep, activeStepIndex, activeStepTotal, currentRoadmapStage, phase, section.id]);
 
   useEffect(() => {
     if (!isStreaming || !conceptSteps.length) return;
@@ -352,6 +415,10 @@ export function InteractiveLearningLoop({
     setShowHint(false);
     setIsStreaming(false);
   }, [section.id, selectedResource?.id]);
+
+  useEffect(() => {
+    if (boardSync) onBoardSync?.(boardSync);
+  }, [boardSync, onBoardSync]);
 
   const startExplanation = () => {
     if (!conceptSteps.length) return;
@@ -388,6 +455,15 @@ export function InteractiveLearningLoop({
     setActiveStep((current) => current + 1);
   };
 
+  const focusRoadmapStage = (stage: RoadmapStageId) => {
+    if (!conceptSteps.length) return;
+    setPhase('explain');
+    setIsStreaming(false);
+    setActiveStep(roadmapIndexForStage(stage, conceptSteps.length));
+    setPracticeState('idle');
+    setShowHint(false);
+  };
+
   const resetLoop = () => {
     setPhase('explain');
     setActiveStep(0);
@@ -415,6 +491,40 @@ export function InteractiveLearningLoop({
         <span><CheckCircle2 size={13} /> {groundedLesson ? 'الشرح مبني على السند المسترجع' : 'نمط تمهيدي · بانتظار الشرح الموثق'}</span>
         <span>{groundedLesson?.sourceNodeIds.length ?? 0} عقدة معرفة · {groundedLesson?.sourceDocuments.length ?? 0} وثيقة مرتبطة</span>
       </div>
+
+      <nav className="learning-roadmap" aria-label="سير عناصر الدرس" data-testid="lesson-roadmap">
+        <div className="learning-roadmap-heading">
+          <div>
+            <span><Target size={13} /> سير عناصر الدرس</span>
+            <strong>المسار والسبورة يتحركان معًا</strong>
+          </div>
+          <small>{currentRoadmapStageIndex + 1} / {roadmapStages.length} · {roadmapStages[currentRoadmapStageIndex]?.shortLabel}</small>
+        </div>
+        <div className="learning-roadmap-track">
+          {roadmapStages.map((stage, index) => {
+            const isCurrent = stage.id === currentRoadmapStage;
+            const isPast = index < currentRoadmapStageIndex;
+            return (
+              <div className="learning-roadmap-slot" key={stage.id}>
+                <button
+                  type="button"
+                  className={`learning-roadmap-node ${isCurrent ? 'is-current' : ''} ${isPast ? 'is-past' : ''}`}
+                  onClick={() => focusRoadmapStage(stage.id)}
+                  disabled={!conceptSteps.length}
+                  aria-current={isCurrent ? 'step' : undefined}
+                  aria-label={`إعادة التركيز على ${stage.label}`}
+                  data-testid={`button-roadmap-stage-${stage.id}`}
+                >
+                  <span className="learning-roadmap-node-index">{index + 1}</span>
+                  <span className="learning-roadmap-node-copy"><small>{stage.shortLabel}</small><strong>{stage.label}</strong></span>
+                </button>
+                {index < roadmapStages.length - 1 && <i className={index < currentRoadmapStageIndex ? 'is-complete' : ''} aria-hidden="true" />}
+              </div>
+            );
+          })}
+        </div>
+        <p className="learning-roadmap-hint">اضغط على أي عقدة سابقة لإعادة عرضها وتحديدها على السبورة الكبيرة.</p>
+      </nav>
 
       <div className="learning-loop-layout">
         <aside className="learning-source-rail" aria-label="المصادر المطابقة">

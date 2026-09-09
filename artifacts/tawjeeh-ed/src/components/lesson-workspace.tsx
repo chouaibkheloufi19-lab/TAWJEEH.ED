@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -54,7 +54,7 @@ import owlAgentViolet from '@assets/agent-thinking-cropped.png';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
 import { useAppUser } from '@/lib/app-auth';
-import { InteractiveLearningLoop } from '@/components/interactive-learning-loop';
+import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
 import {
@@ -631,6 +631,7 @@ export function LessonWorkspace() {
   const [boardMode, setBoardMode] = useState<BoardMode>('pen');
   const [isBoardImmersive, setIsBoardImmersive] = useState(false);
   const [isLessonRailCollapsed, setIsLessonRailCollapsed] = useState(false);
+  const [roadmapSync, setRoadmapSync] = useState<LessonBoardSync | null>(null);
   const [activePartner, setActivePartner] = useState<ActivePartner>('dalil');
   const [exerciseAnswer, setExerciseAnswer] = useState('');
   const [exerciseFeedback, setExerciseFeedback] = useState<'correct' | 'retry' | null>(null);
@@ -979,6 +980,8 @@ export function LessonWorkspace() {
 
   const selectSection = (section: LessonSection) => {
     if (section.id === activeSection.id) return;
+    setRoadmapSync(null);
+    setHighlightedPart('');
     setSession((current) => ({
       ...current,
       activeConcept: section.id,
@@ -989,6 +992,17 @@ export function LessonWorkspace() {
     }));
     setMessages((current) => [...current, { id: `section-${section.id}-${Date.now()}`, role: 'assistant', text: `انتقلنا إلى «${section.label}». ${section.prompt}` }]);
   };
+
+  const syncBoardFromRoadmap = useCallback((sync: LessonBoardSync) => {
+    const targetRegion = sync.stage === 'example'
+      ? hotspots[1] ?? hotspots[0]
+      : sync.stage === 'formula'
+        ? hotspots[2] ?? hotspots[0]
+        : hotspots[0];
+    setRoadmapSync(sync);
+    setBoardMode('highlight');
+    setHighlightedPart(targetRegion?.label ?? '');
+  }, [hotspots]);
 
   const gradeExample = (exampleId: string) => {
     const example = activeExamples.find((item) => item.id === exampleId);
@@ -2019,6 +2033,7 @@ export function LessonWorkspace() {
               resources={knowledgeCards.length ? knowledgeCards : foundationalSources}
               groundedLesson={generatedLesson}
               groundedExercise={generatedExercise}
+               onBoardSync={syncBoardFromRoadmap}
               fallbackResource={activeSource ? {
                 id: `active-source-${activeSection.id}`,
                 title: activeSource.title,
@@ -2256,6 +2271,14 @@ export function LessonWorkspace() {
               </div>
             </div>
              <div className="lesson-canvas-shell">
+                {roadmapSync && roadmapSync.sectionId === activeSection.id && (
+                  <div className={`lesson-board-sync-focus is-${roadmapSync.stage}`} role="status" aria-live="polite" data-testid="status-board-roadmap-sync">
+                    <span><Sparkles size={11} /> السبورة تتبع سير العناصر</span>
+                    <strong>{roadmapSync.stageLabel} · {roadmapSync.stageShortLabel}</strong>
+                    <p>{roadmapSync.formula || roadmapSync.title}</p>
+                    <small>الخطوة {roadmapSync.stepIndex + 1} من {roadmapSync.totalSteps}</small>
+                  </div>
+                )}
                 <div className="lesson-board-topic-label" aria-label={`موضوع الدرس: ${fixedLessonTitle}`}>
                   <span>موضوع الدرس</span>
                   <strong>{fixedLessonTitle}</strong>

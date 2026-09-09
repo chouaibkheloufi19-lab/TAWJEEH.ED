@@ -9284,9 +9284,46 @@ button { cursor: pointer; }
   .learning-source-card > svg {
     display: none;
   }
+
+  .learning-roadmap-node {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .learning-roadmap-slot {
+    grid-template-columns: minmax(0, 1fr) minmax(8px, .15fr);
+  }
 }
 
 @media (max-width: 520px) {
+  .learning-roadmap-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .learning-roadmap-track {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .learning-roadmap-slot,
+  .learning-roadmap-slot:last-child {
+    grid-template-columns: 1fr;
+  }
+
+  .learning-roadmap-slot > i {
+    width: 1px;
+    height: 8px;
+    margin: -2px 0 -2px 16px;
+  }
+
+  .learning-roadmap-node {
+    align-items: center;
+    flex-direction: row;
+  }
+
   .learning-board-canvas {
     grid-template-columns: 1fr;
     min-height: 390px;
@@ -9316,6 +9353,10 @@ button { cursor: pointer; }
   .learning-source-list {
     grid-template-columns: 1fr;
   }
+
+  .lesson-board-sync-focus {
+    max-width: calc(100% - 20px);
+  }
 }
 
 /* Final grounded-loop overrides: keep these after the legacy lesson rules. */
@@ -9344,6 +9385,179 @@ button { cursor: pointer; }
   color: #71858a;
   font-family: var(--app-font-mono);
   font-size: 9px;
+}
+
+.learning-roadmap {
+  display: grid;
+  gap: 9px;
+  padding: 12px 13px 10px;
+  border: 1px solid rgba(0, 95, 115, .14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .62);
+}
+
+.learning-roadmap-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.learning-roadmap-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.learning-roadmap-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #47817d;
+  font-family: var(--app-font-mono);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.learning-roadmap-heading strong {
+  color: #1b4d59;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.learning-roadmap-heading small {
+  padding: 5px 8px;
+  border: 1px solid #d8e9e4;
+  border-radius: 999px;
+  color: #5c8882;
+  background: #f5fbf7;
+  font-family: var(--app-font-mono);
+  font-size: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.learning-roadmap-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  gap: 0;
+}
+
+.learning-roadmap-slot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12px, .22fr);
+  align-items: center;
+  min-width: 0;
+}
+
+.learning-roadmap-slot:last-child {
+  grid-template-columns: 1fr;
+}
+
+.learning-roadmap-node {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 6px 5px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #6f8788;
+  background: transparent;
+  text-align: right;
+  transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.learning-roadmap-node:not(:disabled):hover {
+  border-color: #b8d9cd;
+  color: #2e6d69;
+  background: #f1faf5;
+  transform: translateY(-1px);
+}
+
+.learning-roadmap-node:disabled {
+  cursor: not-allowed;
+  opacity: .62;
+}
+
+.learning-roadmap-node.is-past {
+  color: #4f7d76;
+}
+
+.learning-roadmap-node.is-current {
+  border-color: #8fc9b7;
+  color: #1d5d5e;
+  background: #e8f6ef;
+  box-shadow: 0 5px 14px rgba(47, 125, 108, .1);
+}
+
+.learning-roadmap-node-index {
+  display: grid;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid #d4e7e0;
+  border-radius: 50%;
+  color: #7c9a95;
+  background: #f7fcf9;
+  font-family: var(--app-font-mono);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.learning-roadmap-node.is-past .learning-roadmap-node-index,
+.learning-roadmap-node.is-current .learning-roadmap-node-index {
+  border-color: #70b69f;
+  color: #fff;
+  background: #4e9a88;
+}
+
+.learning-roadmap-node.is-current .learning-roadmap-node-index {
+  box-shadow: 0 0 0 4px rgba(78, 154, 136, .13);
+}
+
+.learning-roadmap-node-copy {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.learning-roadmap-node-copy small {
+  overflow: hidden;
+  color: #8ca4a1;
+  font-family: var(--app-font-mono);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.learning-roadmap-node-copy strong {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.learning-roadmap-slot > i {
+  display: block;
+  height: 1px;
+  margin: 0 4px;
+  background: #d4e6e0;
+}
+
+.learning-roadmap-slot > i.is-complete {
+  background: linear-gradient(90deg, #61ad98, #b6dacd);
+}
+
+.learning-roadmap-hint {
+  margin: 0;
+  color: #789092;
+  font-size: 9px;
+  line-height: 1.5;
 }
 
 .learning-board-trace {
@@ -9393,6 +9607,81 @@ button { cursor: pointer; }
   stroke: #b98a2c !important;
   stroke-width: 3 !important;
   stroke-dasharray: 5 3;
+}
+
+.lesson-board-sync-focus {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  left: 10px;
+  display: grid;
+  max-width: min(190px, 48%);
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid rgba(185, 138, 44, .52);
+  border-radius: 10px;
+  color: #604c24;
+  background: rgba(255, 250, 229, .94);
+  box-shadow: 0 9px 20px rgba(31, 63, 65, .12);
+  animation: board-sync-focus-in .28s ease both;
+}
+
+.lesson-board-sync-focus > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #9a762d;
+  font-family: var(--app-font-mono);
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.lesson-board-sync-focus strong {
+  color: #6e5527;
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.lesson-board-sync-focus p {
+  margin: 0;
+  overflow: hidden;
+  color: #806634;
+  font-size: 9px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lesson-board-sync-focus small {
+  color: #a38854;
+  font-size: 7px;
+}
+
+.lesson-board-sync-focus.is-formula {
+  border-color: rgba(81, 145, 142, .58);
+  background: rgba(235, 249, 242, .95);
+}
+
+.lesson-board-sync-focus.is-formula > span,
+.lesson-board-sync-focus.is-formula strong,
+.lesson-board-sync-focus.is-formula p {
+  color: #2b706b;
+}
+
+.lesson-board-sync-focus.is-example {
+  border-color: rgba(63, 128, 157, .55);
+  background: rgba(235, 247, 250, .95);
+}
+
+.lesson-board-sync-focus.is-example > span,
+.lesson-board-sync-focus.is-example strong,
+.lesson-board-sync-focus.is-example p {
+  color: #28647a;
+}
+
+@keyframes board-sync-focus-in {
+  from { opacity: 0; transform: translateY(-5px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .learning-practice-citation {
