@@ -54,6 +54,7 @@ import owlAgentViolet from '@assets/agent-thinking-cropped.png';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
 import { useAppUser } from '@/lib/app-auth';
+import { InteractiveLearningLoop } from '@/components/interactive-learning-loop';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
 import {
@@ -1988,6 +1989,31 @@ export function LessonWorkspace() {
               </div>
              </div>
           </div>
+            <InteractiveLearningLoop
+              lessonTitle={fixedLessonTitle}
+              subject={fixedLessonSubject}
+              section={{
+                id: activeSection.id,
+                label: activeSection.label,
+                title: activeSection.title,
+                explanation: activeSection.explanation,
+                highlight: activeSection.highlight,
+              }}
+              resources={knowledgeCards.length ? knowledgeCards : foundationalSources}
+              fallbackResource={activeSource ? {
+                id: `active-source-${activeSection.id}`,
+                title: activeSource.title,
+                summary: activeSource.summary,
+                subject: fixedLessonSubject,
+                unit: '',
+                lesson: activeSource.lesson,
+                type: activeSource.type,
+                difficulty: 'mixed',
+                source: activeSource.source,
+                page: activeSource.page,
+                tags: activeSource.tags,
+              } : null}
+            />
             <section className={`lesson-topic-studio ${topicStudioOpen ? 'is-open' : ''}`} aria-label="موضوع الدرس وتوليده">
               <div className="lesson-topic-studio-head">
                 <div>
