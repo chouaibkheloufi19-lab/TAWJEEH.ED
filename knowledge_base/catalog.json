@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-09-06T20:54:51.732881+00:00",
+  "generated_at": "2026-09-09T19:01:34.399587+00:00",
   "assets_root": "attached_assets",
   "stats": {
     "needs_review": 288,
     "indexed": 52,
     "excluded_media": 9,
-    "duplicate_source": 50,
+    "duplicate_source": 51,
     "excluded_reference": 1,
-    "total_assets": 400,
+    "total_assets": 401,
     "indexed_chunks": 685
   },
   "sources": [
@@ -4087,6 +4087,17 @@
       "source_id": "19c8db96489725d0ae6bb6309fc21afc83eb8e8e5cded2c6cb3ac70aa7c3c85c",
       "source_file": "owl-agent-fahim-mint_1788425058615.png",
       "asset_path": "attached_assets/owl-agent-fahim-mint_1788425058615.png",
+      "source_type": "png",
+      "bytes": 1011336,
+      "sha256": "19c8db96489725d0ae6bb6309fc21afc83eb8e8e5cded2c6cb3ac70aa7c3c85c",
+      "status": "duplicate_source",
+      "canonical_source": "owl-agent-fahim-mint_1788382004392.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
+    },
+    {
+      "source_id": "19c8db96489725d0ae6bb6309fc21afc83eb8e8e5cded2c6cb3ac70aa7c3c85c",
+      "source_file": "owl-agent-fahim-mint_1788769152778.png",
+      "asset_path": "attached_assets/owl-agent-fahim-mint_1788769152778.png",
       "source_type": "png",
       "bytes": 1011336,
       "sha256": "19c8db96489725d0ae6bb6309fc21afc83eb8e8e5cded2c6cb3ac70aa7c3c85c",

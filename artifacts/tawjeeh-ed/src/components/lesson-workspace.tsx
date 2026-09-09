@@ -933,6 +933,11 @@ export function LessonWorkspace() {
     setIsPlaying(false);
     setHighlightedPart('');
     setGeneratedLesson(null);
+    setGeneratedExercise(null);
+    setExerciseAnswer('');
+    setExerciseFeedback(null);
+    setShowExerciseHint(false);
+    setShowExerciseSolution(false);
     setCreativeIdeas(null);
     setLessonGenerationState('idle');
     setLessonGenerationError('');
@@ -1043,7 +1048,7 @@ export function LessonWorkspace() {
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          lesson: 'قوانين نيوتن والحركة',
+          lesson: fixedLessonTitle,
           level: '3AS',
           activeConcept: activeSection.title,
           attemptContext: analysis
@@ -1062,6 +1067,10 @@ export function LessonWorkspace() {
        });
       setLessonGenerationState('ready');
       setHighlightedPart(typeof payload.highlight === 'string' ? payload.highlight : '');
+       void generateExerciseForStudent(
+         `${activeSection.title}. ابنِ تمرين التثبيت مباشرة من شرح الدرس المسترجع: ${typeof payload.explanation === 'string' ? payload.explanation : ''}`,
+         true,
+       );
       setMessages((current) => [...current, {
         id: `generated-lesson-${Date.now()}`,
         role: 'assistant',
@@ -1467,7 +1476,7 @@ export function LessonWorkspace() {
     setMessages((current) => [...current, { id: `recovery-${Date.now()}`, role: 'assistant', text: `ثبتنا آخر خطوة صحيحة: «${analysis.lastCorrectStep}». سنبني هذا المفهوم من جديد.` }]);
   };
 
-  const generateExerciseForStudent = async (attemptContext: string) => {
+  const generateExerciseForStudent = async (attemptContext: string, silent = false) => {
     if (chatCircuitOpen) return;
     if (!ragReady) {
       setMessages((current) => [...current, {
@@ -1484,7 +1493,7 @@ export function LessonWorkspace() {
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          lesson: 'قوانين نيوتن والحركة',
+          lesson: fixedLessonTitle,
           level: '3AS',
           activeConcept: activeSection.title,
             attemptContext,
@@ -1507,7 +1516,15 @@ export function LessonWorkspace() {
           : 'جهزت لك تمرينًا مناسبًا للمفهوم الحالي. حاول وحدك أولًا، ثم اطلب التلميح عند الحاجة.',
       }]);
     } catch {
-      openChatCircuit();
+      if (silent) {
+        setMessages((current) => [...current, {
+          id: `exercise-generation-warning-${Date.now()}`,
+          role: 'assistant',
+          text: 'تم تجهيز الشرح، لكن تمرين التثبيت يحتاج إلى إعادة المحاولة. لن نعرض تمرينًا غير موثق.',
+        }]);
+      } else {
+        openChatCircuit();
+      }
     } finally {
       setIsThinking(false);
     }
@@ -2000,6 +2017,8 @@ export function LessonWorkspace() {
                 highlight: activeSection.highlight,
               }}
               resources={knowledgeCards.length ? knowledgeCards : foundationalSources}
+              groundedLesson={generatedLesson}
+              groundedExercise={generatedExercise}
               fallbackResource={activeSource ? {
                 id: `active-source-${activeSection.id}`,
                 title: activeSource.title,

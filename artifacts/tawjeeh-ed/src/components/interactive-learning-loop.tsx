@@ -29,6 +29,32 @@ type ConceptStep = {
   detail: string;
   formula: string;
   visual: 'flow' | 'equation' | 'graph' | 'highlight';
+  graphPoints?: Array<{ x: number; y: number; label?: string }>;
+};
+
+type GroundedLesson = {
+  explanation: string;
+  highlight: string;
+  elements: Array<{ id: string; title: string; kind: string; summary: string }>;
+  graph?: {
+    type: 'line' | 'bar' | 'none';
+    title: string;
+    xLabel: string;
+    yLabel: string;
+    points: Array<{ x: number; y: number; label?: string }>;
+  };
+  sourceDocuments: Array<{ title: string; source: string; page: number }>;
+  sourceNodeIds: string[];
+};
+
+type GroundedExercise = {
+  title: string;
+  prompt: string;
+  answer: string;
+  hint: string;
+  solution: string;
+  sourceDocuments: Array<{ title: string; source: string; page: number }>;
+  sourceNodeIds: string[];
 };
 
 type PracticeState = 'idle' | 'correct' | 'retry';
@@ -40,6 +66,8 @@ type InteractiveLearningLoopProps = {
   section: LoopSection;
   resources: KnowledgeCard[];
   fallbackResource?: KnowledgeCard | null;
+  groundedLesson?: GroundedLesson | null;
+  groundedExercise?: GroundedExercise | null;
 };
 
 const sectionKeywords: Record<string, string[]> = {
@@ -74,6 +102,11 @@ function sourceText(resource: KnowledgeCard): string {
   return resource.summary.replace(/\s+/g, ' ').trim();
 }
 
+function extractFormula(text: string): string {
+  const match = text.match(/[^.!؟\n]{0,55}[=×÷][^.!؟\n]{0,55}/);
+  return match?.[0]?.replace(/\s+/g, ' ').trim() ?? '';
+}
+
 function scoreResource(resource: KnowledgeCard, section: LoopSection, lessonTitle: string): number {
   const haystack = normalizeArabic([
     resource.title,
@@ -94,7 +127,31 @@ function scoreResource(resource: KnowledgeCard, section: LoopSection, lessonTitl
     + Math.min(Math.floor(resource.summary.length / 280), 2);
 }
 
-function buildConceptSteps(section: LoopSection, resource: KnowledgeCard): ConceptStep[] {
+function buildConceptSteps(
+  section: LoopSection,
+  resource: KnowledgeCard,
+  groundedLesson?: GroundedLesson | null,
+): ConceptStep[] {
+  const groundedElements = groundedLesson?.elements
+    .filter((element) => element.title.trim() && element.summary.trim())
+    .slice(0, 6) ?? [];
+  if (groundedElements.length) {
+    return groundedElements.map((element, index) => {
+      const isGraph = element.kind === 'graph' && groundedLesson?.graph?.points.length;
+      const formula = extractFormula(element.summary)
+        || (index === groundedElements.length - 1 ? groundedLesson?.highlight : '')
+        || (element.kind === 'definition' ? groundedLesson?.highlight : '')
+        || formulaBySection[section.id]
+        || 'افهم → طبّق → تحقّق';
+      return {
+        title: element.title,
+        detail: element.summary.replace(/\s+/g, ' ').trim(),
+        formula,
+        visual: isGraph ? 'graph' : element.kind === 'definition' ? 'highlight' : element.kind === 'recap' ? 'flow' : 'equation',
+        graphPoints: isGraph ? groundedLesson?.graph?.points : undefined,
+      };
+    });
+  }
   const excerpt = sourceText(resource).slice(0, 220);
   const formula = formulaBySection[section.id] ?? `${section.highlight} ← من السند إلى الفهم`;
   const common = [
@@ -126,7 +183,24 @@ function buildConceptSteps(section: LoopSection, resource: KnowledgeCard): Conce
   return common;
 }
 
-function buildSolutionSteps(section: LoopSection, resource: KnowledgeCard): ConceptStep[] {
+function buildSolutionSteps(
+  section: LoopSection,
+  resource: KnowledgeCard,
+  groundedExercise?: GroundedExercise | null,
+): ConceptStep[] {
+  const groundedSolution = groundedExercise?.solution
+    .split(/\n+|(?<=[.!؟؛])\s+/)
+    .map((step) => step.replace(/^[-•\d.)\s]+/, '').trim())
+    .filter((step) => step.length > 2)
+    .slice(0, 8) ?? [];
+  if (groundedSolution.length) {
+    return groundedSolution.map((step, index) => ({
+      title: index === 0 ? 'المعطيات من التمرين' : index === groundedSolution.length - 1 ? 'النتيجة' : `الخطوة ${index + 1}`,
+      detail: step,
+      formula: extractFormula(step) || (index === groundedSolution.length - 1 ? groundedExercise?.answer ?? 'تحقق من النتيجة' : 'نكتب الخطوة ثم نتحقق'),
+      visual: index === 0 ? 'highlight' : index === groundedSolution.length - 1 ? 'graph' : 'equation',
+    }));
+  }
   const excerpt = sourceText(resource).slice(0, 240);
   return [
     {
@@ -163,12 +237,31 @@ function visualLabel(visual: ConceptStep['visual']): string {
   return 'تحديد';
 }
 
+function graphPath(points: Array<{ x: number; y: number }>): string {
+  if (points.length < 2) return 'M35 105H300';
+  const xValues = points.map((point) => point.x);
+  const yValues = points.map((point) => point.y);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const xRange = maxX - minX || 1;
+  const yRange = maxY - minY || 1;
+  return points.map((point, index) => {
+    const x = 40 + ((point.x - minX) / xRange) * 250;
+    const y = 105 - ((point.y - minY) / yRange) * 78;
+    return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(' ');
+}
+
 export function InteractiveLearningLoop({
   lessonTitle,
   subject,
   section,
   resources,
   fallbackResource,
+  groundedLesson,
+  groundedExercise,
 }: InteractiveLearningLoopProps) {
   const [selectedResourceId, setSelectedResourceId] = useState('');
   const [phase, setPhase] = useState<LoopPhase>('explain');
@@ -198,12 +291,12 @@ export function InteractiveLearningLoop({
     [fallbackResource, matchedResources, selectedResourceId],
   );
   const conceptSteps = useMemo(
-    () => selectedResource ? buildConceptSteps(section, selectedResource) : [],
-    [section, selectedResource],
+    () => selectedResource ? buildConceptSteps(section, selectedResource, groundedLesson) : [],
+    [groundedLesson, section, selectedResource],
   );
   const solutionSteps = useMemo(
-    () => selectedResource ? buildSolutionSteps(section, selectedResource) : [],
-    [section, selectedResource],
+    () => selectedResource ? buildSolutionSteps(section, selectedResource, groundedExercise) : [],
+    [groundedExercise, section, selectedResource],
   );
   const practiceResource = useMemo(
     () => matchedResources.find((resource) => resource.type === 'exercise' || resource.type === 'assessment') ?? selectedResource,
@@ -216,9 +309,15 @@ export function InteractiveLearningLoop({
     ...(practiceResource?.tags ?? []).slice(0, 2),
   ].map(normalizeArabic).filter((term) => term.length >= 3), [practiceResource, section]);
   const practiceExcerpt = practiceResource ? sourceText(practiceResource).slice(0, 260) : '';
+  const practicePrompt = groundedExercise?.prompt
+    || `ما الفكرة أو العلاقة التي تفسّر هذا المقطع؟ اكتبها بكلماتك، واذكر العلاقة إن ظهرت في الدرس.`;
+  const visibleBoardSteps = phase === 'solution'
+    ? solutionSteps.slice(0, solutionStep + 1)
+    : conceptSteps.slice(0, activeStep + 1);
   const activeBoardStep = phase === 'solution'
     ? solutionSteps[solutionStep]
     : conceptSteps[activeStep];
+  const activeGraphPath = graphPath(activeBoardStep?.graphPoints ?? []);
   const explanationComplete = phase !== 'explain' || activeStep >= conceptSteps.length - 1;
 
   useEffect(() => {
@@ -266,9 +365,12 @@ export function InteractiveLearningLoop({
 
   const submitAnswer = () => {
     const normalized = normalizeArabic(answer);
-    const correct = normalized.length >= 3 && expectedTerms.some((term) =>
-      normalized.includes(term) || term.includes(normalized),
-    );
+    const generatedAnswer = normalizeArabic(groundedExercise?.answer ?? '');
+    const correct = normalized.length >= 3 && (generatedAnswer
+      ? normalized === generatedAnswer
+        || normalized.includes(generatedAnswer)
+        || generatedAnswer.includes(normalized)
+      : expectedTerms.some((term) => normalized.includes(term) || term.includes(normalized)));
     setPracticeState(correct ? 'correct' : 'retry');
     if (correct) {
       setSolutionStep(0);
@@ -308,6 +410,10 @@ export function InteractiveLearningLoop({
           <span className="learning-loop-status-dot" />
           {phase === 'explain' ? 'شرح متدرّج' : phase === 'practice' ? 'دورك الآن' : 'حلّ مرئي'}
         </div>
+      </div>
+      <div className="learning-grounding-bar" data-testid="learning-grounding-status">
+        <span><CheckCircle2 size={13} /> {groundedLesson ? 'الشرح مبني على السند المسترجع' : 'نمط تمهيدي · بانتظار الشرح الموثق'}</span>
+        <span>{groundedLesson?.sourceNodeIds.length ?? 0} عقدة معرفة · {groundedLesson?.sourceDocuments.length ?? 0} وثيقة مرتبطة</span>
       </div>
 
       <div className="learning-loop-layout">
@@ -368,6 +474,7 @@ export function InteractiveLearningLoop({
                   {activeBoardStep?.visual === 'graph' ? (
                     <svg viewBox="0 0 330 130" role="img" aria-label="مخطط العلاقة">
                       <path d="M35 105H300M35 105V20M48 91C95 82 126 74 158 57S234 37 290 24" />
+                      {activeBoardStep.graphPoints?.length ? <path className="learning-board-grounded-graph" d={activeGraphPath} /> : null}
                       <circle cx="158" cy="57" r="5" />
                       <text x="270" y="121">الزمن</text>
                       <text x="7" y="25">الأثر</text>
@@ -386,6 +493,13 @@ export function InteractiveLearningLoop({
                 <p>{activeBoardStep?.detail ?? 'اختر سندًا من القائمة لبدء المحرك.'}</p>
                 {activeBoardStep?.formula && <strong>{activeBoardStep.formula}</strong>}
               </div>
+               <div className="learning-board-trace" aria-label="ما كُتب على السبورة">
+                 {visibleBoardSteps.map((step, index) => (
+                   <span className={index === visibleBoardSteps.length - 1 ? 'is-current' : ''} key={`${step.title}-${index}`}>
+                     <i>{index + 1}</i>{step.title}
+                   </span>
+                 ))}
+               </div>
             </div>
             <div className="learning-board-controls">
               {phase === 'explain' && (
@@ -424,16 +538,16 @@ export function InteractiveLearningLoop({
               </div>
               <div className="learning-practice-source">
                 <FileText size={14} />
-                <p>{practiceExcerpt || 'لم يصل نص المصدر بعد.'}</p>
+                 <p>{groundedExercise?.title ? `${groundedExercise.title} · ${practiceExcerpt || 'تمرين مستخرج من السند المرتبط.'}` : practiceExcerpt || 'لم يصل نص المصدر بعد.'}</p>
               </div>
               <p className="learning-practice-question">
-                <strong>سؤال التثبيت:</strong> ما الفكرة أو العلاقة التي تفسّر هذا المقطع؟ اكتبها بكلماتك، واذكر العلاقة إن ظهرت في الدرس.
+                 <strong>سؤال التثبيت:</strong> {practicePrompt}
               </p>
               <form onSubmit={(event) => { event.preventDefault(); submitAnswer(); }} className="learning-practice-form">
                 <input
                   value={answer}
                   onChange={(event) => { setAnswer(event.target.value); setPracticeState('idle'); }}
-                  placeholder={`اكتب مثلًا: ${section.highlight}`}
+                   placeholder={`اكتب إجابتك، مثلًا: ${groundedExercise?.answer ? 'استخدم العلاقة والمعطيات' : section.highlight}`}
                   aria-label="إجابة تمرين التثبيت"
                   data-testid="input-learning-answer"
                 />
@@ -451,8 +565,11 @@ export function InteractiveLearningLoop({
                 <div className="learning-feedback is-correct" role="status"><CheckCircle2 size={16} /><span>إجابة موفقة. انتقلنا تلقائيًا إلى الحل المرئي على السبورة.</span></div>
               )}
               {showHint && practiceState === 'retry' && (
-                <div className="learning-hint"><Lightbulb size={14} /> تلميح: ابحث في السند عن «{section.highlight}» أو العلاقة «{formulaBySection[section.id]}».</div>
+                 <div className="learning-hint"><Lightbulb size={14} /> تلميح: {groundedExercise?.hint || `ابحث في السند عن «${section.highlight}» أو العلاقة «${formulaBySection[section.id]}».`}</div>
               )}
+               {practiceState === 'correct' && groundedExercise?.sourceDocuments.length ? (
+                 <div className="learning-practice-citation"><BookOpen size={13} /> الحل مرتبط بـ {groundedExercise.sourceDocuments[0].source} · ص {groundedExercise.sourceDocuments[0].page}</div>
+               ) : null}
             </div>
           )}
         </div>

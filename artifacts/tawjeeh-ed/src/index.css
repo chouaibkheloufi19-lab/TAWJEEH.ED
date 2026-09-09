@@ -9317,3 +9317,97 @@ button { cursor: pointer; }
     grid-template-columns: 1fr;
   }
 }
+
+/* Final grounded-loop overrides: keep these after the legacy lesson rules. */
+.learning-grounding-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -4px 0 14px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 95, 115, .15);
+  border-radius: 10px;
+  color: #35626b;
+  background: rgba(237, 247, 244, .82);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.learning-grounding-bar span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.learning-grounding-bar span:last-child {
+  color: #71858a;
+  font-family: var(--app-font-mono);
+  font-size: 9px;
+}
+
+.learning-board-trace {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+  min-height: 56px;
+  padding: 2px 0 0;
+}
+
+.learning-board-trace span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 1px solid rgba(0, 95, 115, .12);
+  border-radius: 999px;
+  color: #7b8d8e;
+  background: rgba(255, 255, 255, .56);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.learning-board-trace span.is-current {
+  border-color: rgba(0, 95, 115, .32);
+  color: #005f73;
+  background: #f1fbf6;
+}
+
+.learning-board-trace i {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #005f73;
+  font-family: var(--app-font-mono);
+  font-size: 8px;
+  font-style: normal;
+}
+
+.learning-board-grounded-graph {
+  fill: none;
+  stroke: #b98a2c !important;
+  stroke-width: 3 !important;
+  stroke-dasharray: 5 3;
+}
+
+.learning-practice-citation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 9px;
+  color: #52766d;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+@media (max-width: 620px) {
+  .learning-grounding-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
