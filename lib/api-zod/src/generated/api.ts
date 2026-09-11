@@ -133,6 +133,10 @@ export const GetErrorBankResponse = zod.object({
   "concept_id": zod.string(),
   "concept_title": zod.string(),
   "error_tag": zod.string(),
+  "attempts_count": zod.int(),
+  "errors_count": zod.int(),
+  "error_percentage": zod.number(),
+  "deep_link": zod.string(),
   "summary_id": zod.int().nullable(),
   "created_at": zod.string()
 }))

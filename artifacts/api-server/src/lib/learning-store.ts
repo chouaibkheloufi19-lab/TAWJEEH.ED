@@ -1,8 +1,9 @@
-import { and, desc, eq, gte, lt } from "drizzle-orm";
+import { and, desc, eq, gt, gte, lt } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import type { Request } from "express";
 import {
   db,
+  errorBankTable,
   learningAttemptsTable,
   quizAttemptsTable,
   learningPolicyTable,
@@ -77,6 +78,10 @@ export type ErrorBankItem = {
   concept_id: string;
   concept_title: string;
   error_tag: string;
+  attempts_count: number;
+  errors_count: number;
+  error_percentage: number;
+  deep_link: string;
   summary_id: number | null;
   created_at: string;
 };
@@ -339,12 +344,12 @@ export async function getExamMode(userId: string, requestedExamDate?: string): P
 }
 
 export async function listErrorBank(userId: string) {
-  const [attempts, summaries] = await Promise.all([
+  const [errors, summaries] = await Promise.all([
     db
       .select()
-      .from(learningAttemptsTable)
-      .where(and(eq(learningAttemptsTable.userId, userId), eq(learningAttemptsTable.isCorrect, false)))
-      .orderBy(desc(learningAttemptsTable.createdAt))
+      .from(errorBankTable)
+      .where(and(eq(errorBankTable.userId, userId), gt(errorBankTable.errorsCount, 0)))
+      .orderBy(desc(errorBankTable.lastErrorAt))
       .limit(100),
     db
       .select({ id: summaryBankTable.id, lessonId: summaryBankTable.lessonId })
@@ -353,15 +358,19 @@ export async function listErrorBank(userId: string) {
   ]);
   const summaryIds = new Map(summaries.map((summary) => [summary.lessonId, summary.id]));
   return {
-    errors: attempts.map((attempt) => ({
-      id: attempt.id,
-      lesson_id: attempt.lessonId,
-      lesson_title: attempt.lessonTitle,
-      concept_id: attempt.conceptId,
-      concept_title: attempt.conceptTitle,
-      error_tag: attempt.errorTag,
-      summary_id: summaryIds.get(attempt.lessonId) ?? null,
-      created_at: attempt.createdAt.toISOString(),
+    errors: errors.map((error) => ({
+      id: error.id,
+      lesson_id: error.lessonId,
+      lesson_title: error.lessonTitle,
+      concept_id: error.conceptId,
+      concept_title: error.conceptTitle,
+      error_tag: error.latestErrorTag,
+      attempts_count: error.attemptsCount,
+      errors_count: error.errorsCount,
+      error_percentage: error.errorPercentage,
+      deep_link: error.deepLink,
+      summary_id: summaryIds.get(error.lessonId) ?? null,
+      created_at: (error.lastErrorAt ?? error.createdAt).toISOString(),
     })),
   };
 }
@@ -452,6 +461,42 @@ export async function recordLearningAttempt(
     .returning();
 
   if (!attempt) throw new Error("Learning attempt could not be saved");
+
+  const deepLink = `/lesson/${encodeURIComponent(input.lessonId)}?section=${encodeURIComponent(input.conceptId)}`;
+  const [existingError] = await db
+    .select()
+    .from(errorBankTable)
+    .where(
+      and(
+        eq(errorBankTable.userId, userId),
+        eq(errorBankTable.lessonId, input.lessonId),
+        eq(errorBankTable.sectionId, input.conceptId),
+      ),
+    )
+    .limit(1);
+  const attemptsCount = (existingError?.attemptsCount ?? 0) + 1;
+  const errorsCount = (existingError?.errorsCount ?? 0) + (input.isCorrect ? 0 : 1);
+  const errorValues = {
+    userId,
+    lessonId: input.lessonId,
+    lessonTitle: input.lessonTitle,
+    sectionId: input.conceptId,
+    conceptId: input.conceptId,
+    conceptTitle: input.conceptTitle,
+    latestErrorTag: input.isCorrect ? (existingError?.latestErrorTag ?? "") : input.errorTag,
+    attemptsCount,
+    errorsCount,
+    errorPercentage: Number(((errorsCount / attemptsCount) * 100).toFixed(2)),
+    deepLink,
+    lastErrorAt: input.isCorrect ? (existingError?.lastErrorAt ?? null) : new Date(),
+    updatedAt: new Date(),
+  };
+  if (existingError) {
+    await db.update(errorBankTable).set(errorValues).where(eq(errorBankTable.id, existingError.id));
+  } else {
+    await db.insert(errorBankTable).values(errorValues);
+  }
+
   const { metrics } = await listSummaryBank(userId);
   const metric = metrics.find(
     (item) => item.lesson_id === input.lessonId && item.concept_id === input.conceptId,

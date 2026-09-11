@@ -5,3 +5,6 @@ export * from "./quiz-attempts";
 export * from "./quiz-sessions";
 export * from "./learning-policy";
 export * from "./profile-summary-exports";
+export * from "./users-progress";
+export * from "./diagnostic-results";
+export * from "./error-bank";

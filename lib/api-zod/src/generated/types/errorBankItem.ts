@@ -13,6 +13,10 @@ export interface ErrorBankItem {
   concept_id: string;
   concept_title: string;
   error_tag: string;
+  attempts_count: number;
+  errors_count: number;
+  error_percentage: number;
+  deep_link: string;
   /** @nullable */
   summary_id: number | null;
   created_at: string;

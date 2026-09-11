@@ -756,7 +756,7 @@ components:
           type: integer
     ErrorBankItem:
       type: object
-      required: [id, lesson_id, lesson_title, concept_id, concept_title, error_tag, summary_id, created_at]
+      required: [id, lesson_id, lesson_title, concept_id, concept_title, error_tag, attempts_count, errors_count, error_percentage, deep_link, summary_id, created_at]
       properties:
         id:
           type: integer
@@ -769,6 +769,14 @@ components:
         concept_title:
           type: string
         error_tag:
+          type: string
+        attempts_count:
+          type: integer
+        errors_count:
+          type: integer
+        error_percentage:
+          type: number
+        deep_link:
           type: string
         summary_id:
           type: ["integer", "null"]

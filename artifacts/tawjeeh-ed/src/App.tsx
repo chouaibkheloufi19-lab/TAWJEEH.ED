@@ -78,6 +78,8 @@ import { MathPractice } from '@/components/math-practice';
 import { ExamBoard } from '@/components/exam-board';
 import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/phase-one';
 import { ProgramAgent } from '@/components/program-agent';
+import { DynamicOwlCopilot } from '@/components/DynamicOwlCopilot';
+import type { OwlAgentId } from '@/config/owlAgents';
 import { fetchWithTimeout } from '@/lib/request';
 import { ClerkAuthBridge, MockAuthProvider, useAppAuth, useAppClerk, useAppUser } from '@/lib/app-auth';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
@@ -268,6 +270,13 @@ function Topbar({ title }: { title: string }) {
 
 function Shell({ children, title }: { children: ReactNode; title: string }) {
   const isLessonShell = title === 'جلسة فهيم';
+  const initialAgent: OwlAgentId = title === 'جلسة فهيم' || title === 'التفاعل'
+    ? 'FAHIM'
+    : title === 'الكويزات والنقاط'
+      ? 'PRACTICE'
+      : title === 'المعرفة'
+        ? 'DALEEL'
+        : 'WELCOME';
   return (
     <div className={`app-shell noise ${isLessonShell ? 'lesson-shell' : ''}`}>
       <Sidebar compact={isLessonShell} />
@@ -278,6 +287,7 @@ function Shell({ children, title }: { children: ReactNode; title: string }) {
         </div>
       </main>
       <NavLinks mobile />
+      <DynamicOwlCopilot initialAgent={initialAgent} />
     </div>
   );
 }
