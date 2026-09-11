@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -25,6 +25,7 @@ import {
   Play,
   RotateCcw,
   Save,
+  ScanSearch,
   Send,
   Sparkles,
   Volume2,
@@ -55,6 +56,7 @@ import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
 import { useAppUser } from '@/lib/app-auth';
 import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
+import { InteractiveWhiteboard, type WhiteboardSelection } from '@/components/interactive-whiteboard';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
 import {
@@ -68,7 +70,7 @@ import {
 } from '@/lib/evaluation';
 
 type LessonSectionId = 'definition' | 'worked-example' | 'graph' | 'practice' | 'recap';
-type BoardMode = 'pen' | 'highlight';
+type BoardMode = 'pen' | 'highlight' | 'select';
 type Point = { x: number; y: number };
 type ActivePartner = 'dalil' | 'exercises';
 type SpeechRecognitionEventLike = {
@@ -85,6 +87,15 @@ type SpeechRecognitionLike = {
   stop: () => void;
 };
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+type CopilotInteraction = {
+  id: string;
+  sectionId: LessonSectionId;
+  question: string;
+  answer: string;
+  selection: Omit<WhiteboardSelection, 'imageDataUrl'>;
+  createdAt: string;
+};
 
 type LessonSection = {
   id: LessonSectionId;
@@ -205,6 +216,7 @@ type LessonSession = {
   activeAgent: ActiveAgent;
   evaluationCompletedAt: string | null;
   pausedMoment: { second: number; lessonTitle: string; explanation: string } | null;
+  copilotInteractions: CopilotInteraction[];
 };
 
 type LocalSummary = {
@@ -331,6 +343,7 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
     activeAgent: 'faheem',
     evaluationCompletedAt: null,
     pausedMoment: null,
+    copilotInteractions: [],
   };
   if (typeof window === 'undefined') return fallback;
   try {
@@ -381,6 +394,23 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
         && typeof parsed.pausedMoment.explanation === 'string'
         ? parsed.pausedMoment
         : null,
+      copilotInteractions: Array.isArray(parsed.copilotInteractions)
+        ? parsed.copilotInteractions.filter((item): item is CopilotInteraction => Boolean(
+            item
+            && typeof item === 'object'
+            && typeof item.id === 'string'
+            && lessonSections.some((section) => section.id === item.sectionId)
+            && typeof item.question === 'string'
+            && typeof item.answer === 'string'
+            && typeof item.createdAt === 'string'
+            && item.selection
+            && typeof item.selection.x === 'number'
+            && typeof item.selection.y === 'number'
+            && typeof item.selection.width === 'number'
+            && typeof item.selection.height === 'number'
+            && item.selection.shape === 'rectangle',
+          )).slice(-12)
+        : [],
     };
   } catch {
     return fallback;
@@ -507,78 +537,6 @@ function normalizeGraphPoints(points: GeneratedGraphPoint[]) {
   }));
 }
 
-function drawBoard(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  sectionId: LessonSectionId,
-  strokes: Point[][],
-  mode: BoardMode,
-  highlightedPart: string,
-  groundedDiagram: boolean,
-) {
-  ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = '#fbfaf5';
-  ctx.fillRect(0, 0, width, height);
-  ctx.strokeStyle = 'rgba(54, 103, 104, .08)';
-  ctx.lineWidth = 1;
-  for (let x = 20; x < width; x += 28) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
-  }
-  for (let y = 20; y < height; y += 28) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
-  }
-  if (groundedDiagram && (sectionId === 'graph' || sectionId === 'recap' || highlightedPart)) {
-    const left = width * .16;
-    const bottom = height * .78;
-    const right = width * .84;
-    const top = height * .2;
-    ctx.strokeStyle = '#587b7a';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(right, bottom); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(left, bottom); ctx.lineTo(left, top); ctx.stroke();
-    ctx.fillStyle = '#587b7a';
-    ctx.font = '600 12px IBM Plex Sans Arabic, sans-serif';
-    ctx.fillText('الزمن', right - 32, bottom + 25);
-    ctx.fillText('الموضع', left + 8, top - 9);
-    ctx.strokeStyle = '#005f73';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(left + 8, bottom - 10);
-    ctx.bezierCurveTo(width * .34, height * .67, width * .48, height * .56, width * .63, height * .43);
-    ctx.bezierCurveTo(width * .71, height * .36, width * .77, height * .29, right - 3, top + 8);
-    ctx.stroke();
-    ctx.fillStyle = '#005f73';
-    ctx.beginPath(); ctx.arc(width * .63, height * .43, 5, 0, Math.PI * 2); ctx.fill();
-  }
-  const selectedRegion = boardRegions(sectionId).find((region) => region.label === highlightedPart);
-  if (selectedRegion) {
-    const left = Number.parseFloat(selectedRegion.left) / 100 * width;
-    const top = Number.parseFloat(selectedRegion.top) / 100 * height;
-    const regionWidth = Number.parseFloat(selectedRegion.width) / 100 * width;
-    ctx.fillStyle = 'rgba(219, 183, 96, .18)';
-    ctx.strokeStyle = '#b98a2c';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 4]);
-    ctx.beginPath();
-    ctx.roundRect(left, top, regionWidth, height * .19, 9);
-    ctx.fill();
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  strokes.forEach((stroke) => {
-    if (stroke.length < 2) return;
-    ctx.beginPath();
-    ctx.moveTo(stroke[0].x * width, stroke[0].y * height);
-    stroke.slice(1).forEach((point) => ctx.lineTo(point.x * width, point.y * height));
-    ctx.strokeStyle = mode === 'highlight' ? 'rgba(220, 169, 64, .72)' : '#315c66';
-    ctx.lineWidth = mode === 'highlight' ? 11 : 3;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-  });
-}
-
 export function LessonWorkspace() {
   const [currentLessonTopic] = useState(readCurrentLessonTopic);
   const fixedLessonTitle = currentLessonTopic?.title ?? 'قوانين نيوتن والحركة';
@@ -629,6 +587,13 @@ export function LessonWorkspace() {
   const [summarySaveState, setSummarySaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [summaryPreview, setSummaryPreview] = useState<LocalSummary | null>(null);
   const [boardMode, setBoardMode] = useState<BoardMode>('pen');
+  const [boardSelection, setBoardSelection] = useState<WhiteboardSelection | null>(null);
+  const [boardCopilotOpen, setBoardCopilotOpen] = useState(false);
+  const [boardCopilotQuestion, setBoardCopilotQuestion] = useState('');
+  const [boardCopilotAnswer, setBoardCopilotAnswer] = useState('');
+  const [boardCopilotState, setBoardCopilotState] = useState<'idle' | 'asking' | 'answered' | 'error'>('idle');
+  const [boardCopilotError, setBoardCopilotError] = useState('');
+  const [isBoardCopilotListening, setIsBoardCopilotListening] = useState(false);
   const [isBoardImmersive, setIsBoardImmersive] = useState(false);
   const [isLessonRailCollapsed, setIsLessonRailCollapsed] = useState(false);
   const [roadmapSync, setRoadmapSync] = useState<LessonBoardSync | null>(null);
@@ -638,10 +603,9 @@ export function LessonWorkspace() {
   const [showExerciseHint, setShowExerciseHint] = useState(false);
   const [showExerciseSolution, setShowExerciseSolution] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const owlVideoRef = useRef<HTMLVideoElement>(null);
-  const drawingRef = useRef<Point[]>([]);
   const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const copilotSpeechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const knowledgeParams = useMemo(() => ({ subject: 'العلوم الفيزيائية', curriculum_year: '3AS' }), []);
   const knowledgeQuery = useListKnowledge(knowledgeParams, { query: { queryKey: getListKnowledgeQueryKey(knowledgeParams), staleTime: 5 * 60 * 1000 } });
   const knowledgeCards = useMemo(() => (knowledgeQuery.data as KnowledgeCard[] | undefined) ?? [], [knowledgeQuery.data]);
@@ -744,8 +708,21 @@ export function LessonWorkspace() {
         : null,
     ];
     const annotations = annotationCandidates.filter((asset): asset is WhiteboardAsset => asset !== null);
-    return [...strokes, ...annotations];
-  }, [activeSection.id, activeSection.label, highlightedPart, session.note, session.startedAt, session.whiteboardStrokesBySection]);
+    const copilotAssets = session.copilotInteractions.map((interaction) => ({
+      id: interaction.id,
+      kind: 'annotation' as const,
+      section_id: interaction.sectionId,
+      label: 'سؤال فهيم على جزء محدد',
+      data: {
+        text: `السؤال: ${interaction.question}\nالإجابة: ${interaction.answer}`,
+        question: interaction.question,
+        answer: interaction.answer,
+        selection: interaction.selection,
+      },
+      created_at: interaction.createdAt,
+    }));
+    return [...strokes, ...annotations, ...copilotAssets];
+  }, [activeSection.id, activeSection.label, highlightedPart, session.copilotInteractions, session.note, session.startedAt, session.whiteboardStrokesBySection]);
 
   const buildSessionSummary = (completedAt: string): LocalSummary => ({
     id: `summary-${lessonId}`,
@@ -918,6 +895,11 @@ export function LessonWorkspace() {
       const utterance = new SpeechSynthesisUtterance(displayedExplanation);
       utterance.lang = 'ar-SA';
       utterance.rate = .92;
+      utterance.onboundary = (event) => {
+        const length = displayedExplanation.length || 1;
+        setNarrationProgress(Math.min(100, Math.round((event.charIndex / length) * 100)));
+      };
+      utterance.onend = () => setNarrationProgress(100);
       window.speechSynthesis.speak(utterance);
     }
     return () => {
@@ -927,6 +909,7 @@ export function LessonWorkspace() {
 
   useEffect(() => () => {
     speechRecognitionRef.current?.stop();
+    copilotSpeechRecognitionRef.current?.stop();
   }, []);
 
   useEffect(() => {
@@ -955,28 +938,6 @@ export function LessonWorkspace() {
       document.body.style.overflow = '';
     };
   }, [isBoardImmersive, isTopicImmersive]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-    context.scale(ratio, ratio);
-     drawBoard(
-       context,
-       rect.width,
-       rect.height,
-       activeSection.id,
-        session.whiteboardStrokesBySection[activeSection.id] ?? [],
-       boardMode,
-       highlightedPart,
-       Boolean(generatedLesson),
-     );
-  }, [activeSection.id, boardMode, highlightedPart, session.whiteboardStrokesBySection]);
 
   const selectSection = (section: LessonSection) => {
     if (section.id === activeSection.id) return;
@@ -1585,21 +1546,8 @@ export function LessonWorkspace() {
     }]);
   };
 
-  const getCanvasPoint = (event: ReactPointerEvent<HTMLCanvasElement>): Point => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    return { x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height };
-  };
-
-  const selectBoardRegion = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+  const selectBoardRegion = (region: typeof hotspots[number]) => {
     pauseNarration();
-    const point = getCanvasPoint(event);
-    const region = hotspots.find((item) => {
-      const left = Number.parseFloat(item.left) / 100;
-      const top = Number.parseFloat(item.top) / 100;
-      const right = left + Number.parseFloat(item.width) / 100;
-      return point.x >= left && point.x <= right && point.y >= top && point.y <= top + .19;
-    });
-    if (!region) return;
     setHighlightedPart(region.label);
     setSession((current) => ({
       ...current,
@@ -1615,33 +1563,7 @@ export function LessonWorkspace() {
     }]);
   };
 
-  const startDrawing = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    drawingRef.current = [getCanvasPoint(event)];
-  };
-
-  const continueDrawing = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (!drawingRef.current.length) return;
-    drawingRef.current = [...drawingRef.current, getCanvasPoint(event)];
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d');
-    if (!canvas || !context) return;
-    const rect = canvas.getBoundingClientRect();
-    drawBoard(
-      context,
-      rect.width,
-      rect.height,
-      activeSection.id,
-      [...(session.whiteboardStrokesBySection[activeSection.id] ?? []), drawingRef.current],
-      boardMode,
-      highlightedPart,
-      Boolean(generatedLesson),
-    );
-  };
-
-  const finishDrawing = () => {
-    if (!drawingRef.current.length) return;
-    const completedStroke = drawingRef.current;
+  const commitBoardStroke = (completedStroke: Point[]) => {
     setSession((current) => {
       const strokes = [...(current.whiteboardStrokesBySection[activeSection.id] ?? []), completedStroke];
       return {
@@ -1654,7 +1576,6 @@ export function LessonWorkspace() {
         },
       };
     });
-    drawingRef.current = [];
   };
 
   const clearBoard = () => setSession((current) => ({
@@ -1731,6 +1652,98 @@ export function LessonWorkspace() {
     speechRecognitionRef.current = recognition;
     setIsListening(true);
     recognition.start();
+  };
+
+  const toggleBoardCopilotVoice = () => {
+    if (isBoardCopilotListening) {
+      copilotSpeechRecognitionRef.current?.stop();
+      return;
+    }
+    const speechWindow = window as Window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      setBoardCopilotError('الإملاء الصوتي غير متاح في هذا المتصفح. اكتب سؤالك بدلًا من ذلك.');
+      setBoardCopilotState('error');
+      return;
+    }
+    const recognition = new Recognition();
+    recognition.lang = 'ar-SA';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0]?.transcript ?? '')
+        .join(' ')
+        .trim();
+      if (transcript) setBoardCopilotQuestion((current) => `${current} ${transcript}`.trim());
+    };
+    recognition.onerror = () => {
+      setBoardCopilotError('لم نلتقط الصوت بوضوح. حاول مرة أخرى أو اكتب سؤالك.');
+      setBoardCopilotState('error');
+      setIsBoardCopilotListening(false);
+      copilotSpeechRecognitionRef.current = null;
+    };
+    recognition.onend = () => {
+      setIsBoardCopilotListening(false);
+      copilotSpeechRecognitionRef.current = null;
+    };
+    copilotSpeechRecognitionRef.current = recognition;
+    setIsBoardCopilotListening(true);
+    recognition.start();
+  };
+
+  const askBoardCopilot = async () => {
+    if (!boardSelection || !boardCopilotQuestion.trim() || boardCopilotState === 'asking') return;
+    const questionText = boardCopilotQuestion.trim();
+    setBoardCopilotState('asking');
+    setBoardCopilotError('');
+    try {
+      const response = await fetchWithTimeout('/api/fahim/whiteboard-query', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          imageDataUrl: boardSelection.imageDataUrl,
+          question: questionText,
+          lesson: fixedLessonTitle,
+          concept: activeSection.title,
+          context: sourceExcerpt,
+        }),
+      });
+      const payload = await response.json() as { answer?: string; message?: string };
+      if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم على الجزء المحدد.');
+      const interaction = {
+        id: `${lessonId}:${activeSection.id}:copilot:${Date.now()}`,
+        sectionId: activeSection.id,
+        question: questionText,
+        answer: payload.answer,
+        selection: {
+          x: boardSelection.x,
+          y: boardSelection.y,
+          width: boardSelection.width,
+          height: boardSelection.height,
+          shape: boardSelection.shape,
+        },
+        createdAt: new Date().toISOString(),
+      } satisfies CopilotInteraction;
+      setSession((current) => ({
+        ...current,
+        copilotInteractions: [...current.copilotInteractions.filter((item) => item.id !== interaction.id), interaction].slice(-12),
+        flowNotes: {
+          ...current.flowNotes,
+          [activeSection.id]: 'حُفظ سؤال فهيم وإجابته مع الجزء المحدد من السبورة.',
+        },
+      }));
+      setBoardCopilotAnswer(payload.answer);
+      setBoardCopilotState('answered');
+      setMessages((current) => [...current, { id: interaction.id, role: 'assistant', text: payload.answer as string }]);
+    } catch (error) {
+      setBoardCopilotError(error instanceof Error ? error.message : 'تعذر الاتصال بفهم السبورة.');
+      setBoardCopilotState('error');
+    }
   };
 
   return (
@@ -2267,6 +2280,7 @@ export function LessonWorkspace() {
               <div>
                 <button type="button" className={boardMode === 'pen' ? 'is-selected' : ''} onClick={() => setBoardMode('pen')} disabled={!lessonToolsActive} aria-label="أداة الكتابة" data-testid="button-whiteboard-pen"><PenLine size={15} /></button>
                   <button type="button" className={boardMode === 'highlight' ? 'is-selected' : ''} onClick={() => setBoardMode('highlight')} disabled={!lessonToolsActive} aria-label="أداة التظليل والنقر" data-testid="button-whiteboard-highlight"><Highlighter size={15} /></button>
+                  <button type="button" className={boardMode === 'select' ? 'is-selected' : ''} onClick={() => setBoardMode('select')} disabled={!lessonToolsActive} aria-label="أداة تحديد جزء وسؤال فهيم" data-testid="button-whiteboard-select"><ScanSearch size={15} /></button>
                  <button type="button" onClick={clearBoard} disabled={!lessonToolsActive} aria-label="مسح الكتابة" data-testid="button-whiteboard-clear"><Eraser size={15} /></button>
               </div>
             </div>
@@ -2283,7 +2297,70 @@ export function LessonWorkspace() {
                   <span>موضوع الدرس</span>
                   <strong>{fixedLessonTitle}</strong>
                 </div>
-                <canvas ref={canvasRef} className={`lesson-whiteboard-canvas ${boardMode === 'highlight' ? 'is-highlighting' : ''} ${!lessonToolsActive ? 'is-locked' : ''}`} onPointerDown={lessonToolsActive ? (boardMode === 'highlight' ? selectBoardRegion : startDrawing) : undefined} onPointerMove={lessonToolsActive && boardMode === 'pen' ? continueDrawing : undefined} onPointerUp={lessonToolsActive && boardMode === 'pen' ? finishDrawing : undefined} onPointerCancel={lessonToolsActive && boardMode === 'pen' ? finishDrawing : undefined} aria-label="لوح تفاعلي للكتابة والرسم والتحديد" data-testid="canvas-lesson-whiteboard" />
+                <InteractiveWhiteboard
+                  sectionId={activeSection.id}
+                  strokes={session.whiteboardStrokesBySection[activeSection.id] ?? []}
+                  mode={boardMode}
+                  highlightedPart={highlightedPart}
+                  groundedDiagram={Boolean(generatedLesson)}
+                  animationProgress={isPlaying ? narrationProgress : 100}
+                  hotspots={hotspots}
+                  disabled={!lessonToolsActive}
+                  onStrokeCommitted={commitBoardStroke}
+                  onRegionSelected={selectBoardRegion}
+                  onSelectionComplete={(selection) => {
+                    pauseNarration();
+                    setBoardSelection(selection);
+                    setBoardCopilotQuestion('');
+                    setBoardCopilotAnswer('');
+                    setBoardCopilotError('');
+                    setBoardCopilotState('idle');
+                    setBoardCopilotOpen(true);
+                  }}
+                />
+                {boardSelection && (
+                  <button
+                    type="button"
+                    className="lesson-whiteboard-copilot"
+                    style={{
+                      left: `${Math.min(88, Math.max(12, (boardSelection.x + boardSelection.width / 2) * 100))}%`,
+                      top: `${Math.min(82, Math.max(18, (boardSelection.y + boardSelection.height / 2) * 100))}%`,
+                    }}
+                    onClick={() => setBoardCopilotOpen(true)}
+                    aria-label="اسأل فهيم عن الجزء المحدد"
+                    data-testid="button-open-whiteboard-copilot"
+                  >
+                    <img src={owlAgentViolet} alt="" />
+                    <span>اسأل فهيم</span>
+                  </button>
+                )}
+                {boardCopilotOpen && boardSelection && (
+                  <div className="lesson-whiteboard-copilot-modal" role="dialog" aria-modal="true" aria-label="كوبيلوت السبورة" data-testid="dialog-whiteboard-copilot">
+                    <div className="lesson-whiteboard-copilot-head">
+                      <div><img src={owlAgentViolet} alt="" /><span><strong>فهيم على السبورة</strong><small>اسأل عن الجزء الذي حددته</small></span></div>
+                      <button type="button" onClick={() => setBoardCopilotOpen(false)} aria-label="إغلاق كوبيلوت السبورة"><X size={15} /></button>
+                    </div>
+                    <form onSubmit={(event) => { event.preventDefault(); void askBoardCopilot(); }}>
+                      <textarea
+                        value={boardCopilotQuestion}
+                        onChange={(event) => setBoardCopilotQuestion(event.target.value)}
+                        placeholder="مثال: لماذا يتغير الميل هنا؟"
+                        rows={3}
+                        disabled={boardCopilotState === 'asking'}
+                        aria-label="سؤال فهيم عن الجزء المحدد"
+                        data-testid="input-whiteboard-copilot-question"
+                      />
+                      <div className="lesson-whiteboard-copilot-actions">
+                        <button type="button" onClick={toggleBoardCopilotVoice} disabled={boardCopilotState === 'asking'} aria-label={isBoardCopilotListening ? 'إيقاف الإملاء' : 'إملاء السؤال'}>
+                          {isBoardCopilotListening ? <MicOff size={14} /> : <Mic size={14} />}
+                        </button>
+                        <button type="submit" disabled={!boardCopilotQuestion.trim() || boardCopilotState === 'asking'}>{boardCopilotState === 'asking' ? <LoaderCircle size={14} className="lesson-spin-icon" /> : <Send size={14} />} اسأل</button>
+                      </div>
+                    </form>
+                    {boardCopilotState === 'error' && <p className="lesson-whiteboard-copilot-error" role="alert">{boardCopilotError}</p>}
+                    {boardCopilotAnswer && <div className="lesson-whiteboard-copilot-answer" role="status"><strong>الإجابة</strong><p>{boardCopilotAnswer}</p></div>}
+                  </div>
+                )}
                <div className="lesson-board-hotspots" aria-label="مناطق اللوح القابلة للتحديد">
                  {hotspots.map((region) => (
                    <button

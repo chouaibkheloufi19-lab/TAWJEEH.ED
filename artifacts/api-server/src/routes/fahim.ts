@@ -110,6 +110,54 @@ async function callVisionModel(
   return extractJson(content);
 }
 
+async function callVisionCopilotModel(
+  imageDataUrl: string,
+  question: string,
+  lesson: string,
+  concept: string,
+  context: string,
+  retrieval: RetrievalContext,
+) {
+  const sourceText = formatRetrievedContext(retrieval.documents);
+  const response = await withTimeout(
+    connectors.proxy("xai", "/v1/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: process.env.GROK_VISION_MODEL ?? "grok-2-vision-1212",
+        temperature: 0.1,
+        max_tokens: 900,
+        messages: [
+          {
+            role: "system",
+            content: [
+              FRIENDLY_TUTOR_PROMPT,
+              GROUNDED_CONTENT_RULES,
+              "أنت فهيم. اقرأ الجزء المحدد من السبورة وأجب عن سؤال الطالب بالعربية، بجمل قصيرة وخطوات واضحة. لا تخمّن أي شيء غير ظاهر، وإذا لم تكف الصورة فاذكر ذلك واقترح ما يجب تحديده.",
+            ].join("\n\n"),
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `الدرس: ${lesson}\nالمفهوم: ${concept}\nسؤال الطالب: ${question}\nالسياق النصي: ${context || "لا يوجد"}\nعقد المعرفة المسترجعة:\n${sourceText}`,
+              },
+              { type: "image_url", image_url: { url: imageDataUrl } },
+            ],
+          },
+        ],
+      }),
+    }),
+    30000,
+  );
+  if (!response.ok) throw new Error(`Vision provider responded with ${response.status}`);
+  const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  const content = payload.choices?.[0]?.message?.content?.trim();
+  if (!content) throw new Error("Vision provider returned no copilot answer");
+  return content;
+}
+
 async function callTextModel(
   question: string,
   lesson: string,
@@ -173,6 +221,42 @@ router.post("/fahim/analyze-attempt", async (req, res): Promise<void> => {
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error: error instanceof KnowledgeGroundingError ? error.code : "fahim_analysis_failed",
       message: "لا يمكن تحليل المحاولة قبل نجاح استرجاع عقد المعرفة من ChromaDB.",
+    });
+  }
+});
+
+router.post("/fahim/whiteboard-query", async (req, res): Promise<void> => {
+  const { imageDataUrl, question, lesson, concept, context } = req.body as Record<string, unknown>;
+  if (
+    typeof imageDataUrl !== "string"
+    || !imageDataUrl.startsWith("data:image/")
+    || imageDataUrl.length > 7_000_000
+    || typeof question !== "string"
+    || !question.trim()
+    || typeof lesson !== "string"
+    || typeof concept !== "string"
+    || (context !== undefined && typeof context !== "string")
+  ) {
+    res.status(400).json({ error: "invalid_whiteboard_query_payload" });
+    return;
+  }
+
+  try {
+    const retrieval = await retrieveGroundedKnowledge(`${lesson} ${concept} ${question}`, { nResults: 8 });
+    const answer = await callVisionCopilotModel(
+      imageDataUrl,
+      question.trim(),
+      lesson,
+      concept,
+      typeof context === "string" ? context : "",
+      retrieval,
+    );
+    res.json({ answer, grounding: retrieval.grounding });
+  } catch (error) {
+    req.log.error({ error }, "Fahim whiteboard query failed");
+    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
+      error: error instanceof KnowledgeGroundingError ? error.code : "fahim_whiteboard_query_failed",
+      message: "لا يمكن أن يجيب فهيم عن السبورة قبل نجاح استرجاع المعرفة.",
     });
   }
 });

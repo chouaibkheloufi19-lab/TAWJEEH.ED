@@ -82,9 +82,28 @@ export type WhiteboardAssetDataPointsItem = {
   y: number;
 };
 
+export type WhiteboardAssetDataSelectionShape = typeof WhiteboardAssetDataSelectionShape[keyof typeof WhiteboardAssetDataSelectionShape];
+
+
+export const WhiteboardAssetDataSelectionShape = {
+  rectangle: 'rectangle',
+  circle: 'circle',
+} as const;
+
+export type WhiteboardAssetDataSelection = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  shape: WhiteboardAssetDataSelectionShape;
+};
+
 export type WhiteboardAssetData = {
   points?: WhiteboardAssetDataPointsItem[];
   text?: string;
+  selection?: WhiteboardAssetDataSelection;
+  question?: string;
+  answer?: string;
 };
 
 export interface WhiteboardAsset {

@@ -6,8 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { WhiteboardAssetDataPointsItem } from './whiteboardAssetDataPointsItem';
+import type { WhiteboardAssetDataSelection } from './whiteboardAssetDataSelection';
 
 export type WhiteboardAssetData = {
   points?: WhiteboardAssetDataPointsItem[];
   text?: string;
+  selection?: WhiteboardAssetDataSelection;
+  question?: string;
+  answer?: string;
 };

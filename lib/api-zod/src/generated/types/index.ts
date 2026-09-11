@@ -72,4 +72,6 @@ export * from './weeklyQuizEligibility';
 export * from './whiteboardAsset';
 export * from './whiteboardAssetData';
 export * from './whiteboardAssetDataPointsItem';
+export * from './whiteboardAssetDataSelection';
+export * from './whiteboardAssetDataSelectionShape';
 export * from './whiteboardAssetKind';

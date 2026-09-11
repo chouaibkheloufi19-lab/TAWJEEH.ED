@@ -17,6 +17,15 @@ export type WhiteboardAsset = {
   data: {
     points?: Array<{ x: number; y: number }>;
     text?: string;
+    selection?: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      shape: "rectangle" | "circle";
+    };
+    question?: string;
+    answer?: string;
   };
   createdAt: string;
 };

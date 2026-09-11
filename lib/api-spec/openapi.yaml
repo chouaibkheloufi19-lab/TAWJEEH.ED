@@ -574,6 +574,25 @@ components:
                     type: number
             text:
               type: string
+            selection:
+              type: object
+              required: [x, y, width, height, shape]
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+                width:
+                  type: number
+                height:
+                  type: number
+                shape:
+                  type: string
+                  enum: [rectangle, circle]
+            question:
+              type: string
+            answer:
+              type: string
         created_at:
           type: string
     SummaryBankItem:

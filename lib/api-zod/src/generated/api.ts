@@ -90,7 +90,16 @@ export const GetSummaryBankResponse = zod.object({
   "x": zod.number(),
   "y": zod.number()
 })).optional(),
-  "text": zod.string().optional()
+  "text": zod.string().optional(),
+  "selection": zod.object({
+  "x": zod.number(),
+  "y": zod.number(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "shape": zod.enum(['rectangle', 'circle'])
+}).optional(),
+  "question": zod.string().optional(),
+  "answer": zod.string().optional()
 }),
   "created_at": zod.string()
 })),
@@ -346,7 +355,16 @@ export const CompleteLessonBody = zod.object({
   "x": zod.number(),
   "y": zod.number()
 })).optional(),
-  "text": zod.string().optional()
+  "text": zod.string().optional(),
+  "selection": zod.object({
+  "x": zod.number(),
+  "y": zod.number(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "shape": zod.enum(['rectangle', 'circle'])
+}).optional(),
+  "question": zod.string().optional(),
+  "answer": zod.string().optional()
 }),
   "created_at": zod.string()
 })),
@@ -381,7 +399,16 @@ export const CompleteLessonResponse = zod.object({
   "x": zod.number(),
   "y": zod.number()
 })).optional(),
-  "text": zod.string().optional()
+  "text": zod.string().optional(),
+  "selection": zod.object({
+  "x": zod.number(),
+  "y": zod.number(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "shape": zod.enum(['rectangle', 'circle'])
+}).optional(),
+  "question": zod.string().optional(),
+  "answer": zod.string().optional()
 }),
   "created_at": zod.string()
 })),
