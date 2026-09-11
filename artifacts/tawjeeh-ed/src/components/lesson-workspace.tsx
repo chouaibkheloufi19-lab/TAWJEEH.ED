@@ -56,7 +56,8 @@ import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
 import { useAppUser } from '@/lib/app-auth';
 import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
-import { InteractiveWhiteboard, type WhiteboardSelection } from '@/components/interactive-whiteboard';
+import { InteractiveWhiteboard, type WhiteboardImage, type WhiteboardSelection } from '@/components/interactive-whiteboard';
+import { WhiteboardOwlCopilot, type WhiteboardOwlState } from '@/components/whiteboard-owl-copilot';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
 import {
@@ -209,6 +210,7 @@ type LessonSession = {
   attachmentName: string | null;
   whiteboardStrokes: Point[][];
   whiteboardStrokesBySection: Partial<Record<LessonSectionId, Point[][]>>;
+  whiteboardImagesBySection: Partial<Record<LessonSectionId, WhiteboardImage>>;
   flowNotes: Partial<Record<LessonSectionId, string>>;
   startedAt: string;
   concludedAt: string | null;
@@ -336,6 +338,7 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
     attachmentName: null,
     whiteboardStrokes: [],
     whiteboardStrokesBySection: {},
+    whiteboardImagesBySection: {},
     flowNotes: {},
     startedAt: new Date().toISOString(),
     concludedAt: null,
@@ -378,6 +381,17 @@ function readSession(defaultEvaluationMode: EvaluationMode): LessonSession {
         : parsed.whiteboardStrokes?.length
           ? { [active]: parsed.whiteboardStrokes }
           : {},
+      whiteboardImagesBySection: parsed.whiteboardImagesBySection && typeof parsed.whiteboardImagesBySection === 'object'
+        ? Object.fromEntries(
+            Object.entries(parsed.whiteboardImagesBySection)
+              .filter(([key, value]) => lessonSections.some((section) => section.id === key)
+                && value
+                && typeof value === 'object'
+                && typeof (value as { dataUrl?: unknown }).dataUrl === 'string'
+                && typeof (value as { fileName?: unknown }).fileName === 'string')
+              .map(([key, value]) => [key, value]),
+          ) as Partial<Record<LessonSectionId, WhiteboardImage>>
+        : {},
       flowNotes: parsed.flowNotes && typeof parsed.flowNotes === 'object'
         ? Object.fromEntries(Object.entries(parsed.flowNotes).filter(([key, value]) => lessonSections.some((section) => section.id === key) && typeof value === 'string')) as Partial<Record<LessonSectionId, string>>
         : {},
@@ -589,6 +603,7 @@ export function LessonWorkspace() {
   const [boardMode, setBoardMode] = useState<BoardMode>('pen');
   const [boardSelection, setBoardSelection] = useState<WhiteboardSelection | null>(null);
   const [boardCopilotOpen, setBoardCopilotOpen] = useState(false);
+  const [whiteboardOwlState, setWhiteboardOwlState] = useState<WhiteboardOwlState>('idle');
   const [boardCopilotQuestion, setBoardCopilotQuestion] = useState('');
   const [boardCopilotAnswer, setBoardCopilotAnswer] = useState('');
   const [boardCopilotState, setBoardCopilotState] = useState<'idle' | 'asking' | 'answered' | 'error'>('idle');
@@ -603,6 +618,7 @@ export function LessonWorkspace() {
   const [showExerciseHint, setShowExerciseHint] = useState(false);
   const [showExerciseSolution, setShowExerciseSolution] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const whiteboardImageInputRef = useRef<HTMLInputElement>(null);
   const owlVideoRef = useRef<HTMLVideoElement>(null);
   const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const copilotSpeechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -630,6 +646,7 @@ export function LessonWorkspace() {
     && agentReadinessQuery.data.foundationalModules.length > 0
     && agentReadinessQuery.data.retrieval.status === 'ready';
   const activeSection = useMemo(() => lessonSections.find((section) => section.id === session.activeConcept) ?? lessonSections[0], [session.activeConcept]);
+  const activeBoardImage = session.whiteboardImagesBySection[activeSection.id] ?? null;
   const activeSource = useMemo(() => sourceForSection(activeSection, foundationalSources), [activeSection, foundationalSources]);
   const activeExamples = useMemo(() => {
     if (!ragReady || !activeSource || !generatedLesson) return [];

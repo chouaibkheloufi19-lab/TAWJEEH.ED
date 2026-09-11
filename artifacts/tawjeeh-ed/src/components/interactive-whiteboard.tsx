@@ -19,6 +19,11 @@ export type WhiteboardSelection = {
   imageDataUrl: string;
 };
 
+export type WhiteboardImage = {
+  dataUrl: string;
+  fileName: string;
+};
+
 type Props = {
   sectionId: string;
   strokes: WhiteboardStroke[];
@@ -27,6 +32,7 @@ type Props = {
   groundedDiagram: boolean;
   animationProgress: number;
   hotspots: WhiteboardHotspot[];
+  image?: WhiteboardImage | null;
   disabled?: boolean;
   className?: string;
   onStrokeCommitted: (stroke: WhiteboardStroke) => void;
@@ -45,6 +51,7 @@ function drawBoard(
   groundedDiagram: boolean,
   animationProgress: number,
   hotspots: WhiteboardHotspot[],
+  boardImage: HTMLImageElement | null,
   selection: Omit<WhiteboardSelection, 'imageDataUrl'> | null,
 ) {
   context.clearRect(0, 0, width, height);
@@ -63,6 +70,23 @@ function drawBoard(
     context.moveTo(0, y);
     context.lineTo(width, y);
     context.stroke();
+  }
+
+  if (boardImage?.complete && boardImage.naturalWidth > 0 && boardImage.naturalHeight > 0) {
+    const maxWidth = width * 0.84;
+    const maxHeight = height * 0.62;
+    const scale = Math.min(maxWidth / boardImage.naturalWidth, maxHeight / boardImage.naturalHeight, 1);
+    const imageWidth = boardImage.naturalWidth * scale;
+    const imageHeight = boardImage.naturalHeight * scale;
+    const imageX = (width - imageWidth) / 2;
+    const imageY = Math.max(48, (height - imageHeight) / 2);
+    context.save();
+    context.globalAlpha = 0.94;
+    context.shadowColor = 'rgba(31, 76, 84, .13)';
+    context.shadowBlur = 12;
+    context.shadowOffsetY = 5;
+    context.drawImage(boardImage, imageX, imageY, imageWidth, imageHeight);
+    context.restore();
   }
 
   const reveal = animationProgress > 0 && animationProgress < 100
@@ -168,6 +192,7 @@ export function InteractiveWhiteboard({
   groundedDiagram,
   animationProgress,
   hotspots,
+  image = null,
   disabled = false,
   className = '',
   onStrokeCommitted,
@@ -175,6 +200,7 @@ export function InteractiveWhiteboard({
   onSelectionComplete,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
   const drawingRef = useRef<WhiteboardStroke>([]);
   const selectionStartRef = useRef<WhiteboardPoint | null>(null);
   const [selectionDraft, setSelectionDraft] = useState<Omit<WhiteboardSelection, 'imageDataUrl'> | null>(null);
@@ -194,6 +220,7 @@ export function InteractiveWhiteboard({
       groundedDiagram,
       animationProgress,
       hotspots,
+      imageRef.current,
       selectionDraft,
     );
   };
@@ -214,7 +241,24 @@ export function InteractiveWhiteboard({
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [sectionId, strokes, mode, highlightedPart, groundedDiagram, animationProgress, hotspots, selectionDraft]);
+  }, [sectionId, strokes, mode, highlightedPart, groundedDiagram, animationProgress, hotspots, selectionDraft, image]);
+
+  useEffect(() => {
+    if (!image?.dataUrl) {
+      imageRef.current = null;
+      redraw();
+      return;
+    }
+    const nextImage = new Image();
+    nextImage.onload = () => {
+      imageRef.current = nextImage;
+      redraw();
+    };
+    nextImage.src = image.dataUrl;
+    return () => {
+      nextImage.onload = null;
+    };
+  }, [image?.dataUrl]);
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     if (disabled) return;
