@@ -279,6 +279,41 @@ paths:
                 $ref: "#/components/schemas/ScheduleEntry"
         "404":
           description: Schedule entry not found
+  /orchestrator/state:
+    get:
+      operationId: getOrchestratorState
+      tags: [orchestrator]
+      summary: Get the active learning agent and schedule decision
+      parameters:
+        - name: current_date
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - name: entry_date
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - name: subject_name
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: prerequisite_skill
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current orchestration decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrchestratorState"
   /knowledge:
     get:
       operationId: listKnowledge
@@ -754,6 +789,27 @@ components:
           type: ["string", "null"]
         volume_multiplier:
           type: integer
+    OrchestratorState:
+      type: object
+      required: [active_agent, session_type, subject_name, prerequisite_skill, schedule_status, weekend_quiz_multiplier, notification_message]
+      properties:
+        active_agent:
+          type: string
+          enum: [Fahim, Daleel, Exercise]
+        session_type:
+          type: string
+          enum: [Theoretical, Practical]
+        subject_name:
+          type: string
+        prerequisite_skill:
+          type: string
+        schedule_status:
+          type: string
+          enum: [On-Track, Delayed]
+        weekend_quiz_multiplier:
+          type: number
+        notification_message:
+          type: string
     ErrorBankItem:
       type: object
       required: [id, lesson_id, lesson_title, concept_id, concept_title, error_tag, attempts_count, errors_count, error_percentage, deep_link, summary_id, created_at]

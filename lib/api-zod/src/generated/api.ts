@@ -519,6 +519,31 @@ export const UpdateLearningScheduleResponse = zod.object({
 
 
 /**
+ * @summary Get the active learning agent and schedule decision
+ */
+export const getOrchestratorStateQueryCurrentDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
+export const getOrchestratorStateQueryEntryDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
+
+
+export const GetOrchestratorStateQueryParams = zod.object({
+  "current_date": zod.coerce.string().regex(getOrchestratorStateQueryCurrentDateRegExp).optional(),
+  "entry_date": zod.coerce.string().regex(getOrchestratorStateQueryEntryDateRegExp).optional(),
+  "subject_name": zod.coerce.string().optional(),
+  "prerequisite_skill": zod.coerce.string().optional()
+})
+
+export const GetOrchestratorStateResponse = zod.object({
+  "active_agent": zod.enum(['Fahim', 'Daleel', 'Exercise']),
+  "session_type": zod.enum(['Theoretical', 'Practical']),
+  "subject_name": zod.string(),
+  "prerequisite_skill": zod.string(),
+  "schedule_status": zod.enum(['On-Track', 'Delayed']),
+  "weekend_quiz_multiplier": zod.number(),
+  "notification_message": zod.string()
+})
+
+
+/**
  * @summary List source-aware learning cards
  */
 export const ListKnowledgeQueryParams = zod.object({

@@ -29,6 +29,7 @@ import type {
   GetDailyPointsParams,
   GetExamModeParams,
   GetKnowledgeStatus503,
+  GetOrchestratorStateParams,
   GroundedError,
   HealthStatus,
   KnowledgeCard,
@@ -41,6 +42,7 @@ import type {
   LessonCompletionInput,
   ListKnowledgeParams,
   ListQuizzesParams,
+  OrchestratorState,
   ProfileSummary,
   ProfileSummaryExport,
   Quiz,
@@ -1383,6 +1385,90 @@ export const useUpdateLearningSchedule = <TError = ErrorType<void>,
       > => {
       return useMutation(getUpdateLearningScheduleMutationOptions(options));
     }
+
+export const getGetOrchestratorStateUrl = (params?: GetOrchestratorStateParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/orchestrator/state?${stringifiedParams}` : `/api/orchestrator/state`
+}
+
+/**
+ * @summary Get the active learning agent and schedule decision
+ */
+export const getOrchestratorState = async (params?: GetOrchestratorStateParams, options?: Parameters<typeof customFetch>[1]): Promise<OrchestratorState> => {
+
+  return customFetch<OrchestratorState>(getGetOrchestratorStateUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrchestratorStateQueryKey = (params?: GetOrchestratorStateParams,) => {
+    return [
+    `/api/orchestrator/state`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetOrchestratorStateQueryOptions = <TData = Awaited<ReturnType<typeof getOrchestratorState>>, TError = ErrorType<unknown>>(params?: GetOrchestratorStateParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOrchestratorState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrchestratorStateQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrchestratorState>>> = ({ signal }) => getOrchestratorState(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrchestratorState>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOrchestratorStateQueryResult = NonNullable<Awaited<ReturnType<typeof getOrchestratorState>>>
+export type GetOrchestratorStateQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the active learning agent and schedule decision
+ */
+
+export function useGetOrchestratorState<TData = Awaited<ReturnType<typeof getOrchestratorState>>, TError = ErrorType<unknown>>(
+ params?: GetOrchestratorStateParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOrchestratorState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOrchestratorStateQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListKnowledgeUrl = (params?: ListKnowledgeParams,) => {
   const normalizedParams = new URLSearchParams();

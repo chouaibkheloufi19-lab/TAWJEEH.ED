@@ -21,10 +21,13 @@ import { PlannerIntakeCard, type PlannerIntakeValues } from '@/components/phase-
 import {
   getGetExamModeQueryKey,
   getGetLearningScheduleQueryKey,
+  getGetOrchestratorStateQueryKey,
   useGetExamMode,
   useGetLearningSchedule,
+  useGetOrchestratorState,
   useUpdateLearningSchedule,
   type ExamMode,
+  type OrchestratorState,
   type ScheduleEntry,
 } from '@workspace/api-client-react';
 import { getAgentReadinessQueryOptions } from '@/lib/agent-readiness';
@@ -331,6 +334,15 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
       refetchInterval: 10_000,
     },
   });
+  const orchestratorQuery = useGetOrchestratorState(
+    { entry_date: entryDate },
+    {
+      query: {
+        queryKey: getGetOrchestratorStateQueryKey({ entry_date: entryDate }),
+        refetchInterval: 10_000,
+      },
+    },
+  );
   const readinessQuery = useQuery(getAgentReadinessQueryOptions(user?.id));
   const foundationWindowActive = useMemo(() => {
     const start = new Date(`${entryDate}T12:00:00`);
@@ -356,6 +368,7 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
     },
   );
   const examMode = examModeQuery.data as ExamMode | undefined;
+  const orchestrator = orchestratorQuery.data as OrchestratorState | undefined;
   const remediationEntries = useMemo(
     () => (scheduleQuery.data ?? []).map(toProgramEntry),
     [scheduleQuery.data],
@@ -587,6 +600,35 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
               <span className="program-rhythm-note"><Clock3 size={13} /> عدّل وقت الحصة فقط · الباقي يحدده فهيم</span>
           </div>
       </section>
+
+      {orchestrator && (
+        <section
+          className={`program-orchestrator-card ${orchestrator.schedule_status === 'Delayed' ? 'is-delayed' : ''}`}
+          role="status"
+          data-testid="card-orchestrator-state"
+        >
+          <div className="program-orchestrator-avatar">
+            <ProgramAgentAvatar size="sm" />
+          </div>
+          <div className="program-orchestrator-copy">
+            <div className="program-orchestrator-heading">
+              <span className="program-card-kicker">قرار فهيم اللحظي</span>
+              <span className={`program-orchestrator-status ${orchestrator.schedule_status === 'Delayed' ? 'is-delayed' : ''}`}>
+                {orchestrator.schedule_status === 'Delayed' ? 'الخطة متأخرة' : 'الخطة على المسار'}
+              </span>
+            </div>
+            <p>{orchestrator.notification_message}</p>
+            <div className="program-orchestrator-meta">
+              <span><strong>الوكيل</strong>{orchestrator.active_agent}</span>
+              <span><strong>النوع</strong>{orchestrator.session_type === 'Theoretical' ? 'نظرية' : 'عملية'}</span>
+              <span><strong>المتطلب</strong>{orchestrator.prerequisite_skill}</span>
+              {orchestrator.weekend_quiz_multiplier > 1 && (
+                <span><strong>اختبار نهاية الأسبوع</strong>×{orchestrator.weekend_quiz_multiplier}</span>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className={`program-exam-mode-card ${examMode?.mode === 'error_stack' ? 'is-error-stack' : examMode?.mode === 'pre_exam' ? 'is-pre-exam' : ''}`} role="status" data-testid="card-exam-mode">
         <div className="program-exam-mode-icon"><Sparkles size={19} /></div>

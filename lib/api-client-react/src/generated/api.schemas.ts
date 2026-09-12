@@ -201,6 +201,41 @@ export interface LearningAttemptResponse {
   remediation: ScheduleEntry | null;
 }
 
+export type OrchestratorStateActiveAgent = typeof OrchestratorStateActiveAgent[keyof typeof OrchestratorStateActiveAgent];
+
+
+export const OrchestratorStateActiveAgent = {
+  Fahim: 'Fahim',
+  Daleel: 'Daleel',
+  Exercise: 'Exercise',
+} as const;
+
+export type OrchestratorStateSessionType = typeof OrchestratorStateSessionType[keyof typeof OrchestratorStateSessionType];
+
+
+export const OrchestratorStateSessionType = {
+  Theoretical: 'Theoretical',
+  Practical: 'Practical',
+} as const;
+
+export type OrchestratorStateScheduleStatus = typeof OrchestratorStateScheduleStatus[keyof typeof OrchestratorStateScheduleStatus];
+
+
+export const OrchestratorStateScheduleStatus = {
+  'On-Track': 'On-Track',
+  Delayed: 'Delayed',
+} as const;
+
+export interface OrchestratorState {
+  active_agent: OrchestratorStateActiveAgent;
+  session_type: OrchestratorStateSessionType;
+  subject_name: string;
+  prerequisite_skill: string;
+  schedule_status: OrchestratorStateScheduleStatus;
+  weekend_quiz_multiplier: number;
+  notification_message: string;
+}
+
 export interface ErrorBankItem {
   id: number;
   lesson_id: string;
@@ -577,6 +612,19 @@ export type GetExamModeParams = {
  * Target baccalaureate date in YYYY-MM-DD format
  */
 exam_date?: string;
+};
+
+export type GetOrchestratorStateParams = {
+/**
+ * @pattern ^\d{4}-\d{2}-\d{2}$
+ */
+current_date?: string;
+/**
+ * @pattern ^\d{4}-\d{2}-\d{2}$
+ */
+entry_date?: string;
+subject_name?: string;
+prerequisite_skill?: string;
 };
 
 export type ListKnowledgeParams = {

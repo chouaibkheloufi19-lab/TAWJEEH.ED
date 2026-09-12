@@ -2688,6 +2688,21 @@ button { cursor: pointer; }
 .program-notification-list strong { color: #456775; font-size: 11px; font-weight: 900; }
 .program-notification-list small { color: #8a9ca4; font-size: 9px; font-weight: 600; }
 .program-notification-list b { margin-right: auto; color: #005f73; font-size: 9px; font-weight: 900; }
+
+/* The orchestrator is intentionally last so it wins over the imported legacy
+   program card rules while keeping the existing schedule visual language. */
+.program-orchestrator-card { display: flex; align-items: flex-start; gap: 13px; margin-top: 16px; padding: 15px 17px; border: 1px solid #bfe1e3; border-radius: 18px; background: linear-gradient(135deg, #f2fbfb, #ffffff); box-shadow: 0 10px 22px rgba(40, 109, 124, .06); }
+.program-orchestrator-card.is-delayed { border-color: #efcfaa; background: linear-gradient(135deg, #fff9f0, #ffffff); }
+.program-orchestrator-avatar { flex: 0 0 auto; padding-top: 2px; }
+.program-orchestrator-copy { min-width: 0; flex: 1; }
+.program-orchestrator-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.program-orchestrator-copy p { margin: 6px 0 10px; color: #456775; font-size: 11px; font-weight: 700; line-height: 1.9; }
+.program-orchestrator-status { flex: 0 0 auto; padding: 5px 9px; border-radius: 999px; color: #08747a; background: #e2f5f1; font-size: 9px; font-weight: 900; }
+.program-orchestrator-status.is-delayed { color: #a46618; background: #fff0d6; }
+.program-orchestrator-meta { display: flex; flex-wrap: wrap; gap: 7px; }
+.program-orchestrator-meta span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border-radius: 9px; color: #557783; background: rgba(232, 246, 246, .72); font-size: 9px; font-weight: 700; }
+.program-orchestrator-card.is-delayed .program-orchestrator-meta span { background: rgba(255, 242, 220, .8); }
+.program-orchestrator-meta strong { color: #073b58; font-size: 9px; font-weight: 900; }
 .program-modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgba(4, 22, 35, .62); backdrop-filter: blur(6px); }
 .program-add-modal { width: min(100%, 480px); padding: 21px; border: 1px solid #cce6e8; border-radius: 21px; background: #fff; box-shadow: 0 25px 75px rgba(4, 22, 35, .28); }
 .program-modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 17px; }

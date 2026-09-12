@@ -71,6 +71,16 @@ export type ScheduleEntry = {
   volume_multiplier: number;
 };
 
+export type OrchestratorState = {
+  active_agent: "Fahim" | "Daleel" | "Exercise";
+  session_type: "Theoretical" | "Practical";
+  subject_name: string;
+  prerequisite_skill: string;
+  schedule_status: "On-Track" | "Delayed";
+  weekend_quiz_multiplier: number;
+  notification_message: string;
+};
+
 export type ErrorBankItem = {
   id: number;
   lesson_id: string;
@@ -503,6 +513,15 @@ export async function recordLearningAttempt(
   );
   if (!metric) throw new Error("Learning attempt metric could not be calculated");
 
+  if (!input.isCorrect) {
+    await addWeekendVolumePenalty(
+      userId,
+      `failed-learning-attempt:${attempt.id}`,
+      null,
+      "مضاعفة اختبارات نهاية الأسبوع بسبب درس أو محاولة غير ناجحة",
+    );
+  }
+
   let remediation: ScheduleEntry | null = null;
   const policy = await getLearningPolicyRow();
   if (!input.isCorrect && metric.error_rate >= policy.emergencyErrorRate) {
@@ -788,6 +807,12 @@ async function applyMissedTheoryPenalty(
     .where(eq(studyScheduleTable.id, next.id));
   next.penaltyKey = penaltyKey;
   next.penaltyType = "missed_theory";
+  await addWeekendVolumePenalty(
+    userId,
+    `${penaltyKey}:weekend`,
+    source,
+    "مضاعفة اختبارات نهاية الأسبوع بسبب حصة نظرية فائتة",
+  );
 }
 
 async function applySchedulePenalties(userId: string) {
@@ -861,6 +886,92 @@ export async function listLearningSchedule(userId: string) {
     .where(eq(studyScheduleTable.userId, userId))
     .orderBy(studyScheduleTable.scheduledDate, studyScheduleTable.time);
   return rows.map(toScheduleEntry);
+}
+
+function isValidDate(value: string | undefined): value is string {
+  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+}
+
+function dateDistance(from: string, to: string) {
+  const fromDate = new Date(`${from}T12:00:00Z`);
+  const toDate = new Date(`${to}T12:00:00Z`);
+  return Math.floor((toDate.getTime() - fromDate.getTime()) / 86_400_000);
+}
+
+function orchestratorPrerequisite(
+  entry: ScheduleEntry | undefined,
+  agent: OrchestratorState["active_agent"],
+) {
+  return entry?.concept_id
+    ?? entry?.remediation_label
+    ?? (agent === "Fahim"
+      ? "المكتسبات السابقة للمحور الحالي"
+      : agent === "Daleel"
+        ? "فهم المفهوم السابق"
+        : "تطبيق القاعدة على تمرين");
+}
+
+export async function getOrchestratorState(
+  userId: string,
+  options: {
+    currentDate?: string;
+    entryDate?: string;
+    subjectName?: string;
+    prerequisiteSkill?: string;
+  } = {},
+): Promise<OrchestratorState> {
+  const schedule = await listLearningSchedule(userId);
+  const currentDate = isValidDate(options.currentDate)
+    ? options.currentDate
+    : new Date().toISOString().slice(0, 10);
+  const firstScheduledDate = schedule[0]?.scheduled_date ?? currentDate;
+  const entryDate = isValidDate(options.entryDate) ? options.entryDate : firstScheduledDate;
+  const diagnosticDay = dateDistance(entryDate, currentDate);
+  const inDiagnosticPeriod = diagnosticDay < 10;
+  const activeEntry = schedule.find(
+    (entry) => !entry.completed && entry.scheduled_date >= currentDate,
+  ) ?? schedule.find((entry) => !entry.completed) ?? schedule.at(-1);
+  const theoretical = activeEntry
+    ? isTheorySession({
+        kind: activeEntry.kind,
+        title: activeEntry.title,
+      } as typeof studyScheduleTable.$inferSelect)
+    : true;
+  const activeAgent: OrchestratorState["active_agent"] = inDiagnosticPeriod
+    ? "Fahim"
+    : theoretical
+      ? "Daleel"
+      : "Exercise";
+  const sessionType: OrchestratorState["session_type"] = theoretical
+    ? "Theoretical"
+    : "Practical";
+  const subjectName = options.subjectName?.trim() || activeEntry?.subject || "العلوم الفيزيائية";
+  const prerequisiteSkill = options.prerequisiteSkill?.trim()
+    || orchestratorPrerequisite(activeEntry, activeAgent);
+  const delayed = schedule.some(
+    (entry) => entry.missed || Boolean(entry.penalty_type) || entry.volume_multiplier > 1,
+  );
+  const weekendQuizMultiplier = Math.max(
+    1,
+    ...schedule
+      .filter((entry) => entry.penalty_type === "weekend_volume_double")
+      .map((entry) => entry.volume_multiplier),
+  );
+  const topic = activeEntry?.title || subjectName;
+  const statusLabel = delayed ? "متأخر" : "على المسار";
+  const notificationMessage = `${activeAgent} يوجّهك الآن إلى حصة ${
+    sessionType === "Theoretical" ? "نظرية" : "عملية"
+  } في ${subjectName} حول ${topic}. المتطلب السابق: ${prerequisiteSkill}. حالة الخطة: ${statusLabel}.`;
+
+  return {
+    active_agent: activeAgent,
+    session_type: sessionType,
+    subject_name: subjectName,
+    prerequisite_skill: prerequisiteSkill,
+    schedule_status: delayed ? "Delayed" : "On-Track",
+    weekend_quiz_multiplier: weekendQuizMultiplier,
+    notification_message: notificationMessage,
+  };
 }
 
 export async function updateLearningSchedule(userId: string, scheduleId: number, completed: boolean) {

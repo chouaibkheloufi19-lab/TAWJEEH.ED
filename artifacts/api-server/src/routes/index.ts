@@ -10,6 +10,7 @@ import lessonRouter from "./lesson";
 import agentsRouter from "./agents";
 import creativeRouter from "./creative";
 import aiRouter from "./ai";
+import orchestratorRouter from "./orchestrator";
 
 const router: IRouter = Router();
 
@@ -30,6 +31,7 @@ router.use((req: Request, res: Response, next: NextFunction): void => {
   next();
 });
 router.use(learningRouter);
+router.use(orchestratorRouter);
 router.use(knowledgeRouter);
 router.use(quizzesRouter);
 router.use(fahimRouter);
