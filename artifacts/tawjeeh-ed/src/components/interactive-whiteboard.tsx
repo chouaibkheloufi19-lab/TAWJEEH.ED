@@ -24,6 +24,13 @@ export type WhiteboardImage = {
   fileName: string;
 };
 
+export type WhiteboardCanvasCommand = {
+  step: number;
+  type: 'write' | 'highlight' | 'erase';
+  content: string;
+  coordinates: { x: number; y: number };
+};
+
 type Props = {
   sectionId: string;
   strokes: WhiteboardStroke[];
@@ -33,6 +40,7 @@ type Props = {
   animationProgress: number;
   hotspots: WhiteboardHotspot[];
   image?: WhiteboardImage | null;
+  canvasCommands?: WhiteboardCanvasCommand[];
   disabled?: boolean;
   className?: string;
   onStrokeCommitted: (stroke: WhiteboardStroke) => void;
@@ -53,6 +61,7 @@ function drawBoard(
   hotspots: WhiteboardHotspot[],
   boardImage: HTMLImageElement | null,
   selection: Omit<WhiteboardSelection, 'imageDataUrl'> | null,
+  canvasCommands: WhiteboardCanvasCommand[],
 ) {
   context.clearRect(0, 0, width, height);
   context.fillStyle = '#fbfaf5';
@@ -147,6 +156,35 @@ function drawBoard(
     context.setLineDash([]);
   }
 
+  canvasCommands.forEach((command) => {
+    const x = Math.min(1, Math.max(0, command.coordinates.x)) * width;
+    const y = Math.min(1, Math.max(0, command.coordinates.y)) * height;
+    if (command.type === 'write') {
+      context.fillStyle = '#173f4c';
+      context.font = '700 14px IBM Plex Sans Arabic, sans-serif';
+      command.content.split('\n').slice(0, 3).forEach((line, index) => {
+        context.fillText(line.slice(0, 34), x, y + index * 19);
+      });
+      return;
+    }
+    const boxWidth = Math.min(width * 0.3, Math.max(72, command.content.length * 7));
+    const boxHeight = command.type === 'erase' ? 34 : 38;
+    context.save();
+    context.beginPath();
+    context.roundRect(x, y - boxHeight + 7, boxWidth, boxHeight, 8);
+    context.fillStyle = command.type === 'highlight'
+      ? 'rgba(219, 183, 96, .3)'
+      : 'rgba(251, 250, 245, .92)';
+    context.strokeStyle = command.type === 'highlight'
+      ? 'rgba(185, 138, 44, .85)'
+      : 'rgba(54, 103, 104, .22)';
+    context.lineWidth = 2;
+    context.setLineDash(command.type === 'highlight' ? [5, 4] : []);
+    context.fill();
+    context.stroke();
+    context.restore();
+  });
+
   strokes.forEach((stroke) => {
     if (stroke.length < 2) return;
     context.beginPath();
@@ -193,6 +231,7 @@ export function InteractiveWhiteboard({
   animationProgress,
   hotspots,
   image = null,
+  canvasCommands = [],
   disabled = false,
   className = '',
   onStrokeCommitted,
@@ -222,6 +261,7 @@ export function InteractiveWhiteboard({
       hotspots,
       imageRef.current,
       selectionDraft,
+      canvasCommands,
     );
   };
 
@@ -241,7 +281,7 @@ export function InteractiveWhiteboard({
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [sectionId, strokes, mode, highlightedPart, groundedDiagram, animationProgress, hotspots, selectionDraft, image]);
+  }, [sectionId, strokes, mode, highlightedPart, groundedDiagram, animationProgress, hotspots, selectionDraft, image, canvasCommands]);
 
   useEffect(() => {
     if (!image?.dataUrl) {

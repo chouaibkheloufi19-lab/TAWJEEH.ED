@@ -56,7 +56,7 @@ import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_202609022335_1788425680408.mp4';
 import { useAppUser } from '@/lib/app-auth';
 import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
-import { InteractiveWhiteboard, type WhiteboardImage, type WhiteboardSelection } from '@/components/interactive-whiteboard';
+import { InteractiveWhiteboard, type WhiteboardCanvasCommand, type WhiteboardImage, type WhiteboardSelection } from '@/components/interactive-whiteboard';
 import { WhiteboardOwlCopilot, type WhiteboardOwlState, type WhiteboardOwlTarget } from '@/components/whiteboard-owl-copilot';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
@@ -148,6 +148,16 @@ type FahimPayload = {
   fahim?: Partial<FahimResponse>;
   answer?: string;
   message?: string;
+};
+
+type DaleelResponse = {
+  speech_text: string;
+  canvas_commands: WhiteboardCanvasCommand[];
+  summary_data: {
+    title: string;
+    key_takeaways: string[];
+    official_stamp_applied: boolean;
+  };
 };
 
 type GeneratedGraphPoint = Point & { label?: string };
@@ -635,6 +645,8 @@ export function LessonWorkspace() {
   const [boardCopilotState, setBoardCopilotState] = useState<'idle' | 'asking' | 'answered' | 'error'>('idle');
   const [boardCopilotError, setBoardCopilotError] = useState('');
   const [isBoardCopilotListening, setIsBoardCopilotListening] = useState(false);
+  const [daleelResponse, setDaleelResponse] = useState<DaleelResponse | null>(null);
+  const [daleelCanvasCommands, setDaleelCanvasCommands] = useState<WhiteboardCanvasCommand[]>([]);
   const [fahimResponse, setFahimResponse] = useState<FahimResponse | null>(null);
   const [fahimBoardTarget, setFahimBoardTarget] = useState<WhiteboardOwlTarget | null>(null);
   const [isBoardImmersive, setIsBoardImmersive] = useState(false);
@@ -694,6 +706,7 @@ export function LessonWorkspace() {
     ? generatedLesson.explanation
     : 'يُحضّر شرح الدرس من محتوى المنهاج، وسيظهر هنا بعد اكتمال التحضير.';
   const displayedHighlight = ragReady && generatedLesson ? generatedLesson.highlight : 'فكرة الدرس';
+  const narrationText = daleelResponse?.speech_text || displayedExplanation;
   const topicForStudio = selectedCreativeTopic ?? creativeIdeas?.ideas[0] ?? null;
   const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
   const totalExamples = lessonSections.length;
@@ -774,7 +787,9 @@ export function LessonWorkspace() {
     lessonId,
     lessonTitle: fixedLessonTitle,
     subject: fixedLessonSubject,
-    summary: `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّت ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعت الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
+     summary: daleelResponse?.summary_data.official_stamp_applied
+       ? `${daleelResponse.summary_data.title}: ${daleelResponse.summary_data.key_takeaways.join(' · ')}`
+       : `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّت ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعت الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
     concepts: lessonSections.map((section) => {
       const mastered = session.gradedExamples[`${section.id}-grounded`] === 'correct' ? 1 : 0;
       return {
@@ -984,11 +999,11 @@ export function LessonWorkspace() {
     void owlVideoRef.current?.play().catch(() => undefined);
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(displayedExplanation);
+       const utterance = new SpeechSynthesisUtterance(narrationText);
       utterance.lang = 'ar-SA';
       utterance.rate = .92;
       utterance.onboundary = (event) => {
-        const length = displayedExplanation.length || 1;
+         const length = narrationText.length || 1;
         setNarrationProgress(Math.min(100, Math.round((event.charIndex / length) * 100)));
       };
       utterance.onend = () => setNarrationProgress(100);
@@ -997,7 +1012,7 @@ export function LessonWorkspace() {
     return () => {
       window.speechSynthesis?.cancel();
     };
-  }, [isPlaying]);
+  }, [isPlaying, narrationText]);
 
   useEffect(() => () => {
     speechRecognitionRef.current?.stop();
@@ -1008,6 +1023,8 @@ export function LessonWorkspace() {
     setNarrationProgress(0);
     setIsPlaying(false);
     setHighlightedPart('');
+    setDaleelResponse(null);
+    setDaleelCanvasCommands([]);
     setGeneratedLesson(null);
     setGeneratedExercise(null);
     setExerciseAnswer('');
@@ -1385,6 +1402,83 @@ export function LessonWorkspace() {
     setQuestion('');
     setIsThinking(true);
     try {
+      if (activePartner === 'dalil') {
+        const daleelQuestion = boardSelection
+          ? `اشرح لي مباشرة ما يظهر في المنطقة المحددة من السبورة. ${cleanText}`
+          : cleanText;
+        const teachingContent = [
+          `الشرح الحالي: ${displayedExplanation}`,
+          `الفكرة المميزة: ${displayedHighlight}`,
+          generatedLesson?.elements.map((element) => `${element.title}: ${element.summary}`).join('\n') ?? '',
+          sourceExcerpt,
+        ].filter(Boolean).join('\n');
+        const daleelRequest = {
+          lesson_title: fixedLessonTitle,
+          level: '3AS',
+          question: daleelQuestion,
+          content: teachingContent,
+          mastery: progress >= 100,
+          ...(boardSelection
+            ? {
+                highlighted_region: {
+                  x: boardSelection.x,
+                  y: boardSelection.y,
+                  width: boardSelection.width,
+                  height: boardSelection.height,
+                },
+              }
+            : {}),
+        };
+        const response = await fetchWithTimeout('/api/ai/daleel', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(daleelRequest),
+        });
+        const payload = await response.json() as Partial<DaleelResponse> & { message?: string };
+        if (
+          !response.ok
+          || typeof payload.speech_text !== 'string'
+          || !Array.isArray(payload.canvas_commands)
+          || !payload.summary_data
+        ) {
+          throw new Error(payload.message || 'تعذر تشغيل دليل الآن.');
+        }
+        const daleel = payload as DaleelResponse;
+        setDaleelResponse(daleel);
+        setDaleelCanvasCommands(daleel.canvas_commands);
+        setWhiteboardOwlState('speaking');
+        setBoardCopilotAnswer(daleel.speech_text);
+        setBoardCopilotState('answered');
+        setBoardCopilotError('');
+        if (boardSelection) {
+          setFahimBoardTarget({
+            x: boardSelection.x,
+            y: boardSelection.y,
+            width: boardSelection.width,
+            height: boardSelection.height,
+          });
+        } else {
+          const focusCommand = daleel.canvas_commands.find((command) => command.type === 'highlight')
+            ?? daleel.canvas_commands.find((command) => command.type === 'write');
+          if (focusCommand) {
+            setFahimBoardTarget({
+              x: focusCommand.coordinates.x,
+              y: focusCommand.coordinates.y,
+              width: Math.min(.28, 1 - focusCommand.coordinates.x),
+              height: Math.min(.16, 1 - focusCommand.coordinates.y),
+            });
+          }
+        }
+        setBoardCopilotOpen(Boolean(boardSelection));
+        setIsPlaying(true);
+        setMessages((current) => [...current, {
+          id: `daleel-answer-${Date.now()}`,
+          role: 'assistant',
+          text: daleel.speech_text,
+        }]);
+        return;
+      }
        const response = await queryKnowledgeMutation.mutateAsync({
         data: {
           query: cleanText,
@@ -1393,16 +1487,11 @@ export function LessonWorkspace() {
         },
       });
       const source = response.results?.[0];
-      if (activePartner === 'dalil' && !source) {
-        throw new Error('لم أعثر على مادة مطابقة لهذا الجزء؛ لم أعرض شرحًا غير موثوق.');
-      }
       const targetedConcept = examMode?.error_concepts[0]?.concept_title;
        const sourceContext = source
          ? `مرجع من «${source.title}» (${source.source} · ص ${source.page}): ${source.summary.slice(0, 360)}`
         : `مرجع الدرس الحالي: ${sourceExcerpt}`;
-      let reply = activePartner === 'dalil'
-        ? `${intensiveExamMode ? 'خلاصة سريعة' : `من «${source?.title}»`}: ${source?.summary.slice(0, 620)} ${intensiveExamMode ? 'والآن انتقل إلى التطبيق.' : 'ابدأ من هذه الفكرة، ثم قارنها بما يظهر على اللوح.'}`
-        : 'سأثبت الفكرة أولًا، ثم أبني لك تطبيقًا مناسبًا لها.';
+      let reply = 'سأثبت الفكرة أولًا، ثم أبني لك تطبيقًا مناسبًا لها.';
       if (activePartner === 'exercises') {
         const wantsCreativeTopics = /موضوع|إبداع|فكرة|مسار|تطبيقات مختلفة|زاوية/.test(cleanText);
         const response = await fetchWithTimeout('/api/lesson/exercise', {
@@ -1713,7 +1802,7 @@ export function LessonWorkspace() {
       pausedMoment: {
         second: Number.isFinite(second) ? second : 0,
         lessonTitle: displayedTitle,
-        explanation: displayedExplanation,
+        explanation: narrationText,
       },
     }));
     owlVideoRef.current?.pause();
@@ -2440,17 +2529,27 @@ export function LessonWorkspace() {
                   groundedDiagram={Boolean(generatedLesson)}
                   animationProgress={isPlaying ? narrationProgress : 100}
                   hotspots={hotspots}
+                   canvasCommands={daleelCanvasCommands}
                   disabled={!lessonToolsActive}
                   onStrokeCommitted={commitBoardStroke}
                   onRegionSelected={selectBoardRegion}
                   onSelectionComplete={(selection) => {
                     pauseNarration();
                     setBoardSelection(selection);
+                     setFahimBoardTarget({
+                       x: selection.x,
+                       y: selection.y,
+                       width: selection.width,
+                       height: selection.height,
+                     });
                     setBoardCopilotQuestion('');
                     setBoardCopilotAnswer('');
                     setBoardCopilotError('');
                     setBoardCopilotState('idle');
                     setBoardCopilotOpen(true);
+                     if (handoffComplete && activePartner === 'dalil') {
+                       void askPartner('اشرح لي مباشرة ما يظهر في هذا الجزء المحدد.');
+                     }
                   }}
                 />
                 {boardSelection && (
@@ -2462,7 +2561,7 @@ export function LessonWorkspace() {
                       top: `${Math.min(82, Math.max(18, (boardSelection.y + boardSelection.height / 2) * 100))}%`,
                     }}
                     onClick={() => setBoardCopilotOpen(true)}
-                    aria-label="اسأل فهيم عن الجزء المحدد"
+                     aria-label={`اسأل ${handoffComplete && activePartner === 'dalil' ? 'دليل' : 'فهيم'} عن الجزء المحدد`}
                     data-testid="button-open-whiteboard-copilot"
                   >
                     <img src={owlAgentViolet} alt="" />
@@ -2471,18 +2570,18 @@ export function LessonWorkspace() {
                 )}
                 {boardCopilotOpen && boardSelection && (
                   <div className="lesson-whiteboard-copilot-modal" role="dialog" aria-modal="true" aria-label="كوبيلوت السبورة" data-testid="dialog-whiteboard-copilot">
-                    <div className="lesson-whiteboard-copilot-head">
-                      <div><img src={owlAgentViolet} alt="" /><span><strong>فهيم على السبورة</strong><small>اسأل عن الجزء الذي حددته</small></span></div>
+                     <div className="lesson-whiteboard-copilot-head">
+                       <div><img src={owlAgentViolet} alt="" /><span><strong>{handoffComplete && activePartner === 'dalil' ? 'دليل على السبورة' : 'فهيم على السبورة'}</strong><small>{handoffComplete && activePartner === 'dalil' ? 'شرح فوري للجزء الذي حددته' : 'اسأل عن الجزء الذي حددته'}</small></span></div>
                       <button type="button" onClick={() => setBoardCopilotOpen(false)} aria-label="إغلاق كوبيلوت السبورة"><X size={15} /></button>
                     </div>
                     <form onSubmit={(event) => { event.preventDefault(); void askBoardCopilot(); }}>
                       <textarea
                         value={boardCopilotQuestion}
                         onChange={(event) => setBoardCopilotQuestion(event.target.value)}
-                        placeholder="مثال: لماذا يتغير الميل هنا؟"
+                         placeholder={handoffComplete && activePartner === 'dalil' ? 'سيشرح دليل هذا الجزء مباشرة...' : 'مثال: لماذا يتغير الميل هنا؟'}
                         rows={3}
                         disabled={boardCopilotState === 'asking'}
-                        aria-label="سؤال فهيم عن الجزء المحدد"
+                         aria-label={`سؤال ${handoffComplete && activePartner === 'dalil' ? 'دليل' : 'فهيم'} عن الجزء المحدد`}
                         data-testid="input-whiteboard-copilot-question"
                       />
                       <div className="lesson-whiteboard-copilot-actions">
@@ -2496,14 +2595,14 @@ export function LessonWorkspace() {
                     {boardCopilotAnswer && <div className="lesson-whiteboard-copilot-answer" role="status"><strong>الإجابة</strong><p>{boardCopilotAnswer}</p></div>}
                   </div>
                 )}
-                {fahimBoardTarget && faheemActive && (
+                 {fahimBoardTarget && (faheemActive || (handoffComplete && activePartner === 'dalil')) && (
                   <WhiteboardOwlCopilot
                     state={whiteboardOwlState}
                     target={fahimBoardTarget}
                     open
-                    title="فهيم يتابع هذا الموضع"
-                    message={fahimResponse?.speech_text || 'حددت موضعًا مهمًا على السبورة. نراجعه خطوةً خطوة.'}
-                    actionLabel="تثبيت الموضع"
+                     title={handoffComplete && activePartner === 'dalil' ? 'دليل يتابع هذا الموضع' : 'فهيم يتابع هذا الموضع'}
+                     message={handoffComplete && activePartner === 'dalil' ? (daleelResponse?.speech_text || 'حددت موضعًا مهمًا على السبورة. أشرح لك فكرته الآن.') : (fahimResponse?.speech_text || 'حددت موضعًا مهمًا على السبورة. نراجعه خطوةً خطوة.')}
+                     actionLabel="تثبيت الموضع"
                     onAsk={() => setBoardMode('highlight')}
                     onDismiss={() => setFahimBoardTarget(null)}
                   />
@@ -2531,7 +2630,7 @@ export function LessonWorkspace() {
           <div className="lesson-teaching-footer">
             <div className="lesson-narration" role="status" aria-live="polite">
                 <button type="button" className="lesson-play-button" onClick={toggleNarration} disabled={!lessonToolsActive} aria-label={isPlaying ? 'إيقاف الشرح الصوتي' : 'تشغيل الشرح الصوتي'} data-testid="button-toggle-narration">{isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
-                 <div className="lesson-narration-copy"><strong>{isPlaying ? `${handoffComplete ? activePartnerDetails.name : 'فهيم'} يشرح لك بالصوت...` : 'الشرح الصوتي جاهز'}</strong><span>{isPlaying ? displayedExplanation : 'شغّل العرض وصوته، ثم أوقفه واسأل عن أي لحظة.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
+                 <div className="lesson-narration-copy"><strong>{isPlaying ? `${handoffComplete ? activePartnerDetails.name : 'فهيم'} يشرح لك بالصوت...` : 'الشرح الصوتي جاهز'}</strong><span>{isPlaying ? narrationText : 'شغّل العرض وصوته، ثم أوقفه واسأل عن أي لحظة.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
             </div>
               <form className={`lesson-board-question ${!lessonToolsActive || chatCircuitOpen ? 'is-disabled' : ''}`} onSubmit={(event) => { event.preventDefault(); void (handoffComplete ? askPartner(question || `ساعدني في فهم ${activeSection.label}`) : askFahim(question || `ساعدني في فهم ${activeSection.label}`)); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!lessonToolsActive || chatCircuitOpen} placeholder={handoffComplete ? `اكتب إلى ${activePartnerDetails.name} عن اللوح` : faheemActive ? 'اسأل فهيم عن اللوح' : 'اكتمل التسليم إلى الشريكين'} aria-label={`سؤال ${handoffComplete ? activePartnerDetails.name : 'فهيم'} عن اللوح`} data-testid="input-board-question" /><button type="submit" disabled={!lessonToolsActive || chatCircuitOpen} aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
           </div>

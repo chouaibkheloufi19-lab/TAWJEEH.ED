@@ -3,8 +3,10 @@ import {
   AiEngineError,
   generateExplanation,
   generateExercises,
+  generateDaleelResponse,
   normalizeExplanationRequest,
   normalizeExercisesRequest,
+  normalizeDaleelRequest,
 } from "../lib/ai-engine";
 import { DeepSeekProviderError } from "../lib/ai-provider";
 
@@ -94,6 +96,28 @@ router.post("/ai/generate-exercises", async (req, res): Promise<void> => {
     req.log.error(
       { error: error instanceof Error ? error.message : String(error) },
       "Exercises generation failed",
+    );
+    const response = errorResponse(error);
+    res.status(response.status).json(response.body);
+  }
+});
+
+router.post("/ai/daleel", async (req, res): Promise<void> => {
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const request = normalizeDaleelRequest(body);
+  if (!request) {
+    res.status(400).json({
+      error: "invalid_daleel_payload",
+      message: "أرسل lesson_title وcontent وquestion صالحين، مع إحداثيات نسبية صحيحة عند تحديد منطقة.",
+    });
+    return;
+  }
+  try {
+    res.json(await generateDaleelResponse(request));
+  } catch (error) {
+    req.log.error(
+      { error: error instanceof Error ? error.message : String(error) },
+      "Daleel tutor generation failed",
     );
     const response = errorResponse(error);
     res.status(response.status).json(response.body);

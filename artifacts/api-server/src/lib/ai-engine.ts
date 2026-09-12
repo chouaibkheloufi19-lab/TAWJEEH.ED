@@ -2,6 +2,7 @@ import {
   EXPLANATION_ENGINE_PROMPT,
   INTERACTIVE_EXERCISES_PROMPT,
   LEARNER_SAFE_OUTPUT_RULES,
+  DALEEL_TUTOR_PROMPT,
 } from "./ai-prompts";
 import {
   callDeepSeekTextModelWithRetry,
@@ -55,6 +56,34 @@ export type ExercisesRequest = {
 export type ExercisesResult = {
   lesson_title: string;
   exercises: Exercise[];
+};
+
+export type DaleelCanvasCommand = {
+  step: number;
+  type: "write" | "highlight" | "erase";
+  content: string;
+  coordinates: { x: number; y: number };
+};
+
+export type DaleelSummaryData = {
+  title: string;
+  key_takeaways: string[];
+  official_stamp_applied: boolean;
+};
+
+export type DaleelRequest = {
+  lessonTitle: string;
+  content: string;
+  question: string;
+  level?: string;
+  highlightedRegion?: { x: number; y: number; width: number; height: number };
+  mastery: boolean;
+};
+
+export type DaleelResult = {
+  speech_text: string;
+  canvas_commands: DaleelCanvasCommand[];
+  summary_data: DaleelSummaryData;
 };
 
 export class AiEngineError extends Error {
@@ -269,6 +298,69 @@ function parseExercises(
   return { lesson_title: lessonTitle, exercises };
 }
 
+function normalizedCoordinate(value: unknown): number | null {
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) && coordinate >= 0 && coordinate <= 1 ? coordinate : null;
+}
+
+function parseDaleel(payload: Record<string, unknown>, mastery: boolean): DaleelResult {
+  const speechText = asText(payload.speech_text);
+  const commands = Array.isArray(payload.canvas_commands)
+    ? payload.canvas_commands
+        .map((command, index): DaleelCanvasCommand | null => {
+          if (!command || typeof command !== "object") return null;
+          const value = command as Record<string, unknown>;
+          const coordinates = value.coordinates;
+          if (!coordinates || typeof coordinates !== "object") return null;
+          const point = coordinates as Record<string, unknown>;
+          const x = normalizedCoordinate(point.x);
+          const y = normalizedCoordinate(point.y);
+          const type = value.type;
+          const content = asText(value.content);
+          if (
+            (type !== "write" && type !== "highlight" && type !== "erase")
+            || x === null
+            || y === null
+            || !content
+          ) {
+            return null;
+          }
+          const stepValue = Number(value.step);
+          return {
+            step: Number.isInteger(stepValue) && stepValue > 0 ? stepValue : index + 1,
+            type,
+            content: content.slice(0, 240),
+            coordinates: { x, y },
+          };
+        })
+        .filter((command): command is DaleelCanvasCommand => command !== null)
+        .sort((a, b) => a.step - b.step)
+        .slice(0, 24)
+    : [];
+  const rawSummary = payload.summary_data;
+  const summary = rawSummary && typeof rawSummary === "object"
+    ? rawSummary as Record<string, unknown>
+    : {};
+  const title = asText(summary.title);
+  const keyTakeaways = asStringArray(summary.key_takeaways).slice(0, 6);
+  const officialStampApplied = summary.official_stamp_applied === true;
+  if (!speechText || !commands.length) {
+    throw new AiEngineError("Daleel response does not match the structured contract", "invalid_model_output");
+  }
+  if (mastery && (!title || keyTakeaways.length < 3 || !officialStampApplied)) {
+    throw new AiEngineError("Daleel mastery summary is incomplete", "invalid_model_output");
+  }
+  return {
+    speech_text: speechText,
+    canvas_commands: commands,
+    summary_data: {
+      title: mastery ? title : "",
+      key_takeaways: mastery ? keyTakeaways : [],
+      official_stamp_applied: mastery && officialStampApplied,
+    },
+  };
+}
+
 export async function generateExplanation(
   request: ExplanationRequest,
 ): Promise<ExplanationResult> {
@@ -315,6 +407,37 @@ export async function generateExercises(
   );
 }
 
+export async function generateDaleelResponse(request: DaleelRequest): Promise<DaleelResult> {
+  const region = request.highlightedRegion
+    ? `منطقة التحديد: x=${request.highlightedRegion.x.toFixed(3)}, y=${request.highlightedRegion.y.toFixed(3)}, العرض=${request.highlightedRegion.width.toFixed(3)}, الارتفاع=${request.highlightedRegion.height.toFixed(3)}`
+    : "لا توجد منطقة محددة على السبورة.";
+  const messages: ChatMessage[] = [
+    {
+      role: "system",
+      content: [DALEEL_TUTOR_PROMPT, LEARNER_SAFE_OUTPUT_RULES].join("\n\n"),
+    },
+    {
+      role: "user",
+      content: [
+        `عنوان الدرس: ${request.lessonTitle}`,
+        `مستوى الطالب: ${request.level || "التعليم الثانوي"}`,
+        `سؤال الطالب: ${request.question}`,
+        region,
+        `هل أتقن الطالب الموضوع؟ ${request.mastery ? "نعم" : "لا"}`,
+        "<educational_content>",
+        request.content,
+        "</educational_content>",
+        'أعد JSON فقط بالصيغة المطلوبة. يجب أن يحتوي canvas_commands على أمر واحد على الأقل.',
+      ].join("\n"),
+    },
+  ];
+  return generateJson(
+    messages,
+    "Daleel tutor",
+    (payload) => parseDaleel(payload, request.mastery),
+  );
+}
+
 export function normalizeExplanationRequest(body: Record<string, unknown>): ExplanationRequest | null {
   const lessonTitle = asText(body.lesson_title ?? body.lessonTitle);
   const content = asText(body.content);
@@ -353,5 +476,33 @@ export function normalizeExercisesRequest(body: Record<string, unknown>): Exerci
     exerciseCount,
     exerciseTypes: [...new Set(exerciseTypes)],
     ...(level ? { level } : {}),
+  };
+}
+
+export function normalizeDaleelRequest(body: Record<string, unknown>): DaleelRequest | null {
+  const lessonTitle = asText(body.lesson_title ?? body.lessonTitle);
+  const content = asText(body.content);
+  const question = asText(body.question);
+  const level = asText(body.level);
+  const rawRegion = body.highlighted_region ?? body.highlightedRegion;
+  let highlightedRegion: DaleelRequest["highlightedRegion"];
+  if (rawRegion !== undefined) {
+    if (!rawRegion || typeof rawRegion !== "object") return null;
+    const region = rawRegion as Record<string, unknown>;
+    const x = normalizedCoordinate(region.x);
+    const y = normalizedCoordinate(region.y);
+    const width = normalizedCoordinate(region.width);
+    const height = normalizedCoordinate(region.height);
+    if (x === null || y === null || width === null || height === null) return null;
+    highlightedRegion = { x, y, width: Math.min(width, 1 - x), height: Math.min(height, 1 - y) };
+  }
+  if (!lessonTitle || !content || content.length > MAX_CONTENT_LENGTH || !question) return null;
+  return {
+    lessonTitle,
+    content,
+    question,
+    ...(level ? { level } : {}),
+    ...(highlightedRegion ? { highlightedRegion } : {}),
+    mastery: body.mastery === true,
   };
 }
