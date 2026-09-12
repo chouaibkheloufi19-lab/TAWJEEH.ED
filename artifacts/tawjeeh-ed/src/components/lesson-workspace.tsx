@@ -782,13 +782,16 @@ export function LessonWorkspace() {
     return [...strokes, ...annotations, ...copilotAssets];
   }, [activeSection.id, activeSection.label, highlightedPart, session.copilotInteractions, session.note, session.startedAt, session.whiteboardStrokesBySection]);
 
-  const buildSessionSummary = (completedAt: string): LocalSummary => ({
+  const buildSessionSummary = (
+    completedAt: string,
+    masteredDaleelSummary = daleelResponse?.summary_data,
+  ): LocalSummary => ({
     id: `summary-${lessonId}`,
     lessonId,
     lessonTitle: fixedLessonTitle,
     subject: fixedLessonSubject,
-     summary: daleelResponse?.summary_data.official_stamp_applied
-       ? `${daleelResponse.summary_data.title}: ${daleelResponse.summary_data.key_takeaways.join(' · ')}`
+     summary: masteredDaleelSummary?.official_stamp_applied
+       ? `${masteredDaleelSummary.title}: ${masteredDaleelSummary.key_takeaways.join(' · ')}`
        : `خلاصة جلسة فهيم مؤسسة على المصدر المسترجع: ثبّت ${totalCompleted} من ${totalExamples} أمثلة عملية، وراجعت الفكرة من ${formatSessionTime(session.startedAt)} حتى ${formatSessionTime(completedAt)}. ${sourceExcerpt || 'لم يُسترجع مقتطف مصدر لهذه الجلسة.'} ${session.note.trim() ? `ملاحظتك: ${session.note.trim()}` : 'يمكنك إضافة ملاحظة قصيرة من بطاقة ملاحظتك قبل الجلسة التالية.'}`,
     concepts: lessonSections.map((section) => {
       const mastered = session.gradedExamples[`${section.id}-grounded`] === 'correct' ? 1 : 0;
@@ -930,7 +933,10 @@ export function LessonWorkspace() {
         }]);
   }, [activeSource, fixedLessonTitle, ragReady]);
 
-  const concludeSession = (retry = false) => {
+  const concludeSession = (
+    masteredDaleelSummary?: DaleelResponse['summary_data'],
+    retry = false,
+  ) => {
     if (retry && !session.concludedAt) return;
     if (!ragReady) {
       setSummarySaveState('error');
@@ -938,7 +944,7 @@ export function LessonWorkspace() {
     }
     if (!retry && (!evaluationComplete || session.concludedAt)) return;
     const completedAt = new Date().toISOString();
-    const localSummary = buildSessionSummary(completedAt);
+    const localSummary = buildSessionSummary(completedAt, masteredDaleelSummary);
     setSummaryPreview(localSummary);
     setSummarySaveState('saving');
     setSession((current) => ({
@@ -1477,6 +1483,9 @@ export function LessonWorkspace() {
           role: 'assistant',
           text: daleel.speech_text,
         }]);
+        if (daleel.summary_data.official_stamp_applied && progress >= 100 && !session.concludedAt) {
+          concludeSession(daleel.summary_data);
+        }
         return;
       }
        const response = await queryKnowledgeMutation.mutateAsync({
@@ -2739,7 +2748,7 @@ export function LessonWorkspace() {
              <button type="button" className="lesson-save-note" onClick={() => { try { window.localStorage.setItem(sessionKey, JSON.stringify({ ...session, attachment: null })); setNoteStatus('حُفظت الملاحظة'); } catch { setNoteStatus('تعذر حفظ الملاحظة'); } }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
               {(session.concludedAt || summarySaveState !== 'idle') && <div className="lesson-summary-status" role="status" data-testid="status-summary-bank">
                 <span>{summarySaveState === 'saved' ? 'حُفظ الملخص في ملفك وبنك الملخصات.' : summarySaveState === 'saving' ? 'نحفظ ملخص الجلسة في ملفك...' : summarySaveState === 'error' ? 'حُفظ محليًا، وتعذر مزامنة بنك الملخصات.' : 'سيُحفظ ملخص الجلسة تلقائيًا.'}</span>
-                {summarySaveState === 'error' && <button type="button" onClick={() => concludeSession(true)}>إعادة المزامنة</button>}
+                {summarySaveState === 'error' && <button type="button" onClick={() => concludeSession(undefined, true)}>إعادة المزامنة</button>}
              </div>}
              {summaryPreview && <div className="lesson-summary-card" data-testid="card-session-summary">
                <div className="lesson-summary-card-header">

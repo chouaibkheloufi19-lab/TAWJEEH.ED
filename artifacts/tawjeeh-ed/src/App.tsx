@@ -97,7 +97,9 @@ const clerkPubKey = publishableKeyFromHost(
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 const examDateKey = 'tawjeeh.exam.baccalaureate-date';
 const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
-const isMockAuth = !clerkPubKey && import.meta.env.DEV;
+// Use the local identity shim only when Clerk has not been provisioned for
+// development. Do not let a host-derived proxy key bypass this check.
+const isMockAuth = import.meta.env.DEV && !import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
