@@ -9,3 +9,4 @@
 - [DeepSeek topic generation](deepseek-topic-generation.md) — structured educational generation uses server-side DeepSeek JSON responses, not a silent provider fallback.
 - [Lesson UI cascade](lesson-ui-cascade.md) — final lesson board overrides must come after legacy stylesheet blocks.
 - [Quiz session persistence](quiz-session-persistence.md) — shared weekly quizzes must be database-backed and keyed by quiz type, unit, and ISO week.
+- [Official Daleel summaries](official-daleel-summaries.md) — keep lesson drafts local until mastery, then persist only the stamped summary.

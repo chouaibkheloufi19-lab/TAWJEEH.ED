@@ -161,6 +161,11 @@ type DaleelResponse = {
   };
 };
 
+type SpeechBoundary = {
+  start: number;
+  end: number;
+};
+
 type GeneratedGraphPoint = Point & { label?: string };
 
 type GeneratedLesson = {
@@ -712,6 +717,16 @@ export function LessonWorkspace() {
     : 'يُحضّر شرح الدرس من محتوى المنهاج، وسيظهر هنا بعد اكتمال التحضير.';
   const displayedHighlight = ragReady && generatedLesson ? generatedLesson.highlight : 'فكرة الدرس';
   const narrationText = daleelResponse?.speech_text || displayedExplanation;
+  const narrationBoundaries = useMemo<SpeechBoundary[]>(() => {
+    const boundaries: SpeechBoundary[] = [];
+    const sentencePattern = /[^.!؟؛:\n]+(?:[.!؟؛:]|$)/g;
+    for (const match of narrationText.matchAll(sentencePattern)) {
+      const start = match.index ?? 0;
+      const end = start + match[0].length;
+      if (match[0].trim()) boundaries.push({ start, end });
+    }
+    return boundaries;
+  }, [narrationText]);
   const visibleDaleelCanvasCommands = useMemo(() => {
     if (!daleelResponse || !isPlaying || daleelCanvasCommands.length === 0) return daleelCanvasCommands;
     const finalStep = Math.max(...daleelCanvasCommands.map((command) => command.step), 1);
@@ -855,6 +870,11 @@ export function LessonWorkspace() {
       },
       onError: () => setSummarySaveState('error'),
     });
+  };
+
+  const previewLocalSummary = (summary: LocalSummary) => {
+    saveSummaryToProfile(summary);
+    setSummaryPreview(summary);
   };
 
   const openChatCircuit = () => {
@@ -1016,7 +1036,9 @@ export function LessonWorkspace() {
   useEffect(() => {
     if (!ragReady || session.concludedAt) return;
     const timeout = window.setTimeout(() => {
-      syncSummary(buildSessionSummary(new Date().toISOString()));
+      // Keep the draft visible locally while the learner is working. The
+      // profile bank is reserved for the official, mastery-gated summary.
+      previewLocalSummary(buildSessionSummary(new Date().toISOString()));
     }, 700);
     return () => window.clearTimeout(timeout);
   }, [
@@ -1049,9 +1071,13 @@ export function LessonWorkspace() {
         const nextProgress = Math.min(100, Math.round((event.charIndex / length) * 100));
         setNarrationProgress(nextProgress);
         const maxStep = Math.max(...daleelCanvasCommands.map((command) => command.step), 1);
+         const activeBoundaryIndex = narrationBoundaries.findIndex((boundary) => event.charIndex < boundary.end);
+         const sentenceStep = activeBoundaryIndex >= 0
+           ? activeBoundaryIndex + 1
+           : Math.ceil((nextProgress / 100) * maxStep);
         emitOwlSyncEvent({
           type: 'board:step',
-          step: Math.max(1, Math.ceil((nextProgress / 100) * maxStep)),
+           step: Math.max(1, Math.min(maxStep, sentenceStep)),
         });
       };
       utterance.onend = () => {
@@ -1064,7 +1090,7 @@ export function LessonWorkspace() {
     return () => {
       window.speechSynthesis?.cancel();
     };
-  }, [daleelCanvasCommands, isPlaying, narrationText]);
+  }, [daleelCanvasCommands, isPlaying, narrationBoundaries, narrationText]);
 
   useEffect(() => () => {
     speechRecognitionRef.current?.stop();
@@ -1514,7 +1540,7 @@ export function LessonWorkspace() {
     return daleel;
   };
 
-  const askPartner = async (text: string) => {
+  const askPartner = async (text: string, selection: WhiteboardSelection | null = boardSelection) => {
     if (chatCircuitOpen) return;
     if (!handoffComplete) {
       await askFahim(text);
@@ -1528,10 +1554,10 @@ export function LessonWorkspace() {
     setIsThinking(true);
     try {
       if (activePartner === 'dalil') {
-        const daleelQuestion = boardSelection
+        const daleelQuestion = selection
           ? `اشرح لي مباشرة ما يظهر في المنطقة المحددة من السبورة. ${cleanText}`
           : cleanText;
-        const daleel = await requestDaleel(daleelQuestion);
+        const daleel = await requestDaleel(daleelQuestion, selection);
         setMessages((current) => [...current, {
           id: `daleel-answer-${Date.now()}`,
           role: 'assistant',
@@ -2561,7 +2587,7 @@ export function LessonWorkspace() {
           </div>
           <div className="lesson-whiteboard-wrap">
             <div className="lesson-whiteboard-toolbar">
-                 <span><BarChart3 size={14} /> السبورة الحية · اضغط على أي جزء لتلقين فهيم</span>
+                  <span><BarChart3 size={14} /> السبورة الحية · اضغط على أي جزء ليساعدك دليل</span>
               <div>
                 <button type="button" className={boardMode === 'pen' ? 'is-selected' : ''} onClick={() => setBoardMode('pen')} disabled={!lessonToolsActive} aria-label="أداة الكتابة" data-testid="button-whiteboard-pen"><PenLine size={15} /></button>
                   <button type="button" className={boardMode === 'highlight' ? 'is-selected' : ''} onClick={() => setBoardMode('highlight')} disabled={!lessonToolsActive} aria-label="أداة التظليل والنقر" data-testid="button-whiteboard-highlight"><Highlighter size={15} /></button>
@@ -2608,8 +2634,8 @@ export function LessonWorkspace() {
                     setBoardCopilotError('');
                     setBoardCopilotState('idle');
                     setBoardCopilotOpen(true);
-                     if (handoffComplete && activePartner === 'dalil') {
-                       void askPartner('اشرح لي مباشرة ما يظهر في هذا الجزء المحدد.');
+                      if (handoffComplete && activePartner === 'dalil') {
+                        void askPartner('اشرح لي مباشرة ما يظهر في هذا الجزء المحدد.', selection);
                      }
                   }}
                 />
@@ -2626,7 +2652,7 @@ export function LessonWorkspace() {
                     data-testid="button-open-whiteboard-copilot"
                   >
                     <img src={owlAgentViolet} alt="" />
-                    <span>اسأل فهيم</span>
+                     <span>اسأل دليل</span>
                   </button>
                 )}
                 {boardCopilotOpen && boardSelection && (
