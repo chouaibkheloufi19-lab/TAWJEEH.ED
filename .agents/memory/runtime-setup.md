@@ -26,3 +26,9 @@ In development without Clerk credentials, the API's local identity shim must be 
 **Why:** Clerk's helper does not treat a hand-installed development `req.auth` function as registered Clerk middleware, even when the app intentionally provides a mock identity.
 
 **How to apply:** Keep the development bypass at the route guard boundary and never weaken the production Clerk middleware path.
+
+Imported workspaces may have complete lockfiles but no installed JavaScript or Python environments; restore both from the committed lockfiles before diagnosing source or workflow failures.
+
+**Why:** Artifact workflow errors such as missing `vite`, `esbuild`, or `chromadb` can mask healthy imported code and produce misleading setup conclusions.
+
+**How to apply:** Run the workspace's locked pnpm install and `uv sync --locked`, then rebuild shared TypeScript declarations before evaluating the managed services.
