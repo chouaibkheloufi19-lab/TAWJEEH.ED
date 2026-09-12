@@ -57,7 +57,7 @@ import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_2026090223
 import { useAppUser } from '@/lib/app-auth';
 import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
 import { InteractiveWhiteboard, type WhiteboardImage, type WhiteboardSelection } from '@/components/interactive-whiteboard';
-import { WhiteboardOwlCopilot, type WhiteboardOwlState } from '@/components/whiteboard-owl-copilot';
+import { WhiteboardOwlCopilot, type WhiteboardOwlState, type WhiteboardOwlTarget } from '@/components/whiteboard-owl-copilot';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
 import {
@@ -122,6 +122,32 @@ type AttemptAnalysis = {
   feedback: string;
   nextExercise: string;
   summaryAnchor: string;
+  errorArea: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    label: string;
+  };
+};
+
+type FahimWhiteboardAction = {
+  action: 'draw_diagram' | 'type_text' | 'highlight_area';
+  details: Record<string, unknown>;
+};
+
+type FahimResponse = {
+  speech_text: string;
+  chat_response: string;
+  whiteboard_actions: FahimWhiteboardAction[];
+  evaluated_skill: string;
+  mastery_score: number;
+};
+
+type FahimPayload = {
+  fahim?: Partial<FahimResponse>;
+  answer?: string;
+  message?: string;
 };
 
 type GeneratedGraphPoint = Point & { label?: string };
@@ -609,6 +635,8 @@ export function LessonWorkspace() {
   const [boardCopilotState, setBoardCopilotState] = useState<'idle' | 'asking' | 'answered' | 'error'>('idle');
   const [boardCopilotError, setBoardCopilotError] = useState('');
   const [isBoardCopilotListening, setIsBoardCopilotListening] = useState(false);
+  const [fahimResponse, setFahimResponse] = useState<FahimResponse | null>(null);
+  const [fahimBoardTarget, setFahimBoardTarget] = useState<WhiteboardOwlTarget | null>(null);
   const [isBoardImmersive, setIsBoardImmersive] = useState(false);
   const [isLessonRailCollapsed, setIsLessonRailCollapsed] = useState(false);
   const [roadmapSync, setRoadmapSync] = useState<LessonBoardSync | null>(null);
@@ -806,6 +834,53 @@ export function LessonWorkspace() {
           role: 'assistant',
           text: 'تعذر الاتصال بخدمة التعلّم الآن. حدّث الصفحة للمتابعة.',
         }]);
+  };
+
+  const applyFahimResponse = (payload: FahimPayload) => {
+    const candidate = payload.fahim;
+    if (
+      !candidate
+      || typeof candidate.speech_text !== 'string'
+      || typeof candidate.chat_response !== 'string'
+      || typeof candidate.evaluated_skill !== 'string'
+      || typeof candidate.mastery_score !== 'number'
+      || !Array.isArray(candidate.whiteboard_actions)
+    ) {
+      return payload.answer ?? '';
+    }
+    const response: FahimResponse = {
+      speech_text: candidate.speech_text,
+      chat_response: candidate.chat_response,
+      evaluated_skill: candidate.evaluated_skill,
+      mastery_score: Math.max(0, Math.min(100, Math.round(candidate.mastery_score))),
+      whiteboard_actions: candidate.whiteboard_actions.filter((item): item is FahimWhiteboardAction => Boolean(
+        item
+        && typeof item === 'object'
+        && (item.action === 'draw_diagram' || item.action === 'type_text' || item.action === 'highlight_area')
+        && item.details
+        && typeof item.details === 'object',
+      )),
+    };
+    setFahimResponse(response);
+    const highlight = response.whiteboard_actions.find((item) => item.action === 'highlight_area');
+    const label = typeof highlight?.details.label === 'string' ? highlight.details.label : '';
+    if (label) {
+      setHighlightedPart(label);
+      setBoardMode('highlight');
+    }
+    const coordinateValue = (key: string) => {
+      const value = Number(highlight?.details[key]);
+      return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : null;
+    };
+    const x = coordinateValue('x');
+    const y = coordinateValue('y');
+    const width = coordinateValue('width');
+    const height = coordinateValue('height');
+    if (x !== null && y !== null && width !== null && height !== null) {
+      setFahimBoardTarget({ x, y, width: Math.min(width, 1 - x), height: Math.min(height, 1 - y) });
+    }
+    setWhiteboardOwlState(response.whiteboard_actions.length ? 'speaking' : 'thinking');
+    return response.chat_response;
   };
 
   useEffect(() => {
@@ -1109,9 +1184,10 @@ export function LessonWorkspace() {
           topicContext,
         }),
       });
-      const payload = await response.json() as { answer?: string; message?: string };
+      const payload = await response.json() as FahimPayload;
       if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
-      setMessages((current) => [...current, { id: `copilot-answer-${Date.now()}`, role: 'assistant', text: payload.answer as string }]);
+      const reply = applyFahimResponse(payload) || payload.answer;
+      setMessages((current) => [...current, { id: `copilot-answer-${Date.now()}`, role: 'assistant', text: reply }]);
     } catch {
       openChatCircuit();
     } finally {
@@ -1274,9 +1350,10 @@ export function LessonWorkspace() {
             ].filter(Boolean).join('\n'),
         }),
       });
-      const payload = await response.json() as { answer?: string; message?: string };
+      const payload = await response.json() as FahimPayload;
       if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
-      setMessages((current) => [...current, { id: `answer-${Date.now()}`, role: 'assistant', text: payload.answer as string }]);
+      const reply = applyFahimResponse(payload) || payload.answer;
+      setMessages((current) => [...current, { id: `answer-${Date.now()}`, role: 'assistant', text: reply }]);
     } catch {
       openChatCircuit();
     } finally {
@@ -1389,11 +1466,24 @@ export function LessonWorkspace() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ imageDataUrl, lesson: 'قوانين نيوتن والحركة', concept: activeSection.title }),
       });
-      const payload = await response.json() as Partial<AttemptAnalysis> & { message?: string };
-      if (!response.ok || !payload.firstError || !payload.lastCorrectStep) throw new Error(payload.message || 'تعذر تحليل المحاولة');
+      const payload = await response.json() as Partial<AttemptAnalysis> & FahimPayload;
+      if (
+        !response.ok
+        || !payload.firstError
+        || !payload.lastCorrectStep
+        || !payload.errorArea
+        || typeof payload.errorArea.label !== 'string'
+      ) throw new Error(payload.message || 'تعذر تحليل المحاولة');
       const nextAnalysis = payload as AttemptAnalysis;
       setAnalysis(nextAnalysis);
       setAnalysisState('ready');
+      applyFahimResponse(payload);
+      setFahimBoardTarget({
+        x: Math.max(0, Math.min(1, payload.errorArea.x)),
+        y: Math.max(0, Math.min(1, payload.errorArea.y)),
+        width: Math.max(0, Math.min(1, payload.errorArea.width)),
+        height: Math.max(0, Math.min(1, payload.errorArea.height)),
+      });
       setAttemptBank((current) => [{ ...nextAnalysis, id: `attempt-${Date.now()}`, fileName, createdAt: getTimeLabel() }, ...current].slice(0, 8));
       recordAttemptMutation.mutate({
         data: {
@@ -1455,6 +1545,7 @@ export function LessonWorkspace() {
     setAnalysis(null);
     setAnalysisState('idle');
     setAnalysisError('');
+    setFahimBoardTarget(null);
   };
 
   const resetToLastCorrect = () => {
@@ -1538,6 +1629,7 @@ export function LessonWorkspace() {
     );
     setExerciseFeedback(isCorrect ? 'correct' : 'retry');
     setShowExerciseSolution(false);
+    setFahimBoardTarget(null);
     recordAttemptMutation.mutate({
       data: {
         lesson_id: lessonId,
@@ -1822,6 +1914,31 @@ export function LessonWorkspace() {
         </div>
       </div>
 
+      {fahimResponse && faheemActive && (
+        <section className="lesson-fahim-diagnostic" aria-label="آخر تقييم من فهيم" data-testid="card-fahim-diagnostic">
+          <div className="lesson-fahim-diagnostic-main">
+            <span className="lesson-panel-kicker"><BrainCircuit size={13} /> قراءة فهيم الحالية</span>
+            <strong>{fahimResponse.evaluated_skill}</strong>
+            <p>{fahimResponse.chat_response}</p>
+          </div>
+          <div className="lesson-fahim-score" aria-label={`درجة الإتقان ${fahimResponse.mastery_score} من 100`}>
+            <span>الإتقان</span>
+            <strong>{fahimResponse.mastery_score}<small>٪</small></strong>
+          </div>
+          {fahimResponse.whiteboard_actions.length > 0 && (
+            <div className="lesson-fahim-actions" aria-label="أفعال فهيم على السبورة">
+              {fahimResponse.whiteboard_actions.map((item, index) => (
+                <span key={`${item.action}-${index}`}>
+                  {item.action === 'highlight_area' ? 'تحديد موضع' : item.action === 'draw_diagram' ? 'رسم توضيحي' : 'كتابة على اللوح'}
+                  {typeof item.details.label === 'string' ? ` · ${item.details.label}` : ''}
+                  {typeof item.details.text === 'string' ? ` · ${item.details.text}` : ''}
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
        {examMode && examMode.mode !== 'standard' && (
          <div className={`lesson-exam-mode-strip ${examMode.mode === 'error_stack' ? 'is-error-stack' : ''}`} role="status" data-testid="card-lesson-exam-mode">
            <div><span className="lesson-panel-kicker"><Sparkles size={13} /> {examMode.label}</span><strong>{examMode.mode === 'error_stack' ? 'التمرين التالي يستهدف موضع الخطأ الأعلى.' : 'كثافة أعلى قبل موعد البكالوريا.'}</strong><p>{examMode.description}</p></div>
@@ -1985,6 +2102,7 @@ export function LessonWorkspace() {
                 <div className="lesson-analysis-row is-correct"><span>آخر خطوة صحيحة</span><strong>{analysis.lastCorrectStep}</strong></div>
                 <div className="lesson-analysis-row is-error"><span>بداية الخطأ</span><strong>{analysis.firstErrorStep}</strong></div>
                 <p>{analysis.feedback}</p>
+                <small className="lesson-analysis-coordinate"><ScanSearch size={12} /> حدّد فهيم موضع «{analysis.errorArea.label}» على الصورة بدقة.</small>
                 <div className="lesson-analysis-actions"><button type="button" onClick={resetToLastCorrect} data-testid="button-reset-to-last-correct"><RotateCcw size={13} /> العودة لآخر خطوة</button><button type="button" onClick={buildExercise} data-testid="button-generate-error-exercise">ابنِ تمرينًا مشابهًا</button></div>
               </div>
             )}
@@ -2377,6 +2495,18 @@ export function LessonWorkspace() {
                     {boardCopilotState === 'error' && <p className="lesson-whiteboard-copilot-error" role="alert">{boardCopilotError}</p>}
                     {boardCopilotAnswer && <div className="lesson-whiteboard-copilot-answer" role="status"><strong>الإجابة</strong><p>{boardCopilotAnswer}</p></div>}
                   </div>
+                )}
+                {fahimBoardTarget && faheemActive && (
+                  <WhiteboardOwlCopilot
+                    state={whiteboardOwlState}
+                    target={fahimBoardTarget}
+                    open
+                    title="فهيم يتابع هذا الموضع"
+                    message={fahimResponse?.speech_text || 'حددت موضعًا مهمًا على السبورة. نراجعه خطوةً خطوة.'}
+                    actionLabel="تثبيت الموضع"
+                    onAsk={() => setBoardMode('highlight')}
+                    onDismiss={() => setFahimBoardTarget(null)}
+                  />
                 )}
                <div className="lesson-board-hotspots" aria-label="مناطق اللوح القابلة للتحديد">
                  {hotspots.map((region) => (

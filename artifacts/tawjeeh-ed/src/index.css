@@ -10364,6 +10364,100 @@ button { cursor: pointer; }
   top: 13px;
 }
 
+/* Fahim's diagnostic contract stays visible in the lesson room while the
+   existing three-panel board, chat, and mastery flow remains unchanged. */
+.lesson-fahim-diagnostic {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 13px 16px;
+  border: 1px solid #bfe1df;
+  border-radius: 15px;
+  background: linear-gradient(100deg, #eefaf6, #f8fbf6);
+  box-shadow: 0 8px 20px rgba(22, 123, 120, .07);
+}
+.lesson-fahim-diagnostic-main {
+  min-width: 0;
+}
+.lesson-fahim-diagnostic-main .lesson-panel-kicker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--lesson-teal);
+  font-size: 9px;
+}
+.lesson-fahim-diagnostic-main > strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--lesson-navy);
+  font-size: 13px;
+}
+.lesson-fahim-diagnostic-main p {
+  margin: 3px 0 0;
+  color: var(--lesson-muted);
+  font-size: 10px;
+  line-height: 1.75;
+}
+.lesson-fahim-score {
+  display: grid;
+  min-width: 70px;
+  padding: 7px 11px;
+  border: 1px solid #b7d8d0;
+  border-radius: 12px;
+  color: var(--lesson-teal);
+  background: rgba(255, 255, 255, .74);
+  text-align: center;
+}
+.lesson-fahim-score span {
+  font-size: 8px;
+  font-weight: 800;
+}
+.lesson-fahim-score strong {
+  font-size: 24px;
+  line-height: 1.1;
+}
+.lesson-fahim-score small {
+  margin-right: 2px;
+  font-size: 10px;
+}
+.lesson-fahim-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.lesson-fahim-actions span {
+  padding: 4px 7px;
+  border: 1px solid #cde5df;
+  border-radius: 999px;
+  color: #39736c;
+  font-size: 8px;
+  font-weight: 800;
+  background: #f8fffb;
+}
+.lesson-analysis-coordinate {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 7px;
+  color: #6b817a;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+@media (max-width: 580px) {
+  .lesson-fahim-diagnostic {
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin-inline: 0;
+    padding: 11px 12px;
+  }
+  .lesson-fahim-score {
+    min-width: 62px;
+  }
+}
+
 @media (max-width: 620px) {
   .owl-copilot {
     width: calc(100vw - 32px);
