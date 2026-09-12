@@ -58,6 +58,7 @@ import { useAppUser } from '@/lib/app-auth';
 import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
 import { InteractiveWhiteboard, type WhiteboardCanvasCommand, type WhiteboardImage, type WhiteboardSelection } from '@/components/interactive-whiteboard';
 import { WhiteboardOwlCopilot, type WhiteboardOwlState, type WhiteboardOwlTarget } from '@/components/whiteboard-owl-copilot';
+import { emitOwlSyncEvent } from '@/hooks/useOwlSync';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
 import {
@@ -269,6 +270,9 @@ type LocalSummary = {
   completedAt: string;
   progress: number;
   officialStamp: string;
+  officialStampApplied: boolean;
+  summaryTitle: string;
+  keyTakeaways: string[];
   logo: string;
   groundingQuery: string;
   groundingNodeIds: string[];
@@ -647,6 +651,7 @@ export function LessonWorkspace() {
   const [isBoardCopilotListening, setIsBoardCopilotListening] = useState(false);
   const [daleelResponse, setDaleelResponse] = useState<DaleelResponse | null>(null);
   const [daleelCanvasCommands, setDaleelCanvasCommands] = useState<WhiteboardCanvasCommand[]>([]);
+  const masterySummaryRequestedRef = useRef(false);
   const [fahimResponse, setFahimResponse] = useState<FahimResponse | null>(null);
   const [fahimBoardTarget, setFahimBoardTarget] = useState<WhiteboardOwlTarget | null>(null);
   const [isBoardImmersive, setIsBoardImmersive] = useState(false);
@@ -707,6 +712,12 @@ export function LessonWorkspace() {
     : 'يُحضّر شرح الدرس من محتوى المنهاج، وسيظهر هنا بعد اكتمال التحضير.';
   const displayedHighlight = ragReady && generatedLesson ? generatedLesson.highlight : 'فكرة الدرس';
   const narrationText = daleelResponse?.speech_text || displayedExplanation;
+  const visibleDaleelCanvasCommands = useMemo(() => {
+    if (!daleelResponse || !isPlaying || daleelCanvasCommands.length === 0) return daleelCanvasCommands;
+    const finalStep = Math.max(...daleelCanvasCommands.map((command) => command.step), 1);
+    const currentStep = Math.max(1, Math.ceil((narrationProgress / 100) * finalStep));
+    return daleelCanvasCommands.filter((command) => command.step <= currentStep);
+  }, [daleelCanvasCommands, daleelResponse, isPlaying, narrationProgress]);
   const topicForStudio = selectedCreativeTopic ?? creativeIdeas?.ideas[0] ?? null;
   const completedCount = activeExamples.filter((example) => session.gradedExamples[example.id] === 'correct').length;
   const totalExamples = lessonSections.length;
@@ -806,7 +817,10 @@ export function LessonWorkspace() {
     startedAt: session.startedAt,
     completedAt,
     progress,
-    officialStamp: 'TAWJEEH.ED · OFFICIAL',
+    officialStamp: 'TAWJEEH.ED · OFFICIAL SEAL',
+    officialStampApplied: masteredDaleelSummary?.official_stamp_applied === true,
+    summaryTitle: masteredDaleelSummary?.title || 'ملخص متابعة الجلسة',
+    keyTakeaways: masteredDaleelSummary?.key_takeaways ?? [],
     logo: 'tawjeeh-owl-transparent.png',
     groundingQuery: agentReadinessQuery.data?.retrieval.query ?? '',
     groundingNodeIds: agentReadinessQuery.data?.retrieval.retrievedNodeIds ?? [],
@@ -962,10 +976,31 @@ export function LessonWorkspace() {
   };
 
   useEffect(() => {
-    if (progress === 100 && !session.concludedAt && summarySaveState === 'idle') {
-      concludeSession();
+    if (progress !== 100 || !ragReady || session.concludedAt || summarySaveState !== 'idle' || masterySummaryRequestedRef.current) {
+      return;
     }
-  }, [progress, session.concludedAt, summarySaveState]);
+    masterySummaryRequestedRef.current = true;
+    void (async () => {
+      try {
+        const daleel = await requestDaleel(
+          'أتممت خطوات الدرس. أنشئ الآن ملخصًا رسميًا مكثفًا يحمل ختم Tawjeeh.ed.',
+          null,
+          true,
+        );
+        if (!daleel.summary_data.official_stamp_applied) {
+          throw new Error('لم يكتمل الختم الرسمي للملخص.');
+        }
+        concludeSession(daleel.summary_data);
+      } catch {
+        masterySummaryRequestedRef.current = false;
+        setMessages((current) => [...current, {
+          id: `daleel-summary-retry-${Date.now()}`,
+          role: 'assistant',
+          text: 'اكتمل إتقانك للدرس، لكن الملخص الرسمي يحتاج إلى إعادة المحاولة. سيبقى الدرس مفتوحًا حتى يُحفظ بالختم.',
+        }]);
+      }
+    })();
+  }, [progress, ragReady, session.concludedAt, summarySaveState]);
 
   useEffect(() => {
     try {
@@ -1005,20 +1040,31 @@ export function LessonWorkspace() {
     void owlVideoRef.current?.play().catch(() => undefined);
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+      emitOwlSyncEvent({ type: 'tts:start' });
        const utterance = new SpeechSynthesisUtterance(narrationText);
       utterance.lang = 'ar-SA';
       utterance.rate = .92;
       utterance.onboundary = (event) => {
          const length = narrationText.length || 1;
-        setNarrationProgress(Math.min(100, Math.round((event.charIndex / length) * 100)));
+        const nextProgress = Math.min(100, Math.round((event.charIndex / length) * 100));
+        setNarrationProgress(nextProgress);
+        const maxStep = Math.max(...daleelCanvasCommands.map((command) => command.step), 1);
+        emitOwlSyncEvent({
+          type: 'board:step',
+          step: Math.max(1, Math.ceil((nextProgress / 100) * maxStep)),
+        });
       };
-      utterance.onend = () => setNarrationProgress(100);
+      utterance.onend = () => {
+        setNarrationProgress(100);
+        emitOwlSyncEvent({ type: 'board:step', step: Math.max(...daleelCanvasCommands.map((command) => command.step), 1) });
+        emitOwlSyncEvent({ type: 'tts:end' });
+      };
       window.speechSynthesis.speak(utterance);
     }
     return () => {
       window.speechSynthesis?.cancel();
     };
-  }, [isPlaying, narrationText]);
+  }, [daleelCanvasCommands, isPlaying, narrationText]);
 
   useEffect(() => () => {
     speechRecognitionRef.current?.stop();
@@ -1395,6 +1441,79 @@ export function LessonWorkspace() {
     }]);
   };
 
+  const requestDaleel = async (
+    questionText: string,
+    selection: WhiteboardSelection | null = boardSelection,
+    mastery = progress >= 100,
+  ): Promise<DaleelResponse> => {
+    const teachingContent = [
+      `الشرح الحالي: ${displayedExplanation}`,
+      `الفكرة المميزة: ${displayedHighlight}`,
+      generatedLesson?.elements.map((element) => `${element.title}: ${element.summary}`).join('\n') ?? '',
+      sourceExcerpt,
+    ].filter(Boolean).join('\n');
+    const response = await fetchWithTimeout('/api/ai/daleel', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        lesson_title: fixedLessonTitle,
+        level: '3AS',
+        question: questionText,
+        content: teachingContent,
+        mastery,
+        ...(selection
+          ? {
+              highlighted_region: {
+                x: selection.x,
+                y: selection.y,
+                width: selection.width,
+                height: selection.height,
+              },
+            }
+          : {}),
+      }),
+    });
+    const payload = await response.json() as Partial<DaleelResponse> & { message?: string };
+    if (
+      !response.ok
+      || typeof payload.speech_text !== 'string'
+      || !Array.isArray(payload.canvas_commands)
+      || !payload.summary_data
+    ) {
+      throw new Error(payload.message || 'تعذر تشغيل دليل الآن.');
+    }
+    const daleel = payload as DaleelResponse;
+    setDaleelResponse(daleel);
+    setDaleelCanvasCommands(daleel.canvas_commands);
+    setWhiteboardOwlState('speaking');
+    setBoardCopilotAnswer(daleel.speech_text);
+    setBoardCopilotState('answered');
+    setBoardCopilotError('');
+    if (selection) {
+      setFahimBoardTarget({
+        x: selection.x,
+        y: selection.y,
+        width: selection.width,
+        height: selection.height,
+      });
+    } else {
+      const focusCommand = daleel.canvas_commands.find((command) => command.type === 'highlight')
+        ?? daleel.canvas_commands.find((command) => command.type === 'write');
+      if (focusCommand) {
+        setFahimBoardTarget({
+          x: focusCommand.coordinates.x,
+          y: focusCommand.coordinates.y,
+          width: Math.min(.28, 1 - focusCommand.coordinates.x),
+          height: Math.min(.16, 1 - focusCommand.coordinates.y),
+        });
+      }
+    }
+    setBoardCopilotOpen(Boolean(selection));
+    setIsPlaying(true);
+    return daleel;
+  };
+
   const askPartner = async (text: string) => {
     if (chatCircuitOpen) return;
     if (!handoffComplete) {
@@ -1412,80 +1531,13 @@ export function LessonWorkspace() {
         const daleelQuestion = boardSelection
           ? `اشرح لي مباشرة ما يظهر في المنطقة المحددة من السبورة. ${cleanText}`
           : cleanText;
-        const teachingContent = [
-          `الشرح الحالي: ${displayedExplanation}`,
-          `الفكرة المميزة: ${displayedHighlight}`,
-          generatedLesson?.elements.map((element) => `${element.title}: ${element.summary}`).join('\n') ?? '',
-          sourceExcerpt,
-        ].filter(Boolean).join('\n');
-        const daleelRequest = {
-          lesson_title: fixedLessonTitle,
-          level: '3AS',
-          question: daleelQuestion,
-          content: teachingContent,
-          mastery: progress >= 100,
-          ...(boardSelection
-            ? {
-                highlighted_region: {
-                  x: boardSelection.x,
-                  y: boardSelection.y,
-                  width: boardSelection.width,
-                  height: boardSelection.height,
-                },
-              }
-            : {}),
-        };
-        const response = await fetchWithTimeout('/api/ai/daleel', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(daleelRequest),
-        });
-        const payload = await response.json() as Partial<DaleelResponse> & { message?: string };
-        if (
-          !response.ok
-          || typeof payload.speech_text !== 'string'
-          || !Array.isArray(payload.canvas_commands)
-          || !payload.summary_data
-        ) {
-          throw new Error(payload.message || 'تعذر تشغيل دليل الآن.');
-        }
-        const daleel = payload as DaleelResponse;
-        setDaleelResponse(daleel);
-        setDaleelCanvasCommands(daleel.canvas_commands);
-        setWhiteboardOwlState('speaking');
-        setBoardCopilotAnswer(daleel.speech_text);
-        setBoardCopilotState('answered');
-        setBoardCopilotError('');
-        if (boardSelection) {
-          setFahimBoardTarget({
-            x: boardSelection.x,
-            y: boardSelection.y,
-            width: boardSelection.width,
-            height: boardSelection.height,
-          });
-        } else {
-          const focusCommand = daleel.canvas_commands.find((command) => command.type === 'highlight')
-            ?? daleel.canvas_commands.find((command) => command.type === 'write');
-          if (focusCommand) {
-            setFahimBoardTarget({
-              x: focusCommand.coordinates.x,
-              y: focusCommand.coordinates.y,
-              width: Math.min(.28, 1 - focusCommand.coordinates.x),
-              height: Math.min(.16, 1 - focusCommand.coordinates.y),
-            });
-          }
-        }
-        setBoardCopilotOpen(Boolean(boardSelection));
-        setIsPlaying(true);
+        const daleel = await requestDaleel(daleelQuestion);
         setMessages((current) => [...current, {
           id: `daleel-answer-${Date.now()}`,
           role: 'assistant',
           text: daleel.speech_text,
         }]);
-        if (daleel.summary_data.official_stamp_applied && progress >= 100 && !session.concludedAt) {
-          concludeSession(daleel.summary_data);
-        }
+        if (daleel.summary_data.official_stamp_applied && progress >= 100 && !session.concludedAt) concludeSession(daleel.summary_data);
         return;
       }
        const response = await queryKnowledgeMutation.mutateAsync({
@@ -2538,7 +2590,7 @@ export function LessonWorkspace() {
                   groundedDiagram={Boolean(generatedLesson)}
                   animationProgress={isPlaying ? narrationProgress : 100}
                   hotspots={hotspots}
-                   canvasCommands={daleelCanvasCommands}
+                   canvasCommands={visibleDaleelCanvasCommands}
                   disabled={!lessonToolsActive}
                   onStrokeCommitted={commitBoardStroke}
                   onRegionSelected={selectBoardRegion}
@@ -2752,10 +2804,15 @@ export function LessonWorkspace() {
              </div>}
              {summaryPreview && <div className="lesson-summary-card" data-testid="card-session-summary">
                <div className="lesson-summary-card-header">
-                 <div className="lesson-summary-brand"><img src={owlLogoPath} alt="شعار توجيه" /><span><strong>ملخص جلسة فهيم</strong><small>{summaryPreview.officialStamp}</small></span></div>
+                  <div className="lesson-summary-brand"><img src={owlLogoPath} alt="شعار توجيه" /><span><strong>{summaryPreview.summaryTitle}</strong><small>{summaryPreview.officialStampApplied ? summaryPreview.officialStamp : 'مسودة متابعة · بانتظار الإتقان'}</small></span></div>
                  <span className="lesson-summary-progress">{summaryPreview.progress}٪</span>
                </div>
                <p>{summaryPreview.summary}</p>
+                {summaryPreview.keyTakeaways.length > 0 && (
+                  <ul className="lesson-summary-takeaways" aria-label="النقاط الأساسية للملخص الرسمي">
+                    {summaryPreview.keyTakeaways.map((takeaway) => <li key={takeaway}>{takeaway}</li>)}
+                  </ul>
+                )}
                <div className="lesson-summary-concepts">{summaryPreview.concepts.map((concept) => <span key={concept.id}><strong>{concept.mastery}٪</strong>{concept.title}</span>)}</div>
                <div className="lesson-summary-times"><span>بدأت {formatSessionTime(summaryPreview.startedAt)}</span><span>اكتملت {formatSessionTime(summaryPreview.completedAt)}</span></div>
                {summaryPreview.progress === 100 && summarySaveState === 'saved' && <button type="button" className="lesson-unit-quiz-button" onClick={() => setLocation('/quizzes?quiz=mechanics-unit')} data-testid="button-start-unit-assessment"><Sparkles size={14} /> افتح تقييم الوحدة عالي الصعوبة</button>}
