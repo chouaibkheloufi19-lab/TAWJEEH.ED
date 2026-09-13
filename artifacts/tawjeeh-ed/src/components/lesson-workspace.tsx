@@ -57,7 +57,7 @@ import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_2026090223
 import { useAppUser } from '@/lib/app-auth';
 import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
 import { InteractiveWhiteboard, type WhiteboardCanvasCommand, type WhiteboardImage, type WhiteboardSelection } from '@/components/interactive-whiteboard';
-import type { WhiteboardOwlState, WhiteboardOwlTarget } from '@/components/whiteboard-owl-copilot';
+import { WhiteboardOwlCopilot, type WhiteboardOwlState, type WhiteboardOwlTarget } from '@/components/whiteboard-owl-copilot';
 import { emitOwlSyncEvent } from '@/hooks/useOwlSync';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
@@ -2449,56 +2449,34 @@ export function LessonWorkspace() {
                     setBoardCopilotAnswer('');
                     setBoardCopilotError('');
                     setBoardCopilotState('idle');
-                     setBoardCopilotOpen(false);
+                     setBoardCopilotOpen(true);
                       if (handoffComplete && activePartner === 'dalil') {
                         void askPartner('اشرح لي مباشرة ما يظهر في هذا الجزء المحدد.', selection);
                      }
                   }}
                 />
-                 {(faheemActive || handoffComplete) && (
-                   <button
-                     type="button"
-                     className={`lesson-whiteboard-copilot state-${whiteboardOwlState}`}
-                     style={{
-                       left: `${Math.min(88, Math.max(12, (((boardSelection ?? fahimBoardTarget)?.x ?? .86) + ((boardSelection ?? fahimBoardTarget)?.width ?? 0) / 2) * 100))}%`,
-                       top: `${Math.min(82, Math.max(18, (((boardSelection ?? fahimBoardTarget)?.y ?? .78) + ((boardSelection ?? fahimBoardTarget)?.height ?? 0) / 2) * 100))}%`,
-                     }}
-                     onClick={() => setBoardCopilotOpen(true)}
-                     aria-label={boardSelection ? 'فتح كوبيلوت فهيم عن الجزء المحدد' : 'فتح كوبيلوت فهيم عن موضوع الدرس'}
-                     data-testid="button-open-whiteboard-copilot"
-                   >
-                     <img src={owlAgentViolet} alt="" />
-                     <span className="lesson-whiteboard-copilot-dot" aria-hidden="true" />
-                   </button>
-                 )}
-                 {boardCopilotOpen && (
-                  <div className="lesson-whiteboard-copilot-modal" role="dialog" aria-modal="true" aria-label="كوبيلوت السبورة" data-testid="dialog-whiteboard-copilot">
-                     <div className="lesson-whiteboard-copilot-head">
-                        <div><img src={owlAgentViolet} alt="" /><span><strong>فهيم · المساعد الذكي</strong><small>{boardSelection ? 'اسأل عن الجزء المحدد من السبورة' : highlightedPart ? `اسأل عن «${highlightedPart}»` : 'اسأل عن أي فكرة غير واضحة'}</small></span></div>
-                      <button type="button" onClick={() => setBoardCopilotOpen(false)} aria-label="إغلاق كوبيلوت السبورة"><X size={15} /></button>
-                    </div>
-                     <p className="lesson-whiteboard-copilot-context">{boardSelection ? 'تم تثبيت سؤالك على الجزء الذي حددته.' : 'يمكنك السؤال عن موضوع الدرس مباشرة.'}</p>
-                    <form onSubmit={(event) => { event.preventDefault(); void askBoardCopilot(); }}>
-                      <textarea
-                        value={boardCopilotQuestion}
-                        onChange={(event) => setBoardCopilotQuestion(event.target.value)}
-                         placeholder={boardSelection ? 'مثال: لماذا يتغير الميل هنا؟' : 'مثال: ما الفكرة الأساسية في هذا الموضوع؟'}
-                        rows={3}
-                        disabled={boardCopilotState === 'asking'}
-                         aria-label={`سؤال ${handoffComplete && activePartner === 'dalil' ? 'دليل' : 'فهيم'} عن الجزء المحدد`}
-                        data-testid="input-whiteboard-copilot-question"
-                      />
-                      <div className="lesson-whiteboard-copilot-actions">
-                        <button type="button" onClick={toggleBoardCopilotVoice} disabled={boardCopilotState === 'asking'} aria-label={isBoardCopilotListening ? 'إيقاف الإملاء' : 'إملاء السؤال'}>
-                          {isBoardCopilotListening ? <MicOff size={14} /> : <Mic size={14} />}
-                        </button>
-                        <button type="submit" disabled={!boardCopilotQuestion.trim() || boardCopilotState === 'asking'}>{boardCopilotState === 'asking' ? <LoaderCircle size={14} className="lesson-spin-icon" /> : <Send size={14} />} اسأل</button>
-                      </div>
-                    </form>
-                    {boardCopilotState === 'error' && <p className="lesson-whiteboard-copilot-error" role="alert">{boardCopilotError}</p>}
-                    {boardCopilotAnswer && <div className="lesson-whiteboard-copilot-answer" role="status"><strong>الإجابة</strong><p>{boardCopilotAnswer}</p></div>}
-                  </div>
-                )}
+                  {(faheemActive || handoffComplete) && (
+                    <WhiteboardOwlCopilot
+                      state={boardCopilotState === 'asking' ? 'thinking' : isBoardCopilotListening ? 'listening' : whiteboardOwlState}
+                      target={boardSelection ?? fahimBoardTarget}
+                      open={boardCopilotOpen}
+                      disabled={!lessonToolsActive}
+                      title={`${handoffComplete && activePartner === 'dalil' ? 'دليل' : 'فهيم'} على السبورة`}
+                      message={boardSelection
+                        ? 'أرسلت لك اللقطة المحددة مع سؤالك، وسأربط الإجابة بما يظهر في هذه المنطقة.'
+                        : 'حدد جزءًا من اللوح أو اسأل عن الفكرة الحالية، وسأشرحها خطوة بخطوة.'}
+                      onOpenChange={setBoardCopilotOpen}
+                      onDismiss={() => setBoardCopilotOpen(false)}
+                      question={boardCopilotQuestion}
+                      onQuestionChange={setBoardCopilotQuestion}
+                      onSubmitQuestion={() => void askBoardCopilot()}
+                      onToggleVoice={toggleBoardCopilotVoice}
+                      isListening={isBoardCopilotListening}
+                      answer={boardCopilotAnswer}
+                      error={boardCopilotState === 'error' ? boardCopilotError : ''}
+                      isAsking={boardCopilotState === 'asking'}
+                    />
+                  )}
                <div className="lesson-board-hotspots" aria-label="مناطق اللوح القابلة للتحديد">
                  {hotspots.map((region) => (
                    <button

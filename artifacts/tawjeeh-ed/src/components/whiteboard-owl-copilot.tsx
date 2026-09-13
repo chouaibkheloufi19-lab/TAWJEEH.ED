@@ -1,11 +1,15 @@
-import { useId, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import {
   ArrowUpRight,
   BrainCircuit,
   CircleDot,
+  Grip,
+  LoaderCircle,
   MessageCircle,
   Mic,
+  MicOff,
   Move,
+  Send,
   Sparkles,
   Volume2,
   X,
@@ -42,6 +46,14 @@ export type WhiteboardOwlCopilotProps = {
   onOpenChange?: (open: boolean) => void;
   onAsk?: () => void;
   onDismiss?: () => void;
+  question?: string;
+  onQuestionChange?: (question: string) => void;
+  onSubmitQuestion?: () => void;
+  onToggleVoice?: () => void;
+  isListening?: boolean;
+  answer?: string;
+  error?: string;
+  isAsking?: boolean;
 };
 
 type StateCopy = {
@@ -117,9 +129,22 @@ export function WhiteboardOwlCopilot({
   onOpenChange,
   onAsk,
   onDismiss,
+  question = '',
+  onQuestionChange,
+  onSubmitQuestion,
+  onToggleVoice,
+  isListening = false,
+  answer = '',
+  error = '',
+  isAsking = false,
 }: WhiteboardOwlCopilotProps) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const headingId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
+  const didDragRef = useRef(false);
   const isOpen = controlledOpen ?? internalOpen;
   const copy = stateCopy[state];
   const StateIcon = copy.icon;
@@ -129,6 +154,10 @@ export function WhiteboardOwlCopilot({
       ? 'أرى المنطقة التي حددتها. افتح السؤال عندما تريد أن نفككها معًا.'
       : 'حدد جزءًا من اللوح، وسأساعدك على قراءته خطوة بخطوة.'
   );
+
+  useEffect(() => {
+    setDragPosition(null);
+  }, [target?.x, target?.y, target?.width, target?.height]);
 
   const setOpen = (nextOpen: boolean) => {
     if (controlledOpen === undefined) setInternalOpen(nextOpen);
@@ -142,14 +171,63 @@ export function WhiteboardOwlCopilot({
     }
   };
 
+  const position = dragPosition ?? {
+    x: targetBox?.centerX ?? 0.84,
+    y: targetBox?.centerY ?? 0.79,
+  };
   const positionStyle = {
-    '--owl-x': `${targetBox?.centerX ? targetBox.centerX * 100 : 84}%`,
-    '--owl-y': `${targetBox?.centerY ? targetBox.centerY * 100 : 79}%`,
+    '--owl-x': `${position.x * 100}%`,
+    '--owl-y': `${position.y * 100}%`,
   } as CSSProperties;
+
+  const startDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (disabled || event.button !== 0 || !rootRef.current) return;
+    const bounds = rootRef.current.getBoundingClientRect();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - bounds.left - position.x * bounds.width,
+      offsetY: event.clientY - bounds.top - position.y * bounds.height,
+    };
+    didDragRef.current = false;
+    setIsDragging(true);
+  };
+
+  const moveDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current;
+    const bounds = rootRef.current?.getBoundingClientRect();
+    if (!drag || drag.pointerId !== event.pointerId || !bounds) return;
+    const nextX = clamp((event.clientX - bounds.left - drag.offsetX) / bounds.width, 0.08, 0.92);
+    const nextY = clamp((event.clientY - bounds.top - drag.offsetY) / bounds.height, 0.1, 0.88);
+    if (Math.abs(nextX - position.x) > 0.005 || Math.abs(nextY - position.y) > 0.005) {
+      didDragRef.current = true;
+      setDragPosition({ x: nextX, y: nextY });
+    }
+  };
+
+  const stopDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    setIsDragging(false);
+  };
+
+  const handleOrbClick = () => {
+    if (didDragRef.current) {
+      didDragRef.current = false;
+      return;
+    }
+    setOpen(!isOpen);
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    onSubmitQuestion?.();
+  };
 
   return (
     <div
-      className={`whiteboard-owl-copilot ${targetBox ? 'has-target' : ''} state-${state} ${disabled ? 'is-disabled' : ''} ${className}`}
+      ref={rootRef}
+      className={`whiteboard-owl-copilot ${targetBox ? 'has-target' : ''} state-${state} ${disabled ? 'is-disabled' : ''} ${isDragging ? 'is-dragging' : ''} ${className}`}
       dir="rtl"
       onKeyDown={handleKeyDown}
       aria-labelledby={headingId}
@@ -176,13 +254,18 @@ export function WhiteboardOwlCopilot({
         <button
           type="button"
           className="whiteboard-owl-orb"
-          onClick={() => setOpen(!isOpen)}
+          onClick={handleOrbClick}
+          onPointerDown={startDrag}
+          onPointerMove={moveDrag}
+          onPointerUp={stopDrag}
+          onPointerCancel={stopDrag}
           aria-expanded={isOpen}
           aria-controls={headingId}
-          aria-label={isOpen ? 'تصغير مساعد السبورة' : 'فتح مساعد السبورة'}
+          aria-label={isOpen ? 'تصغير مساعد السبورة أو سحبها' : 'فتح مساعد السبورة أو سحبها'}
           disabled={disabled}
           data-testid="button-toggle-whiteboard-owl"
         >
+          <span className="whiteboard-owl-drag-hint" aria-hidden="true"><Grip size={12} /></span>
           <span className="whiteboard-owl-orb-ring" aria-hidden="true" />
           <img src={imageSrc ?? copy.asset} alt="" />
           <span className="whiteboard-owl-state-dot" aria-hidden="true">
@@ -235,7 +318,41 @@ export function WhiteboardOwlCopilot({
               </div>
             )}
 
-            {onAsk && (
+            {onSubmitQuestion ? (
+              <form className="whiteboard-owl-question-form" onSubmit={handleSubmit}>
+                <label htmlFor={`${headingId}-question`}>ما الذي تريد فهمه؟</label>
+                <textarea
+                  id={`${headingId}-question`}
+                  value={question}
+                  onChange={(event) => onQuestionChange?.(event.target.value)}
+                  placeholder="مثال: لماذا يتغير الميل هنا؟"
+                  rows={3}
+                  disabled={disabled || isAsking}
+                  data-testid="input-whiteboard-owl-question"
+                />
+                <div className="whiteboard-owl-question-actions">
+                  {onToggleVoice && (
+                    <button
+                      type="button"
+                      className={isListening ? 'is-listening' : ''}
+                      onClick={onToggleVoice}
+                      disabled={disabled || isAsking}
+                      aria-label={isListening ? 'إيقاف الإملاء الصوتي' : 'إملاء السؤال صوتيًا'}
+                    >
+                      {isListening ? <MicOff size={14} /> : <Mic size={14} />}
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={disabled || isAsking || !question.trim()}
+                    data-testid="button-submit-whiteboard-owl-question"
+                  >
+                    {isAsking ? <LoaderCircle size={14} className="lesson-spin-icon" /> : <Send size={14} />}
+                    <span>{isAsking ? 'يفكر...' : 'اسأل فهيم'}</span>
+                  </button>
+                </div>
+              </form>
+            ) : onAsk ? (
               <button
                 type="button"
                 className="whiteboard-owl-ask"
@@ -246,7 +363,10 @@ export function WhiteboardOwlCopilot({
                 <span>{actionLabel}</span>
                 <ArrowUpRight size={15} aria-hidden="true" />
               </button>
-            )}
+            ) : null}
+
+            {error && <p className="whiteboard-owl-error" role="alert">{error}</p>}
+            {answer && <div className="whiteboard-owl-answer" role="status"><strong>الإجابة</strong><p>{answer}</p></div>}
 
             <footer className="whiteboard-owl-panel-footer">
               <span><Mic size={12} aria-hidden="true" /> يدعم السؤال الصوتي</span>
