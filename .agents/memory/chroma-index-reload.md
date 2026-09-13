@@ -8,3 +8,9 @@ When an imported knowledge catalog reports indexed sources but the persistent Ch
 **Why:** The catalog can survive an import independently from the ignored persistent vector directory, and a long-running Chroma process can retain stale HNSW readers after an external index job changes the files.
 
 **How to apply:** Treat catalog status as browse metadata only; confirm collection count and run a real vector query after indexing and service restart. Keep strict agent readiness blocked until both checks succeed.
+
+The full Tawjeeh preview startup may rewrite `knowledge_base/catalog.json` with a new timestamp and newly discovered excluded media entries. Treat that as generated runtime state, not as part of unrelated UI changes.
+
+**Why:** Preview startup runs the asset indexing guard even when the UI-only change does not touch educational assets, which can otherwise create noisy unrelated diffs.
+
+**How to apply:** After restarting the full preview for a UI change, inspect the catalog diff and restore generated-only changes before delivery unless asset ingestion was intentional.

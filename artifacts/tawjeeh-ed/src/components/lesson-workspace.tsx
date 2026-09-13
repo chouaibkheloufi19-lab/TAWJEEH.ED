@@ -2114,25 +2114,16 @@ export function LessonWorkspace() {
         </div>
       </header>
 
-      <div className="lesson-sync-strip" role="status" data-testid="status-live-sync">
-        <span className={summarySaveState === 'error' ? 'is-error' : summarySaveState === 'saving' ? 'is-saving' : ''}>
-          <CheckCircle2 size={14} />
-          {summarySaveState === 'error' ? 'تحتاج المزامنة إلى إعادة المحاولة' : summarySaveState === 'saving' ? 'تُحفظ التغييرات الآن' : 'المزامنة الحية مفعّلة'}
-        </span>
-        <strong>السبورة ↔ بنك الملخصات</strong>
-        <small>{whiteboardAssets.length} عناصر محفوظة · {Object.keys(session.flowNotes).length} خطوات موثقة · كل تغيير يُربط تلقائيًا</small>
-      </div>
-
        <div className={`lesson-evaluation-banner ${phase4Active ? 'is-handed-off' : ''}`} role="status" data-testid="card-evaluation-plan">
         <div>
             <span className="lesson-panel-kicker"><Sparkles size={13} /> {phase4Active ? 'اكتملت المرحلة التأسيسية' : 'محتوى الدرس جاهز'}</span>
-            <strong>{phase4Active ? 'تابع الشرح والتطبيق بتركيز' : 'ابدأ الدراسة الآن'}</strong>
-            <p>{phase4Active ? 'يمكنك متابعة الشرح مع دليل ثم الانتقال إلى التمارين لتثبيت ما تعلمته.' : 'شرح وتمارين مرتبطة بدرس قوانين نيوتن والحركة، دون عناوين تقنية تربك مسارك.'}</p>
+            <strong>{phase4Active ? 'ثبت فهمك ثم طبّق' : 'شرح موثوق يتكيف معك'}</strong>
+            <p>{phase4Active ? 'تابع الشرح مع دليل ثم انتقل إلى تمرين قصير يثبت ما تعلمته.' : 'يبدأ الدرس من مصادر المنهاج، ثم يغيّر مستوى الشرح والتمرين حسب إجابتك.'}</p>
         </div>
          <div className="lesson-evaluation-meta">
-            <span>{phase4Active ? 'المرحلة التالية' : 'الحالة: دراسة مباشرة'}</span>
-            <strong>{phase4Active ? 'شرح + تمارين' : 'المحتوى الدراسي'}</strong>
-             <small>{phase4Active ? `اكتمل ${formatSessionTime(session.concludedAt ?? session.startedAt)}` : `${evaluationPlan.windowLabel} · الوقت مفتوح`}</small>
+            <span>{phase4Active ? 'المرحلة التالية' : 'مصادر المنهاج'}</span>
+            <strong>{phase4Active ? 'شرح + تمرين' : 'مراجع موثقة'}</strong>
+             <small>{phase4Active ? `اكتمل ${formatSessionTime(session.concludedAt ?? session.startedAt)}` : `${knowledgeCards.length || foundationalSources.length} مصادر مرتبطة`}</small>
         </div>
       </div>
 
@@ -2217,17 +2208,6 @@ export function LessonWorkspace() {
             })}
           </div>
            <div className="lesson-path-note"><Lightbulb size={15} /><span>اتبع الخطوات بالترتيب، وتنتقل السبورة معك تلقائيًا.</span></div>
-           <div className="lesson-activity-log" aria-label="سجل نشاط سير العناصر" data-testid="panel-activity-log">
-             <div className="lesson-activity-log-heading"><span><MessageCircle size={13} /> ما يُدوّن على سير العناصر</span><small>يتحدّث مع كل خطوة</small></div>
-             <div className="lesson-activity-log-list">
-               {lessonSections.map((section) => (
-                 <div className={`lesson-activity-log-item ${section.id === activeSection.id ? 'is-active' : ''}`} key={section.id}>
-                   <span>{section.label}</span>
-                   <p>{session.flowNotes[section.id] || 'بانتظار أول تفاعل في هذه الخطوة.'}</p>
-                 </div>
-               ))}
-             </div>
-           </div>
         </aside>
 
           <section className="lesson-panel lesson-conversation-panel" aria-label={handoffComplete ? 'الطبقة الثانية: التواصل مع شركاء التعلّم' : 'الطبقة الثانية: حديثك مع فهيم'} data-layer="ai-conversation">
@@ -2421,11 +2401,6 @@ export function LessonWorkspace() {
                <button type="button" onClick={() => void generateLesson()} data-testid="button-retry-lesson-generation">إعادة المحاولة</button>
              </div>
            )}
-           <div className="lesson-explanation">
-            <span className="lesson-explanation-label">فكرة مركزيّة</span>
-             <p>{displayedExplanation.replace(`${displayedHighlight} `, '')} <button type="button" className={`lesson-highlight-part ${highlightedPart === displayedHighlight ? 'is-selected' : ''}`} onClick={() => { pauseNarration(); setHighlightedPart(displayedHighlight); }} aria-pressed={highlightedPart === displayedHighlight} data-testid="button-highlight-concept">{displayedHighlight}</button></p>
-              <button type="button" className="lesson-ask-highlight" onClick={() => { if (highlightedPart) void (handoffComplete ? askPartner(`اشرح لي الجزء المحدد: ${highlightedPart}`) : askFahim(`اشرح لي الجزء المحدد: ${highlightedPart}`)); }} disabled={!lessonToolsActive || !highlightedPart} data-testid="button-ask-highlighted"><Highlighter size={13} /> اسأل عن الجزء المحدد</button>
-          </div>
           <div className="lesson-whiteboard-wrap">
             <div className="lesson-whiteboard-toolbar">
                   <span className="lesson-toolbar-copy"><BarChart3 size={14} /><span><strong>السبورة الرئيسية</strong><small>حدّد أي فكرة غير واضحة ليساعدك فهيم</small></span></span>
@@ -2549,7 +2524,6 @@ export function LessonWorkspace() {
                 <button type="button" className="lesson-play-button" onClick={toggleNarration} disabled={!lessonToolsActive} aria-label={isPlaying ? 'إيقاف الشرح الصوتي' : 'تشغيل الشرح الصوتي'} data-testid="button-toggle-narration">{isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
                  <div className="lesson-narration-copy"><strong>{isPlaying ? `${handoffComplete ? activePartnerDetails.name : 'فهيم'} يشرح لك بالصوت...` : 'الشرح الصوتي جاهز'}</strong><span>{isPlaying ? narrationText : 'شغّل العرض وصوته، ثم أوقفه واسأل عن أي لحظة.'}</span><div className="lesson-narration-progress"><span style={{ width: `${narrationProgress}%` }} /></div></div>
             </div>
-              <form className={`lesson-board-question ${!lessonToolsActive || chatCircuitOpen ? 'is-disabled' : ''}`} onSubmit={(event) => { event.preventDefault(); void (handoffComplete ? askPartner(question || `ساعدني في فهم ${activeSection.label}`) : askFahim(question || `ساعدني في فهم ${activeSection.label}`)); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!lessonToolsActive || chatCircuitOpen} placeholder={handoffComplete ? `اكتب إلى ${activePartnerDetails.name} عن اللوح` : faheemActive ? 'اسأل فهيم عن اللوح' : 'اكتمل التسليم إلى الشريكين'} aria-label={`سؤال ${handoffComplete ? activePartnerDetails.name : 'فهيم'} عن اللوح`} data-testid="input-board-question" /><button type="submit" disabled={!lessonToolsActive || chatCircuitOpen} aria-label="إرسال سؤال اللوح" data-testid="button-send-board-question"><MessageCircle size={15} /></button></form>
           </div>
           <div className="lesson-examples">
              <div className="lesson-examples-heading">

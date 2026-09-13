@@ -289,7 +289,7 @@ function Shell({ children, title }: { children: ReactNode; title: string }) {
         </div>
       </main>
       <NavLinks mobile />
-      <DynamicOwlCopilot initialAgent={initialAgent} />
+      {!isLessonShell && <DynamicOwlCopilot initialAgent={initialAgent} />}
     </div>
   );
 }
