@@ -416,6 +416,8 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     req.log.error({ error: errorMessage }, "Lesson generation failed");
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
       ? "لم يتم ربط مزود الذكاء الاصطناعي بعد."
+      : errorMessage.includes("DeepSeek provider responded with 402")
+        ? "رصيد DeepSeek غير كافٍ حاليًا. أضف رصيدًا إلى حساب DeepSeek ثم أعد المحاولة."
       : errorMessage.startsWith("Lesson generator responded with")
         ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
         : "تعذر توليد شرح الدرس من المصادر حاليًا. أعد المحاولة بعد قليل.";

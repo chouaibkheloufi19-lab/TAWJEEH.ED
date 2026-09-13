@@ -12,6 +12,8 @@ type ChatCompletionResponse = {
 const CHAT_TIMEOUT_MS = 45_000;
 const XAI_CONNECTOR = "xai";
 const DEFAULT_XAI_MODEL = "grok-3-mini";
+const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
 const connectors = new ReplitConnectors();
 let discoveredModel: string | null = null;
 
@@ -54,6 +56,84 @@ function isConnectionError(message: string): boolean {
   return /unauthenticated|no-credentials|not connected|connection|credential|incorrect api key|invalid api key|api key provided/i.test(
     message,
   );
+}
+
+function hasDeepSeekCredentials(): boolean {
+  return Boolean(process.env.DEEPSEEK_API_KEY?.trim());
+}
+
+async function callDeepSeekApi(
+  messages: ChatMessage[],
+  options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
+): Promise<string> {
+  const apiKey = process.env.DEEPSEEK_API_KEY?.trim();
+  if (!apiKey) {
+    throw new DeepSeekProviderError("DEEPSEEK_API_KEY is not configured", {
+      status: 401,
+    });
+  }
+
+  let response: Response;
+  try {
+    response = await withTimeout(
+      fetch(DEEPSEEK_API_URL, {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${apiKey}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: process.env.DEEPSEEK_MODEL?.trim() || DEFAULT_DEEPSEEK_MODEL,
+          temperature: options.temperature,
+          max_tokens: options.maxOutputTokens,
+          messages,
+          ...(options.jsonMode ? { response_format: { type: "json_object" } } : {}),
+        }),
+      }),
+      CHAT_TIMEOUT_MS,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new DeepSeekProviderError(
+      isConnectionError(message) ? "DEEPSEEK_CONNECTION_NOT_CONFIGURED" : `DeepSeek request failed: ${message}`,
+      {
+        retryable: !isConnectionError(message),
+        status: isConnectionError(message) ? 401 : undefined,
+      },
+    );
+  }
+
+  if (!response.ok) {
+    const providerError = await readProviderError(response);
+    throw new DeepSeekProviderError(
+      response.status === 401 || response.status === 403 || isConnectionError(providerError)
+        ? "DEEPSEEK_CONNECTION_NOT_CONFIGURED"
+        : `DeepSeek provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
+      {
+        status: response.status,
+        retryable: response.status === 408 || response.status === 429 || response.status >= 500,
+      },
+    );
+  }
+
+  let payload: ChatCompletionResponse;
+  try {
+    payload = (await response.json()) as ChatCompletionResponse;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new DeepSeekProviderError(`DeepSeek provider returned invalid JSON: ${message}`, {
+      status: response.status,
+      retryable: true,
+    });
+  }
+  const content = payload.choices?.[0]?.message?.content;
+  if (typeof content !== "string" || !content.trim()) {
+    throw new DeepSeekProviderError("DeepSeek provider returned no content", {
+      status: response.status,
+      retryable: true,
+    });
+  }
+  return content.trim();
 }
 
 async function discoverXaiModel(): Promise<string> {
@@ -131,6 +211,10 @@ export async function callDeepSeekTextModel(
   messages: ChatMessage[],
   options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
 ): Promise<string> {
+  if (hasDeepSeekCredentials()) {
+    return callDeepSeekApi(messages, options);
+  }
+
   const model = await discoverXaiModel();
   let response: Response;
   try {
