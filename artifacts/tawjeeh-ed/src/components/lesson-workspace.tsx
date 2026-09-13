@@ -509,7 +509,8 @@ function normalizeAnswer(value: string) {
     .trim();
 }
 
-function saveSummaryToProfile(summary: LocalSummary) {
+function saveOfficialSummaryToProfile(summary: LocalSummary) {
+  if (!summary.officialStampApplied || summary.progress < 100) return;
   try {
     const profile = JSON.parse(window.localStorage.getItem(profileKey) || '{}') as { summaryBank?: LocalSummary[] };
     const bank = Array.isArray(profile.summaryBank) ? profile.summaryBank : [];
@@ -842,7 +843,12 @@ export function LessonWorkspace() {
   });
 
   const syncSummary = (summary: LocalSummary, state: 'saving' | 'saved' | 'error' = 'saving') => {
-    saveSummaryToProfile(summary);
+    if (!summary.officialStampApplied || summary.progress < 100) {
+      setSummaryPreview(summary);
+      setSummarySaveState('error');
+      return;
+    }
+    saveOfficialSummaryToProfile(summary);
     setSummaryPreview(summary);
     setSummarySaveState(state);
     completeLessonMutation.mutate({
@@ -852,6 +858,7 @@ export function LessonWorkspace() {
         lesson_title: summary.lessonTitle,
         subject: summary.subject,
         summary: summary.summary,
+        mastery: summary.progress,
         whiteboard_assets: summary.whiteboard_assets,
         grounding_query: summary.groundingQuery,
         grounding_node_ids: summary.groundingNodeIds,
@@ -873,7 +880,6 @@ export function LessonWorkspace() {
   };
 
   const previewLocalSummary = (summary: LocalSummary) => {
-    saveSummaryToProfile(summary);
     setSummaryPreview(summary);
   };
 
@@ -972,6 +978,11 @@ export function LessonWorkspace() {
     retry = false,
   ) => {
     if (retry && !session.concludedAt) return;
+    if (!masteredDaleelSummary?.official_stamp_applied || progress < 100) {
+      setSummaryPreview(buildSessionSummary(new Date().toISOString(), masteredDaleelSummary));
+      setSummarySaveState('error');
+      return;
+    }
     if (!ragReady) {
       setSummarySaveState('error');
       return;
@@ -1540,6 +1551,29 @@ export function LessonWorkspace() {
     return daleel;
   };
 
+  const requestOfficialSummary = async () => {
+    if (progress < 100 || !ragReady || session.concludedAt) return;
+    setSummarySaveState('saving');
+    try {
+      const daleel = await requestDaleel(
+        'أتممت خطوات الدرس. أنشئ الآن ملخصًا رسميًا مكثفًا يحمل ختم Tawjeeh.ed.',
+        null,
+        true,
+      );
+      if (!daleel.summary_data.official_stamp_applied) {
+        throw new Error('لم يكتمل الختم الرسمي للملخص.');
+      }
+      concludeSession(daleel.summary_data);
+    } catch {
+      setSummarySaveState('error');
+      setMessages((current) => [...current, {
+        id: `daleel-summary-retry-${Date.now()}`,
+        role: 'assistant',
+        text: 'اكتمل إتقانك للدرس، لكن الملخص الرسمي يحتاج إلى إعادة المحاولة. سيبقى الدرس مفتوحًا حتى يُحفظ بالختم.',
+      }]);
+    }
+  };
+
   const askPartner = async (text: string, selection: WhiteboardSelection | null = boardSelection) => {
     if (chatCircuitOpen) return;
     if (!handoffComplete) {
@@ -2059,7 +2093,7 @@ export function LessonWorkspace() {
           </div>
           {!session.concludedAt && (
             <div className="lesson-conclude-wrap">
-              <button type="button" className="lesson-conclude-button" onClick={() => concludeSession()} disabled={!evaluationComplete || !ragReady} data-testid="button-conclude-lesson">
+                <button type="button" className="lesson-conclude-button" onClick={() => void requestOfficialSummary()} disabled={!evaluationComplete || !ragReady || summarySaveState === 'saving'} data-testid="button-conclude-lesson">
               <CheckCircle2 size={14} /> إنهاء وحفظ الملخص
               </button>
               {evaluationBlocker && <span className="lesson-evaluation-blocker">{evaluationBlocker}</span>}
@@ -2826,7 +2860,7 @@ export function LessonWorkspace() {
              <button type="button" className="lesson-save-note" onClick={() => { try { window.localStorage.setItem(sessionKey, JSON.stringify({ ...session, attachment: null })); setNoteStatus('حُفظت الملاحظة'); } catch { setNoteStatus('تعذر حفظ الملاحظة'); } }} data-testid="button-save-lesson-note"><Save size={12} /> حفظ الملاحظة</button>
               {(session.concludedAt || summarySaveState !== 'idle') && <div className="lesson-summary-status" role="status" data-testid="status-summary-bank">
                 <span>{summarySaveState === 'saved' ? 'حُفظ الملخص في ملفك وبنك الملخصات.' : summarySaveState === 'saving' ? 'نحفظ ملخص الجلسة في ملفك...' : summarySaveState === 'error' ? 'حُفظ محليًا، وتعذر مزامنة بنك الملخصات.' : 'سيُحفظ ملخص الجلسة تلقائيًا.'}</span>
-                {summarySaveState === 'error' && <button type="button" onClick={() => concludeSession(undefined, true)}>إعادة المزامنة</button>}
+                 {summarySaveState === 'error' && <button type="button" onClick={() => void requestOfficialSummary()}>إعادة المزامنة</button>}
              </div>}
              {summaryPreview && <div className="lesson-summary-card" data-testid="card-session-summary">
                <div className="lesson-summary-card-header">

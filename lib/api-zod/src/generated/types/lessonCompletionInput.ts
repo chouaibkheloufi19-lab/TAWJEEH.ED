@@ -17,7 +17,7 @@ export interface LessonCompletionInput {
      * @minimum 0
      * @maximum 100
      */
-  mastery?: number;
+  mastery: number;
   /** @minItems 1 */
   concepts: SummaryConcept[];
   whiteboard_assets: WhiteboardAsset[];

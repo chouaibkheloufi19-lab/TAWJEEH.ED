@@ -239,6 +239,16 @@ router.post("/learning/lessons/:lessonId/complete", async (req, res): Promise<vo
     res.status(400).json({ error });
     return;
   }
+  if (
+    body.data.mastery !== 100
+    || body.data.concepts.some((concept) => (concept.mastery ?? 0) < 100)
+  ) {
+    res.status(409).json({
+      error: "lesson_not_mastered",
+      message: "لا يمكن حفظ الملخص الرسمي قبل إتقان جميع مفاهيم الدرس.",
+    });
+    return;
+  }
   try {
     const retrieval = await retrieveGroundedKnowledge(body.data.grounding_query, { nResults: 12 });
     const groundingNodeIds = assertGroundedNodeIds(body.data.grounding_node_ids, retrieval);

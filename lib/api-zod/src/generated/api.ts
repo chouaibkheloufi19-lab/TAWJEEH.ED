@@ -342,7 +342,7 @@ export const CompleteLessonBody = zod.object({
   "lesson_title": zod.string(),
   "subject": zod.string(),
   "summary": zod.string(),
-  "mastery": zod.number().min(completeLessonBodyMasteryMin).max(completeLessonBodyMasteryMax).optional(),
+  "mastery": zod.number().min(completeLessonBodyMasteryMin).max(completeLessonBodyMasteryMax),
   "concepts": zod.array(zod.object({
   "id": zod.string(),
   "title": zod.string(),

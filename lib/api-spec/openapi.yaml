@@ -698,7 +698,7 @@ components:
           type: string
     LessonCompletionInput:
       type: object
-      required: [lesson_id, lesson_title, subject, summary, concepts, whiteboard_assets, grounding_query, grounding_node_ids]
+      required: [lesson_id, lesson_title, subject, summary, mastery, concepts, whiteboard_assets, grounding_query, grounding_node_ids]
       properties:
         lesson_id:
           type: string

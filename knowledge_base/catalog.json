@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-09-13T09:08:25.703064+00:00",
+  "generated_at": "2026-09-13T10:35:21.114539+00:00",
   "assets_root": "attached_assets",
   "stats": {
     "needs_review": 288,
     "indexed": 52,
-    "excluded_media": 9,
+    "excluded_media": 10,
     "duplicate_source": 51,
     "excluded_reference": 1,
-    "total_assets": 401,
+    "total_assets": 402,
     "indexed_chunks": 685
   },
   "sources": [
@@ -12161,6 +12161,14 @@
         "reference"
       ],
       "indexed_source_hash": "7baf53577def5f2ccdd1ec337be757e2301d0654673f833024f6ccbf29efd694"
+    },
+    {
+      "source_id": "699afcf70dbe207ad36316cc7f3710988bea16618691018c8b40c38bf1d11dc6",
+      "source_file": "Screen_Recording_2026-09-13_112425_1789295637556.mp4",
+      "asset_path": "attached_assets/Screen_Recording_2026-09-13_112425_1789295637556.mp4",
+      "source_type": "mp4",
+      "status": "excluded_media",
+      "reason": "غير مخصص للفهرسة التعليمية"
     },
     {
       "source_id": "fb11f53e35661e9c922d7e98963e4fa7e9d5d90cb79263b6da37d00688e0d8d7",
