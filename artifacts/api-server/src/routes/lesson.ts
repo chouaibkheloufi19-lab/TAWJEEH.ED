@@ -414,8 +414,8 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Lesson generation failed");
-    const message = errorMessage.includes("DEEPSEEK_API_KEY")
-      ? "لم يتم إعداد مزود الذكاء الاصطناعي بعد."
+    const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
+      ? "لم يتم ربط مزود الذكاء الاصطناعي بعد."
       : errorMessage.startsWith("Lesson generator responded with")
         ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
         : "تعذر توليد شرح الدرس من المصادر حاليًا. أعد المحاولة بعد قليل.";
@@ -483,9 +483,9 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Exercise generation failed");
-    const message = errorMessage.includes("DEEPSEEK_API_KEY")
-      ? "لم يتم إعداد مزود الذكاء الاصطناعي بعد."
-      : errorMessage.startsWith("DeepSeek provider responded with")
+    const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
+      ? "لم يتم ربط مزود الذكاء الاصطناعي بعد."
+      : errorMessage.startsWith("xAI provider responded with")
         ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
         : mode === "creative_topic"
           ? "تعذر الاتصال بخدمة التعلّم الآن."

@@ -371,8 +371,8 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
     req.log.error({ error: errorMessage }, "Grounded exam generation failed");
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error: error instanceof KnowledgeGroundingError ? error.code : "exam_generation_failed",
-      message: errorMessage.includes("DEEPSEEK_API_KEY")
-        ? "لم يتم إعداد مزود الذكاء الاصطناعي بعد."
+      message: errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
+        ? "لم يتم ربط مزود الذكاء الاصطناعي بعد."
         : error instanceof KnowledgeGroundingError
           ? "لا يمكن اعتماد موضوع قبل نجاح استرجاع مصادر المنهاج."
           : "تعذر توليد الموضوع ودليل التصحيح من المصادر حاليًا. أعد المحاولة.",

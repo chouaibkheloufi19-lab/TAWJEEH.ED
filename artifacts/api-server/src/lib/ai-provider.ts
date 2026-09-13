@@ -1,3 +1,5 @@
+import { ReplitConnectors } from "@replit/connectors-sdk";
+
 export type ChatMessage = {
   role: "system" | "user" | "assistant";
   content: string;
@@ -8,8 +10,10 @@ type ChatCompletionResponse = {
 };
 
 const CHAT_TIMEOUT_MS = 45_000;
-const DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com";
-const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
+const XAI_CONNECTOR = "xai";
+const DEFAULT_XAI_MODEL = "grok-3-mini";
+const connectors = new ReplitConnectors();
+let discoveredModel: string | null = null;
 
 export class DeepSeekProviderError extends Error {
   readonly status?: number;
@@ -26,7 +30,7 @@ export class DeepSeekProviderError extends Error {
 function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
-      reject(new Error(`DeepSeek request timed out after ${milliseconds}ms`));
+      reject(new Error(`xAI request timed out after ${milliseconds}ms`));
     }, milliseconds);
     promise.then(
       (value) => {
@@ -46,27 +50,94 @@ async function readProviderError(response: Response): Promise<string> {
   return body.replace(/\s+/g, " ").trim().slice(0, 320);
 }
 
+function isConnectionError(message: string): boolean {
+  return /unauthenticated|no-credentials|not connected|connection|credential|incorrect api key|invalid api key|api key provided/i.test(
+    message,
+  );
+}
+
+async function discoverXaiModel(): Promise<string> {
+  const configuredModel =
+    process.env.XAI_MODEL?.trim() || process.env.GROK_TEXT_MODEL?.trim();
+  if (configuredModel) return configuredModel;
+  if (discoveredModel) return discoveredModel;
+
+  let response: Response;
+  try {
+    response = await withTimeout(
+      connectors.proxy(XAI_CONNECTOR, "/v1/language-models", {
+        method: "GET",
+      }),
+      CHAT_TIMEOUT_MS,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new DeepSeekProviderError(
+      isConnectionError(message) ? "XAI_CONNECTION_NOT_CONFIGURED" : `xAI model discovery failed: ${message}`,
+      { retryable: !isConnectionError(message), status: isConnectionError(message) ? 401 : undefined },
+    );
+  }
+
+  if (!response.ok) {
+    const providerError = await readProviderError(response);
+    if (response.status === 401 || response.status === 403 || isConnectionError(providerError)) {
+      throw new DeepSeekProviderError("XAI_CONNECTION_NOT_CONFIGURED", {
+        status: response.status,
+      });
+    }
+    throw new DeepSeekProviderError(
+      `xAI model discovery responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
+      {
+        status: response.status,
+        retryable: response.status === 408 || response.status === 429 || response.status >= 500,
+      },
+    );
+  }
+
+  const payload = (await response.json()) as {
+    models?: Array<{
+      id?: unknown;
+      input_modalities?: unknown;
+      output_modalities?: unknown;
+    }>;
+  };
+  const models = Array.isArray(payload.models) ? payload.models : [];
+  const textModels = models
+    .filter((model) => {
+      const id = typeof model.id === "string" ? model.id : "";
+      const inputModalities = Array.isArray(model.input_modalities)
+        ? model.input_modalities
+        : [];
+      const outputModalities = Array.isArray(model.output_modalities)
+        ? model.output_modalities
+        : [];
+      return (
+        id.length > 0 &&
+        !/image|video|embedding/i.test(id) &&
+        (inputModalities.length === 0 || inputModalities.includes("text")) &&
+        (outputModalities.length === 0 || outputModalities.includes("text"))
+      );
+    })
+    .map((model) => model.id as string);
+  const selectedModel =
+    textModels.find((model) => /grok-3-mini|grok-4/i.test(model)) ||
+    textModels[0] ||
+    DEFAULT_XAI_MODEL;
+  discoveredModel = selectedModel;
+  return selectedModel;
+}
+
 export async function callDeepSeekTextModel(
   messages: ChatMessage[],
   options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
 ): Promise<string> {
-  const apiKey = process.env.DEEPSEEK_API_KEY?.trim();
-  if (!apiKey) {
-    throw new DeepSeekProviderError("DEEPSEEK_API_KEY is not configured");
-  }
-  const baseUrl = (
-    process.env.DEEPSEEK_BASE_URL?.trim() || DEFAULT_DEEPSEEK_BASE_URL
-  ).replace(/\/$/, "");
-  const model = process.env.DEEPSEEK_MODEL?.trim() || DEFAULT_DEEPSEEK_MODEL;
+  const model = await discoverXaiModel();
   let response: Response;
   try {
     response = await withTimeout(
-      fetch(`${baseUrl}/chat/completions`, {
+      connectors.proxy(XAI_CONNECTOR, "/v1/chat/completions", {
         method: "POST",
-        headers: {
-          authorization: `Bearer ${apiKey}`,
-          "content-type": "application/json",
-        },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
           model,
           temperature: options.temperature,
@@ -79,13 +150,21 @@ export async function callDeepSeekTextModel(
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new DeepSeekProviderError(message, { retryable: true });
+    throw new DeepSeekProviderError(
+      isConnectionError(message) ? "XAI_CONNECTION_NOT_CONFIGURED" : `xAI request failed: ${message}`,
+      {
+        retryable: !isConnectionError(message),
+        status: isConnectionError(message) ? 401 : undefined,
+      },
+    );
   }
 
   if (!response.ok) {
     const providerError = await readProviderError(response);
     throw new DeepSeekProviderError(
-      `DeepSeek provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
+      response.status === 401 || response.status === 403 || isConnectionError(providerError)
+        ? "XAI_CONNECTION_NOT_CONFIGURED"
+        : `xAI provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
       {
         status: response.status,
         retryable: response.status === 408 || response.status === 429 || response.status >= 500,
@@ -98,14 +177,14 @@ export async function callDeepSeekTextModel(
     payload = (await response.json()) as ChatCompletionResponse;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new DeepSeekProviderError(`DeepSeek provider returned invalid JSON: ${message}`, {
+    throw new DeepSeekProviderError(`xAI provider returned invalid JSON: ${message}`, {
       status: response.status,
       retryable: true,
     });
   }
   const content = payload.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) {
-    throw new DeepSeekProviderError("DeepSeek provider returned no content", {
+    throw new DeepSeekProviderError("xAI provider returned no content", {
       status: response.status,
       retryable: true,
     });
@@ -139,5 +218,5 @@ export async function callDeepSeekTextModelWithRetry(
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error("DeepSeek request failed");
+  throw lastError instanceof Error ? lastError : new Error("xAI request failed");
 }

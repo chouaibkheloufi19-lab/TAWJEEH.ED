@@ -6,7 +6,7 @@
 - [Learning penalty state](learning-penalty-state.md) — schedule penalties and quiz attempts are persisted server-side with idempotent penalty keys.
 - [Knowledge filter aliases](knowledge-filter-aliases.md) — normalize learner-facing subject and year labels at the service boundary before retrieval.
 - [Chroma index reload](chroma-index-reload.md) — rebuild and restart the knowledge service before trusting imported vector readiness.
-- [DeepSeek topic generation](deepseek-topic-generation.md) — structured educational generation uses server-side DeepSeek JSON responses, not a silent provider fallback.
+- [xAI topic generation](deepseek-topic-generation.md) — structured educational generation uses the server-side Replit xAI connector and JSON responses.
 - [Lesson UI cascade](lesson-ui-cascade.md) — final lesson board overrides must come after legacy stylesheet blocks.
 - [Quiz session persistence](quiz-session-persistence.md) — shared weekly quizzes must be database-backed and keyed by quiz type, unit, and ISO week.
 - [Official Daleel summaries](official-daleel-summaries.md) — keep lesson drafts local until mastery, then persist only the stamped summary.

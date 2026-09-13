@@ -17,12 +17,12 @@ function errorResponse(error: unknown): {
   body: { error: string; message: string; retryable?: boolean };
 } {
   if (error instanceof DeepSeekProviderError) {
-    if (error.message.includes("DEEPSEEK_API_KEY")) {
+    if (error.message.includes("XAI_CONNECTION_NOT_CONFIGURED")) {
       return {
         status: 503,
         body: {
-          error: "ai_service_not_configured",
-          message: "لم يتم إعداد مزود الذكاء الاصطناعي بعد.",
+          error: "ai_connection_not_configured",
+          message: "لم يتم ربط مزود الذكاء الاصطناعي بعد.",
         },
       };
     }
