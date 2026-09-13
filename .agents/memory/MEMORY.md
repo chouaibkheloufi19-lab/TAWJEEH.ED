@@ -10,3 +10,4 @@
 - [Lesson UI cascade](lesson-ui-cascade.md) — final lesson board overrides must come after legacy stylesheet blocks.
 - [Quiz session persistence](quiz-session-persistence.md) — shared weekly quizzes must be database-backed and keyed by quiz type, unit, and ISO week.
 - [Official Daleel summaries](official-daleel-summaries.md) — keep lesson drafts local until mastery, then persist only the stamped summary.
+- [Fixed-port workflow coexistence](workflow-port-coexistence.md) — do not run the full-stack launcher alongside artifact services that already own its fixed ports.

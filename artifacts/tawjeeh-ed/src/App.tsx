@@ -79,6 +79,7 @@ import { ExamBoard } from '@/components/exam-board';
 import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/phase-one';
 import { ProgramAgent } from '@/components/program-agent';
 import { DynamicOwlCopilot } from '@/components/DynamicOwlCopilot';
+import { ReviewStudio } from '@/components/review-studio';
 import type { OwlAgentId } from '@/config/owlAgents';
 import { fetchWithTimeout } from '@/lib/request';
 import { ClerkAuthBridge, MockAuthProvider, useAppAuth, useAppClerk, useAppUser } from '@/lib/app-auth';
@@ -162,6 +163,7 @@ const clerkAppearance = {
 const navItems = [
   { href: '/profile', label: 'الصفحة الشخصية', icon: UserRound },
   { href: '/program', label: 'تبويب التفاعل', icon: MessageCircle },
+  { href: '/review-studio', label: 'استوديو المراجعة', icon: Sparkles },
   { href: '/quizzes', label: 'تبويب الكويزات والنقاط', icon: Trophy },
 ];
 
@@ -278,6 +280,8 @@ function Shell({ children, title }: { children: ReactNode; title: string }) {
       ? 'PRACTICE'
       : title === 'المعرفة'
         ? 'DALEEL'
+        : title === 'استوديو المراجعة'
+          ? 'PRACTICE'
         : 'WELCOME';
   return (
     <div className={`app-shell noise ${isLessonShell ? 'lesson-shell' : ''}`}>
@@ -1339,6 +1343,7 @@ function Router() {
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/profile" component={() => <ProtectedRoute><ProfilePage /></ProtectedRoute>} />
          <Route path="/program" component={() => <ProtectedRoute><Shell title="التفاعل"><ProgramAgent /></Shell></ProtectedRoute>} />
+        <Route path="/review-studio" component={() => <ProtectedRoute><Shell title="استوديو المراجعة"><ReviewStudio /></Shell></ProtectedRoute>} />
         <Route path="/lesson/:id" component={() => <ProtectedRoute><ProgramLessonRoute /></ProtectedRoute>} />
         <Route path="/library" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
         <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
