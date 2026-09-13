@@ -400,6 +400,63 @@
   line-height: 1.75;
 }
 
+.review-studio-grounding {
+  margin-top: 18px;
+  padding: 13px 14px;
+  border: 1px solid #dcefeb;
+  border-radius: 12px;
+  background: #f7fcfb;
+}
+
+.review-studio-grounding-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #176e6c;
+  font-size: 11px;
+}
+
+.review-studio-grounding-heading span {
+  margin-inline-start: auto;
+  color: #789395;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.review-studio-grounding ul {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-studio-grounding li {
+  padding: 8px 9px;
+  border: 1px solid #e4f0ee;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.review-studio-grounding li > span {
+  color: #356a6d;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.review-studio-grounding li small {
+  margin-inline-start: 7px;
+  color: #8a9fa0;
+  font-size: 9px;
+}
+
+.review-studio-grounding li p {
+  margin: 4px 0 0;
+  color: #718a8d;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
 .review-studio-alert {
   display: flex;
   align-items: flex-start;

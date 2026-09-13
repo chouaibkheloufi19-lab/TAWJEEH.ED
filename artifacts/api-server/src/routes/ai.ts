@@ -9,6 +9,7 @@ import {
   normalizeDaleelRequest,
 } from "../lib/ai-engine";
 import { DeepSeekProviderError } from "../lib/ai-provider";
+import { KnowledgeGroundingError } from "../lib/rag";
 
 const router: IRouter = Router();
 
@@ -42,6 +43,15 @@ function errorResponse(error: unknown): {
         error: error.code,
         message: "أعاد النموذج نتيجة غير مكتملة. أعد المحاولة بعد قليل.",
         retryable: true,
+      },
+    };
+  }
+  if (error instanceof KnowledgeGroundingError) {
+    return {
+      status: 424,
+      body: {
+        error: error.code,
+        message: "لا يمكن توليد المحتوى قبل العثور على مقاطع مصدرية في قاعدة ChromaDB.",
       },
     };
   }

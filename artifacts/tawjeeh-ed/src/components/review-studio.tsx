@@ -27,6 +27,7 @@ export type ExplanationResult = {
   explanation_sections: ExplanationSection[];
   key_points: string[];
   examples: string[];
+  grounding: Grounding;
 };
 
 export type ExerciseType = 'mcq' | 'true_false' | 'practical';
@@ -44,6 +45,22 @@ export type Exercise = {
 export type ExercisesResult = {
   lesson_title: string;
   exercises: Exercise[];
+  grounding: Grounding;
+};
+
+type GroundingSource = {
+  nodeId: string;
+  title: string;
+  source: string;
+  page: number;
+  quote: string;
+};
+
+type Grounding = {
+  status: string;
+  query: string;
+  retrievedNodeIds: string[];
+  sources: GroundingSource[];
 };
 
 type GenerationKind = 'explanation' | 'exercises';
@@ -231,6 +248,7 @@ export function ReviewStudio() {
               <div>
                 <strong>النص الذي تقدّمه هو نقطة البداية</strong>
                 <span>يبني الاستوديو النتيجة من مادة الدرس التي تدخلها أنت.</span>
+                <span>يبحث أولًا في مستندات Tawjeeh المفهرسة داخل ChromaDB.</span>
               </div>
             </div>
             <div>
@@ -397,8 +415,8 @@ export function ReviewStudio() {
             <div className="review-studio-source" data-testid="review-studio-source-attribution">
               <Info size={15} aria-hidden="true" />
               <p>
-                المصدر: محتوى الدرس الذي أدخله المتعلّم. لا تُضاف اقتباسات أو مراجع خارجية
-                إلى هذه المراجعة.
+                 يبدأ البحث من المحتوى الذي أدخله المتعلّم، ثم يثبت النتيجة على مستندات
+                 Tawjeeh المفهرسة داخل ChromaDB.
               </p>
             </div>
           </form>
@@ -465,6 +483,7 @@ export function ReviewStudio() {
                         ))}
                       </div>
                     )}
+                    <GroundingSources grounding={explanation.grounding} />
                   </div>
                 )}
               </div>
@@ -530,6 +549,7 @@ export function ReviewStudio() {
                         </div>
                       </article>
                     ))}
+                    <GroundingSources grounding={exercises.grounding} />
                   </div>
                 )}
               </div>
@@ -538,6 +558,28 @@ export function ReviewStudio() {
         </div>
       </div>
     </main>
+  );
+}
+
+function GroundingSources({ grounding }: { grounding?: Grounding }) {
+  if (!grounding?.sources?.length) return null;
+  return (
+    <aside className="review-studio-grounding" aria-label="المراجع المستخدمة">
+      <div className="review-studio-grounding-heading">
+        <BookOpenText size={15} aria-hidden="true" />
+        <strong>مراجع من مكتبة Tawjeeh</strong>
+        <span>{grounding.sources.length} مقاطع</span>
+      </div>
+      <ul>
+        {grounding.sources.slice(0, 5).map((source) => (
+          <li key={source.nodeId}>
+            <span>{source.source}</span>
+            {source.page > 0 && <small>ص {source.page}</small>}
+            {source.quote && <p>{source.quote}</p>}
+          </li>
+        ))}
+      </ul>
+    </aside>
   );
 }
 

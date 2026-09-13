@@ -9,6 +9,13 @@ import {
   DeepSeekProviderError,
   type ChatMessage,
 } from "./ai-provider";
+import {
+  assertGroundedNodeIds,
+  formatRetrievedContext,
+  KnowledgeGroundingError,
+  retrieveGroundedKnowledge,
+  type RetrievalContext,
+} from "./rag";
 
 const MAX_CONTENT_LENGTH = 50_000;
 const MAX_EXERCISES = 10;
@@ -31,6 +38,8 @@ export type ExplanationResult = {
   explanation_sections: ExplanationSection[];
   key_points: string[];
   examples: string[];
+  sourceNodeIds: string[];
+  grounding: RetrievalContext["grounding"];
 };
 
 export type ExerciseType = "mcq" | "true_false" | "practical";
@@ -56,6 +65,8 @@ export type ExercisesRequest = {
 export type ExercisesResult = {
   lesson_title: string;
   exercises: Exercise[];
+  sourceNodeIds: string[];
+  grounding: RetrievalContext["grounding"];
 };
 
 export type DaleelCanvasCommand = {
@@ -84,6 +95,8 @@ export type DaleelResult = {
   speech_text: string;
   canvas_commands: DaleelCanvasCommand[];
   summary_data: DaleelSummaryData;
+  sourceNodeIds: string[];
+  grounding: RetrievalContext["grounding"];
 };
 
 export class AiEngineError extends Error {
@@ -147,15 +160,31 @@ function asStringArray(value: unknown): string[] {
     : [];
 }
 
-function buildUserContent(request: ExplanationRequest | ExercisesRequest): string {
+function buildUserContent(
+  request: ExplanationRequest | ExercisesRequest,
+  retrieval: RetrievalContext,
+): string {
   return [
     `عنوان الدرس: ${request.lessonTitle}`,
     `مستوى الطالب: ${request.level || "التعليم الثانوي"}`,
-    "ابدأ من المادة الموجودة بين العلامتين فقط:",
-    "<educational_content>",
+    "المحتوى الذي أدخله المتعلم (يُستخدم كإشارة للبحث، وليس كمصدر وحيد):",
+    "<learner_content>",
     request.content,
-    "</educational_content>",
+    "</learner_content>",
+    "المقاطع المصدرية المسترجعة من قاعدة ChromaDB هي المرجع المعتمد للتوليد:",
+    "<chromadb_context>",
+    formatRetrievedContext(retrieval.documents),
+    "</chromadb_context>",
   ].join("\n");
+}
+
+async function retrieveForAi(
+  request: ExplanationRequest | ExercisesRequest,
+): Promise<RetrievalContext> {
+  const query = [request.lessonTitle, request.content.slice(0, 4_000)]
+    .filter(Boolean)
+    .join("\n");
+  return retrieveGroundedKnowledge(query, { nResults: 8 });
 }
 
 async function generateJson<T>(
@@ -178,6 +207,9 @@ async function generateJson<T>(
       return parse(parsed as Record<string, unknown>);
     } catch (error) {
       lastError = error;
+      if (error instanceof KnowledgeGroundingError) {
+        throw error;
+      }
       if (error instanceof DeepSeekProviderError && !error.retryable) {
         throw error;
       }
@@ -194,7 +226,10 @@ async function generateJson<T>(
   );
 }
 
-function parseExplanation(payload: Record<string, unknown>): ExplanationResult {
+function parseExplanation(
+  payload: Record<string, unknown>,
+  retrieval: RetrievalContext,
+): ExplanationResult {
   const lessonTitle = asText(payload.lesson_title);
   const sections = Array.isArray(payload.explanation_sections)
     ? payload.explanation_sections
@@ -218,6 +253,7 @@ function parseExplanation(payload: Record<string, unknown>): ExplanationResult {
     : [];
   const keyPoints = asStringArray(payload.key_points).slice(0, 12);
   const examples = asStringArray(payload.examples).slice(0, 8);
+  const sourceNodeIds = assertGroundedNodeIds(payload.sourceNodeIds, retrieval);
 
   if (!lessonTitle || sections.length < 2 || !keyPoints.length) {
     throw new AiEngineError(
@@ -230,6 +266,8 @@ function parseExplanation(payload: Record<string, unknown>): ExplanationResult {
     explanation_sections: sections,
     key_points: keyPoints,
     examples,
+    sourceNodeIds,
+    grounding: retrieval.grounding,
   };
 }
 
@@ -237,6 +275,7 @@ function parseExercises(
   payload: Record<string, unknown>,
   expectedCount: number,
   allowedTypes: ExerciseType[],
+  retrieval: RetrievalContext,
 ): ExercisesResult {
   const lessonTitle = asText(payload.lesson_title);
   const rawExercises = Array.isArray(payload.exercises) ? payload.exercises : [];
@@ -295,7 +334,12 @@ function parseExercises(
       "invalid_model_output",
     );
   }
-  return { lesson_title: lessonTitle, exercises };
+  return {
+    lesson_title: lessonTitle,
+    exercises,
+    sourceNodeIds: assertGroundedNodeIds(payload.sourceNodeIds, retrieval),
+    grounding: retrieval.grounding,
+  };
 }
 
 function normalizedCoordinate(value: unknown): number | null {
@@ -303,7 +347,11 @@ function normalizedCoordinate(value: unknown): number | null {
   return Number.isFinite(coordinate) && coordinate >= 0 && coordinate <= 1 ? coordinate : null;
 }
 
-function parseDaleel(payload: Record<string, unknown>, mastery: boolean): DaleelResult {
+function parseDaleel(
+  payload: Record<string, unknown>,
+  mastery: boolean,
+  retrieval: RetrievalContext,
+): DaleelResult {
   const speechText = asText(payload.speech_text);
   const commands = Array.isArray(payload.canvas_commands)
     ? payload.canvas_commands
@@ -358,56 +406,71 @@ function parseDaleel(payload: Record<string, unknown>, mastery: boolean): Daleel
       key_takeaways: mastery ? keyTakeaways : [],
       official_stamp_applied: mastery && officialStampApplied,
     },
+    sourceNodeIds: assertGroundedNodeIds(payload.sourceNodeIds, retrieval),
+    grounding: retrieval.grounding,
   };
 }
 
 export async function generateExplanation(
   request: ExplanationRequest,
 ): Promise<ExplanationResult> {
+  const retrieval = await retrieveForAi(request);
   const messages: ChatMessage[] = [
     {
       role: "system",
-      content: [EXPLANATION_ENGINE_PROMPT, LEARNER_SAFE_OUTPUT_RULES].join("\n\n"),
+      content: [
+        EXPLANATION_ENGINE_PROMPT,
+        LEARNER_SAFE_OUTPUT_RULES,
+        "اعتمد على مقاطع ChromaDB المصدرية فقط. لا تضف معلومة لا تثبتها هذه المقاطع.",
+      ].join("\n\n"),
     },
     {
       role: "user",
       content: [
-        buildUserContent(request),
-        'أعد الشكل التالي فقط: {"lesson_title":"...","explanation_sections":[{"title":"...","content":"...","key_points":["..."],"example":"..."}],"key_points":["..."],"examples":["..."]}',
+        buildUserContent(request, retrieval),
+        'أعد الشكل التالي فقط، واختر sourceNodeIds من المعرّفات الظاهرة في chromadb_context: {"lesson_title":"...","explanation_sections":[{"title":"...","content":"...","key_points":["..."],"example":"..."}],"key_points":["..."],"examples":["..."],"sourceNodeIds":["node-id"]}',
       ].join("\n\n"),
     },
   ];
-  return generateJson(messages, "Explanation engine", parseExplanation);
+  return generateJson(messages, "Explanation engine", (payload) => parseExplanation(payload, retrieval));
 }
 
 export async function generateExercises(
   request: ExercisesRequest,
 ): Promise<ExercisesResult> {
+  const retrieval = await retrieveForAi(request);
   const messages: ChatMessage[] = [
     {
       role: "system",
       content: [
         INTERACTIVE_EXERCISES_PROMPT,
         LEARNER_SAFE_OUTPUT_RULES,
+        "اعتمد على مقاطع ChromaDB المصدرية فقط. لا تضف قانونًا أو رقمًا أو مثالًا لا تثبته هذه المقاطع.",
         `أنشئ ${request.exerciseCount} تمارين بالضبط. الأنواع المسموح بها: ${request.exerciseTypes.join(", ")}. غطِّ هذه الأنواع بالتوازن قدر الإمكان، ولا تستخدم نوعًا خارجها.`,
       ].join("\n\n"),
     },
     {
       role: "user",
       content: [
-        buildUserContent(request),
-        'أعد الشكل التالي فقط: {"lesson_title":"...","exercises":[{"id":"exercise-1","type":"mcq","question":"...","options":["...","...","..."],"correct_answer":"...","model_answer":"...","explanation":"..."}]}',
+        buildUserContent(request, retrieval),
+        'أعد الشكل التالي فقط، واختر sourceNodeIds من المعرّفات الظاهرة في chromadb_context: {"lesson_title":"...","exercises":[{"id":"exercise-1","type":"mcq","question":"...","options":["...","...","..."],"correct_answer":"...","model_answer":"...","explanation":"..."}],"sourceNodeIds":["node-id"]}',
       ].join("\n\n"),
     },
   ];
   return generateJson(
     messages,
     "Exercises engine",
-    (payload) => parseExercises(payload, request.exerciseCount, request.exerciseTypes),
+    (payload) => parseExercises(payload, request.exerciseCount, request.exerciseTypes, retrieval),
   );
 }
 
 export async function generateDaleelResponse(request: DaleelRequest): Promise<DaleelResult> {
+  const retrieval = await retrieveGroundedKnowledge(
+    [request.lessonTitle, request.question, request.content.slice(0, 4_000)]
+      .filter(Boolean)
+      .join("\n"),
+    { nResults: 8 },
+  );
   const region = request.highlightedRegion
     ? `منطقة التحديد: x=${request.highlightedRegion.x.toFixed(3)}, y=${request.highlightedRegion.y.toFixed(3)}, العرض=${request.highlightedRegion.width.toFixed(3)}, الارتفاع=${request.highlightedRegion.height.toFixed(3)}`
     : "لا توجد منطقة محددة على السبورة.";
@@ -424,17 +487,21 @@ export async function generateDaleelResponse(request: DaleelRequest): Promise<Da
         `سؤال الطالب: ${request.question}`,
         region,
         `هل أتقن الطالب الموضوع؟ ${request.mastery ? "نعم" : "لا"}`,
-        "<educational_content>",
+        "<learner_content>",
         request.content,
-        "</educational_content>",
-        'أعد JSON فقط بالصيغة المطلوبة. يجب أن يحتوي canvas_commands على أمر واحد على الأقل.',
+        "</learner_content>",
+        "مقاطع ChromaDB المصدرية المعتمدة:",
+        "<chromadb_context>",
+        formatRetrievedContext(retrieval.documents),
+        "</chromadb_context>",
+        'أعد JSON فقط بالصيغة المطلوبة، وأضف sourceNodeIds من معرّفات المقاطع المصدرية. يجب أن يحتوي canvas_commands على أمر واحد على الأقل.',
       ].join("\n"),
     },
   ];
   return generateJson(
     messages,
     "Daleel tutor",
-    (payload) => parseDaleel(payload, request.mastery),
+    (payload) => parseDaleel(payload, request.mastery, retrieval),
   );
 }
 
