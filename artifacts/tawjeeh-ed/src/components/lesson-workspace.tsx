@@ -57,7 +57,7 @@ import owlThinkingVideo from '@assets/Owl_mascot_thinking_and_solving_2026090223
 import { useAppUser } from '@/lib/app-auth';
 import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
 import { InteractiveWhiteboard, type WhiteboardCanvasCommand, type WhiteboardImage, type WhiteboardSelection } from '@/components/interactive-whiteboard';
-import { WhiteboardOwlCopilot, type WhiteboardOwlState, type WhiteboardOwlTarget } from '@/components/whiteboard-owl-copilot';
+import type { WhiteboardOwlState, WhiteboardOwlTarget } from '@/components/whiteboard-owl-copilot';
 import { emitOwlSyncEvent } from '@/hooks/useOwlSync';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
@@ -1867,6 +1867,7 @@ export function LessonWorkspace() {
 
   const selectBoardRegion = (region: typeof hotspots[number]) => {
     pauseNarration();
+    setBoardSelection(null);
     setHighlightedPart(region.label);
     setSession((current) => ({
       ...current,
@@ -2015,10 +2016,21 @@ export function LessonWorkspace() {
   };
 
   const askBoardCopilot = async () => {
-    if (!boardSelection || !boardCopilotQuestion.trim() || boardCopilotState === 'asking') return;
+    if (!boardCopilotQuestion.trim() || boardCopilotState === 'asking') return;
     const questionText = boardCopilotQuestion.trim();
     setBoardCopilotState('asking');
     setBoardCopilotError('');
+    if (!boardSelection) {
+      setBoardCopilotOpen(false);
+      await askCopilotQuestion(
+        questionText,
+        selectedCreativeTopic,
+        highlightedPart ? `العنصر المحدد من السبورة: ${highlightedPart}` : `الموضوع الحالي: ${activeSection.title}`,
+      );
+      setBoardCopilotAnswer('أرسلت سؤالك إلى فهيم. ستظهر الإجابة في المحادثة.');
+      setBoardCopilotState('answered');
+      return;
+    }
     try {
       const response = await fetchWithTimeout('/api/fahim/whiteboard-query', {
         method: 'POST',
@@ -2416,12 +2428,12 @@ export function LessonWorkspace() {
           </div>
           <div className="lesson-whiteboard-wrap">
             <div className="lesson-whiteboard-toolbar">
-                  <span><BarChart3 size={14} /> السبورة الحية · اضغط على أي جزء ليساعدك دليل</span>
+                  <span className="lesson-toolbar-copy"><BarChart3 size={14} /><span><strong>السبورة الرئيسية</strong><small>حدّد أي فكرة غير واضحة ليساعدك فهيم</small></span></span>
               <div>
-                <button type="button" className={boardMode === 'pen' ? 'is-selected' : ''} onClick={() => setBoardMode('pen')} disabled={!lessonToolsActive} aria-label="أداة الكتابة" data-testid="button-whiteboard-pen"><PenLine size={15} /></button>
-                  <button type="button" className={boardMode === 'highlight' ? 'is-selected' : ''} onClick={() => setBoardMode('highlight')} disabled={!lessonToolsActive} aria-label="أداة التظليل والنقر" data-testid="button-whiteboard-highlight"><Highlighter size={15} /></button>
-                  <button type="button" className={boardMode === 'select' ? 'is-selected' : ''} onClick={() => setBoardMode('select')} disabled={!lessonToolsActive} aria-label="أداة تحديد جزء وسؤال فهيم" data-testid="button-whiteboard-select"><ScanSearch size={15} /></button>
-                 <button type="button" onClick={clearBoard} disabled={!lessonToolsActive} aria-label="مسح الكتابة" data-testid="button-whiteboard-clear"><Eraser size={15} /></button>
+                <button type="button" className={boardMode === 'pen' ? 'is-selected' : ''} onClick={() => setBoardMode('pen')} disabled={!lessonToolsActive} aria-label="أداة الكتابة" data-testid="button-whiteboard-pen"><PenLine size={14} /><span>اكتب</span></button>
+                  <button type="button" className={boardMode === 'highlight' ? 'is-selected' : ''} onClick={() => setBoardMode('highlight')} disabled={!lessonToolsActive} aria-label="أداة التظليل والنقر" data-testid="button-whiteboard-highlight"><Highlighter size={14} /><span>ظلّل</span></button>
+                  <button type="button" className={boardMode === 'select' ? 'is-selected' : ''} onClick={() => setBoardMode('select')} disabled={!lessonToolsActive} aria-label="أداة تحديد جزء وسؤال فهيم" data-testid="button-whiteboard-select"><ScanSearch size={14} /><span>اسأل</span></button>
+                  <button type="button" onClick={clearBoard} disabled={!lessonToolsActive} aria-label="مسح الكتابة" data-testid="button-whiteboard-clear"><Eraser size={14} /><span>امسح</span></button>
               </div>
             </div>
              <div className="lesson-canvas-shell">
@@ -2462,39 +2474,40 @@ export function LessonWorkspace() {
                     setBoardCopilotAnswer('');
                     setBoardCopilotError('');
                     setBoardCopilotState('idle');
-                    setBoardCopilotOpen(true);
+                     setBoardCopilotOpen(false);
                       if (handoffComplete && activePartner === 'dalil') {
                         void askPartner('اشرح لي مباشرة ما يظهر في هذا الجزء المحدد.', selection);
                      }
                   }}
                 />
-                {boardSelection && (
-                  <button
-                    type="button"
-                    className="lesson-whiteboard-copilot"
-                    style={{
-                      left: `${Math.min(88, Math.max(12, (boardSelection.x + boardSelection.width / 2) * 100))}%`,
-                      top: `${Math.min(82, Math.max(18, (boardSelection.y + boardSelection.height / 2) * 100))}%`,
-                    }}
-                    onClick={() => setBoardCopilotOpen(true)}
-                     aria-label={`اسأل ${handoffComplete && activePartner === 'dalil' ? 'دليل' : 'فهيم'} عن الجزء المحدد`}
-                    data-testid="button-open-whiteboard-copilot"
-                  >
-                    <img src={owlAgentViolet} alt="" />
-                     <span>اسأل دليل</span>
-                  </button>
-                )}
-                {boardCopilotOpen && boardSelection && (
+                 {(faheemActive || handoffComplete) && (
+                   <button
+                     type="button"
+                     className={`lesson-whiteboard-copilot state-${whiteboardOwlState}`}
+                     style={{
+                       left: `${Math.min(88, Math.max(12, (((boardSelection ?? fahimBoardTarget)?.x ?? .86) + ((boardSelection ?? fahimBoardTarget)?.width ?? 0) / 2) * 100))}%`,
+                       top: `${Math.min(82, Math.max(18, (((boardSelection ?? fahimBoardTarget)?.y ?? .78) + ((boardSelection ?? fahimBoardTarget)?.height ?? 0) / 2) * 100))}%`,
+                     }}
+                     onClick={() => setBoardCopilotOpen(true)}
+                     aria-label={boardSelection ? 'فتح كوبيلوت فهيم عن الجزء المحدد' : 'فتح كوبيلوت فهيم عن موضوع الدرس'}
+                     data-testid="button-open-whiteboard-copilot"
+                   >
+                     <img src={owlAgentViolet} alt="" />
+                     <span className="lesson-whiteboard-copilot-dot" aria-hidden="true" />
+                   </button>
+                 )}
+                 {boardCopilotOpen && (
                   <div className="lesson-whiteboard-copilot-modal" role="dialog" aria-modal="true" aria-label="كوبيلوت السبورة" data-testid="dialog-whiteboard-copilot">
                      <div className="lesson-whiteboard-copilot-head">
-                       <div><img src={owlAgentViolet} alt="" /><span><strong>{handoffComplete && activePartner === 'dalil' ? 'دليل على السبورة' : 'فهيم على السبورة'}</strong><small>{handoffComplete && activePartner === 'dalil' ? 'شرح فوري للجزء الذي حددته' : 'اسأل عن الجزء الذي حددته'}</small></span></div>
+                        <div><img src={owlAgentViolet} alt="" /><span><strong>فهيم · المساعد الذكي</strong><small>{boardSelection ? 'اسأل عن الجزء المحدد من السبورة' : highlightedPart ? `اسأل عن «${highlightedPart}»` : 'اسأل عن أي فكرة غير واضحة'}</small></span></div>
                       <button type="button" onClick={() => setBoardCopilotOpen(false)} aria-label="إغلاق كوبيلوت السبورة"><X size={15} /></button>
                     </div>
+                     <p className="lesson-whiteboard-copilot-context">{boardSelection ? 'تم تثبيت سؤالك على الجزء الذي حددته.' : 'يمكنك السؤال عن موضوع الدرس مباشرة.'}</p>
                     <form onSubmit={(event) => { event.preventDefault(); void askBoardCopilot(); }}>
                       <textarea
                         value={boardCopilotQuestion}
                         onChange={(event) => setBoardCopilotQuestion(event.target.value)}
-                         placeholder={handoffComplete && activePartner === 'dalil' ? 'سيشرح دليل هذا الجزء مباشرة...' : 'مثال: لماذا يتغير الميل هنا؟'}
+                         placeholder={boardSelection ? 'مثال: لماذا يتغير الميل هنا؟' : 'مثال: ما الفكرة الأساسية في هذا الموضوع؟'}
                         rows={3}
                         disabled={boardCopilotState === 'asking'}
                          aria-label={`سؤال ${handoffComplete && activePartner === 'dalil' ? 'دليل' : 'فهيم'} عن الجزء المحدد`}
@@ -2510,18 +2523,6 @@ export function LessonWorkspace() {
                     {boardCopilotState === 'error' && <p className="lesson-whiteboard-copilot-error" role="alert">{boardCopilotError}</p>}
                     {boardCopilotAnswer && <div className="lesson-whiteboard-copilot-answer" role="status"><strong>الإجابة</strong><p>{boardCopilotAnswer}</p></div>}
                   </div>
-                )}
-                 {fahimBoardTarget && (faheemActive || (handoffComplete && activePartner === 'dalil')) && (
-                  <WhiteboardOwlCopilot
-                    state={whiteboardOwlState}
-                    target={fahimBoardTarget}
-                    open
-                     title={handoffComplete && activePartner === 'dalil' ? 'دليل يتابع هذا الموضع' : 'فهيم يتابع هذا الموضع'}
-                     message={handoffComplete && activePartner === 'dalil' ? (daleelResponse?.speech_text || 'حددت موضعًا مهمًا على السبورة. أشرح لك فكرته الآن.') : (fahimResponse?.speech_text || 'حددت موضعًا مهمًا على السبورة. نراجعه خطوةً خطوة.')}
-                     actionLabel="تثبيت الموضع"
-                    onAsk={() => setBoardMode('highlight')}
-                    onDismiss={() => setFahimBoardTarget(null)}
-                  />
                 )}
                <div className="lesson-board-hotspots" aria-label="مناطق اللوح القابلة للتحديد">
                  {hotspots.map((region) => (

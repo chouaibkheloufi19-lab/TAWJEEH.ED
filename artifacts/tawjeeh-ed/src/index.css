@@ -2650,9 +2650,11 @@ button { cursor: pointer; }
 .lesson-whiteboard-canvas.is-locked { cursor: not-allowed; }
 .lesson-whiteboard-canvas.is-highlighting { cursor: pointer; }
 .lesson-whiteboard-canvas.is-selecting { cursor: crosshair; }
-.lesson-whiteboard-copilot { position: absolute; z-index: 4; display: inline-flex; align-items: center; gap: 5px; transform: translate(-50%, -50%); padding: 4px 7px 4px 4px; border: 1px solid #d3b46a; border-radius: 18px; color: #fff; font-family: inherit; font-size: 8px; font-weight: 900; background: #1d6670; box-shadow: 0 7px 16px rgba(27, 76, 82, .22); cursor: pointer; }
-.lesson-whiteboard-copilot img { width: 25px; height: 25px; object-fit: contain; border-radius: 50%; background: #edf8f3; }
+.lesson-whiteboard-copilot { position: absolute; z-index: 4; display: inline-flex; align-items: center; justify-content: center; width: 58px; height: 58px; transform: translate(-50%, -50%); padding: 5px; border: 2px solid #fff; border-radius: 50%; color: #fff; font-family: inherit; font-size: 8px; font-weight: 900; background: linear-gradient(145deg, #e1fbf4, #83d4cf); box-shadow: 0 10px 22px rgba(27, 76, 82, .24), 0 0 0 5px rgba(219, 241, 234, .72); cursor: pointer; }
+.lesson-whiteboard-copilot img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; background: #edf8f3; }
 .lesson-whiteboard-copilot:hover { transform: translate(-50%, -50%) scale(1.04); }
+.lesson-whiteboard-copilot:focus-visible { outline: 3px solid rgba(38, 155, 154, .42); outline-offset: 3px; }
+.lesson-whiteboard-copilot-dot { position: absolute; right: 0; bottom: 1px; width: 13px; height: 13px; border: 2px solid #fff; border-radius: 50%; background: #1d8f83; }
 .lesson-whiteboard-copilot-modal { position: absolute; top: 12px; left: 12px; z-index: 5; width: min(270px, calc(100% - 24px)); padding: 10px; border: 1px solid #b9d9cf; border-radius: 14px; background: rgba(255, 255, 250, .97); box-shadow: 0 14px 30px rgba(29, 66, 68, .18); }
 .lesson-whiteboard-copilot-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .lesson-whiteboard-copilot-head > div { display: flex; align-items: center; gap: 7px; }
@@ -2663,6 +2665,7 @@ button { cursor: pointer; }
 .lesson-whiteboard-copilot-head > button { display: grid; width: 25px; height: 25px; place-items: center; border: 0; border-radius: 7px; color: #78908d; background: #edf5ef; cursor: pointer; }
 .lesson-whiteboard-copilot-modal textarea { display: block; width: 100%; min-height: 58px; margin-top: 9px; padding: 8px; resize: vertical; border: 1px solid #d4e3db; border-radius: 9px; outline: 0; color: #244f5a; font-family: inherit; font-size: 9px; font-weight: 650; line-height: 1.7; background: #fff; }
 .lesson-whiteboard-copilot-modal textarea:focus { border-color: #269b9a; box-shadow: 0 0 0 3px rgba(38, 155, 154, .1); }
+.lesson-whiteboard-copilot-context { margin: 8px 0 0; color: #6c8580; font-size: 8px; font-weight: 700; line-height: 1.6; }
 .lesson-whiteboard-copilot-actions { display: flex; justify-content: flex-start; gap: 5px; margin-top: 7px; }
 .lesson-whiteboard-copilot-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 27px; padding: 4px 8px; border: 0; border-radius: 8px; color: #fff; font-family: inherit; font-size: 8px; font-weight: 900; background: #1d6670; cursor: pointer; }
 .lesson-whiteboard-copilot-actions button:first-child { width: 29px; padding: 0; color: #1d6670; background: #e8f5ef; }
@@ -2671,6 +2674,106 @@ button { cursor: pointer; }
 .lesson-whiteboard-copilot-answer strong { color: #896a2d; font-size: 8px; font-weight: 900; }
 .lesson-whiteboard-copilot-answer p { margin: 3px 0 0; color: #526b65; font-size: 9px; font-weight: 650; line-height: 1.7; }
 .lesson-whiteboard-copilot-error { margin: 7px 0 0; color: #b05252; font-size: 8px; font-weight: 800; line-height: 1.6; }
+
+/* Final lesson-board overrides: the live canvas is the only full board. */
+.learning-loop-brief {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid #d6e7e1;
+  border-radius: 13px;
+  background: #f8fcf8;
+}
+.learning-loop-brief-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.learning-loop-brief-copy > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #568179;
+  font-size: 8px;
+  font-weight: 900;
+}
+.learning-loop-brief-copy strong {
+  color: var(--lesson-navy);
+  font-size: 12px;
+}
+.learning-loop-brief-copy p {
+  margin: 0;
+  color: var(--lesson-muted);
+  font-size: 9px;
+  line-height: 1.6;
+}
+.learning-loop-brief-copy small {
+  color: #39736c;
+  font-size: 9px;
+  font-weight: 900;
+}
+.learning-loop-brief-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.lesson-toolbar-copy {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.lesson-toolbar-copy > span {
+  display: grid;
+  gap: 1px;
+}
+.lesson-toolbar-copy strong {
+  color: var(--lesson-navy);
+  font-size: 9px;
+  font-weight: 900;
+}
+.lesson-toolbar-copy small {
+  color: var(--lesson-muted);
+  font-size: 8px;
+  font-weight: 700;
+}
+.lesson-whiteboard-toolbar > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.lesson-whiteboard-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 48px;
+  min-height: 28px;
+  padding-inline: 7px;
+  font-family: inherit;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+@media (max-width: 620px) {
+  .learning-loop-brief {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .learning-loop-brief-actions {
+    justify-content: flex-start;
+  }
+  .lesson-toolbar-copy small {
+    display: none;
+  }
+  .lesson-whiteboard-toolbar button {
+    min-width: 42px;
+    padding-inline: 5px;
+  }
+}
 .lesson-board-hotspots { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .lesson-board-hotspots button { position: absolute; display: grid; place-items: center; min-height: 27px; padding: 3px 6px; border: 1px dashed rgba(185,138,44,.28); border-radius: 8px; color: rgba(128,96,29,.62); font-size: 7px; font-weight: 900; background: rgba(255,247,221,.13); pointer-events: auto; transition: border-color .2s ease, color .2s ease, background .2s ease, transform .2s ease; }
 .lesson-board-hotspots button:hover, .lesson-board-hotspots button.is-selected { border-color: #b98a2c; color: #fff; background: rgba(185,138,44,.78); transform: translateY(-1px); }

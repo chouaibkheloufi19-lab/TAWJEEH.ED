@@ -268,30 +268,6 @@ function buildSolutionSteps(
   ];
 }
 
-function visualLabel(visual: ConceptStep['visual']): string {
-  if (visual === 'equation') return 'علاقة';
-  if (visual === 'graph') return 'تحقق';
-  if (visual === 'flow') return 'ربط';
-  return 'تحديد';
-}
-
-function graphPath(points: Array<{ x: number; y: number }>): string {
-  if (points.length < 2) return 'M35 105H300';
-  const xValues = points.map((point) => point.x);
-  const yValues = points.map((point) => point.y);
-  const minX = Math.min(...xValues);
-  const maxX = Math.max(...xValues);
-  const minY = Math.min(...yValues);
-  const maxY = Math.max(...yValues);
-  const xRange = maxX - minX || 1;
-  const yRange = maxY - minY || 1;
-  return points.map((point, index) => {
-    const x = 40 + ((point.x - minX) / xRange) * 250;
-    const y = 105 - ((point.y - minY) / yRange) * 78;
-    return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`;
-  }).join(' ');
-}
-
 export function InteractiveLearningLoop({
   lessonTitle,
   subject,
@@ -349,13 +325,9 @@ export function InteractiveLearningLoop({
   ].map(normalizeArabic).filter((term) => term.length >= 3), [practiceResource, section]);
   const practicePrompt = groundedExercise?.prompt
     || `ما الفكرة أو العلاقة التي تفسّر هذا المقطع؟ اكتبها بكلماتك، واذكر العلاقة إن ظهرت في الدرس.`;
-  const visibleBoardSteps = phase === 'solution'
-    ? solutionSteps.slice(0, solutionStep + 1)
-    : conceptSteps.slice(0, activeStep + 1);
   const activeBoardStep = phase === 'solution'
     ? solutionSteps[solutionStep]
     : conceptSteps[activeStep];
-  const activeGraphPath = graphPath(activeBoardStep?.graphPoints ?? []);
   const explanationComplete = phase !== 'explain' || activeStep >= conceptSteps.length - 1;
   const activeStepIndex = phase === 'solution' ? solutionStep : activeStep;
   const activeStepTotal = phase === 'solution' ? solutionSteps.length : conceptSteps.length;
@@ -524,68 +496,26 @@ export function InteractiveLearningLoop({
 
        <div className="learning-loop-layout">
          <div className="learning-loop-main">
-          <div className="learning-board-engine" data-phase={phase}>
-            <div className="learning-board-engine-top">
-              <div>
-                <span><Target size={13} /> السبورة التفاعلية · {section.label}</span>
-                <strong>{phase === 'solution' ? 'الحل يُرسم خطوة خطوة' : activeBoardStep?.title ?? 'ننتظر السند'}</strong>
-              </div>
-              <div className="learning-board-step-count">
-                {phase === 'solution'
-                  ? `${solutionStep + 1} / ${solutionSteps.length}`
-                  : `${Math.min(activeStep + 1, conceptSteps.length)} / ${conceptSteps.length}`}
-              </div>
+          <div className="learning-loop-brief" data-phase={phase}>
+            <div className="learning-loop-brief-copy">
+              <span><Target size={13} /> المسار المختصر · السبورة الرئيسية هي مساحة الشرح</span>
+              <strong>{phase === 'solution' ? 'راجع الحل على السبورة الرئيسية' : activeBoardStep?.title ?? 'ننتظر السند'}</strong>
+              <p>{activeBoardStep?.detail ?? 'ابدأ الشرح المتدرج لتظهر الفكرة على السبورة الرئيسية.'}</p>
+              {activeBoardStep?.formula && <small>{activeBoardStep.formula}</small>}
             </div>
-            <div className="learning-board-canvas" aria-live="polite">
-              <div className="learning-board-grid" />
-              <div className={`learning-board-visual is-${activeBoardStep?.visual ?? 'flow'}`}>
-                <span className="learning-board-visual-label">{visualLabel(activeBoardStep?.visual ?? 'flow')}</span>
-                <div className="learning-board-visual-content">
-                  {activeBoardStep?.visual === 'graph' ? (
-                    <svg viewBox="0 0 330 130" role="img" aria-label="مخطط العلاقة">
-                      <path d="M35 105H300M35 105V20M48 91C95 82 126 74 158 57S234 37 290 24" />
-                      {activeBoardStep.graphPoints?.length ? <path className="learning-board-grounded-graph" d={activeGraphPath} /> : null}
-                      <circle cx="158" cy="57" r="5" />
-                      <text x="270" y="121">الزمن</text>
-                      <text x="7" y="25">الأثر</text>
-                    </svg>
-                  ) : activeBoardStep?.visual === 'equation' ? (
-                    <div className="learning-board-equation">{activeBoardStep.formula}</div>
-                  ) : activeBoardStep?.visual === 'highlight' ? (
-                    <div className="learning-board-highlight"><span>{section.highlight}</span><i /></div>
-                  ) : (
-                    <div className="learning-board-flow"><b>المعطى</b><i>←</i><b>المفهوم</b><i>←</i><b>النتيجة</b></div>
-                  )}
-                </div>
-              </div>
-              <div className="learning-board-note">
-                 <span>{activeBoardStep?.title ?? 'نحضّر فكرة الدرس'}</span>
-                 <p>{activeBoardStep?.detail ?? 'ابدأ الشرح المتدرج لتظهر الفكرة على السبورة.'}</p>
-                {activeBoardStep?.formula && <strong>{activeBoardStep.formula}</strong>}
-              </div>
-               <div className="learning-board-trace" aria-label="ما كُتب على السبورة">
-                 {visibleBoardSteps.map((step, index) => (
-                   <span className={index === visibleBoardSteps.length - 1 ? 'is-current' : ''} key={`${step.title}-${index}`}>
-                     <i>{index + 1}</i>{step.title}
-                   </span>
-                 ))}
-               </div>
-            </div>
-            <div className="learning-board-controls">
+            <div className="learning-loop-brief-actions">
               {phase === 'explain' && (
                 <>
                   <button type="button" className="learning-primary-button" onClick={isStreaming ? () => setIsStreaming(false) : startExplanation} disabled={!conceptSteps.length} data-testid="button-start-learning-loop">
                     {isStreaming ? <LoaderCircle size={15} className="learning-spin" /> : <Play size={15} />}
-                    {isStreaming ? 'أوقف التدفق' : 'ابدأ الشرح المتدرج'}
+                    {isStreaming ? 'أوقف الشرح' : 'ابدأ الشرح'}
                   </button>
                   <button type="button" className="learning-secondary-button" onClick={nextExplanationStep} disabled={!conceptSteps.length} data-testid="button-next-learning-step">
                     {explanationComplete ? 'افتح التطبيق' : 'الخطوة التالية'} <ChevronLeft size={14} />
                   </button>
                 </>
               )}
-              {phase === 'practice' && (
-                <span className="learning-board-prompt"><Lightbulb size={15} /> اكتب إجابتك في البطاقة التالية؛ ستعود الخطوات إلى السبورة عند النجاح.</span>
-              )}
+              {phase === 'practice' && <span className="learning-board-prompt"><Lightbulb size={15} /> اكتب إجابتك في بطاقة التثبيت.</span>}
               {phase === 'solution' && (
                 <>
                   <button type="button" className="learning-secondary-button" onClick={() => setSolutionStep((current) => Math.min(current + 1, solutionSteps.length - 1))} disabled={solutionStep >= solutionSteps.length - 1} data-testid="button-next-solution-step">
