@@ -2921,6 +2921,60 @@ button { cursor: pointer; }
   .auth-followup-footer { display: grid; gap: 6px; text-align: center; }
 }
 
+/* Focus mode: the whiteboard is the lesson surface and the mastery path is
+   the only supporting rail. Keep the chat and source catalog out of the
+   student's first view so the lesson reads as one clear flow. */
+.lesson-workspace {
+  --lesson-board-width: minmax(0, 1fr);
+  --lesson-progress-width: minmax(220px, .34fr);
+}
+
+.lesson-grid,
+.lesson-grid.has-collapsed-rail {
+  grid-template-columns: var(--lesson-board-width) var(--lesson-progress-width);
+  grid-template-areas: 'teaching path';
+  align-items: start;
+}
+
+.lesson-conversation-panel {
+  display: none;
+}
+
+.lesson-path-panel {
+  position: sticky;
+  top: 16px;
+}
+
+.lesson-teaching-panel {
+  min-height: 100%;
+}
+
+.learning-loop-layout {
+  display: block;
+}
+
+.learning-loop-main {
+  width: 100%;
+}
+
+.learning-loop-footer span:last-child {
+  color: #5d7d86;
+}
+
+@media (max-width: 900px) {
+  .lesson-grid,
+  .lesson-grid.has-collapsed-rail {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'teaching'
+      'path';
+  }
+
+  .lesson-path-panel {
+    position: static;
+  }
+}
+
 /* Tawjeeh learning flow polish — a warmer, more companion-led treatment for the two core spaces. */
 .program-agent-page {
   gap: 16px;

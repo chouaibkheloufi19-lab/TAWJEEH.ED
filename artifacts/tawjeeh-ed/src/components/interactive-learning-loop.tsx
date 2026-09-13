@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  BookOpen,
   Check,
   CheckCircle2,
   ChevronLeft,
-  ChevronRight,
   CircleHelp,
-  FileText,
   Lightbulb,
   LoaderCircle,
   Play,
@@ -196,10 +193,10 @@ function buildConceptSteps(
   const excerpt = sourceText(resource).slice(0, 220);
   const formula = formulaBySection[section.id] ?? `${section.highlight} ← من السند إلى الفهم`;
   const common = [
-    {
-      title: 'نقرأ السند',
-      detail: `نبدأ من المصدر «${resource.title}» لا من مثال معزول: ${excerpt}`,
-      formula: `السند → ${section.highlight}`,
+      {
+        title: 'نقرأ الوضعية',
+        detail: `نبدأ من المعطيات المرتبطة بـ«${section.title}»، ثم نحدد ما الذي يطلبه السؤال.`,
+        formula: `المعطيات → ${section.highlight}`,
       visual: 'highlight' as const,
     },
     {
@@ -216,7 +213,7 @@ function buildConceptSteps(
     },
     {
       title: 'نختبر الفهم',
-      detail: `أغلقنا الشرح على سؤال قصير من موارد المنهاج نفسها: «${resource.title}».`,
+      detail: 'نغلق الشرح على سؤال قصير يثبت الفكرة قبل الانتقال إلى التطبيق.',
       formula: 'افهم → طبّق → تحقّق',
       visual: 'graph' as const,
     },
@@ -350,7 +347,6 @@ export function InteractiveLearningLoop({
     formulaBySection[section.id] ?? '',
     ...(practiceResource?.tags ?? []).slice(0, 2),
   ].map(normalizeArabic).filter((term) => term.length >= 3), [practiceResource, section]);
-  const practiceExcerpt = practiceResource ? sourceText(practiceResource).slice(0, 260) : '';
   const practicePrompt = groundedExercise?.prompt
     || `ما الفكرة أو العلاقة التي تفسّر هذا المقطع؟ اكتبها بكلماتك، واذكر العلاقة إن ظهرت في الدرس.`;
   const visibleBoardSteps = phase === 'solution'
@@ -487,10 +483,10 @@ export function InteractiveLearningLoop({
           {phase === 'explain' ? 'شرح متدرّج' : phase === 'practice' ? 'دورك الآن' : 'حلّ مرئي'}
         </div>
       </div>
-      <div className="learning-grounding-bar" data-testid="learning-grounding-status">
-        <span><CheckCircle2 size={13} /> {groundedLesson ? 'الشرح مبني على السند المسترجع' : 'نمط تمهيدي · بانتظار الشرح الموثق'}</span>
-        <span>{groundedLesson?.sourceNodeIds.length ?? 0} عقدة معرفة · {groundedLesson?.sourceDocuments.length ?? 0} وثيقة مرتبطة</span>
-      </div>
+       <div className="learning-grounding-bar" data-testid="learning-grounding-status">
+         <span><CheckCircle2 size={13} /> {groundedLesson ? 'شرح الدرس جاهز' : 'نحضّر شرح الدرس'}</span>
+         <span>التركيز على الفهم ثم التطبيق</span>
+       </div>
 
       <nav className="learning-roadmap" aria-label="سير عناصر الدرس" data-testid="lesson-roadmap">
         <div className="learning-roadmap-heading">
@@ -526,44 +522,8 @@ export function InteractiveLearningLoop({
         <p className="learning-roadmap-hint">اضغط على أي عقدة سابقة لإعادة عرضها وتحديدها على السبورة الكبيرة.</p>
       </nav>
 
-      <div className="learning-loop-layout">
-        <aside className="learning-source-rail" aria-label="المصادر المطابقة">
-          <div className="learning-source-heading">
-            <span><BookOpen size={14} /> مطابقة السندات</span>
-            <strong>{matchedResources.length}</strong>
-          </div>
-          <p className="learning-source-intro">مصادر حقيقية من قاعدة المنهاج، مرتبة حسب قربها من «{section.title}».</p>
-          <div className="learning-source-list">
-            {matchedResources.slice(0, 5).map((resource, index) => (
-              <button
-                type="button"
-                key={resource.id}
-                className={`learning-source-card ${resource.id === selectedResource?.id ? 'is-selected' : ''}`}
-                onClick={() => setSelectedResourceId(resource.id)}
-                data-testid={`button-learning-source-${index + 1}`}
-              >
-                <span className="learning-source-card-index">{String(index + 1).padStart(2, '0')}</span>
-                <span className="learning-source-card-copy">
-                  <strong>{resource.title}</strong>
-                  <small>{resource.type === 'exercise' || resource.type === 'assessment' ? 'تمرين مباشر' : 'سند شرح'} · ص {resource.page}</small>
-                </span>
-                <ChevronLeft size={13} />
-              </button>
-            ))}
-            {!matchedResources.length && (
-              <div className="learning-source-empty"><FileText size={16} /><span>لم يصل سند بعد. أعد المحاولة بعد اكتمال خدمة المعرفة.</span></div>
-            )}
-          </div>
-          {selectedResource && (
-            <div className="learning-source-quote">
-              <span><FileText size={12} /> الاقتباس الذي سيقود الشرح</span>
-              <p>«{sourceText(selectedResource).slice(0, 190)}»</p>
-              <small>{selectedResource.source} · الصفحة {selectedResource.page}</small>
-            </div>
-          )}
-        </aside>
-
-        <div className="learning-loop-main">
+       <div className="learning-loop-layout">
+         <div className="learning-loop-main">
           <div className="learning-board-engine" data-phase={phase}>
             <div className="learning-board-engine-top">
               <div>
@@ -599,8 +559,8 @@ export function InteractiveLearningLoop({
                 </div>
               </div>
               <div className="learning-board-note">
-                <span>{activeBoardStep?.title ?? 'لا يوجد مصدر محدد'}</span>
-                <p>{activeBoardStep?.detail ?? 'اختر سندًا من القائمة لبدء المحرك.'}</p>
+                 <span>{activeBoardStep?.title ?? 'نحضّر فكرة الدرس'}</span>
+                 <p>{activeBoardStep?.detail ?? 'ابدأ الشرح المتدرج لتظهر الفكرة على السبورة.'}</p>
                 {activeBoardStep?.formula && <strong>{activeBoardStep.formula}</strong>}
               </div>
                <div className="learning-board-trace" aria-label="ما كُتب على السبورة">
@@ -640,15 +600,11 @@ export function InteractiveLearningLoop({
           {phase === 'practice' && (
             <div className="learning-practice-card" data-testid="learning-micro-practice">
               <div className="learning-practice-header">
-                <div>
-                  <span><CircleHelp size={14} /> حلقة التطبيق القصير</span>
-                  <h4>من السند «{practiceResource?.title ?? 'المصدر المحدد'}»</h4>
-                </div>
-                <span className="learning-practice-badge">مباشر من المنهاج</span>
-              </div>
-              <div className="learning-practice-source">
-                <FileText size={14} />
-                 <p>{groundedExercise?.title ? `${groundedExercise.title} · ${practiceExcerpt || 'تمرين مستخرج من السند المرتبط.'}` : practiceExcerpt || 'لم يصل نص المصدر بعد.'}</p>
+                 <div>
+                   <span><CircleHelp size={14} /> تثبيت الفهم</span>
+                   <h4>أجب عن السؤال ثم راجع الحل على السبورة</h4>
+                 </div>
+                 <span className="learning-practice-badge">تطبيق قصير</span>
               </div>
               <p className="learning-practice-question">
                  <strong>سؤال التثبيت:</strong> {practicePrompt}
@@ -677,17 +633,14 @@ export function InteractiveLearningLoop({
               {showHint && practiceState === 'retry' && (
                  <div className="learning-hint"><Lightbulb size={14} /> تلميح: {groundedExercise?.hint || `ابحث في السند عن «${section.highlight}» أو العلاقة «${formulaBySection[section.id]}».`}</div>
               )}
-               {practiceState === 'correct' && groundedExercise?.sourceDocuments.length ? (
-                 <div className="learning-practice-citation"><BookOpen size={13} /> الحل مرتبط بـ {groundedExercise.sourceDocuments[0].source} · ص {groundedExercise.sourceDocuments[0].page}</div>
-               ) : null}
             </div>
           )}
         </div>
       </div>
-      <div className="learning-loop-footer">
-        <span><CheckCircle2 size={13} /> لا يكتفي بالعرض: كل شرح ينتهي بمحاولة قابلة للتصحيح.</span>
-        <span>المصدر المختار: {selectedResource?.source ?? 'بانتظار قاعدة المعرفة'}</span>
-      </div>
+       <div className="learning-loop-footer">
+         <span><CheckCircle2 size={13} /> كل شرح ينتهي بمحاولة قصيرة قابلة للتصحيح.</span>
+         <span>افهم الفكرة، ثم طبّقها بنفسك.</span>
+       </div>
     </section>
   );
 }
