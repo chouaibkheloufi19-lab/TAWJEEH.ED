@@ -246,9 +246,9 @@ export function ReviewStudio() {
             <div>
               <BookOpenText size={17} aria-hidden="true" />
               <div>
-                <strong>النص الذي تقدّمه هو نقطة البداية</strong>
-                <span>يبني الاستوديو النتيجة من مادة الدرس التي تدخلها أنت.</span>
-                <span>يبحث أولًا في مستندات Tawjeeh المفهرسة داخل ChromaDB.</span>
+                <strong>ابدأ بفكرة أو سؤال</strong>
+                <span>سنرتّب ما تكتبه في شرح واضح وتمارين مناسبة لمستواك.</span>
+                <span>نستعين بمصادر دراسية موثوقة حتى تكون المراجعة أدق.</span>
               </div>
             </div>
             <div>
@@ -415,8 +415,7 @@ export function ReviewStudio() {
             <div className="review-studio-source" data-testid="review-studio-source-attribution">
               <Info size={15} aria-hidden="true" />
               <p>
-                 يبدأ البحث من المحتوى الذي أدخله المتعلّم، ثم يثبت النتيجة على مستندات
-                 Tawjeeh المفهرسة داخل ChromaDB.
+                 نبدأ من فكرتك، ثم نربطها بمصادر دراسية موثوقة لنقدّم لك مراجعة واضحة.
               </p>
             </div>
           </form>

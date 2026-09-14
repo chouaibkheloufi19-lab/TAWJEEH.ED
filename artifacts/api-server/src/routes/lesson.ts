@@ -415,12 +415,12 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Lesson generation failed");
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
-      ? "لم يتم ربط مزود الذكاء الاصطناعي بعد."
+      ? "المساعدة الذكية غير متاحة مؤقتًا. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا."
       : errorMessage.includes("DeepSeek provider responded with 402")
-        ? "رصيد DeepSeek غير كافٍ حاليًا. أضف رصيدًا إلى حساب DeepSeek ثم أعد المحاولة."
+        ? "لم تكتمل المساعدة الذكية الآن. يمكنك متابعة الدرس والمحاولة لاحقًا."
       : errorMessage.startsWith("Lesson generator responded with")
-        ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
-        : "تعذر توليد شرح الدرس من المصادر حاليًا. أعد المحاولة بعد قليل.";
+        ? "لم يكتمل تجهيز الشرح الآن. أعد المحاولة بعد قليل."
+      : "لم نتمكن من تجهيز الشرح الآن. يمكنك متابعة المصادر والمحاولة لاحقًا.";
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error: error instanceof KnowledgeGroundingError ? error.code : "lesson_generation_failed",
       message,
@@ -486,12 +486,12 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Exercise generation failed");
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
-      ? "لم يتم ربط مزود الذكاء الاصطناعي بعد."
+      ? "المساعدة الذكية غير متاحة مؤقتًا. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا."
       : errorMessage.startsWith("xAI provider responded with")
-        ? "تعذر الاتصال بمزود الذكاء الاصطناعي. تحقق من صلاحية المفتاح ورصيده ثم أعد المحاولة."
+        ? "لم يكتمل تجهيز التمرين الآن. أعد المحاولة بعد قليل."
         : mode === "creative_topic"
-          ? "تعذر الاتصال بخدمة التعلّم الآن."
-          : "تعذر توليد التمرين من المصادر حاليًا. أعد المحاولة بعد قليل.";
+          ? "لم تكتمل المساعدة الآن. يمكنك متابعة الدرس والمحاولة لاحقًا."
+          : "لم نتمكن من تجهيز التمرين الآن. أعد المحاولة بعد قليل.";
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error: error instanceof KnowledgeGroundingError ? error.code : "exercise_generation_failed",
       message,

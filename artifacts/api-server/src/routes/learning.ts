@@ -82,7 +82,7 @@ router.get("/dashboard", (req, res): void => {
     ],
     focus: "اليوم نثبت قوانين الحركة ونحوّلها إلى خطوات سهلة للحل.",
   });
-  res.json(GetErrorBankResponse.parse(data));
+  res.json(GetDashboardResponse.parse(data));
 });
 
 router.get("/learning/summary-bank", async (req, res): Promise<void> => {

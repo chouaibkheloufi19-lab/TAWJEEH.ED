@@ -23,7 +23,7 @@ function errorResponse(error: unknown): {
         status: 503,
         body: {
           error: "ai_connection_not_configured",
-          message: "لم يتم ربط مزود الذكاء الاصطناعي بعد.",
+           message: "المساعدة الذكية غير متاحة مؤقتًا. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا.",
         },
       };
     }
@@ -31,7 +31,7 @@ function errorResponse(error: unknown): {
       status: error.status === 429 ? 429 : 502,
       body: {
         error: "ai_provider_failed",
-        message: "تعذر الاتصال بمزود الذكاء الاصطناعي. أعد المحاولة بعد قليل.",
+         message: "لم تكتمل المساعدة الآن. تابع الدرس من المصادر المتاحة ثم جرّب مرة أخرى بعد قليل.",
         ...(error.retryable ? { retryable: true } : {}),
       },
     };

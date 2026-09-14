@@ -80,8 +80,8 @@ function generationError(error: unknown) {
         ? error.code
         : "quiz_generation_failed",
       message: error instanceof KnowledgeGroundingError
-        ? "لا يمكن تجهيز الكويز قبل نجاح استرجاع عقد المعرفة من ChromaDB."
-        : "تعذر توليد الكويز حاليًا. أعد المحاولة بعد قليل.",
+        ? "نحتاج إلى تجهيز مصادر الدرس أولًا. جرّب إعداد الكويز بعد قليل."
+        : "لم يكتمل إعداد الكويز الآن. جرّب مرة أخرى بعد قليل.",
     },
   };
 }
