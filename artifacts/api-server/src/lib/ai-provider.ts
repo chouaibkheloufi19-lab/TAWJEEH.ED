@@ -9,9 +9,19 @@ type ChatCompletionResponse = {
   choices?: Array<{ message?: { content?: unknown } }>;
 };
 
+type GeminiGenerateContentResponse = {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{ text?: unknown }>;
+    };
+  }>;
+};
+
 const CHAT_TIMEOUT_MS = 45_000;
 const XAI_CONNECTOR = "xai";
 const DEFAULT_XAI_MODEL = "grok-3-mini";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+const DEFAULT_GEMINI_MODEL = "gemini-3.6-flash";
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
 const connectors = new ReplitConnectors();
@@ -56,13 +66,121 @@ async function readProviderError(response: Response): Promise<string> {
 }
 
 function isConnectionError(message: string): boolean {
-  return /unauthenticated|no[- ]credentials|not connected|connection (?:not found|not configured|failed|refused|reset)|credentials? (?:missing|invalid|not found)|incorrect api key|invalid api key|api key (?:provided|missing|not found)/i.test(
+  return /unauthenticated|no[- ]credentials|not connected|connection (?:not found|not configured|failed|refused|reset)|credentials? (?:missing|invalid|not found)|incorrect api key|invalid api key|api key (?:provided|missing|not found|not valid|invalid|expired)|key not valid/i.test(
     message,
   );
 }
 
 function hasDeepSeekCredentials(): boolean {
   return Boolean(process.env.DEEPSEEK_API_KEY?.trim());
+}
+
+function hasGeminiCredentials(): boolean {
+  return Boolean(process.env.GEMINI_API_KEY?.trim());
+}
+
+function toGeminiRequest(messages: ChatMessage[]) {
+  const systemMessages = messages
+    .filter((message) => message.role === "system")
+    .map((message) => message.content)
+    .join("\n\n");
+  const contents = messages
+    .filter((message) => message.role !== "system")
+    .map((message) => ({
+      role: message.role === "assistant" ? "model" : "user",
+      parts: [{ text: message.content }],
+    }));
+
+  return {
+    ...(systemMessages
+      ? { systemInstruction: { parts: [{ text: systemMessages }] } }
+      : {}),
+    contents,
+  };
+}
+
+async function callGeminiApi(
+  messages: ChatMessage[],
+  options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
+): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    throw new DeepSeekProviderError("GEMINI_API_KEY is not configured", {
+      status: 401,
+    });
+  }
+
+  const model = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
+  const url = `${GEMINI_API_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  let response: Response;
+  try {
+    response = await withTimeout(
+      fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...toGeminiRequest(messages),
+          generationConfig: {
+            temperature: options.temperature,
+            maxOutputTokens: Math.max(options.maxOutputTokens, 8192),
+            ...(options.jsonMode ? { responseMimeType: "application/json" } : {}),
+          },
+        }),
+      }),
+      CHAT_TIMEOUT_MS,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new DeepSeekProviderError(
+      isConnectionError(message)
+        ? "GEMINI_CONNECTION_NOT_CONFIGURED"
+        : `Gemini request failed: ${message}`,
+      {
+        retryable: !isConnectionError(message),
+        status: isConnectionError(message) ? 401 : undefined,
+      },
+    );
+  }
+
+  if (!response.ok) {
+    const providerError = await readProviderError(response);
+    throw new DeepSeekProviderError(
+      response.status === 401 ||
+        response.status === 403 ||
+        isConnectionError(providerError)
+        ? "GEMINI_CONNECTION_NOT_CONFIGURED"
+        : `Gemini provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
+      {
+        status: response.status,
+        retryable:
+          response.status === 408 ||
+          response.status === 429 ||
+          response.status >= 500,
+      },
+    );
+  }
+
+  let payload: GeminiGenerateContentResponse;
+  try {
+    payload = (await response.json()) as GeminiGenerateContentResponse;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new DeepSeekProviderError(
+      `Gemini provider returned invalid JSON: ${message}`,
+      { status: response.status, retryable: true },
+    );
+  }
+  const content = payload.candidates?.[0]?.content?.parts
+    ?.map((part) => (typeof part.text === "string" ? part.text : ""))
+    .join("")
+    .trim();
+  if (!content) {
+    throw new DeepSeekProviderError("Gemini provider returned no content", {
+      status: response.status,
+      retryable: true,
+    });
+  }
+  return content;
 }
 
 async function callDeepSeekApi(
@@ -238,6 +356,9 @@ export async function callDeepSeekTextModel(
   messages: ChatMessage[],
   options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
 ): Promise<string> {
+  if (hasGeminiCredentials()) {
+    return callGeminiApi(messages, options);
+  }
   if (hasDeepSeekCredentials()) {
     return callDeepSeekApi(messages, options);
   }

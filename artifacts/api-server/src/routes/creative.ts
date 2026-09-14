@@ -455,8 +455,11 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
           : "exam_generation_failed",
       message: errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
         ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
-        : errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
-          ? "رفضت خدمة DeepSeek المفتاح الحالي أو لم تقبله. تحقق من DEEPSEEK_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
+        : errorMessage.includes("GEMINI_CONNECTION_NOT_CONFIGURED") ||
+            errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
+          ? "رفضت خدمة Gemini المفتاح الحالي أو لم تقبله. تحقق من GEMINI_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
+          : errorMessage.includes("Gemini provider responded with 5")
+            ? "خدمة Gemini مشغولة مؤقتًا. أعد المحاولة بعد قليل، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
           : error instanceof KnowledgeGroundingError
             ? "لا يمكن اعتماد موضوع قبل نجاح استرجاع مصادر المنهاج."
             : "تعذر توليد الموضوع ودليل التصحيح من المصادر حاليًا. أعد المحاولة.",

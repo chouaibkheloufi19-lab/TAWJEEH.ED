@@ -28,13 +28,27 @@ function errorResponse(error: unknown): {
         },
       };
     }
-    if (error.message.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")) {
+    if (
+      error.message.includes("GEMINI_CONNECTION_NOT_CONFIGURED") ||
+      error.message.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
+    ) {
       return {
         status: 503,
         body: {
           error: "ai_connection_not_configured",
           message:
-            "رفضت خدمة DeepSeek المفتاح الحالي أو لم تقبله. تحقق من DEEPSEEK_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن.",
+            "رفضت خدمة Gemini المفتاح الحالي أو لم تقبله. تحقق من GEMINI_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن.",
+        },
+      };
+    }
+    if (error.status && error.status >= 500) {
+      return {
+        status: 503,
+        body: {
+          error: "ai_provider_unavailable",
+          message:
+            "خدمة Gemini مشغولة مؤقتًا. أعد المحاولة بعد قليل، ويمكنك متابعة الدرس من المصادر المتاحة الآن.",
+          retryable: true,
         },
       };
     }

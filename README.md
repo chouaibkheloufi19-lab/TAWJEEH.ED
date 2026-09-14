@@ -155,9 +155,8 @@ corresponding local environment mechanism.
 | `CLERK_SECRET_KEY` | Production proxy only | Clerk secret used by the production Frontend API proxy |
 | `PRIVATE_OBJECT_DIR` | Required for PDF storage routes | Replit App Storage private object prefix |
 | `KNOWLEDGE_BASE_URL` | No | `http://127.0.0.1:8001/knowledge` |
-| `DEEPSEEK_API_KEY` | Required for AI generation routes | DeepSeek credential; never put it in client code |
-| `DEEPSEEK_BASE_URL` | No | `https://api.deepseek.com` |
-| `DEEPSEEK_MODEL` | No | `deepseek-chat` |
+| `GEMINI_API_KEY` | Required for AI generation routes | Gemini credential; never put it in client code |
+| `GEMINI_MODEL` | No | `gemini-3.6-flash` |
 | `GROK_VISION_MODEL` | No | `grok-2-vision-1212`; optional image-analysis model |
 | `BACCALAUREATE_DATE` | No | Application default exam date |
 | `LOG_LEVEL` | No | `info` |
