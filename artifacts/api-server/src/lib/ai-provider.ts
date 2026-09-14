@@ -133,10 +133,22 @@ async function callGeminiApi(
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    const cause =
+      error instanceof Error && "cause" in error
+        ? (error as Error & { cause?: unknown }).cause
+        : undefined;
+    const causeMessage =
+      cause instanceof Error
+        ? `${cause.name}: ${cause.message}`
+        : typeof cause === "string"
+          ? cause
+          : cause && typeof cause === "object" && "code" in cause
+            ? String((cause as { code?: unknown }).code)
+            : "";
     throw new DeepSeekProviderError(
       isConnectionError(message)
-        ? "GEMINI_CONNECTION_NOT_CONFIGURED"
-        : `Gemini request failed: ${message}`,
+        ? `GEMINI_CONNECTION_NOT_CONFIGURED${causeMessage ? `: ${causeMessage}` : ""}`
+        : `Gemini request failed: ${message}${causeMessage ? ` (${causeMessage})` : ""}`,
       {
         retryable: !isConnectionError(message),
         status: isConnectionError(message) ? 401 : undefined,
