@@ -93,7 +93,12 @@ export function sourceDocumentsFrom(
     const metadata = item.metadata ?? {};
     return {
       nodeId: item.id,
-      title: "مرجع دراسي",
+      title: String(
+        metadata.lesson ||
+          metadata.unit ||
+          metadata.source_file ||
+          "مرجع دراسي",
+      ),
       source: String(metadata.source_file || "مصدر غير محدد"),
       page: Number(metadata.source_page || 0),
       quote: (item.document ?? "").trim().replace(/\s+/g, " ").slice(0, 320),
@@ -108,6 +113,7 @@ export function formatRetrievedContext(documents: KnowledgeDocument[]): string {
       return [
         `[عقدة المتجه ${item.id}] المصدر ${index + 1}: ${metadata.lesson || metadata.unit || "درس"}`,
         `المادة: ${metadata.subject || "غير محددة"}`,
+        `نوع المصدر: ${metadata.content_type || "reference"} (lesson/summary للتأسيس، exercise/assessment/solution للتطبيق والتقييم، program للتخطيط فقط)`,
         `الملف: ${metadata.source_file || "غير محدد"}، الصفحة: ${metadata.source_page || 0}`,
         `المفاهيم: ${metadata.concepts || "غير محددة"}`,
         `المحتوى المقتبس: ${(item.document || "").slice(0, 2200)}`,

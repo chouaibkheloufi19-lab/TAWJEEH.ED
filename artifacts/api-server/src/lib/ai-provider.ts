@@ -21,6 +21,8 @@ const CHAT_TIMEOUT_MS = 45_000;
 const XAI_CONNECTOR = "xai";
 const DEFAULT_XAI_MODEL = "grok-3-mini";
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+// Gemini's current direct API response for this account requires the 3.6
+// Flash model. This can still be overridden with GEMINI_MODEL when needed.
 const DEFAULT_GEMINI_MODEL = "gemini-3.6-flash";
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
@@ -45,7 +47,7 @@ export class DeepSeekProviderError extends Error {
 function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
-      reject(new Error(`xAI request timed out after ${milliseconds}ms`));
+      reject(new Error(`AI request timed out after ${milliseconds}ms`));
     }, milliseconds);
     promise.then(
       (value) => {

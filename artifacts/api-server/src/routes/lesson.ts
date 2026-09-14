@@ -209,6 +209,8 @@ function extractGeneratedLesson(
 async function generateLesson(
   lesson: string,
   level: string,
+  subject: string,
+  curriculumYear: string,
   activeConcept: string,
   attemptContext: string,
   retrieval: RetrievalContext,
@@ -233,6 +235,8 @@ async function generateLesson(
         content: [
           `عنوان الدرس المطلوب: ${lesson}`,
           `مستوى الطالب: ${level || "غير محدد"}`,
+           `المادة: ${subject || "غير محددة"}`,
+           `السنة الدراسية: ${curriculumYear || "غير محددة"}`,
           `العنصر الحالي: ${activeConcept || "البداية"}`,
           `ملخص بنك الأخطاء: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
           "عقد المتجه المسترجعة من ChromaDB:",
@@ -255,6 +259,8 @@ async function generateLesson(
 async function generateExercise(
   lesson: string,
   level: string,
+  subject: string,
+  curriculumYear: string,
   activeConcept: string,
   attemptContext: string,
   retrieval: RetrievalContext,
@@ -279,6 +285,8 @@ async function generateExercise(
         content: [
           `عنوان الدرس: ${lesson}`,
           `مستوى الطالب: ${level || "غير محدد"}`,
+          `المادة: ${subject || "غير محددة"}`,
+          `السنة الدراسية: ${curriculumYear || "غير محددة"}`,
           `المفهوم الحالي: ${activeConcept || "قوانين نيوتن والحركة"}`,
           `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
           "عقد المتجه المسترجعة من ChromaDB:",
@@ -319,6 +327,8 @@ async function generateExercise(
 async function generateCreativeExerciseTopics(
   lesson: string,
   level: string,
+  subject: string,
+  curriculumYear: string,
   activeConcept: string,
   attemptContext: string,
   retrieval: RetrievalContext,
@@ -342,6 +352,8 @@ async function generateCreativeExerciseTopics(
         content: [
           `عنوان الدرس: ${lesson}`,
           `مستوى الطالب: ${level || "3AS"}`,
+          `المادة: ${subject || "غير محددة"}`,
+          `السنة الدراسية: ${curriculumYear || "غير محددة"}`,
           `المفهوم الحالي: ${activeConcept || "المفهوم الحالي"}`,
           `سجل الأخطاء أو رغبة الطالب: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
           "غطِّ كل المفاهيم المختلفة الممكنة في عقد المعرفة، ولا تعتمد على مقتطف واحد فقط.",
@@ -420,10 +432,16 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     string,
     unknown
   >;
+  const { subject, curriculum_year: curriculumYear } = req.body as Record<
+    string,
+    unknown
+  >;
   if (
     typeof lesson !== "string" ||
     lesson.trim().length < 2 ||
     (level !== undefined && typeof level !== "string") ||
+    (subject !== undefined && typeof subject !== "string") ||
+    (curriculumYear !== undefined && typeof curriculumYear !== "string") ||
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
     (attemptContext !== undefined && typeof attemptContext !== "string")
   ) {
@@ -435,10 +453,25 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
       [lesson, activeConcept, attemptContext]
         .filter((value): value is string => Boolean(value))
         .join(" "),
+      {
+        where:
+          typeof subject === "string" || typeof curriculumYear === "string"
+            ? {
+                ...(typeof subject === "string" && subject
+                  ? { subject }
+                  : {}),
+                ...(typeof curriculumYear === "string" && curriculumYear
+                  ? { curriculum_year: curriculumYear }
+                  : {}),
+              }
+            : undefined,
+      },
     );
     const generated = await generateLesson(
       lesson,
       typeof level === "string" ? level : "",
+      typeof subject === "string" ? subject : "",
+      typeof curriculumYear === "string" ? curriculumYear : "",
       typeof activeConcept === "string" ? activeConcept : "",
       typeof attemptContext === "string" ? attemptContext : "",
       retrieval,
@@ -470,12 +503,22 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
 });
 
 router.post("/lesson/exercise", async (req, res): Promise<void> => {
-  const { lesson, level, activeConcept, attemptContext, mode } =
+  const {
+    lesson,
+    level,
+    subject,
+    curriculum_year: curriculumYear,
+    activeConcept,
+    attemptContext,
+    mode,
+  } =
     req.body as Record<string, unknown>;
   if (
     typeof lesson !== "string" ||
     lesson.trim().length < 2 ||
     (level !== undefined && typeof level !== "string") ||
+    (subject !== undefined && typeof subject !== "string") ||
+    (curriculumYear !== undefined && typeof curriculumYear !== "string") ||
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
     (attemptContext !== undefined && typeof attemptContext !== "string") ||
     (mode !== undefined && mode !== "standard" && mode !== "creative_topic")
@@ -505,12 +548,27 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       ]
         .filter((value): value is string => Boolean(value))
         .join(" "),
-      mode === "creative_topic" ? { nResults: 24 } : undefined,
+      {
+        nResults: mode === "creative_topic" ? 24 : 8,
+        where:
+          typeof subject === "string" || typeof curriculumYear === "string"
+            ? {
+                ...(typeof subject === "string" && subject
+                  ? { subject }
+                  : {}),
+                ...(typeof curriculumYear === "string" && curriculumYear
+                  ? { curriculum_year: curriculumYear }
+                  : {}),
+              }
+            : undefined,
+      },
     );
     if (mode === "creative_topic") {
       const generatedTopics = await generateCreativeExerciseTopics(
         lesson,
         typeof level === "string" ? level : "",
+        typeof subject === "string" ? subject : "",
+        typeof curriculumYear === "string" ? curriculumYear : "",
         typeof activeConcept === "string" ? activeConcept : "",
         [
           typeof attemptContext === "string" ? attemptContext : "",
@@ -526,6 +584,8 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     const generated = await generateExercise(
       lesson,
       typeof level === "string" ? level : "",
+      typeof subject === "string" ? subject : "",
+      typeof curriculumYear === "string" ? curriculumYear : "",
       typeof activeConcept === "string" ? activeConcept : "",
       [
         typeof attemptContext === "string" ? attemptContext : "",

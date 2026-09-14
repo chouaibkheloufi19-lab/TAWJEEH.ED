@@ -24,6 +24,8 @@ export type ExplanationRequest = {
   lessonTitle: string;
   content: string;
   level?: string;
+  subject?: string;
+  curriculumYear?: string;
 };
 
 export type ExplanationSection = {
@@ -58,6 +60,8 @@ export type ExercisesRequest = {
   lessonTitle: string;
   content: string;
   level?: string;
+  subject?: string;
+  curriculumYear?: string;
   exerciseCount: number;
   exerciseTypes: ExerciseType[];
 };
@@ -87,6 +91,8 @@ export type DaleelRequest = {
   content: string;
   question: string;
   level?: string;
+  subject?: string;
+  curriculumYear?: string;
   highlightedRegion?: { x: number; y: number; width: number; height: number };
   mastery: boolean;
 };
@@ -167,6 +173,8 @@ function buildUserContent(
   return [
     `عنوان الدرس: ${request.lessonTitle}`,
     `مستوى الطالب: ${request.level || "التعليم الثانوي"}`,
+    `المادة: ${request.subject || "تُستنتج من عنوان الدرس والمصادر"}`,
+    `السنة الدراسية: ${request.curriculumYear || "تُستنتج من الطلب والمصادر"}`,
     "المحتوى الذي أدخله المتعلم (يُستخدم كإشارة للبحث، وليس كمصدر وحيد):",
     "<learner_content>",
     request.content,
@@ -184,7 +192,16 @@ async function retrieveForAi(
   const query = [request.lessonTitle, request.content.slice(0, 4_000)]
     .filter(Boolean)
     .join("\n");
-  return retrieveGroundedKnowledge(query, { nResults: 8 });
+  const where =
+    request.subject || request.curriculumYear
+      ? {
+          ...(request.subject ? { subject: request.subject } : {}),
+          ...(request.curriculumYear
+            ? { curriculum_year: request.curriculumYear }
+            : {}),
+        }
+      : undefined;
+  return retrieveGroundedKnowledge(query, { nResults: 8, where });
 }
 
 async function generateJson<T>(
@@ -422,6 +439,7 @@ export async function generateExplanation(
         EXPLANATION_ENGINE_PROMPT,
         LEARNER_SAFE_OUTPUT_RULES,
         "اعتمد على مقاطع ChromaDB المصدرية فقط. لا تضف معلومة لا تثبتها هذه المقاطع.",
+        "فرّق بين نوع المصدر: استخدم lesson/summary/concept/reference لبناء الفهم، واستخدم exercise/assessment/solution لبناء التطبيق والتقييم. لا تعامل program أو أي مصدر غير دراسي كمرجع لقانون أو معلومة.",
       ].join("\n\n"),
     },
     {
@@ -446,6 +464,7 @@ export async function generateExercises(
         INTERACTIVE_EXERCISES_PROMPT,
         LEARNER_SAFE_OUTPUT_RULES,
         "اعتمد على مقاطع ChromaDB المصدرية فقط. لا تضف قانونًا أو رقمًا أو مثالًا لا تثبته هذه المقاطع.",
+        "فرّق بين نوع المصدر: استخرج المفهوم من lesson/summary/concept/reference، وابنِ السؤال أو الحل من exercise/assessment/solution. لا تستخدم program كمصدر لإجابة علمية.",
         `أنشئ ${request.exerciseCount} تمارين بالضبط. الأنواع المسموح بها: ${request.exerciseTypes.join(", ")}. غطِّ هذه الأنواع بالتوازن قدر الإمكان، ولا تستخدم نوعًا خارجها.`,
       ].join("\n\n"),
     },
@@ -469,7 +488,18 @@ export async function generateDaleelResponse(request: DaleelRequest): Promise<Da
     [request.lessonTitle, request.question, request.content.slice(0, 4_000)]
       .filter(Boolean)
       .join("\n"),
-    { nResults: 8 },
+    {
+      nResults: 8,
+      where:
+        request.subject || request.curriculumYear
+          ? {
+              ...(request.subject ? { subject: request.subject } : {}),
+              ...(request.curriculumYear
+                ? { curriculum_year: request.curriculumYear }
+                : {}),
+            }
+          : undefined,
+    },
   );
   const region = request.highlightedRegion
     ? `منطقة التحديد: x=${request.highlightedRegion.x.toFixed(3)}, y=${request.highlightedRegion.y.toFixed(3)}, العرض=${request.highlightedRegion.width.toFixed(3)}, الارتفاع=${request.highlightedRegion.height.toFixed(3)}`
@@ -484,6 +514,8 @@ export async function generateDaleelResponse(request: DaleelRequest): Promise<Da
       content: [
         `عنوان الدرس: ${request.lessonTitle}`,
         `مستوى الطالب: ${request.level || "التعليم الثانوي"}`,
+        `المادة: ${request.subject || "تُستنتج من عنوان الدرس والمصادر"}`,
+        `السنة الدراسية: ${request.curriculumYear || "تُستنتج من الطلب والمصادر"}`,
         `سؤال الطالب: ${request.question}`,
         region,
         `هل أتقن الطالب الموضوع؟ ${request.mastery ? "نعم" : "لا"}`,
@@ -509,14 +541,24 @@ export function normalizeExplanationRequest(body: Record<string, unknown>): Expl
   const lessonTitle = asText(body.lesson_title ?? body.lessonTitle);
   const content = asText(body.content);
   const level = asText(body.level);
+  const subject = asText(body.subject);
+  const curriculumYear = asText(body.curriculum_year ?? body.curriculumYear);
   if (!lessonTitle || !content || content.length > MAX_CONTENT_LENGTH) return null;
-  return { lessonTitle, content, ...(level ? { level } : {}) };
+  return {
+    lessonTitle,
+    content,
+    ...(level ? { level } : {}),
+    ...(subject ? { subject } : {}),
+    ...(curriculumYear ? { curriculumYear } : {}),
+  };
 }
 
 export function normalizeExercisesRequest(body: Record<string, unknown>): ExercisesRequest | null {
   const lessonTitle = asText(body.lesson_title ?? body.lessonTitle);
   const content = asText(body.content);
   const level = asText(body.level);
+  const subject = asText(body.subject);
+  const curriculumYear = asText(body.curriculum_year ?? body.curriculumYear);
   const requestedCount = Number(body.exercise_count ?? body.exerciseCount ?? 6);
   const exerciseCount = Number.isInteger(requestedCount)
     ? Math.max(1, Math.min(requestedCount, MAX_EXERCISES))
@@ -543,6 +585,8 @@ export function normalizeExercisesRequest(body: Record<string, unknown>): Exerci
     exerciseCount,
     exerciseTypes: [...new Set(exerciseTypes)],
     ...(level ? { level } : {}),
+    ...(subject ? { subject } : {}),
+    ...(curriculumYear ? { curriculumYear } : {}),
   };
 }
 
@@ -551,6 +595,8 @@ export function normalizeDaleelRequest(body: Record<string, unknown>): DaleelReq
   const content = asText(body.content);
   const question = asText(body.question);
   const level = asText(body.level);
+  const subject = asText(body.subject);
+  const curriculumYear = asText(body.curriculum_year ?? body.curriculumYear);
   const rawRegion = body.highlighted_region ?? body.highlightedRegion;
   let highlightedRegion: DaleelRequest["highlightedRegion"];
   if (rawRegion !== undefined) {
@@ -569,6 +615,8 @@ export function normalizeDaleelRequest(body: Record<string, unknown>): DaleelReq
     content,
     question,
     ...(level ? { level } : {}),
+    ...(subject ? { subject } : {}),
+    ...(curriculumYear ? { curriculumYear } : {}),
     ...(highlightedRegion ? { highlightedRegion } : {}),
     mastery: body.mastery === true,
   };

@@ -1223,6 +1223,8 @@ export function LessonWorkspace() {
         body: JSON.stringify({
           lesson: fixedLessonTitle,
           level: '3AS',
+          subject: fixedLessonSubject,
+          curriculum_year: '3AS',
           activeConcept: activeSection.title,
           attemptContext: analysis
             ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`
@@ -1364,6 +1366,8 @@ export function LessonWorkspace() {
         body: JSON.stringify({
           lesson: fixedLessonTitle,
           level: '3AS',
+            subject: fixedLessonSubject,
+            curriculum_year: '3AS',
            activeConcept: independent ? 'تطبيق مستقل' : activeSection.title,
            mode: 'creative_topic',
            attemptContext: [
@@ -1518,6 +1522,8 @@ export function LessonWorkspace() {
       body: JSON.stringify({
         lesson_title: fixedLessonTitle,
         level: '3AS',
+        subject: fixedLessonSubject,
+        curriculum_year: '3AS',
         question: questionText,
          content: contentOverride || teachingContent,
         mastery,
@@ -1644,6 +1650,8 @@ export function LessonWorkspace() {
           body: JSON.stringify({
             lesson: 'قوانين نيوتن والحركة',
             level: '3AS',
+            subject: fixedLessonSubject,
+            curriculum_year: '3AS',
             activeConcept: activeSection.title,
             attemptContext: analysis
               ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`
@@ -1810,6 +1818,8 @@ export function LessonWorkspace() {
         body: JSON.stringify({
           lesson: fixedLessonTitle,
           level: '3AS',
+          subject: fixedLessonSubject,
+          curriculum_year: '3AS',
           activeConcept: activeSection.title,
             attemptContext,
         }),
