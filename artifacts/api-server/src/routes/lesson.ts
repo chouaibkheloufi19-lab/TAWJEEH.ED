@@ -142,13 +142,16 @@ function extractGeneratedLesson(
     throw new Error("Lesson generator returned an incomplete lesson");
   }
   const elements = parsed.elements
-    .filter((item): item is GeneratedElement => (
-      Boolean(item) &&
-      typeof item.id === "string" &&
-      typeof item.title === "string" &&
-      typeof item.summary === "string" &&
-      ["definition", "example", "graph", "practice", "recap"].includes(item.kind)
-    ))
+    .filter(
+      (item): item is GeneratedElement =>
+        Boolean(item) &&
+        typeof item.id === "string" &&
+        typeof item.title === "string" &&
+        typeof item.summary === "string" &&
+        ["definition", "example", "graph", "practice", "recap"].includes(
+          item.kind,
+        ),
+    )
     .slice(0, 7);
   const requiredKinds: GeneratedElement["kind"][] = [
     "definition",
@@ -161,27 +164,45 @@ function extractGeneratedLesson(
     elements.length !== requiredKinds.length ||
     elements.some((element, index) => element.kind !== requiredKinds[index])
   ) {
-    throw new Error("Lesson generator returned an invalid academic lesson structure");
+    throw new Error(
+      "Lesson generator returned an invalid academic lesson structure",
+    );
   }
   return {
     status: "generated",
     lessonTitle: parsed.lessonTitle,
-    sourceDocuments: Array.isArray(parsed.sourceDocuments) ? parsed.sourceDocuments : [],
+    sourceDocuments: Array.isArray(parsed.sourceDocuments)
+      ? parsed.sourceDocuments
+      : [],
     objective: parsed.objective,
     elements,
     explanation: parsed.explanation,
     highlight: parsed.highlight,
     graph: {
-      type: parsed.graph.type === "bar" ? "bar" : parsed.graph.type === "none" ? "none" : "line",
+      type:
+        parsed.graph.type === "bar"
+          ? "bar"
+          : parsed.graph.type === "none"
+            ? "none"
+            : "line",
       title: parsed.graph.title,
-      xLabel: typeof parsed.graph.xLabel === "string" ? parsed.graph.xLabel : "",
-      yLabel: typeof parsed.graph.yLabel === "string" ? parsed.graph.yLabel : "",
+      xLabel:
+        typeof parsed.graph.xLabel === "string" ? parsed.graph.xLabel : "",
+      yLabel:
+        typeof parsed.graph.yLabel === "string" ? parsed.graph.yLabel : "",
       points: parsed.graph.points
-        .filter((point): point is GraphPoint => Boolean(point) && typeof point.x === "number" && typeof point.y === "number")
+        .filter(
+          (point): point is GraphPoint =>
+            Boolean(point) &&
+            typeof point.x === "number" &&
+            typeof point.y === "number",
+        )
         .slice(0, 12),
     },
     prompt: parsed.prompt,
-    sourceNodeIds: parsed.sourceNodeIds.filter((nodeId): nodeId is string => typeof nodeId === "string"),
+    sourceNodeIds: parsed.sourceNodeIds.filter(
+      (nodeId): nodeId is string => typeof nodeId === "string",
+    ),
   };
 }
 
@@ -276,8 +297,8 @@ async function generateExercise(
     typeof parsed.prompt !== "string" ||
     typeof parsed.answer !== "string" ||
     typeof parsed.hint !== "string" ||
-    typeof parsed.solution !== "string"
-    || !Array.isArray(parsed.sourceNodeIds)
+    typeof parsed.solution !== "string" ||
+    !Array.isArray(parsed.sourceNodeIds)
   ) {
     throw new Error("Exercise generator returned an incomplete exercise");
   }
@@ -356,13 +377,20 @@ async function generateCreativeExerciseTopics(
       typeof idea.creativeTwist !== "string" ||
       typeof idea.expectedOutcome !== "string"
     ) {
-      throw new Error(`Creative exercise agent returned an invalid topic at index ${index}`);
+      throw new Error(
+        `Creative exercise agent returned an invalid topic at index ${index}`,
+      );
     }
     const steps = idea.steps
-      .filter((step): step is string => typeof step === "string" && Boolean(step.trim()))
+      .filter(
+        (step): step is string =>
+          typeof step === "string" && Boolean(step.trim()),
+      )
       .slice(0, 5);
     if (steps.length < 3) {
-      throw new Error(`Creative exercise agent returned too few steps at index ${index}`);
+      throw new Error(
+        `Creative exercise agent returned too few steps at index ${index}`,
+      );
     }
     return {
       title: idea.title.trim(),
@@ -388,7 +416,10 @@ async function generateCreativeExerciseTopics(
 }
 
 router.post("/lesson/generate", async (req, res): Promise<void> => {
-  const { lesson, level, activeConcept, attemptContext } = req.body as Record<string, unknown>;
+  const { lesson, level, activeConcept, attemptContext } = req.body as Record<
+    string,
+    unknown
+  >;
   if (
     typeof lesson !== "string" ||
     lesson.trim().length < 2 ||
@@ -401,7 +432,9 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
   }
   try {
     const retrieval = await retrieveGroundedKnowledge(
-      [lesson, activeConcept, attemptContext].filter((value): value is string => Boolean(value)).join(" "),
+      [lesson, activeConcept, attemptContext]
+        .filter((value): value is string => Boolean(value))
+        .join(" "),
     );
     const generated = await generateLesson(
       lesson,
@@ -415,21 +448,27 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Lesson generation failed");
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
-      ? "المساعدة الذكية غير متاحة مؤقتًا. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا."
-      : errorMessage.includes("DeepSeek provider responded with 402")
-        ? "لم تكتمل المساعدة الذكية الآن. يمكنك متابعة الدرس والمحاولة لاحقًا."
-      : errorMessage.startsWith("Lesson generator responded with")
-        ? "لم يكتمل تجهيز الشرح الآن. أعد المحاولة بعد قليل."
-      : "لم نتمكن من تجهيز الشرح الآن. يمكنك متابعة المصادر والمحاولة لاحقًا.";
+      ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+      : errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
+        ? "تعذر الاتصال بخدمة الذكاء الاصطناعي حاليًا. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+        : errorMessage.includes("DeepSeek provider responded with 402")
+          ? "تعذر إكمال المساعدة الذكية لأن خدمة النموذج رفضت الطلب. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا."
+          : errorMessage.startsWith("Lesson generator responded with")
+            ? "لم يكتمل تجهيز الشرح الآن. أعد المحاولة بعد قليل."
+            : "لم نتمكن من تجهيز الشرح الآن. يمكنك متابعة المصادر والمحاولة لاحقًا.";
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
-      error: error instanceof KnowledgeGroundingError ? error.code : "lesson_generation_failed",
+      error:
+        error instanceof KnowledgeGroundingError
+          ? error.code
+          : "lesson_generation_failed",
       message,
     });
   }
 });
 
 router.post("/lesson/exercise", async (req, res): Promise<void> => {
-  const { lesson, level, activeConcept, attemptContext, mode } = req.body as Record<string, unknown>;
+  const { lesson, level, activeConcept, attemptContext, mode } =
+    req.body as Record<string, unknown>;
   if (
     typeof lesson !== "string" ||
     lesson.trim().length < 2 ||
@@ -460,7 +499,9 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         mode === "creative_topic"
           ? "موضوعات تطبيقية إبداعية، وضعيات، تجارب ذهنية، تمثيل بصري، وتحديات تغطي كل مكتسبات المنهاج"
           : "تمارين",
-      ].filter((value): value is string => Boolean(value)).join(" "),
+      ]
+        .filter((value): value is string => Boolean(value))
+        .join(" "),
       mode === "creative_topic" ? { nResults: 24 } : undefined,
     );
     if (mode === "creative_topic") {
@@ -468,7 +509,12 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         lesson,
         typeof level === "string" ? level : "",
         typeof activeConcept === "string" ? activeConcept : "",
-        [typeof attemptContext === "string" ? attemptContext : "", historicalErrors].filter(Boolean).join(" | "),
+        [
+          typeof attemptContext === "string" ? attemptContext : "",
+          historicalErrors,
+        ]
+          .filter(Boolean)
+          .join(" | "),
         retrieval,
       );
       res.json(generatedTopics);
@@ -478,7 +524,12 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       lesson,
       typeof level === "string" ? level : "",
       typeof activeConcept === "string" ? activeConcept : "",
-      [typeof attemptContext === "string" ? attemptContext : "", historicalErrors].filter(Boolean).join(" | "),
+      [
+        typeof attemptContext === "string" ? attemptContext : "",
+        historicalErrors,
+      ]
+        .filter(Boolean)
+        .join(" | "),
       retrieval,
     );
     res.json(generated);
@@ -486,14 +537,19 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Exercise generation failed");
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
-      ? "المساعدة الذكية غير متاحة مؤقتًا. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا."
-      : errorMessage.startsWith("xAI provider responded with")
-        ? "لم يكتمل تجهيز التمرين الآن. أعد المحاولة بعد قليل."
-        : mode === "creative_topic"
-          ? "لم تكتمل المساعدة الآن. يمكنك متابعة الدرس والمحاولة لاحقًا."
-          : "لم نتمكن من تجهيز التمرين الآن. أعد المحاولة بعد قليل.";
+      ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+      : errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
+        ? "تعذر الاتصال بخدمة الذكاء الاصطناعي حاليًا. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+        : errorMessage.startsWith("xAI provider responded with")
+          ? "لم يكتمل تجهيز التمرين الآن. أعد المحاولة بعد قليل."
+          : mode === "creative_topic"
+            ? "لم تكتمل المساعدة الآن. يمكنك متابعة الدرس والمحاولة لاحقًا."
+            : "لم نتمكن من تجهيز التمرين الآن. أعد المحاولة بعد قليل.";
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
-      error: error instanceof KnowledgeGroundingError ? error.code : "exercise_generation_failed",
+      error:
+        error instanceof KnowledgeGroundingError
+          ? error.code
+          : "exercise_generation_failed",
       message,
     });
   }

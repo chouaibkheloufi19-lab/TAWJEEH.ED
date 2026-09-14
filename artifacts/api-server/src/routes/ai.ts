@@ -23,7 +23,18 @@ function errorResponse(error: unknown): {
         status: 503,
         body: {
           error: "ai_connection_not_configured",
-           message: "المساعدة الذكية غير متاحة مؤقتًا. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا.",
+          message:
+            "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال.",
+        },
+      };
+    }
+    if (error.message.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")) {
+      return {
+        status: 503,
+        body: {
+          error: "ai_connection_not_configured",
+          message:
+            "تعذر الاتصال بخدمة الذكاء الاصطناعي حاليًا. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال.",
         },
       };
     }
@@ -31,7 +42,10 @@ function errorResponse(error: unknown): {
       status: error.status === 429 ? 429 : 502,
       body: {
         error: "ai_provider_failed",
-         message: "لم تكتمل المساعدة الآن. تابع الدرس من المصادر المتاحة ثم جرّب مرة أخرى بعد قليل.",
+        message:
+          error.status === 429
+            ? "توقفت المساعدة الذكية مؤقتًا بسبب كثرة الطلبات. تابع الدرس من المصادر المتاحة وأعد المحاولة بعد قليل."
+            : "تعذر إكمال المساعدة الذكية الآن. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد قليل.",
         ...(error.retryable ? { retryable: true } : {}),
       },
     };
@@ -51,7 +65,8 @@ function errorResponse(error: unknown): {
       status: 424,
       body: {
         error: error.code,
-        message: "لا يمكن توليد المحتوى قبل العثور على مقاطع مصدرية في قاعدة ChromaDB.",
+        message:
+          "لا يمكن توليد المحتوى قبل العثور على مقاطع مصدرية في قاعدة ChromaDB.",
       },
     };
   }
@@ -71,7 +86,8 @@ router.post("/ai/generate-explanation", async (req, res): Promise<void> => {
   if (!request) {
     res.status(400).json({
       error: "invalid_explanation_payload",
-      message: "أرسل lesson_title وcontent صالحين، وبحد أقصى 50000 حرف للمحتوى.",
+      message:
+        "أرسل lesson_title وcontent صالحين، وبحد أقصى 50000 حرف للمحتوى.",
     });
     return;
   }
@@ -118,7 +134,8 @@ router.post("/ai/daleel", async (req, res): Promise<void> => {
   if (!request) {
     res.status(400).json({
       error: "invalid_daleel_payload",
-      message: "أرسل lesson_title وcontent وquestion صالحين، مع إحداثيات نسبية صحيحة عند تحديد منطقة.",
+      message:
+        "أرسل lesson_title وcontent وquestion صالحين، مع إحداثيات نسبية صحيحة عند تحديد منطقة.",
     });
     return;
   }

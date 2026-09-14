@@ -89,9 +89,18 @@ function extractJsonObject(text: string, label: string): string {
   let escaped = false;
   for (let index = start; index < text.length; index += 1) {
     const character = text[index];
-    if (escaped) { escaped = false; continue; }
-    if (character === "\\" && inString) { escaped = true; continue; }
-    if (character === '"') { inString = !inString; continue; }
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (character === "\\" && inString) {
+      escaped = true;
+      continue;
+    }
+    if (character === '"') {
+      inString = !inString;
+      continue;
+    }
     if (inString) continue;
     if (character === "{") depth += 1;
     if (character === "}") {
@@ -102,8 +111,13 @@ function extractJsonObject(text: string, label: string): string {
   throw new Error(`${label} returned incomplete JSON`);
 }
 
-function parseGeneratedExam(text: string, retrieval: RetrievalContext): GeneratedExamResponse {
-  const parsed = JSON.parse(extractJsonObject(text, "Exam generator")) as Partial<GeneratedExamResponse>;
+function parseGeneratedExam(
+  text: string,
+  retrieval: RetrievalContext,
+): GeneratedExamResponse {
+  const parsed = JSON.parse(
+    extractJsonObject(text, "Exam generator"),
+  ) as Partial<GeneratedExamResponse>;
   if (
     typeof parsed.title !== "string" ||
     typeof parsed.subject !== "string" ||
@@ -132,18 +146,31 @@ function parseGeneratedExam(text: string, retrieval: RetrievalContext): Generate
       typeof section.context !== "string" ||
       !Array.isArray(section.questions) ||
       section.questions.length < 2
-    ) throw new Error(`Exam generator returned an invalid section at index ${index}`);
-    const questions = section.questions.slice(0, 7).map((question, questionIndex) => {
-      if (
-        !question ||
-        typeof question.id !== "string" ||
-        typeof question.label !== "string" ||
-        typeof question.prompt !== "string" ||
-        typeof question.points !== "number" ||
-        question.points <= 0
-      ) throw new Error(`Exam generator returned an invalid question at ${index}:${questionIndex}`);
-      return { id: question.id.trim(), label: question.label.trim(), prompt: question.prompt.trim(), points: question.points };
-    });
+    )
+      throw new Error(
+        `Exam generator returned an invalid section at index ${index}`,
+      );
+    const questions = section.questions
+      .slice(0, 7)
+      .map((question, questionIndex) => {
+        if (
+          !question ||
+          typeof question.id !== "string" ||
+          typeof question.label !== "string" ||
+          typeof question.prompt !== "string" ||
+          typeof question.points !== "number" ||
+          question.points <= 0
+        )
+          throw new Error(
+            `Exam generator returned an invalid question at ${index}:${questionIndex}`,
+          );
+        return {
+          id: question.id.trim(),
+          label: question.label.trim(),
+          prompt: question.prompt.trim(),
+          points: question.points,
+        };
+      });
     return {
       id: section.id.trim(),
       title: section.title.trim(),
@@ -154,27 +181,50 @@ function parseGeneratedExam(text: string, retrieval: RetrievalContext): Generate
       questions,
     };
   });
-  const correctionSections = parsed.correction.sections.slice(0, sections.length).map((section, index) => {
-    if (
-      !section ||
-      typeof section.sectionId !== "string" ||
-      typeof section.title !== "string" ||
-      !Array.isArray(section.solutionSteps) ||
-      section.solutionSteps.length < 2 ||
-      !Array.isArray(section.criteria) ||
-      section.criteria.length < 1
-    ) throw new Error(`Exam generator returned an invalid correction section at index ${index}`);
-    return {
-      sectionId: section.sectionId.trim(),
-      title: section.title.trim(),
-      solutionSteps: section.solutionSteps.filter((step): step is string => typeof step === "string" && Boolean(step.trim())).slice(0, 12),
-      criteria: section.criteria
-        .filter((criterion): criterion is { label: string; points: number } => Boolean(criterion) && typeof criterion.label === "string" && typeof criterion.points === "number")
-        .slice(0, 8)
-        .map((criterion) => ({ label: criterion.label.trim(), points: criterion.points })),
-    };
-  });
-  if (correctionSections.length !== sections.length || correctionSections.some((section) => section.solutionSteps.length < 2 || !section.criteria.length)) {
+  const correctionSections = parsed.correction.sections
+    .slice(0, sections.length)
+    .map((section, index) => {
+      if (
+        !section ||
+        typeof section.sectionId !== "string" ||
+        typeof section.title !== "string" ||
+        !Array.isArray(section.solutionSteps) ||
+        section.solutionSteps.length < 2 ||
+        !Array.isArray(section.criteria) ||
+        section.criteria.length < 1
+      )
+        throw new Error(
+          `Exam generator returned an invalid correction section at index ${index}`,
+        );
+      return {
+        sectionId: section.sectionId.trim(),
+        title: section.title.trim(),
+        solutionSteps: section.solutionSteps
+          .filter(
+            (step): step is string =>
+              typeof step === "string" && Boolean(step.trim()),
+          )
+          .slice(0, 12),
+        criteria: section.criteria
+          .filter(
+            (criterion): criterion is { label: string; points: number } =>
+              Boolean(criterion) &&
+              typeof criterion.label === "string" &&
+              typeof criterion.points === "number",
+          )
+          .slice(0, 8)
+          .map((criterion) => ({
+            label: criterion.label.trim(),
+            points: criterion.points,
+          })),
+      };
+    });
+  if (
+    correctionSections.length !== sections.length ||
+    correctionSections.some(
+      (section) => section.solutionSteps.length < 2 || !section.criteria.length,
+    )
+  ) {
     throw new Error("Exam generator returned an incomplete correction guide");
   }
   return {
@@ -185,7 +235,12 @@ function parseGeneratedExam(text: string, retrieval: RetrievalContext): Generate
     grade: parsed.grade.trim(),
     duration: parsed.duration.trim(),
     totalPoints: parsed.totalPoints,
-    instructions: parsed.instructions.filter((item): item is string => typeof item === "string" && Boolean(item.trim())).slice(0, 5),
+    instructions: parsed.instructions
+      .filter(
+        (item): item is string =>
+          typeof item === "string" && Boolean(item.trim()),
+      )
+      .slice(0, 5),
     sections,
     correction: {
       title: parsed.correction.title.trim(),
@@ -221,12 +276,19 @@ function extractCreativeIdeas(text: string, retrieval: RetrievalContext) {
       typeof idea.creativeTwist !== "string" ||
       typeof idea.expectedOutcome !== "string"
     ) {
-      throw new Error(`Creative agent returned an invalid idea at index ${index}`);
+      throw new Error(
+        `Creative agent returned an invalid idea at index ${index}`,
+      );
     }
     return {
       title: idea.title.trim(),
       approach: idea.approach.trim(),
-      steps: idea.steps.filter((step): step is string => typeof step === "string" && Boolean(step.trim())).slice(0, 5),
+      steps: idea.steps
+        .filter(
+          (step): step is string =>
+            typeof step === "string" && Boolean(step.trim()),
+        )
+        .slice(0, 5),
       creativeTwist: idea.creativeTwist.trim(),
       expectedOutcome: idea.expectedOutcome.trim(),
       sourceNodeIds: assertGroundedNodeIds(idea.sourceNodeIds, retrieval),
@@ -247,7 +309,8 @@ function extractCreativeIdeas(text: string, retrieval: RetrievalContext) {
 }
 
 router.post("/creative/ideas", async (req, res): Promise<void> => {
-  const { lesson, level, activeConcept, question, context, curriculumContext } = req.body as Record<string, unknown>;
+  const { lesson, level, activeConcept, question, context, curriculumContext } =
+    req.body as Record<string, unknown>;
   if (
     typeof lesson !== "string" ||
     lesson.trim().length < 2 ||
@@ -264,9 +327,16 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
 
   try {
     const retrieval = await retrieveGroundedKnowledge(
-      [lesson, activeConcept, question, context, curriculumContext, "كل مكتسبات المنهاج الحل والأفكار الإبداعية"].filter(
-        (value): value is string => Boolean(value?.trim()),
-      ).join(" "),
+      [
+        lesson,
+        activeConcept,
+        question,
+        context,
+        curriculumContext,
+        "كل مكتسبات المنهاج الحل والأفكار الإبداعية",
+      ]
+        .filter((value): value is string => Boolean(value?.trim()))
+        .join(" "),
       { nResults: 50 },
     );
     const content = await callDeepSeekTextModel(
@@ -307,16 +377,23 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Creative ideas generation failed");
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
-      error: error instanceof KnowledgeGroundingError ? error.code : "creative_ideas_generation_failed",
-      message: error instanceof KnowledgeGroundingError
-        ? "لا يمكن توليد أفكار موثوقة قبل نجاح استرجاع مصادر المنهاج."
-        : "تعذر توليد الحل والأفكار الإبداعية الآن. أعد المحاولة بعد قليل.",
+      error:
+        error instanceof KnowledgeGroundingError
+          ? error.code
+          : "creative_ideas_generation_failed",
+      message:
+        error instanceof KnowledgeGroundingError
+          ? "لا يمكن توليد أفكار موثوقة قبل نجاح استرجاع مصادر المنهاج."
+          : "تعذر توليد الحل والأفكار الإبداعية الآن. أعد المحاولة بعد قليل.",
     });
   }
 });
 
 router.post("/creative/exam-topic", async (req, res): Promise<void> => {
-  const { subject, level, track, request } = req.body as Record<string, unknown>;
+  const { subject, level, track, request } = req.body as Record<
+    string,
+    unknown
+  >;
   if (
     typeof subject !== "string" ||
     subject.trim().length < 2 ||
@@ -335,7 +412,9 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         typeof track === "string" ? track : "شعبة العلوم التجريبية",
         typeof request === "string" ? request : "",
         "موضوع بكالوريا كامل تمارين إبداعية وتصحيح نموذجي سلم تنقيط",
-      ].filter(Boolean).join(" "),
+      ]
+        .filter(Boolean)
+        .join(" "),
       { nResults: 24 },
     );
     const content = await callDeepSeekTextModel(
@@ -370,12 +449,17 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Grounded exam generation failed");
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
-      error: error instanceof KnowledgeGroundingError ? error.code : "exam_generation_failed",
+      error:
+        error instanceof KnowledgeGroundingError
+          ? error.code
+          : "exam_generation_failed",
       message: errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
-        ? "المساعدة الذكية غير متاحة مؤقتًا. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا."
-        : error instanceof KnowledgeGroundingError
-          ? "لا يمكن اعتماد موضوع قبل نجاح استرجاع مصادر المنهاج."
-          : "تعذر توليد الموضوع ودليل التصحيح من المصادر حاليًا. أعد المحاولة.",
+        ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+        : errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
+          ? "تعذر الاتصال بخدمة الذكاء الاصطناعي حاليًا. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+          : error instanceof KnowledgeGroundingError
+            ? "لا يمكن اعتماد موضوع قبل نجاح استرجاع مصادر المنهاج."
+            : "تعذر توليد الموضوع ودليل التصحيح من المصادر حاليًا. أعد المحاولة.",
     });
   }
 });
