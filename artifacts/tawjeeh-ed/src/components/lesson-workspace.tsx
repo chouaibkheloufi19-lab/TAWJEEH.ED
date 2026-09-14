@@ -1233,13 +1233,34 @@ export function LessonWorkspace() {
        if (!response.ok || typeof payload.lessonTitle !== 'string' || !Array.isArray(payload.elements) || !Array.isArray(payload.sourceNodeIds)) {
         throw new Error(payload.message || 'تعذر توليد شرح الدرس من المصادر.');
       }
-       setGeneratedLesson({
+       const generated = {
          ...(payload as Omit<GeneratedLesson, 'concept'>),
          lessonTitle: fixedLessonTitle,
          concept: activeSection.id,
-       });
+       };
+       setGeneratedLesson(generated);
       setLessonGenerationState('ready');
       setHighlightedPart(typeof payload.highlight === 'string' ? payload.highlight : '');
+       try {
+         await requestDaleel(
+           `ابدأ معي الآن بشرح «${activeSection.title}» خطوةً خطوة، ثم توقف عند سؤال قصير لأتأكد من الفهم.`,
+           null,
+           false,
+           [
+             `الهدف: ${generated.objective}`,
+             `الشرح: ${generated.explanation}`,
+             `الفكرة المميزة: ${generated.highlight}`,
+             generated.elements.map((element) => `${element.title}: ${element.summary}`).join('\n'),
+             sourceExcerpt,
+           ].filter(Boolean).join('\n'),
+         );
+       } catch {
+         setMessages((current) => [...current, {
+           id: `daleel-start-warning-${Date.now()}`,
+           role: 'assistant',
+           text: 'تم تجهيز محتوى الدرس، لكن تشغيل دليل يحتاج إلى إعادة المحاولة من زر الشرح.',
+         }]);
+       }
        void generateExerciseForStudent(
          `${activeSection.title}. ابنِ تمرين التثبيت مباشرة من شرح الدرس المسترجع: ${typeof payload.explanation === 'string' ? payload.explanation : ''}`,
          true,
@@ -1482,6 +1503,7 @@ export function LessonWorkspace() {
     questionText: string,
     selection: WhiteboardSelection | null = boardSelection,
     mastery = progress >= 100,
+    contentOverride?: string,
   ): Promise<DaleelResponse> => {
     const teachingContent = [
       `الشرح الحالي: ${displayedExplanation}`,
@@ -1497,7 +1519,7 @@ export function LessonWorkspace() {
         lesson_title: fixedLessonTitle,
         level: '3AS',
         question: questionText,
-        content: teachingContent,
+         content: contentOverride || teachingContent,
         mastery,
         ...(selection
           ? {
