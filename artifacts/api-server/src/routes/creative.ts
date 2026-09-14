@@ -456,7 +456,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
       message: errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
         ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
         : errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
-          ? "تعذر الاتصال بخدمة الذكاء الاصطناعي حاليًا. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+          ? "رفضت خدمة DeepSeek المفتاح الحالي أو لم تقبله. تحقق من DEEPSEEK_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
           : error instanceof KnowledgeGroundingError
             ? "لا يمكن اعتماد موضوع قبل نجاح استرجاع مصادر المنهاج."
             : "تعذر توليد الموضوع ودليل التصحيح من المصادر حاليًا. أعد المحاولة.",

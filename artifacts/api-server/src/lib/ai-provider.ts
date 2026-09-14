@@ -21,7 +21,10 @@ export class DeepSeekProviderError extends Error {
   readonly status?: number;
   readonly retryable: boolean;
 
-  constructor(message: string, options: { status?: number; retryable?: boolean } = {}) {
+  constructor(
+    message: string,
+    options: { status?: number; retryable?: boolean } = {},
+  ) {
     super(message);
     this.name = "DeepSeekProviderError";
     this.status = options.status;
@@ -53,7 +56,7 @@ async function readProviderError(response: Response): Promise<string> {
 }
 
 function isConnectionError(message: string): boolean {
-  return /unauthenticated|no-credentials|not connected|connection|credential|incorrect api key|invalid api key|api key provided/i.test(
+  return /unauthenticated|no[- ]credentials|not connected|connection (?:not found|not configured|failed|refused|reset)|credentials? (?:missing|invalid|not found)|incorrect api key|invalid api key|api key (?:provided|missing|not found)/i.test(
     message,
   );
 }
@@ -87,7 +90,9 @@ async function callDeepSeekApi(
           temperature: options.temperature,
           max_tokens: options.maxOutputTokens,
           messages,
-          ...(options.jsonMode ? { response_format: { type: "json_object" } } : {}),
+          ...(options.jsonMode
+            ? { response_format: { type: "json_object" } }
+            : {}),
         }),
       }),
       CHAT_TIMEOUT_MS,
@@ -95,7 +100,9 @@ async function callDeepSeekApi(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new DeepSeekProviderError(
-      isConnectionError(message) ? "DEEPSEEK_CONNECTION_NOT_CONFIGURED" : `DeepSeek request failed: ${message}`,
+      isConnectionError(message)
+        ? "DEEPSEEK_CONNECTION_NOT_CONFIGURED"
+        : `DeepSeek request failed: ${message}`,
       {
         retryable: !isConnectionError(message),
         status: isConnectionError(message) ? 401 : undefined,
@@ -106,12 +113,17 @@ async function callDeepSeekApi(
   if (!response.ok) {
     const providerError = await readProviderError(response);
     throw new DeepSeekProviderError(
-      response.status === 401 || response.status === 403 || isConnectionError(providerError)
+      response.status === 401 ||
+        response.status === 403 ||
+        isConnectionError(providerError)
         ? "DEEPSEEK_CONNECTION_NOT_CONFIGURED"
         : `DeepSeek provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
       {
         status: response.status,
-        retryable: response.status === 408 || response.status === 429 || response.status >= 500,
+        retryable:
+          response.status === 408 ||
+          response.status === 429 ||
+          response.status >= 500,
       },
     );
   }
@@ -121,10 +133,13 @@ async function callDeepSeekApi(
     payload = (await response.json()) as ChatCompletionResponse;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new DeepSeekProviderError(`DeepSeek provider returned invalid JSON: ${message}`, {
-      status: response.status,
-      retryable: true,
-    });
+    throw new DeepSeekProviderError(
+      `DeepSeek provider returned invalid JSON: ${message}`,
+      {
+        status: response.status,
+        retryable: true,
+      },
+    );
   }
   const content = payload.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) {
@@ -153,14 +168,23 @@ async function discoverXaiModel(): Promise<string> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new DeepSeekProviderError(
-      isConnectionError(message) ? "XAI_CONNECTION_NOT_CONFIGURED" : `xAI model discovery failed: ${message}`,
-      { retryable: !isConnectionError(message), status: isConnectionError(message) ? 401 : undefined },
+      isConnectionError(message)
+        ? "XAI_CONNECTION_NOT_CONFIGURED"
+        : `xAI model discovery failed: ${message}`,
+      {
+        retryable: !isConnectionError(message),
+        status: isConnectionError(message) ? 401 : undefined,
+      },
     );
   }
 
   if (!response.ok) {
     const providerError = await readProviderError(response);
-    if (response.status === 401 || response.status === 403 || isConnectionError(providerError)) {
+    if (
+      response.status === 401 ||
+      response.status === 403 ||
+      isConnectionError(providerError)
+    ) {
       throw new DeepSeekProviderError("XAI_CONNECTION_NOT_CONFIGURED", {
         status: response.status,
       });
@@ -169,7 +193,10 @@ async function discoverXaiModel(): Promise<string> {
       `xAI model discovery responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
       {
         status: response.status,
-        retryable: response.status === 408 || response.status === 429 || response.status >= 500,
+        retryable:
+          response.status === 408 ||
+          response.status === 429 ||
+          response.status >= 500,
       },
     );
   }
@@ -227,7 +254,9 @@ export async function callDeepSeekTextModel(
           temperature: options.temperature,
           max_tokens: options.maxOutputTokens,
           messages,
-          ...(options.jsonMode ? { response_format: { type: "json_object" } } : {}),
+          ...(options.jsonMode
+            ? { response_format: { type: "json_object" } }
+            : {}),
         }),
       }),
       CHAT_TIMEOUT_MS,
@@ -235,7 +264,9 @@ export async function callDeepSeekTextModel(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new DeepSeekProviderError(
-      isConnectionError(message) ? "XAI_CONNECTION_NOT_CONFIGURED" : `xAI request failed: ${message}`,
+      isConnectionError(message)
+        ? "XAI_CONNECTION_NOT_CONFIGURED"
+        : `xAI request failed: ${message}`,
       {
         retryable: !isConnectionError(message),
         status: isConnectionError(message) ? 401 : undefined,
@@ -246,12 +277,17 @@ export async function callDeepSeekTextModel(
   if (!response.ok) {
     const providerError = await readProviderError(response);
     throw new DeepSeekProviderError(
-      response.status === 401 || response.status === 403 || isConnectionError(providerError)
+      response.status === 401 ||
+        response.status === 403 ||
+        isConnectionError(providerError)
         ? "XAI_CONNECTION_NOT_CONFIGURED"
         : `xAI provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
       {
         status: response.status,
-        retryable: response.status === 408 || response.status === 429 || response.status >= 500,
+        retryable:
+          response.status === 408 ||
+          response.status === 429 ||
+          response.status >= 500,
       },
     );
   }
@@ -261,10 +297,13 @@ export async function callDeepSeekTextModel(
     payload = (await response.json()) as ChatCompletionResponse;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new DeepSeekProviderError(`xAI provider returned invalid JSON: ${message}`, {
-      status: response.status,
-      retryable: true,
-    });
+    throw new DeepSeekProviderError(
+      `xAI provider returned invalid JSON: ${message}`,
+      {
+        status: response.status,
+        retryable: true,
+      },
+    );
   }
   const content = payload.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) {
@@ -294,7 +333,8 @@ export async function callDeepSeekTextModelWithRetry(
       return await callDeepSeekTextModel(messages, options);
     } catch (error) {
       lastError = error;
-      const retryable = error instanceof DeepSeekProviderError && error.retryable;
+      const retryable =
+        error instanceof DeepSeekProviderError && error.retryable;
       if (!retryable || attempt === maxAttempts) {
         throw error;
       }
@@ -302,5 +342,7 @@ export async function callDeepSeekTextModelWithRetry(
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error("xAI request failed");
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("xAI request failed");
 }

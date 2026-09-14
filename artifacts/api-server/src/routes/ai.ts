@@ -34,7 +34,7 @@ function errorResponse(error: unknown): {
         body: {
           error: "ai_connection_not_configured",
           message:
-            "تعذر الاتصال بخدمة الذكاء الاصطناعي حاليًا. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال.",
+            "رفضت خدمة DeepSeek المفتاح الحالي أو لم تقبله. تحقق من DEEPSEEK_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن.",
         },
       };
     }

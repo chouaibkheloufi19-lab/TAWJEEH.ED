@@ -450,7 +450,7 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
       ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
       : errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
-        ? "تعذر الاتصال بخدمة الذكاء الاصطناعي حاليًا. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+        ? "رفضت خدمة DeepSeek المفتاح الحالي أو لم تقبله. تحقق من DEEPSEEK_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
         : errorMessage.includes("DeepSeek provider responded with 402")
           ? "تعذر إكمال المساعدة الذكية لأن خدمة النموذج رفضت الطلب. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا."
           : errorMessage.startsWith("Lesson generator responded with")
@@ -539,7 +539,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
       ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
       : errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
-        ? "تعذر الاتصال بخدمة الذكاء الاصطناعي حاليًا. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
+        ? "رفضت خدمة DeepSeek المفتاح الحالي أو لم تقبله. تحقق من DEEPSEEK_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
         : errorMessage.startsWith("xAI provider responded with")
           ? "لم يكتمل تجهيز التمرين الآن. أعد المحاولة بعد قليل."
           : mode === "creative_topic"
