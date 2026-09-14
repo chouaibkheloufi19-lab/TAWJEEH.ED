@@ -32,3 +32,9 @@ Imported workspaces may have complete lockfiles but no installed JavaScript or P
 **Why:** Artifact workflow errors such as missing `vite`, `esbuild`, or `chromadb` can mask healthy imported code and produce misleading setup conclusions.
 
 **How to apply:** Run the workspace's locked pnpm install and `uv sync --locked`, then rebuild shared TypeScript declarations before evaluating the managed services.
+
+An imported app can have a reachable but empty development database even after its PostgreSQL module is provisioned; database-backed API routes then fail with missing-table errors until the checked-in Drizzle schema is pushed.
+
+**Why:** The imported Tawjeeh API and frontend were healthy after dependency restoration, but learning routes returned 500 because the development database had no application tables.
+
+**How to apply:** After provisioning or importing a database-backed app, verify the development schema before debugging route logic and run the repository's documented schema push command when the database is empty.

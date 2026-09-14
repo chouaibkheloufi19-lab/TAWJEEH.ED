@@ -274,15 +274,8 @@ function Topbar({ title }: { title: string }) {
 
 function Shell({ children, title }: { children: ReactNode; title: string }) {
   const isLessonShell = title === 'جلسة فهيم';
-  const initialAgent: OwlAgentId = title === 'جلسة فهيم' || title === 'التفاعل'
-    ? 'FAHIM'
-    : title === 'الكويزات والنقاط'
-      ? 'PRACTICE'
-      : title === 'المعرفة'
-        ? 'DALEEL'
-        : title === 'استوديو المراجعة'
-          ? 'PRACTICE'
-        : 'WELCOME';
+  const isInteractiveShell = title === 'التفاعل';
+  const initialAgent: OwlAgentId = 'FAHIM';
   return (
     <div className={`app-shell noise ${isLessonShell ? 'lesson-shell' : ''}`}>
       <Sidebar compact={isLessonShell} />
@@ -293,7 +286,7 @@ function Shell({ children, title }: { children: ReactNode; title: string }) {
         </div>
       </main>
       <NavLinks mobile />
-      {!isLessonShell && <DynamicOwlCopilot initialAgent={initialAgent} />}
+      {isInteractiveShell && <DynamicOwlCopilot initialAgent={initialAgent} />}
     </div>
   );
 }

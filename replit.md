@@ -8,6 +8,7 @@
 - `pnpm --filter @workspace/tawjeeh-ed run dev` — run the web app (Vite uses the workflow-provided `PORT`)
 - `pnpm --filter @workspace/api-server run dev` — run the API server (workflow port 8080)
 - `cd ../.. && uv run python3 -m knowledge_base.cli serve --port 8001` — run the knowledge-base service
+- `pnpm --filter @workspace/db run push` — apply the Drizzle schema to the provisioned development database before using database-backed routes
 - `Run Tawjeeh preview` — run `bash scripts/start-tawjeeh.sh` to install dependencies, refresh the knowledge index when needed, and start the web app, API server, and knowledge-base services together
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
