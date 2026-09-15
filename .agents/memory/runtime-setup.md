@@ -9,6 +9,12 @@ Imported apps that already reference Clerk can still have no provisioned Clerk e
 
 **How to apply:** Check Clerk management status before changing auth code. For Python services, install the dependencies into the Replit runtime even when `pyproject.toml` and `uv.lock` are already present.
 
+Attaching a Clerk connector connection does not by itself provision the Replit-managed Clerk Auth keys consumed by the browser and middleware.
+
+**Why:** The connected Clerk Backend API was available while Clerk management status remained `not_configured` and the app still lacked its three Clerk environment variables.
+
+**How to apply:** Treat the connector and managed Auth setup as separate concerns; allow development mock auth only when the app explicitly supports it, and direct published-app setup to the Auth pane.
+
 Imported pnpm workspaces can also contain a lockfile that lags a generated or scaffolded package manifest; a frozen install may fail before the app can be inspected. Reconcile the lockfile only after confirming the manifest change is intentional.
 
 **Why:** The imported workspace required a non-frozen install because the root lockfile did not include a dependency already declared by the imported scaffold.
