@@ -206,7 +206,7 @@ type GeneratedExercise = {
     retrievedNodeIds: string[];
     sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
   };
-  format?: 'comprehensive_function';
+  format?: 'comprehensive_function' | 'comprehensive_science';
   totalPoints?: number;
   sections?: Array<{
     id: string;
@@ -2676,9 +2676,9 @@ export function LessonWorkspace() {
             </div>
            {generatedExercise && (
              <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
-                 <span>{generatedExercise.format === 'comprehensive_function' ? 'ورقة تمرين شاملة · الحل عبر صورة المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل كشف الحل'}</span>
+                  <span>{generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? 'ورقة عملية شاملة · الحل عبر صورة المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل كشف الحل'}</span>
                <h4>{generatedExercise.title}</h4>
-                {generatedExercise.format === 'comprehensive_function' ? (
+                 {generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? (
                   <>
                     <p className="lesson-generated-intro">{generatedExercise.prompt}</p>
                     <div className="lesson-generated-meta">
@@ -2729,7 +2729,7 @@ export function LessonWorkspace() {
                 ) : (
                   <>
                     <p>{generatedExercise.prompt}</p>
-                    <small>بُني من محتوى درس قوانين نيوتن والحركة</small>
+                    <small>اكتب محاولتك أولًا، ثم اطلب من فهيم تصحيحها</small>
                     <textarea
                       value={exerciseAnswer}
                       onChange={(event) => {

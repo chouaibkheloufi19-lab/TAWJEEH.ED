@@ -408,10 +408,6 @@ export function InteractiveLearningLoop({
         || generatedAnswer.includes(normalized)
       : expectedTerms.some((term) => normalized.includes(term) || term.includes(normalized)));
     setPracticeState(correct ? 'correct' : 'retry');
-    if (correct) {
-      setSolutionStep(0);
-      setPhase('solution');
-    }
   };
 
   const nextExplanationStep = () => {
@@ -559,7 +555,7 @@ export function InteractiveLearningLoop({
                 </div>
               )}
               {practiceState === 'correct' && (
-                <div className="learning-feedback is-correct" role="status"><CheckCircle2 size={16} /><span>إجابة موفقة. انتقلنا تلقائيًا إلى الحل المرئي على السبورة.</span></div>
+                <div className="learning-feedback is-correct" role="status"><CheckCircle2 size={16} /><span>إجابة موفقة. بقي الحل النموذجي مخفيًا؛ اطلب من فهيم شرح الخطوة التالية إذا احتجت.</span></div>
               )}
               {showHint && practiceState === 'retry' && (
                   <div className="learning-hint"><Lightbulb size={14} /> تلميح: <MathText>{groundedExercise?.hint || `ابحث في السند عن «${section.highlight}» أو العلاقة «${formulaBySection[section.id]}».`}</MathText></div>

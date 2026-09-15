@@ -66,7 +66,7 @@ type GeneratedExercise = {
   sourceDocuments: SourceDocument[];
   sourceNodeIds: string[];
   grounding: Grounding;
-  format?: "comprehensive_function";
+  format?: "comprehensive_function" | "comprehensive_science";
   totalPoints?: number;
   sections?: Array<{
     id: string;
@@ -274,22 +274,30 @@ async function generateExercise(
   retrieval: RetrievalContext,
 ): Promise<GeneratedExercise> {
   const sourceText = formatRetrievedContext(retrieval.documents);
-  const functionRequest = [
+  const generationRequest = [
     lesson,
     subject,
     activeConcept,
     attemptContext,
   ].join(" ");
-  const isComprehensiveFunctionExercise = /دوال|الدالة|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite/i.test(functionRequest);
-  const generationInstruction = isComprehensiveFunctionExercise
+  const isFunctionStudy = /دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite/i.test(generationRequest);
+  const isScientificPaper = isFunctionStudy || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(generationRequest);
+  const generationInstruction = isFunctionStudy
     ? [
-        "طلب الطالب تمرين دوال شامل. لا تنشئ أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
+        "طلب الطالب دراسة شاملة ومدققة لدالة عددية. لا تنشئ سؤالًا واحدًا ولا أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
         "أنشئ ورقة واحدة متماسكة حول دالة عددية واحدة، بحيث تقود المعطيات نفسها إلى جميع المحاور التالية بالترتيب: مجموعة التعريف والنهايات، الاشتقاق ودراسة التغيرات، الوضع النسبي أو حل معادلات ومتراجحات مرتبطة بالدالة وإيجاد الأعداد الحقيقية، جدول التغيرات، التمثيل البياني، ثم المستقيمات المقاربة والمماس عند الحاجة.",
         "اجعلها قابلة للنسخ على ورقة مدرسية: سياق مختصر، معطيات واضحة، ثم مطلوبات مرقمة من (أ) إلى (و). يجب أن تكون كل المطلوبات قابلة للحل من المعطيات نفسها، وألا يتجاوز مجموعها 20 نقطة.",
         "أعد أيضًا حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا قصيرًا. لا تعرض الحل في prompt أو sections.",
         'أعد sections بهذا الشكل: [{"id":"limits","title":"النهايات ومجموعة التعريف","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق والتغيرات","points":4,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":4,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"asymptotes","title":"المقارب والمماس","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}]',
       ].join("\n")
-    : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
+    : isScientificPaper
+      ? [
+          "طلب الطالب مادة تطبيقية. لا تنشئ اختيارًا من متعدد ولا سؤالًا قصيرًا.",
+          "أنشئ ورقة عملية مترابطة من معطيات واضحة ومطلوبات متعددة، ليحلها الطالب بالقلم على الورق. اجعلها في الرياضيات أو الفيزياء بحسب المصادر، وتدرج من استخراج المعطيات والقانون إلى الحساب والتفسير والتحقق.",
+          "أعد حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا لا يكشف النتيجة. لا تضع الحل داخل prompt أو sections.",
+          'أعد sections بهذا الشكل: [{"id":"data","title":"فهم المعطيات","points":3,"prompt":"..."},{"id":"law","title":"القانون أو النموذج","points":4,"prompt":"..."},{"id":"calculation","title":"الحساب والتطبيق","points":5,"prompt":"..."},{"id":"interpretation","title":"التفسير والتحقق","points":4,"prompt":"..."},{"id":"synthesis","title":"تركيب أو امتداد","points":4,"prompt":"..."}]',
+        ].join("\n")
+      : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
   const content = await callDeepSeekTextModel(
     [
       {
@@ -300,7 +308,7 @@ async function generateExercise(
           EXERCISE_GENERATION_PROMPT,
           GROUNDED_CONTENT_RULES,
           LEARNER_SAFE_OUTPUT_RULES,
-          `أنت وكيل تمارين عربي لمنصة توجيه. ${generationInstruction} أخفِ الإجابة في الحقول المخصصة لها، واجعل التلميح لا يكشف الحل. يجب أن يكون الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.`,
+          `أنت وكيل تمارين عربي لمنصة توجيه. ${generationInstruction} أخفِ الإجابة في الحقول الداخلية المخصصة لها؛ لا تضع أي جزء من الحل النموذجي في prompt أو sections لأن الطالب سيراهما قبل المحاولة. اجعل الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.`,
           "هذه الواجهة تحتاج JSON فقط؛ أعد الحقول المطلوبة فقط ولا تضف أي نص خارج الكائن.",
         ].join("\n\n"),
       },
@@ -315,13 +323,15 @@ async function generateExercise(
           `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
           "عقد المتجه المسترجعة من ChromaDB:",
           sourceText,
-          isComprehensiveFunctionExercise
-            ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"الدوال العددية","title":"تمرين شامل في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتيجة النهائية دون شرح","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"limits","title":"النهايات ومجموعة التعريف","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق والتغيرات","points":4,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":4,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"asymptotes","title":"المقارب والمماس","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
+          isFunctionStudy
+             ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"الدوال العددية","title":"دراسة شاملة في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"limits","title":"النهايات ومجموعة التعريف","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق والتغيرات","points":4,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":4,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"asymptotes","title":"المقارب والمماس","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
+             : isScientificPaper
+               ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان المادة","title":"موضوع عملي شامل","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"فهم المعطيات","points":3,"prompt":"..."},{"id":"law","title":"القانون أو النموذج","points":4,"prompt":"..."},{"id":"calculation","title":"الحساب والتطبيق","points":5,"prompt":"..."},{"id":"interpretation","title":"التفسير والتحقق","points":4,"prompt":"..."},{"id":"synthesis","title":"تركيب أو امتداد","points":4,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
             : 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
         ].join("\n"),
       },
     ],
-    { temperature: 0.15, maxOutputTokens: isComprehensiveFunctionExercise ? 2800 : 1200, jsonMode: true },
+    { temperature: 0.15, maxOutputTokens: isScientificPaper ? 2800 : 1200, jsonMode: true },
   );
   const candidate = extractJsonObject(content, "Exercise generator");
   const parsed = JSON.parse(candidate) as Partial<GeneratedExercise>;
@@ -355,8 +365,19 @@ async function generateExercise(
           prompt: section.prompt.trim(),
         }))
     : undefined;
-  if (isComprehensiveFunctionExercise && (!sections || sections.length < 5)) {
-    throw new Error("Exercise generator returned an incomplete comprehensive function exercise");
+  const format = parsed.format === "comprehensive_function" || parsed.format === "comprehensive_science"
+    ? parsed.format
+    : undefined;
+  if (isScientificPaper && (!format || !sections || sections.length < 5)) {
+    throw new Error("Exercise generator returned an incomplete practical paper");
+  }
+  if (isScientificPaper && sections) {
+    const totalPoints = typeof parsed.totalPoints === "number"
+      ? parsed.totalPoints
+      : sections.reduce((sum, section) => sum + section.points, 0);
+    if (totalPoints <= 0 || totalPoints > 20 || sections.some((section) => section.prompt.includes("الحل النموذجي"))) {
+      throw new Error("Exercise generator returned an invalid practical paper");
+    }
   }
   return {
     status: "generated",
@@ -369,9 +390,9 @@ async function generateExercise(
     sourceDocuments: sourceDocumentsFrom(retrieval.documents),
     sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
     grounding: retrieval.grounding,
-    ...(sections
+    ...(sections && format
       ? {
-          format: "comprehensive_function" as const,
+          format,
           totalPoints: typeof parsed.totalPoints === "number" ? parsed.totalPoints : sections.reduce((sum, section) => sum + section.points, 0),
           sections,
         }
@@ -592,6 +613,10 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       .slice(0, 12)
       .map((error) => `${error.concept_title}: ${error.error_tag}`)
       .join(" | ");
+    const requestText = [lesson, activeConcept, attemptContext]
+      .filter((value): value is string => Boolean(value))
+      .join(" ");
+    const isPaperRequest = /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(requestText);
     const retrieval = await retrieveGroundedKnowledge(
       [
         lesson,
@@ -604,7 +629,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         .filter((value): value is string => Boolean(value))
         .join(" "),
       {
-        nResults: mode === "creative_topic" ? 24 : 8,
+        nResults: mode === "creative_topic" ? 24 : isPaperRequest ? 20 : 8,
         where:
           typeof subject === "string" || typeof curriculumYear === "string"
             ? {
