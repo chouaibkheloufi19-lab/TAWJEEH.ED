@@ -681,12 +681,20 @@ export function LessonWorkspace() {
   const [exerciseAttemptState, setExerciseAttemptState] = useState<'idle' | 'analyzing' | 'ready' | 'error'>('idle');
   const [exerciseAttemptError, setExerciseAttemptError] = useState('');
   const [showExerciseHint, setShowExerciseHint] = useState(false);
-  const [showExerciseSolution, setShowExerciseSolution] = useState(false);
+  const [exerciseAttemptStartedAt, setExerciseAttemptStartedAt] = useState<number | null>(null);
+  const [exerciseAttemptElapsed, setExerciseAttemptElapsed] = useState(0);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const whiteboardImageInputRef = useRef<HTMLInputElement>(null);
   const owlVideoRef = useRef<HTMLVideoElement>(null);
   const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const copilotSpeechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  useEffect(() => {
+    if (!exerciseAttemptStartedAt || exerciseAttemptState === 'ready' || exerciseAttemptState === 'error') return;
+    const updateElapsed = () => setExerciseAttemptElapsed(Math.max(0, Math.floor((Date.now() - exerciseAttemptStartedAt) / 1000)));
+    updateElapsed();
+    const timer = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(timer);
+  }, [exerciseAttemptStartedAt, exerciseAttemptState]);
   const knowledgeParams = useMemo(() => ({ subject: 'العلوم الفيزيائية', curriculum_year: '3AS' }), []);
   const knowledgeQuery = useListKnowledge(knowledgeParams, { query: { queryKey: getListKnowledgeQueryKey(knowledgeParams), staleTime: 5 * 60 * 1000 } });
   const knowledgeCards = useMemo(() => (knowledgeQuery.data as KnowledgeCard[] | undefined) ?? [], [knowledgeQuery.data]);
@@ -1137,7 +1145,8 @@ export function LessonWorkspace() {
     setExerciseAttemptState('idle');
     setExerciseAttemptError('');
     setShowExerciseHint(false);
-    setShowExerciseSolution(false);
+    setExerciseAttemptStartedAt(null);
+    setExerciseAttemptElapsed(0);
     setCreativeIdeas(null);
     setLessonGenerationState('idle');
     setLessonGenerationError('');
@@ -1697,7 +1706,8 @@ export function LessonWorkspace() {
           setExerciseAttemptState('idle');
           setExerciseAttemptError('');
           setAnalysis(null);
-          setShowExerciseSolution(false);
+          setExerciseAttemptStartedAt(Date.now());
+          setExerciseAttemptElapsed(0);
           reply = `جهز لك وكيل التمارين تدريبًا على «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
        }
       }
@@ -1919,7 +1929,8 @@ export function LessonWorkspace() {
       setExerciseAttemptError('');
       setAnalysis(null);
       setShowExerciseHint(false);
-      setShowExerciseSolution(false);
+      setExerciseAttemptStartedAt(Date.now());
+      setExerciseAttemptElapsed(0);
       setMessages((current) => [...current, {
         id: `exercise-${Date.now()}`,
         role: 'assistant',
@@ -1957,7 +1968,6 @@ export function LessonWorkspace() {
       || expected.includes(normalized)
     );
     setExerciseFeedback(isCorrect ? 'correct' : 'retry');
-    setShowExerciseSolution(false);
     setFahimBoardTarget(null);
     recordAttemptMutation.mutate({
       data: {
@@ -2237,12 +2247,12 @@ export function LessonWorkspace() {
         <div>
             <span className="lesson-panel-kicker"><Sparkles size={13} /> {phase4Active ? 'اكتملت المرحلة التأسيسية' : 'محتوى الدرس جاهز'}</span>
             <strong>{phase4Active ? 'ثبت فهمك ثم طبّق' : 'شرح موثوق يتكيف معك'}</strong>
-            <p>{phase4Active ? 'تابع الشرح مع دليل ثم انتقل إلى تمرين قصير يثبت ما تعلمته.' : 'يبدأ الدرس من مصادر المنهاج، ثم يغيّر مستوى الشرح والتمرين حسب إجابتك.'}</p>
+            <p>{phase4Active ? 'تابع الشرح مع دليل ثم انتقل إلى تمرين قصير يثبت ما تعلمته.' : 'يبدأ الدرس بشرح متدرّج، ثم يحوّل الفكرة إلى تطبيق يناسب إجابتك.'}</p>
         </div>
          <div className="lesson-evaluation-meta">
-            <span>{phase4Active ? 'المرحلة التالية' : 'مصادر المنهاج'}</span>
-            <strong>{phase4Active ? 'شرح + تمرين' : 'مراجع موثقة'}</strong>
-             <small>{phase4Active ? `اكتمل ${formatSessionTime(session.concludedAt ?? session.startedAt)}` : `${knowledgeCards.length || foundationalSources.length} مصادر مرتبطة`}</small>
+            <span>{phase4Active ? 'المرحلة التالية' : 'مسار الدرس'}</span>
+            <strong>{phase4Active ? 'شرح + تمرين' : 'فهم + تطبيق'}</strong>
+             <small>{phase4Active ? `اكتمل ${formatSessionTime(session.concludedAt ?? session.startedAt)}` : 'خطوات مترابطة'}</small>
         </div>
       </div>
 
@@ -2391,7 +2401,6 @@ export function LessonWorkspace() {
                      </div>
                    ))}
                  </div>
-                 <small className="lesson-creative-grounding"><BookOpen size={11} /> مبنية على مصادر المنهاج المسترجعة</small>
                </article>
              )}
           </div>
@@ -2676,14 +2685,15 @@ export function LessonWorkspace() {
             </div>
            {generatedExercise && (
              <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
-                  <span>{generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? 'ورقة عملية شاملة · الحل عبر صورة المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل كشف الحل'}</span>
+                <span>{generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? 'ورقة عملية شاملة · فهيم يصحح المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل طلب التوجيه'}</span>
                <h4>{generatedExercise.title}</h4>
                  {generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? (
                   <>
                     <p className="lesson-generated-intro">{generatedExercise.prompt}</p>
                     <div className="lesson-generated-meta">
                       <span>العلامة: {generatedExercise.totalPoints ?? 20} نقطة</span>
-                      <span>ورقة واحدة مترابطة</span>
+                      <span>أسئلة مترابطة · الحل بالقلم</span>
+                      <span>مدة المحاولة: {Math.floor(exerciseAttemptElapsed / 60).toString().padStart(2, '0')}:{(exerciseAttemptElapsed % 60).toString().padStart(2, '0')}</span>
                     </div>
                     <div className="lesson-generated-sections">
                       {generatedExercise.sections?.map((section, index) => (
@@ -2722,6 +2732,24 @@ export function LessonWorkspace() {
                         <span>آخر خطوة صحيحة: {analysis.lastCorrectStep}</span>
                         <span>موضع يحتاج مراجعة: {analysis.firstErrorStep}</span>
                         <p>{analysis.feedback}</p>
+                        <button
+                          type="button"
+                          className="lesson-copilot-solution-button"
+                          onClick={() => {
+                            const request = 'حلّل محاولتي المرفوعة خطوة خطوة، ثم أعطني الحل النموذجي للورقة كاملة فقط بعد توضيح موضع الخطأ. لا تختصر الحسابات.';
+                            setBoardCopilotQuestion(request);
+                            setBoardCopilotOpen(true);
+                            void requestDaleel(
+                              request,
+                              null,
+                              false,
+                              `نص الورقة: ${generatedExercise.prompt}\nالمطلوبات:\n${generatedExercise.sections?.map((item) => `${item.title}: ${item.prompt}`).join('\n') ?? ''}\nتحليل محاولة الطالب: ${analysis.feedback}\nآخر خطوة صحيحة: ${analysis.lastCorrectStep}\nأول خطأ: ${analysis.firstErrorStep}`,
+                            );
+                          }}
+                          data-testid="button-ask-copilot-model-solution"
+                        >
+                          اسأل الكوبيلوت عن الحل النموذجي
+                        </button>
                       </div>}
                       {exerciseAttemptState === 'error' && <p className="lesson-generated-feedback is-retry">{exerciseAttemptError || analysisError}</p>}
                     </div>
@@ -2753,13 +2781,9 @@ export function LessonWorkspace() {
                       <button type="button" onClick={() => setShowExerciseHint((visible) => !visible)} data-testid="button-toggle-generated-hint">
                         {showExerciseHint ? 'إخفاء التلميح' : 'أعطني تلميحًا'}
                       </button>
-                      <button type="button" onClick={() => setShowExerciseSolution((visible) => !visible)} data-testid="button-toggle-generated-solution">
-                        {showExerciseSolution ? 'إخفاء الحل' : 'إظهار الحل خطوة خطوة'}
-                      </button>
                     </div>
                     {exerciseFeedback && <p className={`lesson-generated-feedback ${exerciseFeedback === 'correct' ? 'is-correct' : 'is-retry'}`}>{exerciseFeedback === 'correct' ? 'أحسنت، إجابتك تطابق الفكرة المطلوبة.' : 'راجع المعطيات والخطوة الأولى، ثم حاول مرة أخرى.'}</p>}
                     {showExerciseHint && <p className="lesson-generated-hint"><strong>تلميح:</strong> {generatedExercise.hint}</p>}
-                    {showExerciseSolution && <p className="lesson-generated-solution">{generatedExercise.solution}</p>}
                   </>
                 )}
              </div>

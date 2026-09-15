@@ -280,15 +280,15 @@ async function generateExercise(
     activeConcept,
     attemptContext,
   ].join(" ");
-  const isFunctionStudy = /دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite/i.test(generationRequest);
+  const isFunctionStudy = /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite|function/i.test(generationRequest);
   const isScientificPaper = isFunctionStudy || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(generationRequest);
   const generationInstruction = isFunctionStudy
     ? [
         "طلب الطالب دراسة شاملة ومدققة لدالة عددية. لا تنشئ سؤالًا واحدًا ولا أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
-        "أنشئ ورقة واحدة متماسكة حول دالة عددية واحدة، بحيث تقود المعطيات نفسها إلى جميع المحاور التالية بالترتيب: مجموعة التعريف والنهايات، الاشتقاق ودراسة التغيرات، الوضع النسبي أو حل معادلات ومتراجحات مرتبطة بالدالة وإيجاد الأعداد الحقيقية، جدول التغيرات، التمثيل البياني، ثم المستقيمات المقاربة والمماس عند الحاجة.",
-        "اجعلها قابلة للنسخ على ورقة مدرسية: سياق مختصر، معطيات واضحة، ثم مطلوبات مرقمة من (أ) إلى (و). يجب أن تكون كل المطلوبات قابلة للحل من المعطيات نفسها، وألا يتجاوز مجموعها 20 نقطة.",
+        "أنشئ ورقة واحدة متماسكة حول دالة عددية واحدة، لا سؤالًا منفردًا. اجعلها دراسة شاملة طويلة من 8 محاور مترابطة، وكل محور يحتوي سؤالين أو ثلاثة أسئلة فرعية قصيرة عند الحاجة. يجب أن تقود المعطيات نفسها إلى: مجموعة التعريف والنهايات، الاشتقاق، اتجاه التغيرات، جدول التغيرات، حل معادلات أو متراجحات مرتبطة بالدالة، الوضع النسبي وإيجاد الأعداد الحقيقية، التمثيل البياني، المستقيمات المقاربة والمماس، ثم تركيب نهائي.",
+        "اجعلها قابلة للنسخ على ورقة مدرسية: سياق مختصر، معطيات واضحة، ثم مطلوبات مرقمة من (أ) إلى (ح). يجب أن تكون كل المطلوبات قابلة للحل من المعطيات نفسها، وأن يكون مجموع العلامات 20 نقطة. لا تستخدم اختيارًا من متعدد ولا صح/خطأ.",
         "أعد أيضًا حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا قصيرًا. لا تعرض الحل في prompt أو sections.",
-        'أعد sections بهذا الشكل: [{"id":"limits","title":"النهايات ومجموعة التعريف","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق والتغيرات","points":4,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":4,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"asymptotes","title":"المقارب والمماس","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}]',
+        'أعد sections بهذا الشكل: [{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"..."},{"id":"limits","title":"النهايات","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق","points":3,"prompt":"..."},{"id":"variations","title":"اتجاه التغيرات وجدولها","points":3,"prompt":"..."},{"id":"equations","title":"المعادلات والمتراجحات","points":2,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":2,"prompt":"..."},{"id":"graph","title":"التمثيل البياني والمماس والمقارب","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}]',
       ].join("\n")
     : isScientificPaper
       ? [
@@ -331,7 +331,7 @@ async function generateExercise(
         ].join("\n"),
       },
     ],
-    { temperature: 0.15, maxOutputTokens: isScientificPaper ? 2800 : 1200, jsonMode: true },
+  { temperature: 0.15, maxOutputTokens: isFunctionStudy ? 3800 : isScientificPaper ? 3000 : 1200, jsonMode: true },
   );
   const candidate = extractJsonObject(content, "Exercise generator");
   const parsed = JSON.parse(candidate) as Partial<GeneratedExercise>;

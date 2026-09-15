@@ -452,11 +452,6 @@ export function InteractiveLearningLoop({
           {phase === 'explain' ? 'شرح متدرّج' : phase === 'practice' ? 'دورك الآن' : 'حلّ مرئي'}
         </div>
       </div>
-       <div className="learning-grounding-bar" data-testid="learning-grounding-status">
-         <span><CheckCircle2 size={13} /> {groundedLesson ? 'شرح الدرس جاهز' : 'نحضّر شرح الدرس'}</span>
-         <span>التركيز على الفهم ثم التطبيق</span>
-       </div>
-
       <nav className="learning-roadmap" aria-label="سير عناصر الدرس" data-testid="lesson-roadmap">
         <div className="learning-roadmap-heading">
           <div>
