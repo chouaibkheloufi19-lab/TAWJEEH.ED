@@ -66,6 +66,14 @@ type GeneratedExercise = {
   sourceDocuments: SourceDocument[];
   sourceNodeIds: string[];
   grounding: Grounding;
+  format?: "comprehensive_function";
+  totalPoints?: number;
+  sections?: Array<{
+    id: string;
+    title: string;
+    points: number;
+    prompt: string;
+  }>;
 };
 
 type GeneratedCreativeTopics = {
@@ -266,6 +274,22 @@ async function generateExercise(
   retrieval: RetrievalContext,
 ): Promise<GeneratedExercise> {
   const sourceText = formatRetrievedContext(retrieval.documents);
+  const functionRequest = [
+    lesson,
+    subject,
+    activeConcept,
+    attemptContext,
+  ].join(" ");
+  const isComprehensiveFunctionExercise = /دوال|الدالة|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite/i.test(functionRequest);
+  const generationInstruction = isComprehensiveFunctionExercise
+    ? [
+        "طلب الطالب تمرين دوال شامل. لا تنشئ أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
+        "أنشئ ورقة واحدة متماسكة حول دالة عددية واحدة، بحيث تقود المعطيات نفسها إلى جميع المحاور التالية بالترتيب: مجموعة التعريف والنهايات، الاشتقاق ودراسة التغيرات، الوضع النسبي أو حل معادلات ومتراجحات مرتبطة بالدالة وإيجاد الأعداد الحقيقية، جدول التغيرات، التمثيل البياني، ثم المستقيمات المقاربة والمماس عند الحاجة.",
+        "اجعلها قابلة للنسخ على ورقة مدرسية: سياق مختصر، معطيات واضحة، ثم مطلوبات مرقمة من (أ) إلى (و). يجب أن تكون كل المطلوبات قابلة للحل من المعطيات نفسها، وألا يتجاوز مجموعها 20 نقطة.",
+        "أعد أيضًا حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا قصيرًا. لا تعرض الحل في prompt أو sections.",
+        'أعد sections بهذا الشكل: [{"id":"limits","title":"النهايات ومجموعة التعريف","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق والتغيرات","points":4,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":4,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"asymptotes","title":"المقارب والمماس","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}]',
+      ].join("\n")
+    : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
   const content = await callDeepSeekTextModel(
     [
       {
@@ -276,7 +300,7 @@ async function generateExercise(
           EXERCISE_GENERATION_PROMPT,
           GROUNDED_CONTENT_RULES,
           LEARNER_SAFE_OUTPUT_RULES,
-          "أنت وكيل تمارين عربي لمنصة توجيه. أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق. أخفِ الإجابة في الحقول المخصصة لها، واجعل التلميح لا يكشف الحل. يجب أن يكون الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.",
+          `أنت وكيل تمارين عربي لمنصة توجيه. ${generationInstruction} أخفِ الإجابة في الحقول المخصصة لها، واجعل التلميح لا يكشف الحل. يجب أن يكون الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.`,
           "هذه الواجهة تحتاج JSON فقط؛ أعد الحقول المطلوبة فقط ولا تضف أي نص خارج الكائن.",
         ].join("\n\n"),
       },
@@ -291,11 +315,13 @@ async function generateExercise(
           `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
           "عقد المتجه المسترجعة من ChromaDB:",
           sourceText,
-          'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
+          isComprehensiveFunctionExercise
+            ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"الدوال العددية","title":"تمرين شامل في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتيجة النهائية دون شرح","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"limits","title":"النهايات ومجموعة التعريف","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق والتغيرات","points":4,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":4,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"asymptotes","title":"المقارب والمماس","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
+            : 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
         ].join("\n"),
       },
     ],
-    { temperature: 0.15, maxOutputTokens: 1200, jsonMode: true },
+    { temperature: 0.15, maxOutputTokens: isComprehensiveFunctionExercise ? 2800 : 1200, jsonMode: true },
   );
   const candidate = extractJsonObject(content, "Exercise generator");
   const parsed = JSON.parse(candidate) as Partial<GeneratedExercise>;
@@ -310,6 +336,28 @@ async function generateExercise(
   ) {
     throw new Error("Exercise generator returned an incomplete exercise");
   }
+  const sections = Array.isArray(parsed.sections)
+    ? parsed.sections
+        .filter((section): section is NonNullable<GeneratedExercise["sections"]>[number] => Boolean(
+          section
+          && typeof section.id === "string"
+          && typeof section.title === "string"
+          && typeof section.points === "number"
+          && typeof section.prompt === "string"
+          && section.points > 0
+          && section.prompt.trim(),
+        ))
+        .slice(0, 8)
+        .map((section) => ({
+          id: section.id.trim(),
+          title: section.title.trim(),
+          points: section.points,
+          prompt: section.prompt.trim(),
+        }))
+    : undefined;
+  if (isComprehensiveFunctionExercise && (!sections || sections.length < 5)) {
+    throw new Error("Exercise generator returned an incomplete comprehensive function exercise");
+  }
   return {
     status: "generated",
     lessonTitle: parsed.lessonTitle,
@@ -321,6 +369,13 @@ async function generateExercise(
     sourceDocuments: sourceDocumentsFrom(retrieval.documents),
     sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
     grounding: retrieval.grounding,
+    ...(sections
+      ? {
+          format: "comprehensive_function" as const,
+          totalPoints: typeof parsed.totalPoints === "number" ? parsed.totalPoints : sections.reduce((sum, section) => sum + section.points, 0),
+          sections,
+        }
+      : {}),
   };
 }
 

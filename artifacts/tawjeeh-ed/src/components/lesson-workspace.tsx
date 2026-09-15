@@ -8,6 +8,7 @@ import {
   Check,
   CheckCircle2,
   CircleHelp,
+  Download,
   Eraser,
   Highlighter,
   ImagePlus,
@@ -205,6 +206,14 @@ type GeneratedExercise = {
     retrievedNodeIds: string[];
     sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
   };
+  format?: 'comprehensive_function';
+  totalPoints?: number;
+  sections?: Array<{
+    id: string;
+    title: string;
+    points: number;
+    prompt: string;
+  }>;
 };
 
 type CreativeIdea = {
@@ -667,6 +676,10 @@ export function LessonWorkspace() {
   const [activePartner, setActivePartner] = useState<ActivePartner>('dalil');
   const [exerciseAnswer, setExerciseAnswer] = useState('');
   const [exerciseFeedback, setExerciseFeedback] = useState<'correct' | 'retry' | null>(null);
+  const [exerciseAttemptImage, setExerciseAttemptImage] = useState<string | null>(null);
+  const [exerciseAttemptName, setExerciseAttemptName] = useState('');
+  const [exerciseAttemptState, setExerciseAttemptState] = useState<'idle' | 'analyzing' | 'ready' | 'error'>('idle');
+  const [exerciseAttemptError, setExerciseAttemptError] = useState('');
   const [showExerciseHint, setShowExerciseHint] = useState(false);
   const [showExerciseSolution, setShowExerciseSolution] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
@@ -1119,6 +1132,10 @@ export function LessonWorkspace() {
     setGeneratedExercise(null);
     setExerciseAnswer('');
     setExerciseFeedback(null);
+    setExerciseAttemptImage(null);
+    setExerciseAttemptName('');
+    setExerciseAttemptState('idle');
+    setExerciseAttemptError('');
     setShowExerciseHint(false);
     setShowExerciseSolution(false);
     setCreativeIdeas(null);
@@ -1675,6 +1692,11 @@ export function LessonWorkspace() {
           setGeneratedExercise(payload as GeneratedExercise);
           setExerciseAnswer('');
           setExerciseFeedback(null);
+          setExerciseAttemptImage(null);
+          setExerciseAttemptName('');
+          setExerciseAttemptState('idle');
+          setExerciseAttemptError('');
+          setAnalysis(null);
           setShowExerciseSolution(false);
           reply = `جهز لك وكيل التمارين تدريبًا على «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
        }
@@ -1696,7 +1718,7 @@ export function LessonWorkspace() {
     void (handoffComplete ? askPartner(question) : askFahim(question));
   };
 
-  const analyzeAttempt = async (imageDataUrl: string, fileName: string) => {
+  const analyzeAttempt = async (imageDataUrl: string, fileName: string, exerciseContext = ''): Promise<boolean> => {
     setAnalysis(null);
     setAnalysisError('');
     setAnalysisState('analyzing');
@@ -1705,7 +1727,11 @@ export function LessonWorkspace() {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ imageDataUrl, lesson: 'قوانين نيوتن والحركة', concept: activeSection.title }),
+         body: JSON.stringify({
+           imageDataUrl,
+           lesson: 'قوانين نيوتن والحركة',
+           concept: exerciseContext ? `${activeSection.title} — ${exerciseContext.slice(0, 1200)}` : activeSection.title,
+         }),
       });
       const payload = await response.json() as Partial<AttemptAnalysis> & FahimPayload;
       if (
@@ -1750,10 +1776,65 @@ export function LessonWorkspace() {
         },
       });
       setMessages((current) => [...current, { id: `analysis-${Date.now()}`, role: 'assistant', text: `قرأت محاولتك. توقفت عند «${nextAnalysis.firstErrorStep}»، وسنعود إلى «${nextAnalysis.lastCorrectStep}» قبل أن نبني تمرينًا مشابهًا.` }]);
+      return true;
     } catch (error) {
       setAnalysisState('error');
       setAnalysisError(error instanceof Error ? error.message : 'تعذر تحليل الصورة');
+      return false;
     }
+  };
+
+  const handleGeneratedExerciseAttempt = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    setExerciseAttemptError('');
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setExerciseAttemptState('error');
+      setExerciseAttemptError('ارفع صورة واضحة لورقة الحل.');
+      return;
+    }
+    if (file.size > 7 * 1024 * 1024) {
+      setExerciseAttemptState('error');
+      setExerciseAttemptError('حجم الصورة يجب أن يكون أقل من 7 ميغابايت.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string' || !generatedExercise) return;
+      const imageDataUrl = reader.result;
+      setExerciseAttemptImage(imageDataUrl);
+      setExerciseAttemptName(file.name);
+      setExerciseAttemptState('analyzing');
+      void analyzeAttempt(imageDataUrl, file.name, generatedExercise.prompt).then((analyzed) => {
+        setExerciseAttemptState(analyzed ? 'ready' : 'error');
+        if (!analyzed) setExerciseAttemptError('تعذر قراءة المحاولة. أعد رفع صورة أوضح.');
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const downloadGeneratedExercise = () => {
+    if (!generatedExercise) return;
+    const sections = generatedExercise.sections?.map((section) => (
+      `${section.title} (${section.points} نقاط)\n${section.prompt}`
+    )).join('\n\n') || generatedExercise.prompt;
+    const content = [
+      generatedExercise.title,
+      `المادة: ${generatedExercise.lessonTitle}`,
+      `العلامة: ${generatedExercise.totalPoints ?? 20} نقطة`,
+      '',
+      'تعليمات: أجب على الورقة بخطك ثم صوّر المحاولة وارفعها للتحليل.',
+      '',
+      sections,
+    ].join('\n');
+    const blob = new Blob([`\uFEFF${content}`], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${generatedExercise.title.replace(/[^\p{L}\p{N}\s-]/gu, '').trim() || 'ورقة-تمرين'}.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleAttachment = (event: ChangeEvent<HTMLInputElement>) => {
@@ -1832,6 +1913,11 @@ export function LessonWorkspace() {
       setGeneratedExercise(payload as GeneratedExercise);
       setExerciseAnswer('');
       setExerciseFeedback(null);
+      setExerciseAttemptImage(null);
+      setExerciseAttemptName('');
+      setExerciseAttemptState('idle');
+      setExerciseAttemptError('');
+      setAnalysis(null);
       setShowExerciseHint(false);
       setShowExerciseSolution(false);
       setMessages((current) => [...current, {
@@ -2590,48 +2676,92 @@ export function LessonWorkspace() {
             </div>
            {generatedExercise && (
              <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
-                <span>{analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل كشف الحل'}</span>
+                 <span>{generatedExercise.format === 'comprehensive_function' ? 'ورقة تمرين شاملة · الحل عبر صورة المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل كشف الحل'}</span>
                <h4>{generatedExercise.title}</h4>
-               <p>{generatedExercise.prompt}</p>
-               <small>بُني من محتوى درس قوانين نيوتن والحركة</small>
-                <textarea
-                  value={exerciseAnswer}
-                  onChange={(event) => {
-                    setExerciseAnswer(event.target.value);
-                    setExerciseFeedback(null);
-                  }}
-                  placeholder="اكتب محاولتك هنا قبل فتح التلميح..."
-                  aria-label="إجابة التمرين المولّد"
-                  rows={2}
-                  data-testid="input-generated-exercise-answer"
-                />
-                <div className="lesson-generated-exercise-actions">
-                  <button
-                    type="button"
-                    onClick={reviewGeneratedExercise}
-                    disabled={!exerciseAnswer.trim() || recordAttemptMutation.isPending}
-                    data-testid="button-check-generated-exercise"
-                  >
-                    {exerciseFeedback === 'correct' ? 'إجابة صحيحة' : 'تحقق من إجابتي'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowExerciseHint((visible) => !visible)}
-                    data-testid="button-toggle-generated-hint"
-                  >
-                    {showExerciseHint ? 'إخفاء التلميح' : 'أعطني تلميحًا'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowExerciseSolution((visible) => !visible)}
-                    data-testid="button-toggle-generated-solution"
-                  >
-                    {showExerciseSolution ? 'إخفاء الحل' : 'إظهار الحل خطوة خطوة'}
-                  </button>
-                </div>
-                {exerciseFeedback && <p className={`lesson-generated-feedback ${exerciseFeedback === 'correct' ? 'is-correct' : 'is-retry'}`}>{exerciseFeedback === 'correct' ? 'أحسنت، إجابتك تطابق الفكرة المطلوبة.' : 'راجع المعطيات والخطوة الأولى، ثم حاول مرة أخرى.'}</p>}
-                {showExerciseHint && <p className="lesson-generated-hint"><strong>تلميح:</strong> {generatedExercise.hint}</p>}
-                {showExerciseSolution && <p className="lesson-generated-solution">{generatedExercise.solution}</p>}
+                {generatedExercise.format === 'comprehensive_function' ? (
+                  <>
+                    <p className="lesson-generated-intro">{generatedExercise.prompt}</p>
+                    <div className="lesson-generated-meta">
+                      <span>العلامة: {generatedExercise.totalPoints ?? 20} نقطة</span>
+                      <span>ورقة واحدة مترابطة</span>
+                    </div>
+                    <div className="lesson-generated-sections">
+                      {generatedExercise.sections?.map((section, index) => (
+                        <section key={section.id} className="lesson-generated-section">
+                          <div><strong>{String.fromCharCode(1575 + index)}. {section.title}</strong><b>{section.points} ن</b></div>
+                          <p>{section.prompt}</p>
+                        </section>
+                      ))}
+                    </div>
+                    <div className="lesson-generated-upload">
+                      <div className="lesson-generated-upload-copy">
+                        <strong>اكتب الحل على الورقة ثم ارفع صورة المحاولة</strong>
+                        <span>لن نطلب منك اختيار إجابة. سيقرأ فهيم خطواتك ويحدد آخر خطوة صحيحة وموضع الخطأ.</span>
+                      </div>
+                      <div className="lesson-generated-exercise-actions">
+                        <button type="button" onClick={downloadGeneratedExercise} data-testid="button-download-generated-exercise">
+                          <Download size={13} /> تنزيل الورقة
+                        </button>
+                        <label className="lesson-generated-upload-button" htmlFor="generated-exercise-attempt-input" data-testid="button-upload-generated-exercise">
+                          <ImagePlus size={13} /> رفع صورة المحاولة
+                          <input
+                            id="generated-exercise-attempt-input"
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleGeneratedExerciseAttempt}
+                            hidden
+                          />
+                        </label>
+                      </div>
+                      {exerciseAttemptName && <small className="lesson-generated-file"><CheckCircle2 size={12} /> {exerciseAttemptName}</small>}
+                      {exerciseAttemptImage && <img className="lesson-generated-attempt-preview" src={exerciseAttemptImage} alt="معاينة صورة محاولة تمرين الدوال" />}
+                      {exerciseAttemptState === 'analyzing' && <p className="lesson-generated-feedback"><LoaderCircle size={13} className="lesson-spin-icon" /> فهيم يقرأ ورقة الحل...</p>}
+                      {exerciseAttemptState === 'ready' && analysis && <div className="lesson-generated-analysis">
+                        <strong>تم تحليل المحاولة</strong>
+                        <span>آخر خطوة صحيحة: {analysis.lastCorrectStep}</span>
+                        <span>موضع يحتاج مراجعة: {analysis.firstErrorStep}</span>
+                        <p>{analysis.feedback}</p>
+                      </div>}
+                      {exerciseAttemptState === 'error' && <p className="lesson-generated-feedback is-retry">{exerciseAttemptError || analysisError}</p>}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p>{generatedExercise.prompt}</p>
+                    <small>بُني من محتوى درس قوانين نيوتن والحركة</small>
+                    <textarea
+                      value={exerciseAnswer}
+                      onChange={(event) => {
+                        setExerciseAnswer(event.target.value);
+                        setExerciseFeedback(null);
+                      }}
+                      placeholder="اكتب محاولتك هنا قبل فتح التلميح..."
+                      aria-label="إجابة التمرين المولّد"
+                      rows={2}
+                      data-testid="input-generated-exercise-answer"
+                    />
+                    <div className="lesson-generated-exercise-actions">
+                      <button
+                        type="button"
+                        onClick={reviewGeneratedExercise}
+                        disabled={!exerciseAnswer.trim() || recordAttemptMutation.isPending}
+                        data-testid="button-check-generated-exercise"
+                      >
+                        {exerciseFeedback === 'correct' ? 'إجابة صحيحة' : 'تحقق من إجابتي'}
+                      </button>
+                      <button type="button" onClick={() => setShowExerciseHint((visible) => !visible)} data-testid="button-toggle-generated-hint">
+                        {showExerciseHint ? 'إخفاء التلميح' : 'أعطني تلميحًا'}
+                      </button>
+                      <button type="button" onClick={() => setShowExerciseSolution((visible) => !visible)} data-testid="button-toggle-generated-solution">
+                        {showExerciseSolution ? 'إخفاء الحل' : 'إظهار الحل خطوة خطوة'}
+                      </button>
+                    </div>
+                    {exerciseFeedback && <p className={`lesson-generated-feedback ${exerciseFeedback === 'correct' ? 'is-correct' : 'is-retry'}`}>{exerciseFeedback === 'correct' ? 'أحسنت، إجابتك تطابق الفكرة المطلوبة.' : 'راجع المعطيات والخطوة الأولى، ثم حاول مرة أخرى.'}</p>}
+                    {showExerciseHint && <p className="lesson-generated-hint"><strong>تلميح:</strong> {generatedExercise.hint}</p>}
+                    {showExerciseSolution && <p className="lesson-generated-solution">{generatedExercise.solution}</p>}
+                  </>
+                )}
              </div>
            )}
           </div>
