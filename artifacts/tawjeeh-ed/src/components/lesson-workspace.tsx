@@ -61,6 +61,7 @@ import { WhiteboardOwlCopilot, type WhiteboardOwlState, type WhiteboardOwlTarget
 import { emitOwlSyncEvent } from '@/hooks/useOwlSync';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
+import { MathText } from '@/components/math-text';
 import {
   canCompleteEvaluation,
   getEvaluationBlocker,
@@ -2164,7 +2165,7 @@ export function LessonWorkspace() {
           <div className="lesson-fahim-diagnostic-main">
             <span className="lesson-panel-kicker"><BrainCircuit size={13} /> قراءة فهيم الحالية</span>
             <strong>{fahimResponse.evaluated_skill}</strong>
-            <p>{fahimResponse.chat_response}</p>
+            <p><MathText>{fahimResponse.chat_response}</MathText></p>
           </div>
           <div className="lesson-fahim-score" aria-label={`درجة الإتقان ${fahimResponse.mastery_score} من 100`}>
             <span>الإتقان</span>
@@ -2279,7 +2280,7 @@ export function LessonWorkspace() {
              {messages.map((message) => (
               <article key={message.id} className={`lesson-message ${message.role === 'assistant' ? 'is-assistant' : 'is-user'}`} data-testid={`message-lesson-${message.id}`}>
                  <div className="lesson-message-meta">{message.role === 'assistant' ? <><Sparkles size={11} /> {handoffComplete ? activePartnerDetails.name : 'فهيم'}</> : 'أنت'}<span className="lesson-message-time">{getTimeLabel()}</span></div>
-                <p>{message.text}</p>
+                 <p><MathText>{message.text}</MathText></p>
                  {message.id === 'chat-api-fallback' && <button type="button" className="lesson-generation-error-button" onClick={() => window.location.reload()} data-testid="button-refresh-lesson-chat"><RotateCcw size={12} /> تحديث الصفحة</button>}
               </article>
             ))}
@@ -2289,15 +2290,15 @@ export function LessonWorkspace() {
                    <div><span><Sparkles size={12} /> وكيل التمارين · موضوعات إبداعية · الحل أولًا</span><strong>{creativeIdeas.lessonTitle}</strong></div>
                    <small>{creativeIdeas.ideas.length} أفكار</small>
                  </div>
-                 <p className="lesson-creative-solution">{creativeIdeas.solutionSummary}</p>
+                  <p className="lesson-creative-solution"><MathText>{creativeIdeas.solutionSummary}</MathText></p>
                  <div className="lesson-creative-ideas">
                   {creativeIdeas.ideas.map((idea, index) => (
                     <div className={`lesson-creative-idea ${selectedCreativeTopic?.title === idea.title ? 'is-selected' : ''}`} key={`${idea.title}-${index}`}>
-                       <div className="lesson-creative-idea-title"><span>{index + 1}</span><strong>{idea.title}</strong></div>
-                       <p>{idea.approach}</p>
-                       <ol>{idea.steps.map((step, stepIndex) => <li key={`${idea.title}-step-${stepIndex}`}>{step}</li>)}</ol>
-                       <div className="lesson-creative-twist"><Lightbulb size={12} /><span><strong>اللمسة الإبداعية:</strong> {idea.creativeTwist}</span></div>
-                       <small className="lesson-creative-outcome">ما ستتعلمه: {idea.expectedOutcome}</small>
+                        <div className="lesson-creative-idea-title"><span>{index + 1}</span><strong><MathText>{idea.title}</MathText></strong></div>
+                        <p><MathText>{idea.approach}</MathText></p>
+                        <ol>{idea.steps.map((step, stepIndex) => <li key={`${idea.title}-step-${stepIndex}`}><MathText>{step}</MathText></li>)}</ol>
+                        <div className="lesson-creative-twist"><Lightbulb size={12} /><span><strong>اللمسة الإبداعية:</strong> <MathText>{idea.creativeTwist}</MathText></span></div>
+                        <small className="lesson-creative-outcome">ما ستتعلمه: <MathText>{idea.expectedOutcome}</MathText></small>
                        <button type="button" className="lesson-creative-ask" onClick={() => openCreativeTopic(idea)} disabled={isThinking} data-testid={`button-ask-creative-topic-${index + 1}`}>
                          <Maximize2 size={12} /> افتح الموضوع والكوبيلوت
                       </button>
@@ -2333,7 +2334,7 @@ export function LessonWorkspace() {
                  <div className="lesson-analysis-header"><strong>قراءة المحاولة خطوة خطوة</strong><span>{recordAttemptMutation.isPending ? 'يحفظ الربط...' : 'أضيفت إلى بنك الأخطاء'}</span></div>
                 <div className="lesson-analysis-row is-correct"><span>آخر خطوة صحيحة</span><strong>{analysis.lastCorrectStep}</strong></div>
                 <div className="lesson-analysis-row is-error"><span>بداية الخطأ</span><strong>{analysis.firstErrorStep}</strong></div>
-                <p>{analysis.feedback}</p>
+                 <p><MathText>{analysis.feedback}</MathText></p>
                 <small className="lesson-analysis-coordinate"><ScanSearch size={12} /> حدّد فهيم موضع «{analysis.errorArea.label}» على الصورة بدقة.</small>
                 <div className="lesson-analysis-actions"><button type="button" onClick={resetToLastCorrect} data-testid="button-reset-to-last-correct"><RotateCcw size={13} /> العودة لآخر خطوة</button><button type="button" onClick={buildExercise} data-testid="button-generate-error-exercise">ابنِ تمرينًا مشابهًا</button></div>
               </div>
@@ -2429,7 +2430,7 @@ export function LessonWorkspace() {
             />
            {lessonGenerationState === 'error' && (
              <div className="lesson-generation-error" role="alert" data-testid="status-lesson-generation-error">
-               <span>{lessonGenerationError}</span>
+               <span><MathText>{lessonGenerationError}</MathText></span>
                <button type="button" onClick={() => void generateLesson()} data-testid="button-retry-lesson-generation">إعادة المحاولة</button>
              </div>
            )}

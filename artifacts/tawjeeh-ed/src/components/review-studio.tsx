@@ -13,6 +13,7 @@ import {
   WandSparkles,
 } from 'lucide-react';
 import { fetchWithTimeout } from '@/lib/request';
+import { MathText } from '@/components/math-text';
 import './review-studio.css';
 
 export type ExplanationSection = {
@@ -462,14 +463,14 @@ export function ReviewStudio() {
                   <div data-testid="review-studio-explanation-result">
                     {explanation.explanation_sections.map((section, index) => (
                       <section className="review-studio-section" key={`${section.title}-${index}`}>
-                        <h3>{section.title}</h3>
-                        <p>{section.content}</p>
+                        <h3><MathText>{section.title}</MathText></h3>
+                        <p><MathText>{section.content}</MathText></p>
                         {section.key_points.length > 0 && (
                           <ul className="review-studio-points">
-                            {section.key_points.map((point) => <li key={point}>{point}</li>)}
+                             {section.key_points.map((point) => <li key={point}><MathText>{point}</MathText></li>)}
                           </ul>
                         )}
-                        {section.example && <div className="review-studio-example">مثال: {section.example}</div>}
+                         {section.example && <div className="review-studio-example">مثال: <MathText>{section.example}</MathText></div>}
                       </section>
                     ))}
                     {explanation.key_points.length > 0 && (
@@ -477,7 +478,7 @@ export function ReviewStudio() {
                         {explanation.key_points.map((point, index) => (
                           <div className="review-studio-keypoint" key={point} data-testid={`review-studio-keypoint-${index}`}>
                             <strong>نقطة أساسية {index + 1}</strong>
-                            {point}
+                             <MathText>{point}</MathText>
                           </div>
                         ))}
                       </div>
@@ -533,18 +534,18 @@ export function ReviewStudio() {
                           <span className="review-studio-exercise-number">تمرين {index + 1}</span>
                           <span className="review-studio-exercise-type">{exerciseTypeLabels[exercise.type]}</span>
                         </div>
-                        <h3>{exercise.question}</h3>
+                         <h3><MathText>{exercise.question}</MathText></h3>
                         {exercise.options.length > 0 && (
                           <ul className="review-studio-options">
-                            {exercise.options.map((option) => <li key={option}>{option}</li>)}
+                           {exercise.options.map((option) => <li key={option}><MathText>{option}</MathText></li>)}
                           </ul>
                         )}
                         <div className="review-studio-answer">
                           <strong>الإجابة النموذجية: </strong>
-                          {exercise.model_answer}
+                           <MathText>{exercise.model_answer}</MathText>
                           <br />
                           <strong>لماذا؟ </strong>
-                          {exercise.explanation}
+                           <MathText>{exercise.explanation}</MathText>
                         </div>
                       </article>
                     ))}
@@ -574,7 +575,7 @@ function GroundingSources({ grounding }: { grounding?: Grounding }) {
           <li key={source.nodeId}>
             <span>{source.source}</span>
             {source.page > 0 && <small>ص {source.page}</small>}
-            {source.quote && <p>{source.quote}</p>}
+             {source.quote && <p><MathText>{source.quote}</MathText></p>}
           </li>
         ))}
       </ul>

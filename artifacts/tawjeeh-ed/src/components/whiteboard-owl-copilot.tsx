@@ -18,6 +18,7 @@ import {
 import owlAgentMint from '@assets/agent-guiding-cropped.png';
 import owlAgentTeal from '@assets/agent-creation-cropped.png';
 import owlAgentViolet from '@assets/agent-thinking-cropped.png';
+import { MathText } from '@/components/math-text';
 
 export type WhiteboardOwlState = 'idle' | 'speaking' | 'listening' | 'moving' | 'thinking';
 
@@ -309,7 +310,7 @@ export function WhiteboardOwlCopilot({
               <i aria-hidden="true" />
             </div>
 
-            <p className="whiteboard-owl-message">{visualMessage}</p>
+            <p className="whiteboard-owl-message"><MathText>{visualMessage}</MathText></p>
 
             {targetBox && (
               <div className="whiteboard-owl-selection-note">
@@ -366,7 +367,7 @@ export function WhiteboardOwlCopilot({
             ) : null}
 
             {error && <p className="whiteboard-owl-error" role="alert">{error}</p>}
-            {answer && <div className="whiteboard-owl-answer" role="status"><strong>الإجابة</strong><p>{answer}</p></div>}
+            {answer && <div className="whiteboard-owl-answer" role="status"><strong>الإجابة</strong><p><MathText>{answer}</MathText></p></div>}
 
             <footer className="whiteboard-owl-panel-footer">
               <span><Mic size={12} aria-hidden="true" /> يدعم السؤال الصوتي</span>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle2, FileText, LoaderCircle, Printer, RefreshCw, ShieldCheck } from 'lucide-react';
 import { fetchWithTimeout } from '@/lib/request';
+import { MathText } from '@/components/math-text';
 
 type ExamSource = { title: string; source: string; page: number };
 type ExamQuestion = {
@@ -165,14 +166,14 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
               <span>التمرين {index + 1} · {section.title}</span>
               <b>{section.points} نقاط</b>
             </div>
-            <p className="exam-section-theme">{section.theme}</p>
-            <p>{section.context}</p>
-            {section.data && <div className="math-display generated-exam-data" dir="ltr">{section.data}</div>}
+             <p className="exam-section-theme"><MathText>{section.theme}</MathText></p>
+             <p><MathText>{section.context}</MathText></p>
+             {section.data && <MathText className="math-display generated-exam-data" block>{section.data}</MathText>}
             <ol>
               {section.questions.map((question) => (
                 <li key={question.id}>
                   <span className="exam-question-label">{question.label} <b>({question.points} ن)</b></span>
-                  <p>{question.prompt}</p>
+                   <p><MathText>{question.prompt}</MathText></p>
                   <div className="answer-space" aria-hidden="true" />
                 </li>
               ))}
@@ -185,13 +186,13 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
             <div><span className="exam-paper-kicker">التصحيح النموذجي · قابل للتتبع</span><h2>{exam.correction.title}</h2></div>
             <span className="correction-stamp"><CheckCircle2 size={15} /> معتمد من المصادر</span>
           </div>
-          <p className="exam-correction-intro">{exam.correction.introduction}</p>
+           <p className="exam-correction-intro"><MathText>{exam.correction.introduction}</MathText></p>
           {exam.correction.sections.map((section) => (
             <article className="correction-section" key={section.sectionId}>
-              <div className="correction-section-title"><strong>{section.title}</strong><span>{section.criteria.reduce((sum, item) => sum + item.points, 0)} نقاط</span></div>
-              <ol>{section.solutionSteps.map((step) => <li key={step}>{step}</li>)}</ol>
+              <div className="correction-section-title"><strong><MathText>{section.title}</MathText></strong><span>{section.criteria.reduce((sum, item) => sum + item.points, 0)} نقاط</span></div>
+              <ol>{section.solutionSteps.map((step) => <li key={step}><MathText>{step}</MathText></li>)}</ol>
               <div className="correction-criteria">
-                {section.criteria.map((criterion) => <span key={criterion.label}><b>{criterion.points} ن</b>{criterion.label}</span>)}
+                 {section.criteria.map((criterion) => <span key={criterion.label}><b>{criterion.points} ن</b><MathText>{criterion.label}</MathText></span>)}
               </div>
             </article>
           ))}

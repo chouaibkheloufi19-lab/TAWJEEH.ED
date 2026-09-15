@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowRight, CheckCircle2, Lightbulb, RotateCcw, Sparkles } from 'lucide-react';
 import { Link } from 'wouter';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
+import { MathText } from '@/components/math-text';
 
 type ScienceStep = {
   id: string;
@@ -121,7 +122,7 @@ export function MathPractice() {
             <div className="mt-4 rounded-2xl border border-dashed border-[#9bd1dc] bg-[#eefafd] p-4 text-xs leading-6 text-[#476273]">
               <strong className="block text-[#005689]">المعطى</strong>
               لتكن الدالة العددية f المعرفة على مجالها بالعلاقة:
-              <span className="mt-2 block text-center text-base font-black text-[#003c60]" dir="ltr">f(x) = (x² − 2x + 2) / (x − 1)</span>
+               <MathText className="mt-2 block text-center text-base font-black text-[#003c60]" block>f(x) = (x² − 2x + 2) / (x − 1)</MathText>
               <span className="mt-2 block text-[10px] text-[#71818a]">المستوى: موضوع مركب مناسب لمسار العلوم التجريبية والرياضيات.</span>
             </div>
           </div>
@@ -149,7 +150,7 @@ export function MathPractice() {
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#e6f6fb] text-xs font-black text-[#005689]">{step.number}</span>
                       <div>
                         <h3 className="text-sm font-black text-[#003c60]">{step.title}</h3>
-                        <p className="mt-1 text-sm leading-7 text-[#476273]">{step.prompt}</p>
+                         <p className="mt-1 text-sm leading-7 text-[#476273]"><MathText>{step.prompt}</MathText></p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -177,7 +178,7 @@ export function MathPractice() {
                     {hasSubmitted && (
                       <div role="status" className={`mt-3 flex items-start gap-2 rounded-xl px-3 py-2 text-xs leading-6 ${correct ? 'bg-[#e8f8f5] text-[#216c5e]' : 'bg-[#fff4e8] text-[#8a5b26]'}`}>
                         {correct ? <CheckCircle2 className="mt-1 shrink-0" size={15} /> : <Lightbulb className="mt-1 shrink-0" size={15} />}
-                        <p>{correct ? `إجابة صحيحة: ${step.solution}` : `راجع الخطوة. ${step.hint}`}</p>
+                         <p><MathText>{correct ? `إجابة صحيحة: ${step.solution}` : `راجع الخطوة. ${step.hint}`}</MathText></p>
                       </div>
                     )}
                   </div>

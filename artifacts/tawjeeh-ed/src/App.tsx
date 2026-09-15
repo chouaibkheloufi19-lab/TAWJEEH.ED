@@ -80,6 +80,7 @@ import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/pha
 import { ProgramAgent } from '@/components/program-agent';
 import { DynamicOwlCopilot } from '@/components/DynamicOwlCopilot';
 import { ReviewStudio } from '@/components/review-studio';
+import { MathText } from '@/components/math-text';
 import type { OwlAgentId } from '@/config/owlAgents';
 import { fetchWithTimeout } from '@/lib/request';
 import { ClerkAuthBridge, MockAuthProvider, useAppAuth, useAppClerk, useAppUser } from '@/lib/app-auth';
@@ -828,7 +829,7 @@ function KnowledgeCardView({ card }: { card: KnowledgeCard }) {
          <span className="text-[11px] font-semibold text-[#64748b]">{card.type}</span>
       </div>
       <h3 className="mb-2 text-[16px] font-extrabold leading-7">{card.title}</h3>
-       <p className="mb-4 line-clamp-3 text-sm leading-7 text-[#64748b]">{card.summary}</p>
+       <p className="mb-4 line-clamp-3 text-sm leading-7 text-[#64748b]"><MathText>{card.summary}</MathText></p>
        <div className="flex flex-wrap gap-1.5">{(card.tags ?? []).slice(0, 3).map((tag) => <span className="tag bg-[#f7fcfe] text-[#64748b]" key={tag}>#{tag}</span>)}</div>
        <div className="mt-5 flex items-center justify-between border-t border-[#b3e5fc] pt-3 text-[11px] text-[#64748b]"><span>{card.unit} · {card.lesson}</span><span className="font-semibold">{card.source} · ص {card.page}</span></div>
     </article>
@@ -1166,8 +1167,8 @@ function QuizAttempt({ quiz, examDate, onExit, onScore }: { quiz: Quiz; examDate
       <div className="surface mb-4 p-5 md:p-8">
          <div className="mb-7 flex items-center justify-between"><span className="tag bg-[#e6f6fb] text-[#005689]">السؤال {questionIndex + 1} من {quiz.questions.length}</span><span className="mono text-xs text-[#64748b]">{quiz.duration}</span></div>
         <div className="mb-8 progress-track"><div className="progress-fill" style={{ width: `${((questionIndex + 1) / quiz.questions.length) * 100}%` }} /></div>
-        <h2 className="mb-7 text-xl font-extrabold leading-9" data-testid={`text-question-${question.id}`}>{question.prompt}</h2>
-         <div className="space-y-3">{question.options.map((option, index) => { const selected = answers[question.id] === option; return <button key={option} onClick={() => choose(option)} className={`flex w-full items-center gap-3 rounded-xl border p-4 text-right text-sm font-bold transition ${selected ? 'border-[#2e8b7b] bg-[#e8f8f5] text-[#005689]' : 'border-[#b3e5fc] bg-white hover:border-[#2e8b7b]'}`} data-testid={`button-answer-${question.id}-${index}`}><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs ${selected ? 'bg-[#2e8b7b] text-white' : 'bg-[#e6f6fb] text-[#64748b]'}`}>{selected ? <Check size={15} /> : String.fromCharCode(1575 + index)}</span><span>{option}</span></button>; })}</div>
+        <h2 className="mb-7 text-xl font-extrabold leading-9" data-testid={`text-question-${question.id}`}><MathText>{question.prompt}</MathText></h2>
+         <div className="space-y-3">{question.options.map((option, index) => { const selected = answers[question.id] === option; return <button key={option} onClick={() => choose(option)} className={`flex w-full items-center gap-3 rounded-xl border p-4 text-right text-sm font-bold transition ${selected ? 'border-[#2e8b7b] bg-[#e8f8f5] text-[#005689]' : 'border-[#b3e5fc] bg-white hover:border-[#2e8b7b]'}`} data-testid={`button-answer-${question.id}-${index}`}><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs ${selected ? 'bg-[#2e8b7b] text-white' : 'bg-[#e6f6fb] text-[#64748b]'}`}>{selected ? <Check size={15} /> : String.fromCharCode(1575 + index)}</span><span><MathText>{option}</MathText></span></button>; })}</div>
       </div>
       <div className="flex items-center justify-between"><button className="secondary-button" disabled={questionIndex === 0} onClick={() => setQuestionIndex((index) => index - 1)} data-testid="button-previous-question"><ArrowRight size={16} /> السابق</button>{isLast ? <button className="primary-button" disabled={!answers[question.id] || submitMutation.isPending} onClick={submit} data-testid="button-submit-quiz">{submitMutation.isPending ? 'جارٍ التصحيح...' : 'أرسل الإجابات'} <CheckCircle2 size={16} /></button> : <button className="primary-button" disabled={!answers[question.id]} onClick={() => setQuestionIndex((index) => index + 1)} data-testid="button-next-question">التالي <ArrowLeft size={16} /></button>}</div>
        {submitMutation.isError && <p className="mt-4 text-center text-sm font-bold text-[#2e8b7b]" data-testid="status-quiz-error">تعذر إرسال الإجابات. حاول مرة أخرى.</p>}
@@ -1182,7 +1183,7 @@ function QuizCard({ quiz, onStart }: { quiz: Quiz; onStart: () => void }) {
   return (
     <article className="surface flex flex-col p-5" data-testid={`card-quiz-${quiz.id}`}>
        <div className="mb-5 flex items-start justify-between gap-2"><span className={`tag ${quiz.mode === 'error_stack' ? 'bg-[#fff1d5] text-[#a46618]' : quiz.mode === 'pre_exam' ? 'bg-[#f0eaff] text-[#6d4b9a]' : 'bg-[#e8f8f5] text-[#2e8b7b]'}`}>{modeLabel}</span><span className="text-[11px] font-bold text-[#64748b]">{quiz.status}</span></div>
-       <h3 className="mb-2 text-lg font-extrabold">{quiz.title}</h3><p className="mb-6 min-h-[48px] text-sm leading-7 text-[#64748b]">{quiz.description}</p>
+        <h3 className="mb-2 text-lg font-extrabold"><MathText>{quiz.title}</MathText></h3><p className="mb-6 min-h-[48px] text-sm leading-7 text-[#64748b]"><MathText>{quiz.description}</MathText></p>
         <div className="mb-5 flex flex-wrap items-center gap-4 text-[11px] font-bold text-[#64748b]"><span className="flex items-center gap-1"><Clock3 size={14} /> {quiz.duration}</span><span className="flex items-center gap-1"><CircleHelp size={14} /> {quiz.questions?.length ?? 0} أسئلة</span><span className="flex items-center gap-1"><Zap size={14} /> كثافة ×{quiz.exercise_density}</span><span className="flex items-center gap-1"><Zap size={14} /> {quiz.points} نقطة</span></div>
        <button className="primary-button mt-auto w-full" disabled={locked} onClick={onStart} data-testid={`button-start-quiz-${quiz.id}`}><Play size={15} fill="currentColor" /> {locked ? 'أكمل الوحدة أولًا' : quiz.is_high_difficulty ? 'ابدأ التقييم' : 'ابدأ التدريب'}</button>
     </article>

@@ -12,6 +12,7 @@ import {
   Target,
 } from 'lucide-react';
 import type { KnowledgeCard } from '@workspace/api-client-react';
+import { MathText } from '@/components/math-text';
 
 type LoopSection = {
   id: string;
@@ -500,8 +501,8 @@ export function InteractiveLearningLoop({
             <div className="learning-loop-brief-copy">
               <span><Target size={13} /> المسار المختصر · السبورة الرئيسية هي مساحة الشرح</span>
               <strong>{phase === 'solution' ? 'راجع الحل على السبورة الرئيسية' : activeBoardStep?.title ?? 'ننتظر السند'}</strong>
-              <p>{activeBoardStep?.detail ?? 'ابدأ الشرح المتدرج لتظهر الفكرة على السبورة الرئيسية.'}</p>
-              {activeBoardStep?.formula && <small>{activeBoardStep.formula}</small>}
+               <p><MathText>{activeBoardStep?.detail ?? 'ابدأ الشرح المتدرج لتظهر الفكرة على السبورة الرئيسية.'}</MathText></p>
+               {activeBoardStep?.formula && <small><MathText>{activeBoardStep.formula}</MathText></small>}
             </div>
             <div className="learning-loop-brief-actions">
               {phase === 'explain' && (
@@ -537,7 +538,7 @@ export function InteractiveLearningLoop({
                  <span className="learning-practice-badge">تطبيق قصير</span>
               </div>
               <p className="learning-practice-question">
-                 <strong>سؤال التثبيت:</strong> {practicePrompt}
+                  <strong>سؤال التثبيت:</strong> <MathText>{practicePrompt}</MathText>
               </p>
               <form onSubmit={(event) => { event.preventDefault(); submitAnswer(); }} className="learning-practice-form">
                 <input
@@ -561,7 +562,7 @@ export function InteractiveLearningLoop({
                 <div className="learning-feedback is-correct" role="status"><CheckCircle2 size={16} /><span>إجابة موفقة. انتقلنا تلقائيًا إلى الحل المرئي على السبورة.</span></div>
               )}
               {showHint && practiceState === 'retry' && (
-                 <div className="learning-hint"><Lightbulb size={14} /> تلميح: {groundedExercise?.hint || `ابحث في السند عن «${section.highlight}» أو العلاقة «${formulaBySection[section.id]}».`}</div>
+                  <div className="learning-hint"><Lightbulb size={14} /> تلميح: <MathText>{groundedExercise?.hint || `ابحث في السند عن «${section.highlight}» أو العلاقة «${formulaBySection[section.id]}».`}</MathText></div>
               )}
             </div>
           )}

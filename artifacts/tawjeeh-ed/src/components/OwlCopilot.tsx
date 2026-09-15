@@ -16,6 +16,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
+import { MathText } from '@/components/math-text';
 
 export type OwlCopilotState = 'Idle' | 'Explaining' | 'Thinking' | 'Moving';
 
@@ -217,7 +218,7 @@ export function OwlCopilot({
               <Icon size={14} />
               <span>{copy.detail}</span>
             </div>
-            <p>{message}</p>
+            <p><MathText>{message}</MathText></p>
             {onAsk && (
               <button type="button" className="owl-ask-button" onClick={onAsk} disabled={disabled || state === 'Thinking' || state === 'Moving'}>
                 <MessageCircle size={15} />
