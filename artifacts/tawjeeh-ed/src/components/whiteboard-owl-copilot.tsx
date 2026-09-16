@@ -156,14 +156,28 @@ export function WhiteboardOwlCopilot({
       : 'حدد جزءًا من اللوح، وسأساعدك على قراءته خطوة بخطوة.'
   );
 
-  useEffect(() => {
-    setDragPosition(null);
-  }, [target?.x, target?.y, target?.width, target?.height]);
-
   const setOpen = (nextOpen: boolean) => {
     if (controlledOpen === undefined) setInternalOpen(nextOpen);
     onOpenChange?.(nextOpen);
   };
+
+  useEffect(() => {
+    setDragPosition(null);
+  }, [target?.x, target?.y, target?.width, target?.height]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleGlobalKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isOpen]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape' && isOpen) {

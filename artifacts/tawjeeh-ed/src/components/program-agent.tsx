@@ -383,6 +383,25 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
   );
 
   useEffect(() => {
+    if (!showPlannerIntake) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setShowPlannerIntake(false);
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showPlannerIntake]);
+
+  useEffect(() => {
     if (groundedSlots.length) setEntries((current) => current.length ? current : readEntries(groundedSlots));
     setNotificationsEnabled(localStorage.getItem('tawjeeh.program.notifications') !== 'off');
     const savedEntryDate = localStorage.getItem('tawjeeh.phase1.entryDate');
@@ -750,7 +769,13 @@ export function ProgramAgent({ embedded = false }: ProgramAgentProps) {
 
       {showPlannerIntake && (
         <div className="program-planner-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowPlannerIntake(false); }}>
-          <div className="program-planner-modal" onMouseDown={(event) => event.stopPropagation()}>
+          <div
+            className="program-planner-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="إعداد خطة الدراسة"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             <PlannerIntakeCard
               initialValues={(() => {
                 try {

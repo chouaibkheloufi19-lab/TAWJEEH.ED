@@ -4117,15 +4117,18 @@ button { cursor: pointer; }
 .program-planner-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 90;
   display: grid;
   place-items: center;
   overflow: auto;
   padding: 24px;
+  isolation: isolate;
   background: rgba(6, 31, 46, .62);
   backdrop-filter: blur(7px);
 }
 .program-planner-modal {
+  position: relative;
+  z-index: 1;
   width: min(100%, 1030px);
   max-height: calc(100dvh - 48px);
   overflow: auto;
@@ -6627,6 +6630,7 @@ button { cursor: pointer; }
   min-height: 100dvh;
   max-height: 100dvh;
   overflow-y: auto;
+  isolation: isolate;
   padding: clamp(18px, 3vw, 42px);
   border: 0;
   border-radius: 0;

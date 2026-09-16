@@ -1160,11 +1160,27 @@ export function LessonWorkspace() {
   }, [activeSection.id]);
 
   useEffect(() => {
-    document.body.style.overflow = isBoardImmersive || isTopicImmersive ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
+    if (!isBoardImmersive && !isTopicImmersive) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (paperCopilotOpen || boardCopilotOpen) return;
+      event.preventDefault();
+      if (isTopicImmersive) {
+        setIsTopicImmersive(false);
+      } else {
+        setIsBoardImmersive(false);
+      }
     };
-  }, [isBoardImmersive, isTopicImmersive]);
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [boardCopilotOpen, isBoardImmersive, isTopicImmersive, paperCopilotOpen]);
 
   const selectSection = (section: LessonSection) => {
     if (section.id === activeSection.id) return;
@@ -2447,12 +2463,13 @@ export function LessonWorkspace() {
               aria-label={handoffComplete ? 'الطبقة الثالثة: مساحة الدرس والتمرين والحل' : 'الطبقة الثالثة: السبورة الذكية لفهيم'}
               data-layer="live-board"
              aria-modal={isBoardImmersive ? 'true' : undefined}
+             aria-labelledby={isBoardImmersive ? 'lesson-board-immersive-title' : undefined}
              role={isBoardImmersive ? 'dialog' : undefined}
            >
           <div className="lesson-teaching-header">
              <div>
                  <span className="lesson-panel-kicker"><Volume2 size={13} /> طبقة 3 · {handoffComplete ? 'السبورة والمواضيع' : 'السبورة الحية'}</span>
-               <h2 data-testid="text-current-lesson-title">{displayedTitle}</h2>
+               <h2 id={isBoardImmersive ? 'lesson-board-immersive-title' : undefined} data-testid="text-current-lesson-title">{displayedTitle}</h2>
                  <p>إيقاع مقترح · {activeSection.duration} · {activeSection.label}</p>
             </div>
              <div className="lesson-teaching-actions">
