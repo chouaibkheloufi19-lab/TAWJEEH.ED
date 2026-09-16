@@ -11146,3 +11146,337 @@ button { cursor: pointer; }
     margin-inline: 10px;
   }
 }
+
+/* Paper review handoff: keep Fahim separate from the worksheet surface. */
+.paper-attempt-modal {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+  isolation: isolate;
+}
+
+.paper-attempt-modal-backdrop {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border: 0;
+  background: rgba(9, 37, 44, .58);
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+}
+
+.paper-attempt-dialog {
+  display: grid;
+  position: relative;
+  z-index: 1;
+  width: min(100%, 760px);
+  max-height: min(760px, calc(100vh - 24px));
+  overflow: hidden;
+  border: 1px solid rgba(131, 190, 197, .72);
+  border-radius: 22px;
+  color: #163c47;
+  background: #f7fcfb;
+  box-shadow: 0 26px 70px rgba(4, 30, 38, .28);
+}
+
+.paper-attempt-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 255, 255, .18), transparent 26%),
+    linear-gradient(135deg, #0b7180, #164b68);
+}
+
+.paper-attempt-dialog-header > button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+  cursor: pointer;
+}
+
+.paper-attempt-dialog-header > button:hover,
+.paper-attempt-dialog-header > button:focus-visible {
+  background: rgba(255, 255, 255, .2);
+}
+
+.paper-attempt-dialog-agent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.paper-attempt-dialog-icon {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .14);
+}
+
+.paper-attempt-dialog-agent div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.paper-attempt-dialog-agent strong {
+  font-size: 14px;
+  letter-spacing: -.01em;
+}
+
+.paper-attempt-dialog-agent small {
+  color: rgba(255, 255, 255, .76);
+  font-size: 10px;
+}
+
+.paper-attempt-dialog-body {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+}
+
+.paper-attempt-dialog-paper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 260px);
+  gap: 14px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid #d5e9e8;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.paper-attempt-dialog-paper-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  color: #0d6f79;
+}
+
+.paper-attempt-dialog-paper-title > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.paper-attempt-dialog-paper-title strong {
+  overflow: hidden;
+  color: #184d59;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paper-attempt-dialog-paper-title small {
+  color: #728c91;
+  font-size: 10px;
+}
+
+.paper-attempt-dialog-image {
+  display: block;
+  width: 100%;
+  max-height: 210px;
+  border: 1px solid #d8e6e5;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #f1f7f6;
+}
+
+.paper-attempt-dialog-analysis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #b9dfcf;
+  border-radius: 15px;
+  background: #eef9f2;
+}
+
+.paper-attempt-dialog-analysis > div {
+  display: grid;
+  gap: 3px;
+  padding: 9px;
+  border: 1px solid rgba(116, 180, 151, .32);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.paper-attempt-dialog-analysis small {
+  color: #547e70;
+  font-size: 9px;
+}
+
+.paper-attempt-dialog-analysis strong {
+  color: #236e59;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.paper-attempt-dialog-analysis p {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  color: #315d55;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.paper-attempt-dialog-lock,
+.paper-attempt-dialog-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  color: #6a7d80;
+  font-size: 10px;
+  line-height: 1.75;
+}
+
+.paper-attempt-dialog-lock {
+  padding: 10px 12px;
+  border: 1px dashed #bed9d7;
+  border-radius: 12px;
+  color: #52766f;
+  background: #f1f9f7;
+}
+
+.paper-attempt-dialog-thread {
+  min-height: 80px;
+  padding: 12px;
+  border: 1px solid #e0ebea;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.paper-attempt-dialog-welcome {
+  margin: 0;
+  color: #385c62;
+  font-size: 11px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+
+.paper-attempt-dialog-error {
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid #efc8c8;
+  border-radius: 10px;
+  color: #9d3e48;
+  background: #fff3f3;
+  font-size: 10px;
+}
+
+.paper-attempt-dialog-composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.paper-attempt-dialog-composer textarea {
+  width: 100%;
+  min-height: 70px;
+  resize: vertical;
+  padding: 10px 11px;
+  border: 1px solid #c9dedd;
+  border-radius: 12px;
+  outline: 0;
+  color: #234e57;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.paper-attempt-dialog-composer textarea:focus {
+  border-color: #4396a0;
+  box-shadow: 0 0 0 3px rgba(67, 150, 160, .14);
+}
+
+.paper-attempt-dialog-composer textarea:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+.paper-attempt-dialog-composer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #0a7180;
+  border-radius: 11px;
+  color: #fff;
+  background: #0a7180;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.paper-attempt-dialog-composer button:hover:not(:disabled),
+.paper-attempt-dialog-composer button:focus-visible {
+  background: #075d6a;
+}
+
+.paper-attempt-dialog-composer button:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.paper-attempt-spin {
+  animation: lesson-spin 1s linear infinite;
+}
+
+@media (max-width: 600px) {
+  .paper-attempt-modal {
+    align-items: end;
+    padding: 0;
+  }
+
+  .paper-attempt-dialog {
+    width: 100%;
+    max-height: min(760px, 94vh);
+    border-bottom: 0;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .paper-attempt-dialog-body {
+    padding: 12px;
+  }
+
+  .paper-attempt-dialog-paper {
+    grid-template-columns: 1fr;
+  }
+
+  .paper-attempt-dialog-image {
+    max-height: 180px;
+  }
+
+  .paper-attempt-dialog-composer {
+    grid-template-columns: 1fr;
+  }
+
+  .paper-attempt-dialog-composer button {
+    min-height: 40px;
+  }
+}

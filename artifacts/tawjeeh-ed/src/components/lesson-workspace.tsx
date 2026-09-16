@@ -196,9 +196,6 @@ type GeneratedExercise = {
   lessonTitle: string;
   title: string;
   prompt: string;
-  answer: string;
-  hint: string;
-  solution: string;
   sourceDocuments: { title: string; source: string; page: number }[];
   sourceNodeIds: string[];
   grounding: {
@@ -1968,8 +1965,6 @@ export function LessonWorkspace() {
         throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
       }
       setGeneratedExercise(payload as GeneratedExercise);
-      setExerciseAnswer('');
-      setExerciseFeedback(null);
       setExerciseAttemptImage(null);
       setExerciseAttemptName('');
       setExerciseAttemptState('idle');

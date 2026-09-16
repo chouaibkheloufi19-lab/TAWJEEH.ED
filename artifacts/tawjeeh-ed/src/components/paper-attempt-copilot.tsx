@@ -1,5 +1,5 @@
 import { FileImage, LoaderCircle, MessageCircle, Send, ShieldCheck, X } from 'lucide-react';
-import type { FormEvent } from 'react';
+import { useEffect, type FormEvent } from 'react';
 
 export type PaperAttemptAnalysis = {
   firstErrorStep: string;
@@ -36,6 +36,22 @@ export function PaperAttemptCopilot({
   error,
   isAsking,
 }: PaperAttemptCopilotProps) {
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onOpenChange(false);
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onOpenChange, open]);
+
   if (!open) return null;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -107,7 +123,7 @@ export function PaperAttemptCopilot({
             </div>
           )}
 
-          <div className="paper-attempt-dialog-thread" aria-live="polite">
+          <div className="paper-attempt-dialog-thread" aria-live="polite" aria-describedby="paper-attempt-dialog-description">
             <p className="paper-attempt-dialog-welcome">
               {answer || (analysis
                 ? 'أنا مرتبط بهذه المحاولة الآن. اسألني عن الخطوة التالية أو عن سبب موضع المراجعة، وسأقودك دون كشف الحل كاملًا.'
@@ -131,7 +147,7 @@ export function PaperAttemptCopilot({
               {isAsking ? 'فهيم يراجع...' : 'اسأل فهيم'}
             </button>
           </form>
-          <p className="paper-attempt-dialog-note">
+          <p id="paper-attempt-dialog-description" className="paper-attempt-dialog-note">
             يبقى الحل النموذجي مخفيًا حتى لا تستبدل المحاولة بالمشاهدة.
           </p>
         </div>

@@ -7,7 +7,6 @@ import {
   Lightbulb,
   LoaderCircle,
   Play,
-  RotateCcw,
   ShieldCheck,
   Sparkles,
   Target,
@@ -65,14 +64,11 @@ type GroundedLesson = {
 type GroundedExercise = {
   title: string;
   prompt: string;
-  answer: string;
-  hint: string;
-  solution: string;
   sourceDocuments: Array<{ title: string; source: string; page: number }>;
   sourceNodeIds: string[];
 };
 
-type LoopPhase = 'explain' | 'practice' | 'solution';
+type LoopPhase = 'explain' | 'practice';
 
 type InteractiveLearningLoopProps = {
   lessonTitle: string;
@@ -117,7 +113,6 @@ function roadmapIndexForStage(stage: RoadmapStageId, totalSteps: number): number
 }
 
 function roadmapStageForStep(phase: LoopPhase, stepIndex: number, totalSteps: number): RoadmapStageId {
-  if (phase === 'solution') return 'example';
   if (stepIndex <= 0) return 'intro';
   if (totalSteps <= 2) return stepIndex >= totalSteps - 1 ? 'formula' : 'concept';
   if (stepIndex === 1) return 'concept';
@@ -222,53 +217,6 @@ function buildConceptSteps(
   return common;
 }
 
-function buildSolutionSteps(
-  section: LoopSection,
-  resource: KnowledgeCard,
-  groundedExercise?: GroundedExercise | null,
-): ConceptStep[] {
-  const groundedSolution = groundedExercise?.solution
-    .split(/\n+|(?<=[.!؟؛])\s+/)
-    .map((step) => step.replace(/^[-•\d.)\s]+/, '').trim())
-    .filter((step) => step.length > 2)
-    .slice(0, 8) ?? [];
-  if (groundedSolution.length) {
-    return groundedSolution.map((step, index) => ({
-      title: index === 0 ? 'المعطيات من التمرين' : index === groundedSolution.length - 1 ? 'النتيجة' : `الخطوة ${index + 1}`,
-      detail: step,
-      formula: extractFormula(step) || (index === groundedSolution.length - 1 ? groundedExercise?.answer ?? 'تحقق من النتيجة' : 'نكتب الخطوة ثم نتحقق'),
-      visual: index === 0 ? 'highlight' : index === groundedSolution.length - 1 ? 'graph' : 'equation',
-    }));
-  }
-  const excerpt = sourceText(resource).slice(0, 240);
-  return [
-    {
-      title: 'المعطى من السند',
-      detail: `نعود إلى الاقتباس الأصلي: ${excerpt}`,
-      formula: 'المعطيات ← المطلوب',
-      visual: 'highlight',
-    },
-    {
-      title: 'المفهوم المناسب',
-      detail: `نحدد لماذا ينتمي السؤال إلى «${section.title}»، ثم نعزل الكمية أو الفكرة المطلوبة.`,
-      formula: section.highlight,
-      visual: 'flow',
-    },
-    {
-      title: 'العلاقة والخطوة',
-      detail: `نطبق العلاقة على المعطيات، ونكتب كل انتقال بدل القفز إلى النتيجة.`,
-      formula: formulaBySection[section.id] ?? section.highlight,
-      visual: 'equation',
-    },
-    {
-      title: 'فحص النتيجة',
-      detail: 'نراجع الإشارة والوحدة والمعنى الفيزيائي، ثم نربط النتيجة بجملة من السند.',
-      formula: 'نتيجة صحيحة = حساب + تفسير',
-      visual: 'graph',
-    },
-  ];
-}
-
 export function InteractiveLearningLoop({
   lessonTitle,
   subject,
@@ -283,7 +231,6 @@ export function InteractiveLearningLoop({
   const [phase, setPhase] = useState<LoopPhase>('explain');
   const [activeStep, setActiveStep] = useState(0);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [solutionStep, setSolutionStep] = useState(0);
 
   const matchedResources = useMemo(() => {
     const candidates = resources.length ? resources : fallbackResource ? [fallbackResource] : [];
@@ -307,22 +254,10 @@ export function InteractiveLearningLoop({
     () => selectedResource ? buildConceptSteps(section, selectedResource, groundedLesson) : [],
     [groundedLesson, section, selectedResource],
   );
-  const solutionSteps = useMemo(
-    () => selectedResource ? buildSolutionSteps(section, selectedResource, groundedExercise) : [],
-    [groundedExercise, section, selectedResource],
-  );
-  const practiceResource = useMemo(
-    () => matchedResources.find((resource) => resource.type === 'exercise' || resource.type === 'assessment') ?? selectedResource,
-    [matchedResources, selectedResource],
-  );
-  const practicePrompt = groundedExercise?.prompt
-    || `ما الفكرة أو العلاقة التي تفسّر هذا المقطع؟ اكتبها بكلماتك، واذكر العلاقة إن ظهرت في الدرس.`;
-  const activeBoardStep = phase === 'solution'
-    ? solutionSteps[solutionStep]
-    : conceptSteps[activeStep];
+  const activeBoardStep = conceptSteps[activeStep];
   const explanationComplete = phase !== 'explain' || activeStep >= conceptSteps.length - 1;
-  const activeStepIndex = phase === 'solution' ? solutionStep : activeStep;
-  const activeStepTotal = phase === 'solution' ? solutionSteps.length : conceptSteps.length;
+  const activeStepIndex = activeStep;
+  const activeStepTotal = conceptSteps.length;
   const currentRoadmapStage = roadmapStageForStep(phase, activeStepIndex, activeStepTotal);
   const currentRoadmapStageIndex = roadmapStages.findIndex((stage) => stage.id === currentRoadmapStage);
   const boardSync = useMemo<LessonBoardSync | null>(() => {
@@ -359,17 +294,8 @@ export function InteractiveLearningLoop({
   }, [conceptSteps.length, isStreaming]);
 
   useEffect(() => {
-    if (phase !== 'solution' || solutionSteps.length < 2) return;
-    const timer = window.setInterval(() => {
-      setSolutionStep((current) => Math.min(current + 1, solutionSteps.length - 1));
-    }, 1500);
-    return () => window.clearInterval(timer);
-  }, [phase, solutionSteps.length]);
-
-  useEffect(() => {
     setPhase('explain');
     setActiveStep(0);
-    setSolutionStep(0);
     setIsStreaming(false);
   }, [section.id, selectedResource?.id]);
 
@@ -401,13 +327,6 @@ export function InteractiveLearningLoop({
     setActiveStep(roadmapIndexForStage(stage, conceptSteps.length));
   };
 
-  const resetLoop = () => {
-    setPhase('explain');
-    setActiveStep(0);
-    setSolutionStep(0);
-    setIsStreaming(false);
-  };
-
   return (
     <section className="learning-loop" aria-label="حلقة التعلم التفاعلية" data-testid="interactive-learning-loop">
       <div className="learning-loop-header">
@@ -418,7 +337,7 @@ export function InteractiveLearningLoop({
         </div>
         <div className="learning-loop-status" data-state={phase}>
           <span className="learning-loop-status-dot" />
-          {phase === 'explain' ? 'شرح متدرّج' : phase === 'practice' ? 'دورك الآن' : 'حلّ مرئي'}
+          {phase === 'explain' ? 'شرح متدرّج' : 'دورك الآن'}
         </div>
       </div>
       <nav className="learning-roadmap" aria-label="سير عناصر الدرس" data-testid="lesson-roadmap">
@@ -460,7 +379,7 @@ export function InteractiveLearningLoop({
           <div className="learning-loop-brief" data-phase={phase}>
             <div className="learning-loop-brief-copy">
               <span><Target size={13} /> المسار المختصر · السبورة الرئيسية هي مساحة الشرح</span>
-              <strong>{phase === 'solution' ? 'راجع الحل على السبورة الرئيسية' : activeBoardStep?.title ?? 'ننتظر السند'}</strong>
+              <strong>{activeBoardStep?.title ?? 'ننتظر السند'}</strong>
                <p><MathText>{activeBoardStep?.detail ?? 'ابدأ الشرح المتدرج لتظهر الفكرة على السبورة الرئيسية.'}</MathText></p>
                {activeBoardStep?.formula && <small><MathText>{activeBoardStep.formula}</MathText></small>}
             </div>
@@ -477,14 +396,6 @@ export function InteractiveLearningLoop({
                 </>
               )}
               {phase === 'practice' && <span className="learning-board-prompt"><Lightbulb size={15} /> انتقل إلى الورقة الشاملة واكتب محاولتك بالقلم.</span>}
-              {phase === 'solution' && (
-                <>
-                  <button type="button" className="learning-secondary-button" onClick={() => setSolutionStep((current) => Math.min(current + 1, solutionSteps.length - 1))} disabled={solutionStep >= solutionSteps.length - 1} data-testid="button-next-solution-step">
-                    الخطوة التالية <ChevronLeft size={14} />
-                  </button>
-                  <button type="button" className="learning-ghost-button" onClick={resetLoop}><RotateCcw size={14} /> أعد الحلقة</button>
-                </>
-              )}
             </div>
           </div>
 
