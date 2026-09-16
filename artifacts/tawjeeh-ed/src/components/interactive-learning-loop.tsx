@@ -8,6 +8,7 @@ import {
   LoaderCircle,
   Play,
   RotateCcw,
+  ShieldCheck,
   Sparkles,
   Target,
 } from 'lucide-react';
@@ -71,7 +72,6 @@ type GroundedExercise = {
   sourceNodeIds: string[];
 };
 
-type PracticeState = 'idle' | 'correct' | 'retry';
 type LoopPhase = 'explain' | 'practice' | 'solution';
 
 type InteractiveLearningLoopProps = {
@@ -284,9 +284,6 @@ export function InteractiveLearningLoop({
   const [activeStep, setActiveStep] = useState(0);
   const [isStreaming, setIsStreaming] = useState(false);
   const [solutionStep, setSolutionStep] = useState(0);
-  const [answer, setAnswer] = useState('');
-  const [practiceState, setPracticeState] = useState<PracticeState>('idle');
-  const [showHint, setShowHint] = useState(false);
 
   const matchedResources = useMemo(() => {
     const candidates = resources.length ? resources : fallbackResource ? [fallbackResource] : [];
@@ -318,12 +315,6 @@ export function InteractiveLearningLoop({
     () => matchedResources.find((resource) => resource.type === 'exercise' || resource.type === 'assessment') ?? selectedResource,
     [matchedResources, selectedResource],
   );
-  const expectedTerms = useMemo(() => [
-    section.highlight,
-    section.title,
-    formulaBySection[section.id] ?? '',
-    ...(practiceResource?.tags ?? []).slice(0, 2),
-  ].map(normalizeArabic).filter((term) => term.length >= 3), [practiceResource, section]);
   const practicePrompt = groundedExercise?.prompt
     || `ما الفكرة أو العلاقة التي تفسّر هذا المقطع؟ اكتبها بكلماتك، واذكر العلاقة إن ظهرت في الدرس.`;
   const activeBoardStep = phase === 'solution'
@@ -379,9 +370,6 @@ export function InteractiveLearningLoop({
     setPhase('explain');
     setActiveStep(0);
     setSolutionStep(0);
-    setAnswer('');
-    setPracticeState('idle');
-    setShowHint(false);
     setIsStreaming(false);
   }, [section.id, selectedResource?.id]);
 
@@ -394,20 +382,6 @@ export function InteractiveLearningLoop({
     setPhase('explain');
     setActiveStep(0);
     setIsStreaming(true);
-    setPracticeState('idle');
-    setAnswer('');
-    setShowHint(false);
-  };
-
-  const submitAnswer = () => {
-    const normalized = normalizeArabic(answer);
-    const generatedAnswer = normalizeArabic(groundedExercise?.answer ?? '');
-    const correct = normalized.length >= 3 && (generatedAnswer
-      ? normalized === generatedAnswer
-        || normalized.includes(generatedAnswer)
-        || generatedAnswer.includes(normalized)
-      : expectedTerms.some((term) => normalized.includes(term) || term.includes(normalized)));
-    setPracticeState(correct ? 'correct' : 'retry');
   };
 
   const nextExplanationStep = () => {
@@ -425,8 +399,6 @@ export function InteractiveLearningLoop({
     setPhase('explain');
     setIsStreaming(false);
     setActiveStep(roadmapIndexForStage(stage, conceptSteps.length));
-    setPracticeState('idle');
-    setShowHint(false);
   };
 
   const resetLoop = () => {
@@ -434,9 +406,6 @@ export function InteractiveLearningLoop({
     setActiveStep(0);
     setSolutionStep(0);
     setIsStreaming(false);
-    setAnswer('');
-    setPracticeState('idle');
-    setShowHint(false);
   };
 
   return (
@@ -507,7 +476,7 @@ export function InteractiveLearningLoop({
                   </button>
                 </>
               )}
-              {phase === 'practice' && <span className="learning-board-prompt"><Lightbulb size={15} /> اكتب إجابتك في بطاقة التثبيت.</span>}
+              {phase === 'practice' && <span className="learning-board-prompt"><Lightbulb size={15} /> انتقل إلى الورقة الشاملة واكتب محاولتك بالقلم.</span>}
               {phase === 'solution' && (
                 <>
                   <button type="button" className="learning-secondary-button" onClick={() => setSolutionStep((current) => Math.min(current + 1, solutionSteps.length - 1))} disabled={solutionStep >= solutionSteps.length - 1} data-testid="button-next-solution-step">
@@ -519,42 +488,24 @@ export function InteractiveLearningLoop({
             </div>
           </div>
 
-          {phase === 'practice' && (
-            <div className="learning-practice-card" data-testid="learning-micro-practice">
+           {phase === 'practice' && (
+             <div className="learning-practice-card learning-paper-prompt" data-testid="learning-paper-prompt">
               <div className="learning-practice-header">
                  <div>
-                   <span><CircleHelp size={14} /> تثبيت الفهم</span>
-                   <h4>أجب عن السؤال ثم راجع الحل على السبورة</h4>
+                    <span><CircleHelp size={14} /> تثبيت الفهم على الورق</span>
+                    <h4>أنجز المحاولة خارج مساحة التصحيح السريع</h4>
                  </div>
-                 <span className="learning-practice-badge">تطبيق قصير</span>
+                  <span className="learning-practice-badge">ورقة شاملة</span>
               </div>
               <p className="learning-practice-question">
-                  <strong>سؤال التثبيت:</strong> <MathText>{practicePrompt}</MathText>
+                 <strong>تعليمة الورقة:</strong> {groundedExercise?.title
+                   ? `افتح «${groundedExercise.title}»، اكتب جميع الخطوات والتبريرات على الورقة، ثم ارفع صورة المحاولة.`
+                   : 'اكتب المعطيات والتحويلات والتبريرات على الورقة، ثم ارفع صورة المحاولة عندما تنتهي.'}
               </p>
-              <form onSubmit={(event) => { event.preventDefault(); submitAnswer(); }} className="learning-practice-form">
-                <input
-                  value={answer}
-                  onChange={(event) => { setAnswer(event.target.value); setPracticeState('idle'); }}
-                   placeholder={`اكتب إجابتك، مثلًا: ${groundedExercise?.answer ? 'استخدم العلاقة والمعطيات' : section.highlight}`}
-                  aria-label="إجابة تمرين التثبيت"
-                  data-testid="input-learning-answer"
-                />
-                <button type="submit" className="learning-primary-button" disabled={!answer.trim()} data-testid="button-check-learning-answer">
-                  <Check size={15} /> صحّح إجابتي
-                </button>
-              </form>
-              {practiceState === 'retry' && (
-                <div className="learning-feedback is-retry" role="alert">
-                  <CircleHelp size={15} /><span>اقتربت. ابدأ من الكلمة المظللة «{section.highlight}»، ثم اربطها بالمقطع قبل إعادة الإرسال.</span>
-                  <button type="button" onClick={() => setShowHint((shown) => !shown)}>{showHint ? 'إخفاء التلميح' : 'أظهر التلميح'}</button>
-                </div>
-              )}
-              {practiceState === 'correct' && (
-                <div className="learning-feedback is-correct" role="status"><CheckCircle2 size={16} /><span>إجابة موفقة. بقي الحل النموذجي مخفيًا؛ اطلب من فهيم شرح الخطوة التالية إذا احتجت.</span></div>
-              )}
-              {showHint && practiceState === 'retry' && (
-                  <div className="learning-hint"><Lightbulb size={14} /> تلميح: <MathText>{groundedExercise?.hint || `ابحث في السند عن «${section.highlight}» أو العلاقة «${formulaBySection[section.id]}».`}</MathText></div>
-              )}
+               <div className="learning-paper-guard">
+                 <ShieldCheck size={15} />
+                 <span>لا يظهر التصحيح أو الحل النموذجي أثناء المحاولة. فهيم يراجع الصورة بعد رفعها فقط.</span>
+               </div>
             </div>
           )}
         </div>

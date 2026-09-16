@@ -59,6 +59,7 @@ import { useAppUser } from '@/lib/app-auth';
 import { InteractiveLearningLoop, type LessonBoardSync } from '@/components/interactive-learning-loop';
 import { InteractiveWhiteboard, type WhiteboardCanvasCommand, type WhiteboardImage, type WhiteboardSelection } from '@/components/interactive-whiteboard';
 import { WhiteboardOwlCopilot, type WhiteboardOwlState, type WhiteboardOwlTarget } from '@/components/whiteboard-owl-copilot';
+import { PaperAttemptCopilot } from '@/components/paper-attempt-copilot';
 import { emitOwlSyncEvent } from '@/hooks/useOwlSync';
 import { useLocation } from 'wouter';
 import { fetchWithTimeout } from '@/lib/request';
@@ -674,15 +675,17 @@ export function LessonWorkspace() {
   const [isLessonRailCollapsed, setIsLessonRailCollapsed] = useState(false);
   const [roadmapSync, setRoadmapSync] = useState<LessonBoardSync | null>(null);
   const [activePartner, setActivePartner] = useState<ActivePartner>('dalil');
-  const [exerciseAnswer, setExerciseAnswer] = useState('');
-  const [exerciseFeedback, setExerciseFeedback] = useState<'correct' | 'retry' | null>(null);
   const [exerciseAttemptImage, setExerciseAttemptImage] = useState<string | null>(null);
   const [exerciseAttemptName, setExerciseAttemptName] = useState('');
   const [exerciseAttemptState, setExerciseAttemptState] = useState<'idle' | 'analyzing' | 'ready' | 'error'>('idle');
   const [exerciseAttemptError, setExerciseAttemptError] = useState('');
-  const [showExerciseHint, setShowExerciseHint] = useState(false);
   const [exerciseAttemptStartedAt, setExerciseAttemptStartedAt] = useState<number | null>(null);
   const [exerciseAttemptElapsed, setExerciseAttemptElapsed] = useState(0);
+  const [paperCopilotOpen, setPaperCopilotOpen] = useState(false);
+  const [paperCopilotQuestion, setPaperCopilotQuestion] = useState('');
+  const [paperCopilotAnswer, setPaperCopilotAnswer] = useState('');
+  const [paperCopilotState, setPaperCopilotState] = useState<'idle' | 'asking' | 'error'>('idle');
+  const [paperCopilotError, setPaperCopilotError] = useState('');
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const whiteboardImageInputRef = useRef<HTMLInputElement>(null);
   const owlVideoRef = useRef<HTMLVideoElement>(null);
@@ -1138,15 +1141,17 @@ export function LessonWorkspace() {
     setDaleelCanvasCommands([]);
     setGeneratedLesson(null);
     setGeneratedExercise(null);
-    setExerciseAnswer('');
-    setExerciseFeedback(null);
     setExerciseAttemptImage(null);
     setExerciseAttemptName('');
     setExerciseAttemptState('idle');
     setExerciseAttemptError('');
-    setShowExerciseHint(false);
     setExerciseAttemptStartedAt(null);
     setExerciseAttemptElapsed(0);
+    setPaperCopilotOpen(false);
+    setPaperCopilotQuestion('');
+    setPaperCopilotAnswer('');
+    setPaperCopilotState('idle');
+    setPaperCopilotError('');
     setCreativeIdeas(null);
     setLessonGenerationState('idle');
     setLessonGenerationError('');
@@ -1699,8 +1704,6 @@ export function LessonWorkspace() {
             throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
           }
           setGeneratedExercise(payload as GeneratedExercise);
-          setExerciseAnswer('');
-          setExerciseFeedback(null);
           setExerciseAttemptImage(null);
           setExerciseAttemptName('');
           setExerciseAttemptState('idle');
@@ -1818,10 +1821,54 @@ export function LessonWorkspace() {
       setExerciseAttemptState('analyzing');
       void analyzeAttempt(imageDataUrl, file.name, generatedExercise.prompt).then((analyzed) => {
         setExerciseAttemptState(analyzed ? 'ready' : 'error');
-        if (!analyzed) setExerciseAttemptError('تعذر قراءة المحاولة. أعد رفع صورة أوضح.');
+        if (analyzed) {
+          setPaperCopilotAnswer('قرأت ورقتك وربطتها بهذا التمرين. اسألني عن موضع المراجعة أو الخطوة التالية.');
+          setPaperCopilotState('idle');
+          setPaperCopilotError('');
+          setPaperCopilotOpen(true);
+        } else {
+          setExerciseAttemptError('تعذر قراءة المحاولة. أعد رفع صورة أوضح.');
+        }
       });
     };
     reader.readAsDataURL(file);
+  };
+
+  const askPaperAttemptCopilot = async () => {
+    if (!generatedExercise || !analysis || !paperCopilotQuestion.trim() || paperCopilotState === 'asking') return;
+    const questionText = paperCopilotQuestion.trim();
+    setPaperCopilotState('asking');
+    setPaperCopilotError('');
+    try {
+      const response = await fetchWithTimeout('/api/fahim/message', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          question: questionText,
+          lesson: generatedExercise.lessonTitle,
+          concept: generatedExercise.title,
+          context: [
+            'هذا السؤال مرتبط بصورة محاولة ورقية حللها فهيم.',
+            `نص المطلوب: ${generatedExercise.prompt}`,
+            `المطلوبات: ${generatedExercise.sections?.map((item) => `${item.title}: ${item.prompt}`).join(' | ') ?? ''}`,
+            `آخر خطوة صحيحة: ${analysis.lastCorrectStep}`,
+            `أول موضع يحتاج مراجعة: ${analysis.firstErrorStep}`,
+            `التغذية الراجعة: ${analysis.feedback}`,
+            'اشرح الخطوة التالية أو سبب الخطأ بتوجيه تدريجي. لا تعرض الحل النموذجي الكامل، ولا تذكر مصادر أو مراجع التصحيح.',
+          ].join('\n'),
+        }),
+      });
+      const payload = await response.json() as { answer?: string; chat_response?: string; message?: string };
+      const answer = payload.answer || payload.chat_response;
+      if (!response.ok || !answer) throw new Error(payload.message || 'تعذر رد فهيم على المحاولة.');
+      setPaperCopilotAnswer(answer);
+      setPaperCopilotQuestion('');
+      setPaperCopilotState('idle');
+    } catch (error) {
+      setPaperCopilotState('error');
+      setPaperCopilotError(error instanceof Error ? error.message : 'تعذر رد فهيم الآن.');
+    }
   };
 
   const downloadGeneratedExercise = () => {
@@ -1928,7 +1975,6 @@ export function LessonWorkspace() {
       setExerciseAttemptState('idle');
       setExerciseAttemptError('');
       setAnalysis(null);
-      setShowExerciseHint(false);
       setExerciseAttemptStartedAt(Date.now());
       setExerciseAttemptElapsed(0);
       setMessages((current) => [...current, {
@@ -1956,42 +2002,6 @@ export function LessonWorkspace() {
   const buildExercise = async () => {
     if (!analysis) return;
     await generateExerciseForStudent(`${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`);
-  };
-
-  const reviewGeneratedExercise = () => {
-    if (!generatedExercise || !exerciseAnswer.trim()) return;
-    const normalized = normalizeAnswer(exerciseAnswer);
-    const expected = normalizeAnswer(generatedExercise.answer);
-    const isCorrect = Boolean(expected) && (
-      normalized === expected
-      || normalized.includes(expected)
-      || expected.includes(normalized)
-    );
-    setExerciseFeedback(isCorrect ? 'correct' : 'retry');
-    setFahimBoardTarget(null);
-    recordAttemptMutation.mutate({
-      data: {
-        lesson_id: lessonId,
-        lesson_title: generatedExercise.lessonTitle,
-        concept_id: activeSection.id,
-        concept_title: activeSection.title,
-        error_tag: isCorrect ? 'correct' : `تمرين مولّد · ${generatedExercise.title}`,
-        is_correct: isCorrect,
-      },
-    }, {
-      onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: getGetSummaryBankQueryKey() });
-        void queryClient.invalidateQueries({ queryKey: getGetLearningScheduleQueryKey() });
-        void queryClient.invalidateQueries({ queryKey: getGetErrorBankQueryKey() });
-      },
-    });
-    setMessages((current) => [...current, {
-      id: `exercise-review-${Date.now()}`,
-      role: 'assistant',
-      text: isCorrect
-        ? 'حلّك قريب من الإجابة النموذجية. أحسنت، ثبّت الخطوات ثم جرّب تمرينًا آخر.'
-        : 'لم نصل للإجابة بعد. افتح التلميح، ثم أعد كتابة المعطيات والعلاقة قبل مشاهدة الحل.',
-    }]);
   };
 
   const selectBoardRegion = (region: typeof hotspots[number]) => {
@@ -2687,7 +2697,7 @@ export function LessonWorkspace() {
              <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
                 <span>{generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? 'ورقة عملية شاملة · فهيم يصحح المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل طلب التوجيه'}</span>
                <h4>{generatedExercise.title}</h4>
-                 {generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? (
+                  {(
                   <>
                     <p className="lesson-generated-intro">{generatedExercise.prompt}</p>
                     <div className="lesson-generated-meta">
@@ -2727,63 +2737,22 @@ export function LessonWorkspace() {
                       {exerciseAttemptName && <small className="lesson-generated-file"><CheckCircle2 size={12} /> {exerciseAttemptName}</small>}
                       {exerciseAttemptImage && <img className="lesson-generated-attempt-preview" src={exerciseAttemptImage} alt="معاينة صورة محاولة تمرين الدوال" />}
                       {exerciseAttemptState === 'analyzing' && <p className="lesson-generated-feedback"><LoaderCircle size={13} className="lesson-spin-icon" /> فهيم يقرأ ورقة الحل...</p>}
-                      {exerciseAttemptState === 'ready' && analysis && <div className="lesson-generated-analysis">
+                       {exerciseAttemptState === 'ready' && analysis && <div className="lesson-generated-analysis">
                         <strong>تم تحليل المحاولة</strong>
                         <span>آخر خطوة صحيحة: {analysis.lastCorrectStep}</span>
                         <span>موضع يحتاج مراجعة: {analysis.firstErrorStep}</span>
                         <p>{analysis.feedback}</p>
-                        <button
-                          type="button"
-                          className="lesson-copilot-solution-button"
-                          onClick={() => {
-                            const request = 'حلّل محاولتي المرفوعة خطوة خطوة، ثم أعطني الحل النموذجي للورقة كاملة فقط بعد توضيح موضع الخطأ. لا تختصر الحسابات.';
-                            setBoardCopilotQuestion(request);
-                            setBoardCopilotOpen(true);
-                            void requestDaleel(
-                              request,
-                              null,
-                              false,
-                              `نص الورقة: ${generatedExercise.prompt}\nالمطلوبات:\n${generatedExercise.sections?.map((item) => `${item.title}: ${item.prompt}`).join('\n') ?? ''}\nتحليل محاولة الطالب: ${analysis.feedback}\nآخر خطوة صحيحة: ${analysis.lastCorrectStep}\nأول خطأ: ${analysis.firstErrorStep}`,
-                            );
-                          }}
-                          data-testid="button-ask-copilot-model-solution"
-                        >
-                          اسأل الكوبيلوت عن الحل النموذجي
-                        </button>
+                         <button
+                           type="button"
+                           className="lesson-copilot-solution-button"
+                           onClick={() => setPaperCopilotOpen(true)}
+                           data-testid="button-open-paper-attempt-copilot"
+                         >
+                           ناقش المحاولة مع فهيم
+                         </button>
                       </div>}
                       {exerciseAttemptState === 'error' && <p className="lesson-generated-feedback is-retry">{exerciseAttemptError || analysisError}</p>}
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <p>{generatedExercise.prompt}</p>
-                    <small>اكتب محاولتك أولًا، ثم اطلب من فهيم تصحيحها</small>
-                    <textarea
-                      value={exerciseAnswer}
-                      onChange={(event) => {
-                        setExerciseAnswer(event.target.value);
-                        setExerciseFeedback(null);
-                      }}
-                      placeholder="اكتب محاولتك هنا قبل فتح التلميح..."
-                      aria-label="إجابة التمرين المولّد"
-                      rows={2}
-                      data-testid="input-generated-exercise-answer"
-                    />
-                    <div className="lesson-generated-exercise-actions">
-                      <button
-                        type="button"
-                        onClick={reviewGeneratedExercise}
-                        disabled={!exerciseAnswer.trim() || recordAttemptMutation.isPending}
-                        data-testid="button-check-generated-exercise"
-                      >
-                        {exerciseFeedback === 'correct' ? 'إجابة صحيحة' : 'تحقق من إجابتي'}
-                      </button>
-                      <button type="button" onClick={() => setShowExerciseHint((visible) => !visible)} data-testid="button-toggle-generated-hint">
-                        {showExerciseHint ? 'إخفاء التلميح' : 'أعطني تلميحًا'}
-                      </button>
-                    </div>
-                    {exerciseFeedback && <p className={`lesson-generated-feedback ${exerciseFeedback === 'correct' ? 'is-correct' : 'is-retry'}`}>{exerciseFeedback === 'correct' ? 'أحسنت، إجابتك تطابق الفكرة المطلوبة.' : 'راجع المعطيات والخطوة الأولى، ثم حاول مرة أخرى.'}</p>}
-                    {showExerciseHint && <p className="lesson-generated-hint"><strong>تلميح:</strong> {generatedExercise.hint}</p>}
                   </>
                 )}
              </div>
@@ -2813,7 +2782,21 @@ export function LessonWorkspace() {
                {summaryPreview.progress === 100 && summarySaveState === 'saved' && <button type="button" className="lesson-unit-quiz-button" onClick={() => setLocation('/quizzes?quiz=mechanics-unit')} data-testid="button-start-unit-assessment"><Sparkles size={14} /> افتح تقييم الوحدة عالي الصعوبة</button>}
              </div>}
             {attemptBank.length > 0 && <div className="lesson-bank"><div className="lesson-bank-heading"><strong>بنك الأخطاء</strong><span>{attemptBank.length} محاولات</span></div>{attemptBank.slice(0, 2).map((item) => <button type="button" key={item.id} className="lesson-bank-item" onClick={() => { setAnalysis(item); setAnalysisState('ready'); }} data-testid={`button-open-attempt-${item.id}`}><span>{item.fileName}</span><small>{item.createdAt} · {item.summaryAnchor}</small></button>)}</div>}
-          </div>
+       </div>
+       <PaperAttemptCopilot
+         open={paperCopilotOpen}
+         onOpenChange={setPaperCopilotOpen}
+         paperTitle={generatedExercise?.title ?? 'التمرين الورقي'}
+         attemptImage={exerciseAttemptImage}
+         attemptName={exerciseAttemptName}
+         analysis={analysis}
+         question={paperCopilotQuestion}
+         onQuestionChange={setPaperCopilotQuestion}
+         onAsk={() => void askPaperAttemptCopilot()}
+         answer={paperCopilotAnswer}
+         error={paperCopilotState === 'error' ? paperCopilotError : ''}
+         isAsking={paperCopilotState === 'asking'}
+       />
         </section>
       </div>
     </section>

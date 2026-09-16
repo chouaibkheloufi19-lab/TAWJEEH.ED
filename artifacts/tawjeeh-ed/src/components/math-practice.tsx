@@ -16,8 +16,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'wouter';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
-import owlAgentViolet from '@assets/agent-thinking-cropped.png';
 import { MathText } from '@/components/math-text';
+import { PaperAttemptCopilot } from '@/components/paper-attempt-copilot';
 import { fetchWithTimeout } from '@/lib/request';
 
 type FunctionSection = {
@@ -129,7 +129,6 @@ export function MathPractice() {
   const [copilotQuestion, setCopilotQuestion] = useState('');
   const [copilotState, setCopilotState] = useState<'idle' | 'asking' | 'answered' | 'error'>('idle');
   const [copilotAnswer, setCopilotAnswer] = useState('');
-  const [showSolution, setShowSolution] = useState(false);
   const [showPaperHelp, setShowPaperHelp] = useState(false);
 
   useEffect(() => {
@@ -177,7 +176,6 @@ export function MathPractice() {
         setAttemptName(file.name);
         setAttemptState('ready');
         setAnalysis(null);
-        setShowSolution(false);
         setCopilotAnswer('');
       });
     };
@@ -249,42 +247,12 @@ export function MathPractice() {
     }
   };
 
-  const requestModelSolution = async () => {
-    if (!analysis || copilotState === 'asking') return;
-    setCopilotOpen(true);
-    setCopilotState('asking');
-    setCopilotAnswer('');
-    try {
-      const response = await fetchWithTimeout('/api/fahim/message', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          question: 'بعد أن حللت محاولتي وحددت موضع الخطأ، أعطني الآن الحل النموذجي الكامل لهذه الورقة خطوة بخطوة دون اختصار الحسابات.',
-          lesson: 'دراسة دالة ناطقة',
-          concept: functionFormula,
-          context: `المحاولة رُفعت وحُللت. آخر خطوة صحيحة: ${analysis.lastCorrectStep}. أول خطأ: ${analysis.firstErrorStep}. التغذية الراجعة: ${analysis.feedback}.`,
-        }),
-      });
-      const payload = await response.json() as { answer?: string; chat_response?: string; message?: string };
-      const answer = payload.answer || payload.chat_response;
-      if (!response.ok || !answer) throw new Error(payload.message || 'تعذر تجهيز الحل النموذجي.');
-      setCopilotAnswer(answer);
-      setCopilotState('answered');
-      setShowSolution(true);
-    } catch (error) {
-      setCopilotState('error');
-      setCopilotAnswer(error instanceof Error ? error.message : 'تعذر تجهيز الحل النموذجي الآن.');
-    }
-  };
-
   const reset = () => {
     setAttemptImage(null);
     setAttemptName('');
     setAttemptState('idle');
     setAttemptError('');
     setAnalysis(null);
-    setShowSolution(false);
     setCopilotOpen(false);
     setCopilotQuestion('');
     setCopilotAnswer('');
@@ -379,7 +347,7 @@ export function MathPractice() {
               <img src={attemptImage} alt="معاينة ورقة محاولة دراسة الدالة" className="attempt-preview" />
               <div className="attempt-preview-meta">
                 <span><FileImage size={14} /> {attemptName}</span>
-                <button type="button" onClick={() => { setAttemptImage(null); setAttemptName(''); setAttemptState('idle'); setAnalysis(null); setShowSolution(false); }}><X size={14} /> استبدال الصورة</button>
+              <button type="button" onClick={() => { setAttemptImage(null); setAttemptName(''); setAttemptState('idle'); setAnalysis(null); }}><X size={14} /> استبدال الصورة</button>
               </div>
             </div>
           )}
@@ -406,10 +374,6 @@ export function MathPractice() {
             <p className="attempt-feedback">{analysis.feedback}</p>
             <div className="attempt-analysis-actions">
               <button type="button" onClick={() => setCopilotOpen(true)}><MessageCircle size={15} /> ناقش المحاولة مع فهيم</button>
-              <button type="button" className="attempt-solution-request" onClick={() => void requestModelSolution()} disabled={copilotState === 'asking' || showSolution}>
-                {copilotState === 'asking' ? <LoaderCircle size={15} className="function-practice-spin" /> : <Lightbulb size={15} />}
-                {showSolution ? 'الحل النموذجي في نافذة فهيم' : 'اسأل فهيم عن الحل النموذجي'}
-              </button>
             </div>
           </section>
         )}
@@ -418,29 +382,20 @@ export function MathPractice() {
         {showPaperHelp && <p className="function-practice-help-copy">ابدأ بالمعطيات، اكتب كل تحويلة، صوّر الحل بعد مراجعته، ثم ارفع الصورة. إذا أخطأت، لن نعاقب المحاولة: سيشير فهيم إلى أول خطوة تحتاج فهمًا.</p>}
       </div>
 
-      <div className={`practice-copilot ${copilotOpen ? 'is-open' : ''}`} dir="rtl">
-        <button type="button" className="practice-copilot-orb" onClick={() => setCopilotOpen((current) => !current)} aria-expanded={copilotOpen} aria-label={copilotOpen ? 'إغلاق فهيم' : 'فتح فهيم'}>
-          <img src={owlAgentViolet} alt="" />
-          <span />
-        </button>
-        {copilotOpen && (
-          <section className="practice-copilot-panel" role="dialog" aria-label="كوبيلوت فهيم">
-            <header>
-              <div><img src={owlLogoPath} alt="" /><span><strong>فهيم</strong><small>{analysis ? 'يراجع محاولتك الورقية' : 'ينتظر ورقة محاولتك'}</small></span></div>
-              <button type="button" onClick={() => setCopilotOpen(false)} aria-label="إغلاق فهيم"><X size={17} /></button>
-            </header>
-            <div className="practice-copilot-body">
-              <p className="practice-copilot-welcome">{copilotAnswer || (analysis ? 'أنا جاهز لمناقشة خطواتك. اسأل عن موضع الخطأ، ولن أعطيك الحل قبل أن تطلبه.' : 'ارفع ورقة الحل أولًا. لا أقدّم حلًا نموذجيًا لموضوع لم تحاول حله.')}</p>
-              {!analysis && <div className="practice-copilot-lock"><MessageCircle size={15} /> ارفع المحاولة كي يبدأ التحليل</div>}
-              {showSolution && <div className="practice-copilot-solution"><strong>الحل النموذجي بعد المحاولة</strong><p>{copilotAnswer}</p></div>}
-            </div>
-            <form onSubmit={(event) => { event.preventDefault(); void askCopilot(); }} className="practice-copilot-composer">
-              <textarea value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} disabled={!analysis || copilotState === 'asking'} placeholder="مثال: لماذا كانت هذه الخطوة أول خطأ؟" rows={2} />
-              <button type="submit" disabled={!analysis || !copilotQuestion.trim() || copilotState === 'asking'}>{copilotState === 'asking' ? <LoaderCircle size={15} className="function-practice-spin" /> : <Send size={15} />}</button>
-            </form>
-          </section>
-        )}
-      </div>
+      <PaperAttemptCopilot
+        open={copilotOpen}
+        onOpenChange={setCopilotOpen}
+        paperTitle="دراسة شاملة لدالة ناطقة"
+        attemptImage={attemptImage}
+        attemptName={attemptName}
+        analysis={analysis}
+        question={copilotQuestion}
+        onQuestionChange={setCopilotQuestion}
+        onAsk={() => void askCopilot()}
+        answer={copilotAnswer}
+        error={copilotState === 'error' ? copilotAnswer : ''}
+        isAsking={copilotState === 'asking'}
+      />
     </main>
   );
 }
