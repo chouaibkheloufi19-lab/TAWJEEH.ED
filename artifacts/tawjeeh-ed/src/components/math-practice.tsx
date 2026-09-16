@@ -1,210 +1,445 @@
-import { useState } from 'react';
-import { ArrowRight, CheckCircle2, Lightbulb, RotateCcw, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import {
+  ArrowRight,
+  Camera,
+  CheckCircle2,
+  Clock3,
+  Download,
+  FileImage,
+  Lightbulb,
+  LoaderCircle,
+  MessageCircle,
+  RotateCcw,
+  Send,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { Link } from 'wouter';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
+import owlAgentViolet from '@assets/agent-thinking-cropped.png';
 import { MathText } from '@/components/math-text';
+import { fetchWithTimeout } from '@/lib/request';
 
-type ScienceStep = {
+type FunctionSection = {
   id: string;
-  number: string;
+  letter: string;
   title: string;
+  points: number;
   prompt: string;
-  placeholder: string;
-  hint: string;
-  solution: string;
-  accepted: string[];
 };
 
-const scienceSteps: ScienceStep[] = [
+type AttemptAnalysis = {
+  firstError: string;
+  firstErrorStep: string;
+  lastCorrectStep: string;
+  feedback: string;
+};
+
+const functionStudy: FunctionSection[] = [
   {
-    id: 'domain',
-    number: '01',
-    title: 'مجموعة التعريف',
-    prompt: 'عيّن مجموعة تعريف الدالة f.',
-    placeholder: 'اكتب Df',
-    hint: 'المقام لا يساوي صفرًا.',
-    solution: 'Dᶠ = ℝ \\ {1}',
-    accepted: ['r\\{1}', 'r-{1}', 'r except 1', 'r sans 1', 'ir\\{1}', 'ℝ\\{1}', 'r*'],
+    id: 'domain-limits',
+    letter: 'أ',
+    title: 'مجموعة التعريف والنهايات',
+    points: 3,
+    prompt: 'عيّن مجموعة تعريف الدالة f، ثم احسب نهايتيها عند طرفي مجال التعريف وعند اللانهاية. استنتج المقارب العمودي والمقارب المائل إن وُجد.',
   },
   {
     id: 'derivative',
-    number: '02',
-    title: 'المشتقة',
-    prompt: 'احسب f′(x) وبسّط النتيجة على مجال التعريف.',
-    placeholder: 'اكتب f′(x)',
-    hint: 'اكتب الدالة على الشكل f(x) = x − 1 + 1/(x − 1) قبل الاشتقاق.',
-    solution: 'f′(x) = x(x − 2) / (x − 1)²',
-    accepted: ['x(x-2)/(x-1)^2', 'x(x−2)/(x−1)²', 'x^2-2x/(x-1)^2', '(x^2-2x)/(x-1)^2'],
+    letter: 'ب',
+    title: 'الاشتقاق',
+    points: 3,
+    prompt: 'احسب f′(x) وبسّطها على مجال التعريف، ثم بيّن إشارة المشتقة باستعمال كتابتها المناسبة.',
+  },
+  {
+    id: 'variations',
+    letter: 'ج',
+    title: 'اتجاه التغيرات وجدولها',
+    points: 3,
+    prompt: 'استنتج اتجاه تغير f على كل مجال من مجالات تعريفها، وأنجز جدول التغيرات كاملًا مع القيم الحدية.',
+  },
+  {
+    id: 'equations',
+    letter: 'د',
+    title: 'المعادلات والمتراجحات',
+    points: 2,
+    prompt: 'حل في ℝ المعادلة f(x)=2، ثم ناقش إشارة f(x)−2 واستنتج حلول المتراجحة المرتبطة بها.',
+  },
+  {
+    id: 'relative-position',
+    letter: 'هـ',
+    title: 'الوضع النسبي والأعداد الحقيقية',
+    points: 2,
+    prompt: 'ادرس الوضع النسبي للمنحنى بالنسبة إلى المقارب المائل، وحدد نقاط التقاطع إن وُجدت، ثم استنتج الأعداد الحقيقية التي تحقق الشرط المطلوب.',
   },
   {
     id: 'tangent',
-    number: '03',
+    letter: 'و',
     title: 'المماس',
-    prompt: 'اكتب معادلة المماس (T) للمنحنى عند x = 0.',
-    placeholder: 'اكتب معادلة المماس',
-    hint: 'استعمل الصيغة y = f′(0)(x − 0) + f(0).',
-    solution: 'معادلة المماس هي y = −2.',
-    accepted: ['y=-2', 'y=−2', '-2', '−2'],
+    points: 2,
+    prompt: 'اكتب معادلة المماس للمنحنى عند النقطة ذات الفاصلة x=0، وفسّر معامل توجيهه من جدول التغيرات.',
   },
   {
-    id: 'equation',
-    number: '04',
-    title: 'حل معادلة',
-    prompt: 'حل في ℝ المعادلة f(x) = 2.',
-    placeholder: 'اكتب قيمة x',
-    hint: 'اضرب في x − 1، ثم حل المعادلة الناتجة.',
-    solution: 'الحل هو x = 2.',
-    accepted: ['x=2', '2'],
+    id: 'graph',
+    letter: 'ز',
+    title: 'التمثيل البياني',
+    points: 3,
+    prompt: 'أنشئ في معلم متعامد المنحنى (C) للدالة f، موضحًا المقاربين والمماس ونقط التقاطع والاتجاهات الأساسية.',
+  },
+  {
+    id: 'synthesis',
+    letter: 'ح',
+    title: 'تركيب شامل',
+    points: 2,
+    prompt: 'اكتب خلاصة منظمة لدراسة الدالة: المجال، النهايات، المقارب، المشتقة، التغيرات، ثم العناصر الضرورية للرسم.',
   },
 ];
 
-function normalizeMath(value: string) {
-  return value
-    .replace(/[−–—]/g, '-')
-    .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
-    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, (digit) => String('⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(digit)))
-    .replace(/[ℝ𝑅]/g, 'r')
-    .replace(/\\mathbb\s*\{?\s*r\s*\}?/gi, 'r')
-    .replace(/\\/g, '')
-    .replace(/[{}()[\]|]/g, (character) => character === '|' ? '' : character)
-    .replace(/[′']/g, '')
-    .replace(/[=,:;]/g, '')
-    .replace(/\s+/g, '')
-    .toLowerCase();
+const functionFormula = 'f(x) = (x² − 2x + 2) / (x − 1) = x − 1 + 1/(x − 1)';
+
+function formatElapsed(seconds: number) {
+  return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+}
+
+function resizeImageForUpload(dataUrl: string): Promise<string> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const maxEdge = 1800;
+      const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.84));
+    };
+    image.onerror = () => resolve(dataUrl);
+    image.src = dataUrl;
+  });
 }
 
 export function MathPractice() {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState<Record<string, boolean>>({});
+  const [startedAt] = useState(() => Date.now());
+  const [elapsed, setElapsed] = useState(0);
+  const [attemptImage, setAttemptImage] = useState<string | null>(null);
+  const [attemptName, setAttemptName] = useState('');
+  const [attemptState, setAttemptState] = useState<'idle' | 'ready' | 'analyzing' | 'analyzed' | 'error'>('idle');
+  const [attemptError, setAttemptError] = useState('');
+  const [analysis, setAnalysis] = useState<AttemptAnalysis | null>(null);
+  const [copilotOpen, setCopilotOpen] = useState(false);
+  const [copilotQuestion, setCopilotQuestion] = useState('');
+  const [copilotState, setCopilotState] = useState<'idle' | 'asking' | 'answered' | 'error'>('idle');
+  const [copilotAnswer, setCopilotAnswer] = useState('');
+  const [showSolution, setShowSolution] = useState(false);
+  const [showPaperHelp, setShowPaperHelp] = useState(false);
 
-  const isCorrect = (step: ScienceStep) => {
-    const answer = normalizeMath(answers[step.id] ?? '');
-    return step.accepted.some((candidate) => normalizeMath(candidate) === answer);
+  useEffect(() => {
+    if (attemptState === 'analyzed' || attemptState === 'error') return;
+    const timer = window.setInterval(() => {
+      setElapsed(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [attemptState, startedAt]);
+
+  const totalPoints = useMemo(
+    () => functionStudy.reduce((sum, section) => sum + section.points, 0),
+    [],
+  );
+
+  const paperText = useMemo(() => [
+    'دراسة شاملة لدالة ناطقة',
+    `المعطى: ${functionFormula}`,
+    `العلامة: ${totalPoints} نقطة`,
+    '',
+    'أنجز الحل كاملًا على ورقة. اكتب التحويلات والتبريرات ولا تكتفِ بالنتائج.',
+    ...functionStudy.map((section) => `${section.letter}. ${section.title} (${section.points} نقاط)\n${section.prompt}`),
+  ].join('\n\n'), [totalPoints]);
+
+  const chooseAttempt = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    setAttemptError('');
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setAttemptState('error');
+      setAttemptError('ارفع صورة واضحة لورقة الحل. صوّر الصفحات من الأعلى وبإضاءة جيدة.');
+      return;
+    }
+    if (file.size > 7 * 1024 * 1024) {
+      setAttemptState('error');
+      setAttemptError('حجم الصورة يجب أن يكون أقل من 7 ميغابايت.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') return;
+      void resizeImageForUpload(reader.result).then((imageDataUrl) => {
+        setAttemptImage(imageDataUrl);
+        setAttemptName(file.name);
+        setAttemptState('ready');
+        setAnalysis(null);
+        setShowSolution(false);
+        setCopilotAnswer('');
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const submitAttempt = async () => {
+    if (!attemptImage || attemptState === 'analyzing') return;
+    setAttemptState('analyzing');
+    setAttemptError('');
+    setAnalysis(null);
+    try {
+      const response = await fetchWithTimeout('/api/fahim/analyze-attempt', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          imageDataUrl: attemptImage,
+          lesson: 'دراسة دالة ناطقة',
+          concept: `${functionFormula}\n${functionStudy.map((section) => `${section.title}: ${section.prompt}`).join('\n')}`,
+        }),
+      });
+      const payload = await response.json() as Partial<AttemptAnalysis> & { message?: string };
+      if (!response.ok || !payload.firstError || !payload.firstErrorStep || !payload.lastCorrectStep || !payload.feedback) {
+        throw new Error(payload.message || 'تعذر تحليل ورقة الحل.');
+      }
+      setAnalysis(payload as AttemptAnalysis);
+      setAttemptState('analyzed');
+      setCopilotOpen(true);
+      setCopilotState('idle');
+      setCopilotAnswer('حللت ورقتك. اسألني عن موضع الخطأ أو عن الخطوة التالية، وسأقودك دون كشف الحل كاملًا.');
+    } catch (error) {
+      setAttemptState('error');
+      setAttemptError(error instanceof Error ? error.message : 'تعذر الاتصال بفـهيم.');
+    }
+  };
+
+  const askCopilot = async () => {
+    if (!copilotQuestion.trim() || !analysis || copilotState === 'asking') return;
+    setCopilotState('asking');
+    setCopilotAnswer('');
+    try {
+      const response = await fetchWithTimeout('/api/fahim/message', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          question: copilotQuestion.trim(),
+          lesson: 'دراسة دالة ناطقة',
+          concept: functionFormula,
+          context: [
+            `زمن محاولة الطالب: ${formatElapsed(elapsed)}`,
+            `آخر خطوة صحيحة: ${analysis.lastCorrectStep}`,
+            `أول موضع يحتاج مراجعة: ${analysis.firstErrorStep}`,
+            `ملاحظة فهيم: ${analysis.feedback}`,
+            'لا تكشف الحل النموذجي إلا إذا طلبه الطالب صراحة بعد المحاولة.',
+          ].join('\n'),
+        }),
+      });
+      const payload = await response.json() as { answer?: string; chat_response?: string; message?: string };
+      const answer = payload.answer || payload.chat_response;
+      if (!response.ok || !answer) throw new Error(payload.message || 'تعذر رد فهيم.');
+      setCopilotAnswer(answer);
+      setCopilotState('answered');
+      setCopilotQuestion('');
+    } catch (error) {
+      setCopilotState('error');
+      setCopilotAnswer(error instanceof Error ? error.message : 'تعذر رد فهيم الآن.');
+    }
+  };
+
+  const requestModelSolution = async () => {
+    if (!analysis || copilotState === 'asking') return;
+    setCopilotOpen(true);
+    setCopilotState('asking');
+    setCopilotAnswer('');
+    try {
+      const response = await fetchWithTimeout('/api/fahim/message', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          question: 'بعد أن حللت محاولتي وحددت موضع الخطأ، أعطني الآن الحل النموذجي الكامل لهذه الورقة خطوة بخطوة دون اختصار الحسابات.',
+          lesson: 'دراسة دالة ناطقة',
+          concept: functionFormula,
+          context: `المحاولة رُفعت وحُللت. آخر خطوة صحيحة: ${analysis.lastCorrectStep}. أول خطأ: ${analysis.firstErrorStep}. التغذية الراجعة: ${analysis.feedback}.`,
+        }),
+      });
+      const payload = await response.json() as { answer?: string; chat_response?: string; message?: string };
+      const answer = payload.answer || payload.chat_response;
+      if (!response.ok || !answer) throw new Error(payload.message || 'تعذر تجهيز الحل النموذجي.');
+      setCopilotAnswer(answer);
+      setCopilotState('answered');
+      setShowSolution(true);
+    } catch (error) {
+      setCopilotState('error');
+      setCopilotAnswer(error instanceof Error ? error.message : 'تعذر تجهيز الحل النموذجي الآن.');
+    }
   };
 
   const reset = () => {
-    setAnswers({});
-    setSubmitted({});
+    setAttemptImage(null);
+    setAttemptName('');
+    setAttemptState('idle');
+    setAttemptError('');
+    setAnalysis(null);
+    setShowSolution(false);
+    setCopilotOpen(false);
+    setCopilotQuestion('');
+    setCopilotAnswer('');
+    setCopilotState('idle');
+  };
+
+  const downloadPaper = () => {
+    const blob = new Blob([`\uFEFF${paperText}`], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'دراسة-شاملة-لدالة-ناطقة.txt';
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <main className="min-h-[100dvh] bg-[#f4fbff] px-5 py-8 text-right" dir="rtl">
-      <div className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-4xl flex-col">
-        <header className="mb-10 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-3 text-[#004b75]">
-            <img src={owlLogoPath} alt="شعار توجيه" className="h-11 w-11 rounded-xl object-contain" />
-            <span className="leading-none">
-              <strong className="block text-[18px] tracking-[-.04em]">TAWJEEH</strong>
-              <small className="mt-1 block text-[10px] font-bold text-[#71818a]">مساحة التعلّم</small>
-            </span>
+    <main className="function-practice-page" dir="rtl">
+      <div className="function-practice-shell">
+        <header className="function-practice-header">
+          <Link href="/" className="function-practice-brand">
+            <img src={owlLogoPath} alt="شعار توجيه" />
+            <span><strong>TAWJEEH</strong><small>مساحة التعلّم</small></span>
           </Link>
-          <span className="rounded-full border border-[#b3e5fc] bg-white px-4 py-2 text-xs font-extrabold text-[#005689]">
-             موضوع علمي · علوم تجريبية
-          </span>
+          <div className="function-practice-header-actions">
+            <span className="function-practice-chip">رياضيات · 3 ثانوي</span>
+            <Link href="/" className="function-practice-back"><ArrowRight size={14} /> العودة</Link>
+          </div>
         </header>
 
-        <section className="grid flex-1 items-center gap-8 lg:grid-cols-[.8fr_1.2fr]">
-          <div className="order-2 lg:order-1">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#e8f8f5] px-3 py-2 text-xs font-extrabold text-[#2e8b7b]">
-              <Sparkles size={15} />
-              رياضيات · السنة الثالثة ثانوي
-            </div>
-            <h1 className="mb-4 text-3xl font-black leading-tight text-[#003c60] md:text-5xl">
-              دراسة دالة ناطقة
-            </h1>
-            <p className="max-w-md text-base leading-8 text-[#64748b]">
-              موضوع علمي متدرّج من أربعة أجزاء: مجموعة التعريف، المشتقة، المماس، ثم حل معادلة مرتبطة بالدالة.
-            </p>
-            <div className="mt-8 flex items-start gap-3 rounded-2xl border border-[#b3e5fc] bg-white p-4 text-sm leading-7 text-[#476273] shadow-sm">
-              <Lightbulb className="mt-1 shrink-0 text-[#d49b35]" size={18} />
-              <p><strong className="text-[#005689]">طريقة الحل:</strong> ابدأ بالمعطيات، اكتب التحويلات الوسيطة، ولا تنتقل إلى الجزء التالي قبل فهم السابق.</p>
-            </div>
-            <div className="mt-4 rounded-2xl border border-dashed border-[#9bd1dc] bg-[#eefafd] p-4 text-xs leading-6 text-[#476273]">
-              <strong className="block text-[#005689]">المعطى</strong>
-              لتكن الدالة العددية f المعرفة على مجالها بالعلاقة:
-               <MathText className="mt-2 block text-center text-base font-black text-[#003c60]" block>f(x) = (x² − 2x + 2) / (x − 1)</MathText>
-              <span className="mt-2 block text-[10px] text-[#71818a]">المستوى: موضوع مركب مناسب لمسار العلوم التجريبية والرياضيات.</span>
-            </div>
+        <section className="function-practice-intro">
+          <div>
+            <span className="function-practice-eyebrow"><Sparkles size={14} /> ورقة تطبيقية كاملة</span>
+            <h1>دراسة دالة ناطقة</h1>
+            <p>ليست إجابة واحدة. أنجز الدراسة كاملة بالقلم: من المجال والنهايات إلى الاشتقاق والتمثيل البياني، ثم ارفع ورقتك ليقرأ فهيم خطواتك ويصححها.</p>
           </div>
-
-          <div className="order-1 rounded-[2rem] border border-[#b3e5fc] bg-white p-6 shadow-[0_20px_60px_rgba(0,75,117,.1)] md:p-10 lg:order-2">
-            <div className="mb-8 flex items-center justify-between gap-3">
-              <div>
-                <span className="mb-2 block text-xs font-extrabold text-[#71818a]">التمرين 01 · مستوى علمي</span>
-                <h2 className="text-xl font-black text-[#003c60]">موضوع تطبيقي متعدد الخطوات</h2>
-              </div>
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#e6f6fb] text-lg font-black text-[#005689]">4/4</div>
-            </div>
-
-            <div className="mb-8 rounded-2xl bg-[#004b75] px-5 py-8 text-center text-3xl font-black tracking-wide text-white md:text-4xl" dir="ltr">
-              f(x) = (x² − 2x + 2) / (x − 1)
-            </div>
-
-            <div className="space-y-4">
-              {scienceSteps.map((step) => {
-                const hasSubmitted = submitted[step.id] === true;
-                const correct = hasSubmitted && isCorrect(step);
-                return (
-                  <div key={step.id} className={`rounded-2xl border p-4 ${hasSubmitted ? (correct ? 'border-[#9bd1c7] bg-[#f1fbf8]' : 'border-[#f1d4aa] bg-[#fffaf2]') : 'border-[#e6f1f5] bg-[#fbfeff]'}`}>
-                    <div className="mb-3 flex items-start gap-3">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#e6f6fb] text-xs font-black text-[#005689]">{step.number}</span>
-                      <div>
-                        <h3 className="text-sm font-black text-[#003c60]">{step.title}</h3>
-                         <p className="mt-1 text-sm leading-7 text-[#476273]"><MathText>{step.prompt}</MathText></p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        id={`math-answer-${step.id}`}
-                        type="text"
-                        value={answers[step.id] ?? ''}
-                        onChange={(event) => {
-                          setAnswers((current) => ({ ...current, [step.id]: event.target.value }));
-                          setSubmitted((current) => ({ ...current, [step.id]: false }));
-                        }}
-                        placeholder={step.placeholder}
-                        className="min-h-11 min-w-0 flex-1 rounded-xl border border-[#b3e5fc] bg-white px-3 text-center text-sm font-bold text-[#003c60] outline-none transition focus:border-[#2e8b7b] focus:ring-2 focus:ring-[#e8f8f5]"
-                        dir="ltr"
-                      />
-                      <button
-                        type="button"
-                        className="rounded-xl bg-[#2e8b7b] px-4 text-xs font-extrabold text-white transition hover:bg-[#256f64] disabled:cursor-not-allowed disabled:opacity-50"
-                        onClick={() => setSubmitted((current) => ({ ...current, [step.id]: true }))}
-                        disabled={!answers[step.id]?.trim()}
-                      >
-                        تحقّق
-                      </button>
-                    </div>
-                    {hasSubmitted && (
-                      <div role="status" className={`mt-3 flex items-start gap-2 rounded-xl px-3 py-2 text-xs leading-6 ${correct ? 'bg-[#e8f8f5] text-[#216c5e]' : 'bg-[#fff4e8] text-[#8a5b26]'}`}>
-                        {correct ? <CheckCircle2 className="mt-1 shrink-0" size={15} /> : <Lightbulb className="mt-1 shrink-0" size={15} />}
-                         <p><MathText>{correct ? `إجابة صحيحة: ${step.solution}` : `راجع الخطوة. ${step.hint}`}</MathText></p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#e6f1f5] pt-5">
-              <span className="text-xs text-[#71818a]">حل الأجزاء بالترتيب، ثم افتح التلميح فقط عند الحاجة.</span>
-              {Object.values(submitted).some(Boolean) && (
-                <button type="button" onClick={reset} className="inline-flex items-center gap-2 text-xs font-extrabold text-[#005689] hover:text-[#2e8b7b]">
-                  <RotateCcw size={14} />
-                  إعادة المحاولة
-                </button>
-              )}
-            </div>
+          <div className="function-practice-timer" aria-live="polite">
+            <Clock3 size={17} />
+            <span><small>زمن المحاولة</small><strong>{formatElapsed(elapsed)}</strong></span>
           </div>
         </section>
 
-        <footer className="mt-10 flex items-center justify-between gap-4 border-t border-[#d9eef5] pt-5 text-xs text-[#71818a]">
-          <span>حلّها خطوة بخطوة، لا بسرعة.</span>
-          <Link href="/" className="inline-flex items-center gap-2 font-extrabold text-[#005689]">
-            العودة
-            <ArrowRight size={14} />
-          </Link>
-        </footer>
+        <section className="function-paper" aria-label="ورقة دراسة الدالة">
+          <div className="function-paper-head">
+            <div>
+              <span>التمرين 01 · موضوع مركب</span>
+              <h2>دراسة شاملة لدالة عددية</h2>
+            </div>
+            <div className="function-paper-score"><strong>{totalPoints}</strong><small>نقطة</small></div>
+          </div>
+          <div className="function-paper-formula" dir="ltr"><MathText>{functionFormula}</MathText></div>
+          <div className="function-paper-instructions">
+            <Lightbulb size={16} />
+            <p><strong>تعليمة العمل:</strong> اكتب جميع التحويلات والتبريرات على الورقة. لا تنتقل إلى المطلوب التالي قبل تثبيت السابق. لن تظهر لك الإجابة النموذجية أثناء المحاولة.</p>
+          </div>
+          <div className="function-paper-sections">
+            {functionStudy.map((section) => (
+              <article key={section.id} className="function-paper-section">
+                <div className="function-paper-section-title">
+                  <span>{section.letter}</span>
+                  <div><h3>{section.title}</h3><small>{section.points} نقاط</small></div>
+                </div>
+                <p><MathText>{section.prompt}</MathText></p>
+                <div className="function-paper-writing-lines" aria-hidden="true"><i /><i /><i /></div>
+              </article>
+            ))}
+          </div>
+          <div className="function-paper-footer">
+            <span><CheckCircle2 size={14} /> المطلوب: حل كامل ومبرر على الورق</span>
+            <button type="button" onClick={downloadPaper}><Download size={14} /> تنزيل الورقة</button>
+          </div>
+        </section>
+
+        <section className="attempt-card" aria-labelledby="attempt-title">
+          <div className="attempt-card-heading">
+            <div>
+              <span className="function-practice-eyebrow"><Camera size={14} /> التصحيح بالورقة</span>
+              <h2 id="attempt-title">ارفع محاولتك إلى فهيم</h2>
+              <p>صوّر الورقة كاملة أو صفحة صفحة. سيقرأ ترتيب خطواتك، يحدد آخر خطوة صحيحة وأول خطأ، ثم يعطيك توجيهًا مناسبًا.</p>
+            </div>
+            {attemptState === 'analyzed' && <span className="attempt-state-badge"><CheckCircle2 size={13} /> تم التحليل</span>}
+          </div>
+          {!attemptImage ? (
+            <label className="attempt-dropzone" htmlFor="function-attempt-input">
+              <FileImage size={24} />
+              <strong>اختر صورة ورقة الحل</strong>
+              <span>JPG أو PNG · حتى 7 ميغابايت</span>
+              <input id="function-attempt-input" type="file" accept="image/*" capture="environment" onChange={chooseAttempt} hidden />
+            </label>
+          ) : (
+            <div className="attempt-preview-wrap">
+              <img src={attemptImage} alt="معاينة ورقة محاولة دراسة الدالة" className="attempt-preview" />
+              <div className="attempt-preview-meta">
+                <span><FileImage size={14} /> {attemptName}</span>
+                <button type="button" onClick={() => { setAttemptImage(null); setAttemptName(''); setAttemptState('idle'); setAnalysis(null); setShowSolution(false); }}><X size={14} /> استبدال الصورة</button>
+              </div>
+            </div>
+          )}
+          {attemptError && <p className="attempt-error" role="alert">{attemptError}</p>}
+          <div className="attempt-actions">
+            <button type="button" className="attempt-submit" onClick={() => void submitAttempt()} disabled={!attemptImage || attemptState === 'analyzing' || attemptState === 'analyzed'}>
+              {attemptState === 'analyzing' ? <LoaderCircle size={15} className="function-practice-spin" /> : <Send size={15} />}
+              {attemptState === 'analyzing' ? 'فهيم يقرأ الورقة...' : attemptState === 'analyzed' ? 'أُرسلت إلى فهيم' : 'أرسلها للتصحيح'}
+            </button>
+            {(attemptImage || analysis || attemptError) && <button type="button" className="attempt-reset" onClick={reset}><RotateCcw size={14} /> محاولة جديدة</button>}
+          </div>
+        </section>
+
+        {analysis && (
+          <section className="attempt-analysis" aria-labelledby="analysis-title">
+            <div className="attempt-analysis-header">
+              <div><span className="function-practice-eyebrow"><Sparkles size={14} /> قراءة فهيم</span><h2 id="analysis-title">تم تحليل محاولتك</h2></div>
+              <span className="attempt-analysis-time">حاولت {formatElapsed(elapsed)}</span>
+            </div>
+            <div className="attempt-analysis-grid">
+              <div><small>آخر خطوة صحيحة</small><strong>{analysis.lastCorrectStep}</strong></div>
+              <div><small>أول موضع يحتاج مراجعة</small><strong>{analysis.firstErrorStep}</strong></div>
+            </div>
+            <p className="attempt-feedback">{analysis.feedback}</p>
+            <div className="attempt-analysis-actions">
+              <button type="button" onClick={() => setCopilotOpen(true)}><MessageCircle size={15} /> ناقش المحاولة مع فهيم</button>
+              <button type="button" className="attempt-solution-request" onClick={() => void requestModelSolution()} disabled={copilotState === 'asking' || showSolution}>
+                {copilotState === 'asking' ? <LoaderCircle size={15} className="function-practice-spin" /> : <Lightbulb size={15} />}
+                {showSolution ? 'الحل النموذجي في نافذة فهيم' : 'اسأل فهيم عن الحل النموذجي'}
+              </button>
+            </div>
+          </section>
+        )}
+
+        <button type="button" className="function-practice-help" onClick={() => setShowPaperHelp((current) => !current)}><Lightbulb size={14} /> كيف أتعامل مع الورقة؟</button>
+        {showPaperHelp && <p className="function-practice-help-copy">ابدأ بالمعطيات، اكتب كل تحويلة، صوّر الحل بعد مراجعته، ثم ارفع الصورة. إذا أخطأت، لن نعاقب المحاولة: سيشير فهيم إلى أول خطوة تحتاج فهمًا.</p>}
+      </div>
+
+      <div className={`practice-copilot ${copilotOpen ? 'is-open' : ''}`} dir="rtl">
+        <button type="button" className="practice-copilot-orb" onClick={() => setCopilotOpen((current) => !current)} aria-expanded={copilotOpen} aria-label={copilotOpen ? 'إغلاق فهيم' : 'فتح فهيم'}>
+          <img src={owlAgentViolet} alt="" />
+          <span />
+        </button>
+        {copilotOpen && (
+          <section className="practice-copilot-panel" role="dialog" aria-label="كوبيلوت فهيم">
+            <header>
+              <div><img src={owlLogoPath} alt="" /><span><strong>فهيم</strong><small>{analysis ? 'يراجع محاولتك الورقية' : 'ينتظر ورقة محاولتك'}</small></span></div>
+              <button type="button" onClick={() => setCopilotOpen(false)} aria-label="إغلاق فهيم"><X size={17} /></button>
+            </header>
+            <div className="practice-copilot-body">
+              <p className="practice-copilot-welcome">{copilotAnswer || (analysis ? 'أنا جاهز لمناقشة خطواتك. اسأل عن موضع الخطأ، ولن أعطيك الحل قبل أن تطلبه.' : 'ارفع ورقة الحل أولًا. لا أقدّم حلًا نموذجيًا لموضوع لم تحاول حله.')}</p>
+              {!analysis && <div className="practice-copilot-lock"><MessageCircle size={15} /> ارفع المحاولة كي يبدأ التحليل</div>}
+              {showSolution && <div className="practice-copilot-solution"><strong>الحل النموذجي بعد المحاولة</strong><p>{copilotAnswer}</p></div>}
+            </div>
+            <form onSubmit={(event) => { event.preventDefault(); void askCopilot(); }} className="practice-copilot-composer">
+              <textarea value={copilotQuestion} onChange={(event) => setCopilotQuestion(event.target.value)} disabled={!analysis || copilotState === 'asking'} placeholder="مثال: لماذا كانت هذه الخطوة أول خطأ؟" rows={2} />
+              <button type="submit" disabled={!analysis || !copilotQuestion.trim() || copilotState === 'asking'}>{copilotState === 'asking' ? <LoaderCircle size={15} className="function-practice-spin" /> : <Send size={15} />}</button>
+            </form>
+          </section>
+        )}
       </div>
     </main>
   );
