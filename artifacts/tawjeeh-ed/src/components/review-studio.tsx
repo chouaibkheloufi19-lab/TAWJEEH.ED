@@ -1,19 +1,22 @@
-import { useCallback, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import {
   AlertCircle,
   BookOpenText,
   CheckCircle2,
+  Clock3,
+  Download,
   FileText,
+  ImagePlus,
   Info,
-  ListChecks,
-  Minus,
-  Plus,
   RefreshCw,
   Sparkles,
+  Upload,
   WandSparkles,
 } from 'lucide-react';
 import { fetchWithTimeout } from '@/lib/request';
 import { MathText } from '@/components/math-text';
+import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
+import { PaperAttemptCopilot, type PaperAttemptAnalysis } from '@/components/paper-attempt-copilot';
 import './review-studio.css';
 
 export type ExplanationSection = {
@@ -33,19 +36,21 @@ export type ExplanationResult = {
 
 export type ExerciseType = 'mcq' | 'true_false' | 'practical';
 
-export type Exercise = {
+export type ExerciseSection = {
   id: string;
-  type: ExerciseType;
-  question: string;
-  options: string[];
-  correct_answer: string;
-  model_answer: string;
-  explanation: string;
+  title: string;
+  points: number;
+  prompt: string;
 };
 
 export type ExercisesResult = {
   lesson_title: string;
-  exercises: Exercise[];
+  title: string;
+  prompt: string;
+  hint: string;
+  format: 'comprehensive_function' | 'comprehensive_science';
+  total_points: number;
+  sections: ExerciseSection[];
   grounding: Grounding;
 };
 
@@ -66,6 +71,7 @@ type Grounding = {
 
 type GenerationKind = 'explanation' | 'exercises';
 type GenerationState = 'idle' | 'loading' | 'ready' | 'error';
+type AttemptState = 'idle' | 'analyzing' | 'ready' | 'error';
 
 type ApiErrorPayload = {
   error?: string;
@@ -78,14 +84,6 @@ const levels = [
   { value: 'التعليم الثانوي', label: 'التعليم الثانوي' },
   { value: 'التعليم الجامعي التمهيدي', label: 'الجامعي التمهيدي' },
 ] as const;
-
-const exerciseTypeLabels: Record<ExerciseType, string> = {
-  mcq: 'اختيار من متعدد',
-  true_false: 'صح أو خطأ',
-  practical: 'تطبيق عملي',
-};
-
-const defaultExerciseTypes: ExerciseType[] = ['mcq', 'true_false', 'practical'];
 
 function getErrorMessage(error: unknown, kind: GenerationKind) {
   if (error instanceof Error && error.name === 'AbortError') {
@@ -129,8 +127,6 @@ export function ReviewStudio() {
   const [lessonTitle, setLessonTitle] = useState('');
   const [content, setContent] = useState('');
   const [level, setLevel] = useState<string>('التعليم الثانوي');
-  const [exerciseCount, setExerciseCount] = useState(6);
-  const [exerciseTypes, setExerciseTypes] = useState<ExerciseType[]>(defaultExerciseTypes);
   const [explanation, setExplanation] = useState<ExplanationResult | null>(null);
   const [exercises, setExercises] = useState<ExercisesResult | null>(null);
   const [explanationState, setExplanationState] = useState<GenerationState>('idle');
@@ -138,9 +134,21 @@ export function ReviewStudio() {
   const [explanationError, setExplanationError] = useState('');
   const [exercisesError, setExercisesError] = useState('');
   const [formError, setFormError] = useState('');
+  const [attemptImage, setAttemptImage] = useState<string | null>(null);
+  const [attemptName, setAttemptName] = useState('');
+  const [attemptState, setAttemptState] = useState<AttemptState>('idle');
+  const [attemptAnalysis, setAttemptAnalysis] = useState<PaperAttemptAnalysis | null>(null);
+  const [attemptError, setAttemptError] = useState('');
+  const [attemptStartedAt, setAttemptStartedAt] = useState<number | null>(null);
+  const [attemptElapsed, setAttemptElapsed] = useState(0);
+  const [copilotOpen, setCopilotOpen] = useState(false);
+  const [copilotQuestion, setCopilotQuestion] = useState('');
+  const [copilotAnswer, setCopilotAnswer] = useState('');
+  const [copilotError, setCopilotError] = useState('');
+  const [copilotState, setCopilotState] = useState<'idle' | 'asking' | 'error'>('idle');
 
   const hasInput = Boolean(lessonTitle.trim() && content.trim());
-  const canGenerateExercises = hasInput && exerciseTypes.length > 0;
+  const canGenerateExercises = hasInput;
   const selectedLevelLabel = useMemo(
     () => levels.find((item) => item.value === level)?.label ?? level,
     [level],
@@ -181,28 +189,176 @@ export function ReviewStudio() {
     if (!validate('exercises')) return;
     setExercisesState('loading');
     setExercisesError('');
+    setAttemptImage(null);
+    setAttemptName('');
+    setAttemptAnalysis(null);
+    setAttemptState('idle');
+    setAttemptError('');
+    setAttemptElapsed(0);
     try {
       const result = await postAi<ExercisesResult>('/api/ai/generate-exercises', {
         lesson_title: lessonTitle.trim(),
         content: content.trim(),
         level,
-        exercise_count: exerciseCount,
-        exercise_types: exerciseTypes,
+        exercise_count: 1,
+        exercise_types: ['practical'],
       });
       setExercises(result);
       setExercisesState('ready');
+      setAttemptStartedAt(Date.now());
     } catch (error) {
       setExercisesState('error');
       setExercisesError(getErrorMessage(error, 'exercises'));
     }
-  }, [content, exerciseCount, exerciseTypes, lessonTitle, level, validate]);
+  }, [content, lessonTitle, level, validate]);
+
+  useEffect(() => {
+    if (!attemptStartedAt || attemptState === 'ready' || attemptState === 'error') return undefined;
+    const updateElapsed = () => setAttemptElapsed(Math.max(0, Math.floor((Date.now() - attemptStartedAt) / 1000)));
+    updateElapsed();
+    const timer = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(timer);
+  }, [attemptStartedAt, attemptState]);
+
+  const formatAttemptElapsed = (seconds: number) => (
+    `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`
+  );
+
+  const analyzePaperAttempt = async (imageDataUrl: string, fileName: string) => {
+    if (!exercises) return;
+    const elapsed = attemptStartedAt
+      ? Math.max(0, Math.floor((Date.now() - attemptStartedAt) / 1000))
+      : attemptElapsed;
+    setAttemptElapsed(elapsed);
+    setAttemptState('analyzing');
+    setAttemptError('');
+    try {
+      const response = await fetchWithTimeout('/api/fahim/analyze-attempt', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          imageDataUrl,
+          lesson: exercises.lesson_title,
+          concept: [
+            exercises.title,
+            exercises.prompt,
+            `زمن المحاولة: ${formatAttemptElapsed(elapsed)}`,
+            exercises.sections.map((section) => `${section.title}: ${section.prompt}`).join(' | '),
+          ].join('\n'),
+          elapsed_seconds: elapsed,
+        }),
+      });
+      const payload = await response.json() as Partial<PaperAttemptAnalysis> & { message?: string };
+      if (!response.ok || !payload.firstErrorStep || !payload.lastCorrectStep || !payload.feedback) {
+        throw new Error(payload.message || 'تعذر تحليل صورة المحاولة.');
+      }
+      setAttemptAnalysis({
+        firstErrorStep: payload.firstErrorStep,
+        lastCorrectStep: payload.lastCorrectStep,
+        feedback: payload.feedback,
+      });
+      setAttemptState('ready');
+      setCopilotAnswer(`حللت محاولتك بعد ${formatAttemptElapsed(elapsed)}. اسألني عن الخطوة التي تريد مراجعتها، ولن أعرض الحل قبل أن تطلبه.`);
+      setCopilotError('');
+      setCopilotState('idle');
+      setCopilotOpen(true);
+    } catch (error) {
+      setAttemptState('error');
+      setAttemptError(error instanceof Error ? error.message : 'تعذر تحليل صورة المحاولة.');
+    }
+    setAttemptName(fileName);
+  };
+
+  const handleAttemptUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || !exercises) return;
+    setAttemptError('');
+    if (!file.type.startsWith('image/')) {
+      setAttemptState('error');
+      setAttemptError('ارفع صورة واضحة لورقة الحل.');
+      return;
+    }
+    if (file.size > 7 * 1024 * 1024) {
+      setAttemptState('error');
+      setAttemptError('حجم الصورة يجب أن يكون أقل من 7 ميغابايت.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') return;
+      setAttemptImage(reader.result);
+      setAttemptName(file.name);
+      void analyzePaperAttempt(reader.result, file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const downloadPaper = () => {
+    if (!exercises) return;
+    const content = [
+      exercises.title,
+      `المادة: ${exercises.lesson_title}`,
+      `العلامة: ${exercises.total_points} نقطة`,
+      '',
+      'أجب على الورقة بالقلم، ثم ارفع صورة المحاولة إلى فهيم للتصحيح.',
+      '',
+      exercises.prompt,
+      '',
+      exercises.sections.map((section, index) => (
+        `${index + 1}. ${section.title} (${section.points} نقاط)\n${section.prompt}`
+      )).join('\n\n'),
+    ].join('\n');
+    const url = URL.createObjectURL(new Blob([`\uFEFF${content}`], { type: 'text/plain;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${exercises.title.replace(/[^\p{L}\p{N}\s-]/gu, '').trim() || 'ورقة-دراسة-شاملة'}.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const askPaperCopilot = async () => {
+    if (!exercises || !attemptAnalysis || !copilotQuestion.trim() || copilotState === 'asking') return;
+    const question = copilotQuestion.trim();
+    setCopilotState('asking');
+    setCopilotError('');
+    try {
+      const response = await fetchWithTimeout('/api/fahim/message', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          question,
+          lesson: exercises.lesson_title,
+          concept: exercises.title,
+          context: [
+            'هذه محاولة ورقية مرفوعة من الطالب بعد حل ورقة شاملة.',
+            `زمن المحاولة: ${formatAttemptElapsed(attemptElapsed)}`,
+            `المطلوبات: ${exercises.sections.map((section) => `${section.title}: ${section.prompt}`).join(' | ')}`,
+            `آخر خطوة صحيحة: ${attemptAnalysis.lastCorrectStep}`,
+            `أول موضع يحتاج مراجعة: ${attemptAnalysis.firstErrorStep}`,
+            `تحليل فهيم: ${attemptAnalysis.feedback}`,
+            'أجب داخل الكوبيلوت بأسلوب تفاعلي: اسأل الطالب عن خطوته التالية أو اطلب منه تفسيرًا قصيرًا، ثم قدّم تلميحًا متدرجًا. لا تعرض الحل النموذجي كاملًا إلا إذا طلبه الطالب صراحة داخل الكوبيلوت، وعندها اعرضه خطوة خطوة لا دفعة واحدة. لا تذكر المصادر أو المقاطع للطالب.',
+          ].join('\n'),
+        }),
+      });
+      const payload = await response.json() as { answer?: string; chat_response?: string; message?: string };
+      const answer = payload.answer || payload.chat_response;
+      if (!response.ok || !answer) throw new Error(payload.message || 'تعذر رد فهيم على المحاولة.');
+      setCopilotAnswer(answer);
+      setCopilotQuestion('');
+      setCopilotState('idle');
+    } catch (error) {
+      setCopilotState('error');
+      setCopilotError(error instanceof Error ? error.message : 'تعذر رد فهيم الآن.');
+    }
+  };
 
   const resetStudio = () => {
     setLessonTitle('');
     setContent('');
     setLevel('التعليم الثانوي');
-    setExerciseCount(6);
-    setExerciseTypes(defaultExerciseTypes);
     setExplanation(null);
     setExercises(null);
     setExplanationState('idle');
@@ -210,17 +366,18 @@ export function ReviewStudio() {
     setExplanationError('');
     setExercisesError('');
     setFormError('');
-  };
-
-  const toggleExerciseType = (type: ExerciseType) => {
-    setExerciseTypes((current) => current.includes(type)
-      ? current.filter((item) => item !== type)
-      : [...current, type]);
-    setFormError('');
-  };
-
-  const changeExerciseCount = (amount: number) => {
-    setExerciseCount((current) => Math.max(1, Math.min(10, current + amount)));
+    setAttemptImage(null);
+    setAttemptName('');
+    setAttemptState('idle');
+    setAttemptAnalysis(null);
+    setAttemptError('');
+    setAttemptStartedAt(null);
+    setAttemptElapsed(0);
+    setCopilotOpen(false);
+    setCopilotQuestion('');
+    setCopilotAnswer('');
+    setCopilotError('');
+    setCopilotState('idle');
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {

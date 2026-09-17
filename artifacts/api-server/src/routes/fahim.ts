@@ -276,10 +276,11 @@ async function callTextModel(
 }
 
 router.post("/fahim/analyze-attempt", async (req, res): Promise<void> => {
-  const { imageDataUrl, lesson, concept } = req.body as {
+  const { imageDataUrl, lesson, concept, elapsed_seconds: elapsedSeconds } = req.body as {
     imageDataUrl?: unknown;
     lesson?: unknown;
     concept?: unknown;
+    elapsed_seconds?: unknown;
   };
   if (
     typeof imageDataUrl !== "string" ||
@@ -287,6 +288,7 @@ router.post("/fahim/analyze-attempt", async (req, res): Promise<void> => {
     imageDataUrl.length > 7_000_000 ||
     typeof lesson !== "string" ||
     typeof concept !== "string"
+    || (elapsedSeconds !== undefined && (typeof elapsedSeconds !== "number" || !Number.isFinite(elapsedSeconds) || elapsedSeconds < 0))
   ) {
     res.status(400).json({ error: "invalid_attempt_payload" });
     return;
@@ -294,7 +296,14 @@ router.post("/fahim/analyze-attempt", async (req, res): Promise<void> => {
 
   try {
     const retrieval = await retrieveGroundedKnowledge(`${lesson} ${concept}`, { nResults: 8 });
-    const analysis = await callVisionModel(imageDataUrl, lesson, concept, retrieval);
+    const analysis = await callVisionModel(
+      imageDataUrl,
+      lesson,
+      `${concept}\nزمن المحاولة: ${typeof elapsedSeconds === "number"
+        ? `${Math.floor(elapsedSeconds / 60)} دقيقة و${Math.floor(elapsedSeconds % 60)} ثانية`
+        : "غير مسجل"}`,
+      retrieval,
+    );
     res.json({
       ...analysis,
       fahim: {

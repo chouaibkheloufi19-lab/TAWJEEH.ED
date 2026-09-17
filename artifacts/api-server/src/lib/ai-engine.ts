@@ -46,14 +46,24 @@ export type ExplanationResult = {
 
 export type ExerciseType = "mcq" | "true_false" | "practical";
 
-export type Exercise = {
+export type ExerciseSection = {
   id: string;
-  type: ExerciseType;
-  question: string;
-  options: string[];
-  correct_answer: string;
-  model_answer: string;
-  explanation: string;
+  title: string;
+  points: number;
+  prompt: string;
+};
+
+type GeneratedExercisePaper = {
+  lesson_title: string;
+  title: string;
+  prompt: string;
+  hint: string;
+  solution: string;
+  format: "comprehensive_function" | "comprehensive_science";
+  total_points: number;
+  sections: ExerciseSection[];
+  sourceNodeIds: string[];
+  grounding: RetrievalContext["grounding"];
 };
 
 export type ExercisesRequest = {
@@ -68,7 +78,12 @@ export type ExercisesRequest = {
 
 export type ExercisesResult = {
   lesson_title: string;
-  exercises: Exercise[];
+  title: string;
+  prompt: string;
+  hint: string;
+  format: "comprehensive_function" | "comprehensive_science";
+  total_points: number;
+  sections: ExerciseSection[];
   sourceNodeIds: string[];
   grounding: RetrievalContext["grounding"];
 };
@@ -201,20 +216,24 @@ async function retrieveForAi(
             : {}),
         }
       : undefined;
-  return retrieveGroundedKnowledge(query, { nResults: 8, where });
+  return retrieveGroundedKnowledge(query, {
+    nResults: "exerciseCount" in request ? 20 : 8,
+    where,
+  });
 }
 
 async function generateJson<T>(
   messages: ChatMessage[],
   label: string,
   parse: (payload: Record<string, unknown>) => T,
+  options: { maxOutputTokens?: number } = {},
 ): Promise<T> {
   let lastError: unknown;
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
       const content = await callDeepSeekTextModelWithRetry(
         messages,
-        { temperature: 0.2, maxOutputTokens: 2600, jsonMode: true },
+        { temperature: 0.2, maxOutputTokens: options.maxOutputTokens ?? 2600, jsonMode: true },
         { maxAttempts: 2, baseDelayMs: 500 },
       );
       const parsed = JSON.parse(extractJsonObject(content)) as unknown;
@@ -290,71 +309,65 @@ function parseExplanation(
 
 function parseExercises(
   payload: Record<string, unknown>,
-  expectedCount: number,
-  allowedTypes: ExerciseType[],
   retrieval: RetrievalContext,
-): ExercisesResult {
+): GeneratedExercisePaper {
   const lessonTitle = asText(payload.lesson_title);
-  const rawExercises = Array.isArray(payload.exercises) ? payload.exercises : [];
-  const exercises = rawExercises
-    .map((exercise, index): Exercise | null => {
-      if (!exercise || typeof exercise !== "object") return null;
-      const value = exercise as Record<string, unknown>;
-      const type = value.type;
-      const normalizedType: ExerciseType | null =
-        type === "mcq" || type === "true_false" || type === "practical" ? type : null;
-      if (normalizedType && !allowedTypes.includes(normalizedType)) return null;
-      const question = asText(value.question);
-      const options = asStringArray(value.options);
-      const correctAnswer = asText(value.correct_answer);
-      const modelAnswer = asText(value.model_answer) || correctAnswer;
-      const explanation = asText(value.explanation);
-      const validOptions =
-        normalizedType === "practical"
-          ? options.length === 0
-          : options.length >= 2 && options.includes(correctAnswer);
-      if (
-        !normalizedType ||
-        !question ||
-        !correctAnswer ||
-        !modelAnswer ||
-        !explanation ||
-        !validOptions ||
-        (normalizedType === "true_false" &&
-          (options.length !== 2 ||
-            !options.includes("صحيح") ||
-            !options.includes("خطأ")))
-      ) {
-        return null;
-      }
+  const title = asText(payload.title);
+  const prompt = asText(payload.prompt);
+  const hint = asText(payload.hint);
+  const solution = asText(payload.solution);
+  const format =
+    payload.format === "comprehensive_function" || payload.format === "comprehensive_science"
+      ? payload.format
+      : null;
+  const rawSections = Array.isArray(payload.sections) ? payload.sections : [];
+  const sections = rawSections
+    .map((section): ExerciseSection | null => {
+      if (!section || typeof section !== "object") return null;
+      const value = section as Record<string, unknown>;
+      const sectionTitle = asText(value.title);
+      const sectionPrompt = asText(value.prompt);
+      const points = Number(value.points);
+      if (!sectionTitle || !sectionPrompt || !Number.isFinite(points) || points <= 0) return null;
       return {
-        id: asText(value.id) || `exercise-${index + 1}`,
-        type: normalizedType,
-        question,
-        options,
-        correct_answer: correctAnswer,
-        model_answer: modelAnswer,
-        explanation,
+        id: asText(value.id) || `section-${rawSections.indexOf(section) + 1}`,
+        title: sectionTitle,
+        points,
+        prompt: sectionPrompt,
       };
     })
-    .filter((exercise): exercise is Exercise => exercise !== null)
-    .slice(0, expectedCount);
+    .filter((section): section is ExerciseSection => section !== null)
+    .slice(0, 10);
+  const totalPoints = Number(payload.total_points ?? payload.totalPoints);
+  const sourceNodeIds = assertGroundedNodeIds(payload.sourceNodeIds, retrieval);
 
   if (
     !lessonTitle ||
-    exercises.length < expectedCount ||
-    (expectedCount >= allowedTypes.length &&
-      allowedTypes.some((type) => !exercises.some((exercise) => exercise.type === type)))
+    !title ||
+    !prompt ||
+    !hint ||
+    !solution ||
+    !format ||
+    sections.length < 5 ||
+    !Number.isFinite(totalPoints) ||
+    totalPoints <= 0 ||
+    totalPoints > 20
   ) {
     throw new AiEngineError(
-      "Exercises response does not match the structured contract",
+      "Comprehensive exercise paper does not match the structured contract",
       "invalid_model_output",
     );
   }
   return {
     lesson_title: lessonTitle,
-    exercises,
-    sourceNodeIds: assertGroundedNodeIds(payload.sourceNodeIds, retrieval),
+    title,
+    prompt,
+    hint,
+    solution,
+    format,
+    total_points: totalPoints,
+    sections,
+    sourceNodeIds,
     grounding: retrieval.grounding,
   };
 }
@@ -464,22 +477,36 @@ export async function generateExercises(
         INTERACTIVE_EXERCISES_PROMPT,
         LEARNER_SAFE_OUTPUT_RULES,
         "اعتمد على مقاطع ChromaDB المصدرية فقط. لا تضف قانونًا أو رقمًا أو مثالًا لا تثبته هذه المقاطع.",
-        "فرّق بين نوع المصدر: استخرج المفهوم من lesson/summary/concept/reference، وابنِ السؤال أو الحل من exercise/assessment/solution. لا تستخدم program كمصدر لإجابة علمية.",
-        `أنشئ ${request.exerciseCount} تمارين بالضبط. الأنواع المسموح بها: ${request.exerciseTypes.join(", ")}. غطِّ هذه الأنواع بالتوازن قدر الإمكان، ولا تستخدم نوعًا خارجها.`,
+        "فرّق بين نوع المصدر: استخرج المفهوم من lesson/summary/concept/reference، وابنِ المطلوبات والأعداد من exercise/assessment/solution. لا تستخدم program كمصدر لإجابة علمية.",
+        "أنشئ ورقة واحدة متماسكة، لا قائمة أسئلة منفصلة ولا اختيارًا من متعدد ولا صح/خطأ.",
       ].join("\n\n"),
     },
     {
       role: "user",
       content: [
         buildUserContent(request, retrieval),
-        'أعد الشكل التالي فقط، واختر sourceNodeIds من المعرّفات الظاهرة في chromadb_context: {"lesson_title":"...","exercises":[{"id":"exercise-1","type":"mcq","question":"...","options":["...","...","..."],"correct_answer":"...","model_answer":"...","explanation":"..."}],"sourceNodeIds":["node-id"]}',
+        'أعد الشكل التالي فقط، واختر sourceNodeIds من المعرّفات الظاهرة في chromadb_context: {"lesson_title":"...","title":"دراسة شاملة في الدالة","prompt":"سياق الورقة والمعطيات دون أي حل","hint":"تلميح قصير لا يكشف النتيجة","solution":"الحل النموذجي الكامل للاستخدام الداخلي فقط","format":"comprehensive_function","total_points":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"مطلوب قابل للحل على الورق"},{"id":"limits","title":"النهايات","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق واتجاه التغير","points":3,"prompt":"..."},{"id":"variations","title":"جدول التغيرات","points":3,"prompt":"..."},{"id":"equations","title":"المعادلات والمتراجحات","points":2,"prompt":"..."},{"id":"graph","title":"التمثيل البياني والمماس والمقارب","points":5,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}',
       ].join("\n\n"),
     },
   ];
   return generateJson(
     messages,
     "Exercises engine",
-    (payload) => parseExercises(payload, request.exerciseCount, request.exerciseTypes, retrieval),
+    (payload) => {
+      const paper = parseExercises(payload, retrieval);
+      return {
+        lesson_title: paper.lesson_title,
+        title: paper.title,
+        prompt: paper.prompt,
+        hint: paper.hint,
+        format: paper.format,
+        total_points: paper.total_points,
+        sections: paper.sections,
+        sourceNodeIds: paper.sourceNodeIds,
+        grounding: paper.grounding,
+      };
+    },
+    { maxOutputTokens: 4200 },
   );
 }
 
