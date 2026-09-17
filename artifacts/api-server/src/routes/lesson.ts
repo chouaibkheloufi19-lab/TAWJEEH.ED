@@ -76,6 +76,23 @@ type GeneratedExercise = {
   }>;
 };
 
+type StudentPaper = {
+  status: "generated";
+  mode: "paper";
+  lessonTitle: string;
+  title: string;
+  prompt: string;
+  hint: string;
+  format: "comprehensive_function" | "comprehensive_science";
+  totalPoints: number;
+  sections: Array<{
+    id: string;
+    title: string;
+    points: number;
+    prompt: string;
+  }>;
+};
+
 type GeneratedCreativeTopics = {
   status: "generated";
   mode: "creative_topic";
@@ -601,7 +618,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     (curriculumYear !== undefined && typeof curriculumYear !== "string") ||
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
     (attemptContext !== undefined && typeof attemptContext !== "string") ||
-    (mode !== undefined && mode !== "standard" && mode !== "creative_topic")
+    (mode !== undefined && mode !== "standard" && mode !== "paper" && mode !== "creative_topic")
     || (worksheet !== undefined && worksheet !== "comprehensive")
   ) {
     res.status(400).json({ error: "invalid_exercise_generation_payload" });
@@ -621,7 +638,8 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     const requestText = [lesson, activeConcept, attemptContext]
       .filter((value): value is string => Boolean(value))
       .join(" ");
-    const isPaperRequest = worksheet === "comprehensive"
+    const isPaperRequest = mode === "paper"
+      || worksheet === "comprehensive"
       || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(requestText);
     const retrieval = await retrieveGroundedKnowledge(
       [
@@ -679,9 +697,24 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       ]
         .filter(Boolean)
         .join(" | "),
-      worksheet === "comprehensive",
+      isPaperRequest,
       retrieval,
     );
+    if (mode === "paper") {
+      const studentPaper: StudentPaper = {
+        status: generated.status,
+        mode: "paper",
+        lessonTitle: generated.lessonTitle,
+        title: generated.title,
+        prompt: generated.prompt,
+        hint: generated.hint,
+        format: generated.format ?? "comprehensive_science",
+        totalPoints: generated.totalPoints ?? generated.sections?.reduce((sum, section) => sum + section.points, 0) ?? 0,
+        sections: generated.sections ?? [],
+      };
+      res.json(studentPaper);
+      return;
+    }
     res.json(generated);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

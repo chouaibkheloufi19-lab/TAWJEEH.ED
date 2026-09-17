@@ -48,6 +48,7 @@ export type ExerciseSection = {
  */
 export type ComprehensivePaper = {
   status: 'generated';
+  mode: 'paper';
   lessonTitle: string;
   title: string;
   prompt: string;
@@ -103,6 +104,7 @@ function isComprehensivePaper(value: unknown): value is ComprehensivePaper {
   if (!value || typeof value !== 'object') return false;
   const paper = value as Partial<ComprehensivePaper>;
   return paper.status === 'generated'
+    && paper.mode === 'paper'
     && typeof paper.lessonTitle === 'string'
     && typeof paper.title === 'string'
     && typeof paper.prompt === 'string'
@@ -204,8 +206,7 @@ export function ReviewStudio() {
         level,
         activeConcept: lessonTitle.trim(),
         attemptContext: content.trim().slice(0, 4000),
-        worksheet: 'comprehensive',
-        mode: 'standard',
+        mode: 'paper',
       });
       if (!isComprehensivePaper(result)) {
         throw new Error('أعاد الخادم ورقة غير مكتملة. أعد المحاولة للحصول على ورقة دقيقة.');
