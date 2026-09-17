@@ -808,3 +808,332 @@
     animation: none;
   }
 }
+
+/* Final worksheet surface overrides: the student sees prompts, not solutions. */
+.review-studio-spin {
+  animation: review-studio-spin .9s linear infinite;
+}
+
+.review-studio-paper {
+  display: grid;
+  gap: 18px;
+}
+
+.review-studio-paper-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px;
+  border: 1px solid #d6e8e8;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f3fbf9, #f8fcfd);
+}
+
+.review-studio-paper-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #19817f;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.review-studio-paper-intro h3 {
+  margin: 0;
+  color: #174d5c;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.review-studio-paper-score {
+  display: grid;
+  min-width: 62px;
+  place-items: center;
+  padding: 8px 10px;
+  border: 1px solid #acd6cf;
+  border-radius: 14px;
+  color: #126d73;
+  background: #e7f7f2;
+}
+
+.review-studio-paper-score strong {
+  font-family: var(--app-font-mono);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.review-studio-paper-score span {
+  margin-top: 4px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.review-studio-paper-prompt {
+  margin: 0;
+  padding: 0 3px;
+  color: #426a73;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 2;
+}
+
+.review-studio-paper-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px dashed #b1d8d1;
+  border-radius: 11px;
+  color: #4c7772;
+  background: #f1faf7;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.review-studio-paper-privacy svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #248d84;
+}
+
+.review-studio-sections {
+  display: grid;
+  gap: 9px;
+}
+
+.review-studio-paper-section {
+  padding: 13px 14px;
+  border: 1px solid #e0eded;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.review-studio-paper-section-heading {
+  display: grid;
+  grid-template-columns: 31px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.review-studio-paper-section-heading > span {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: 9px;
+  color: #197775;
+  font-family: var(--app-font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  background: #e8f6f2;
+}
+
+.review-studio-paper-section-heading h4 {
+  margin: 0;
+  color: #2b5f6a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.review-studio-paper-section-heading strong {
+  color: #789397;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.review-studio-paper-section > p {
+  margin: 10px 0 0;
+  padding-inline-start: 40px;
+  color: #58767d;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.85;
+}
+
+.review-studio-attempt-bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-top: 4px;
+}
+
+.review-studio-attempt-bar > div:first-child {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  color: #247a7a;
+}
+
+.review-studio-attempt-bar > div:first-child > div {
+  display: grid;
+  gap: 2px;
+}
+
+.review-studio-attempt-bar strong {
+  color: #55747a;
+  font-size: 10px;
+}
+
+.review-studio-attempt-bar span {
+  color: #176e73;
+  font-family: var(--app-font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  direction: ltr;
+}
+
+.review-studio-upload-button,
+.review-studio-download-button {
+  display: inline-flex;
+  min-height: 39px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 11px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.review-studio-upload-button {
+  border: 1px solid #0f7d82;
+  color: #fff;
+  background: #13767c;
+}
+
+.review-studio-download-button {
+  border: 1px solid #cfe3e6;
+  color: #46747b;
+  background: #fff;
+}
+
+.review-studio-upload-button:hover,
+.review-studio-download-button:hover {
+  transform: translateY(-1px);
+}
+
+.review-studio-upload-button:hover {
+  background: #0c626b;
+}
+
+.review-studio-download-button:hover {
+  border-color: #95c9c6;
+  background: #f1faf8;
+}
+
+.review-studio-attempt-file {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 11px;
+  border: 1px solid #dcebea;
+  border-radius: 10px;
+  color: #5d7d82;
+  font-size: 10px;
+  font-weight: 700;
+  background: #fbfefe;
+}
+
+.review-studio-attempt-file span:first-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-studio-attempt-file span:last-of-type {
+  margin-inline-start: auto;
+  color: #19817f;
+  white-space: nowrap;
+}
+
+.review-studio-analysis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid #b9dfcf;
+  border-radius: 14px;
+  background: #eef9f2;
+}
+
+.review-studio-analysis > div {
+  display: grid;
+  gap: 4px;
+  padding: 9px;
+  border: 1px solid rgba(116, 180, 151, .32);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.review-studio-analysis small {
+  color: #547e70;
+  font-size: 9px;
+}
+
+.review-studio-analysis strong {
+  color: #236e59;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.review-studio-analysis p {
+  grid-column: 1 / -1;
+  margin: 2px 0;
+  color: #315d55;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.review-studio-analysis button {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #278478;
+  border-radius: 10px;
+  color: #1a6f6c;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.review-studio-analysis button:hover,
+.review-studio-analysis button:focus-visible {
+  background: #e7f7f2;
+}
+
+@media (max-width: 640px) {
+  .review-studio-paper-intro {
+    padding: 14px;
+  }
+
+  .review-studio-attempt-bar {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .review-studio-attempt-bar > div:first-child {
+    flex-basis: 100%;
+  }
+
+  .review-studio-upload-button,
+  .review-studio-download-button {
+    flex: 1;
+  }
+
+  .review-studio-analysis {
+    grid-template-columns: 1fr;
+  }
+
+  .review-studio-analysis p,
+  .review-studio-analysis button {
+    grid-column: auto;
+  }
+}

@@ -1,5 +1,6 @@
-import { FileImage, LoaderCircle, MessageCircle, Send, ShieldCheck, X } from 'lucide-react';
+import { FileImage, LoaderCircle, Send, ShieldCheck, X } from 'lucide-react';
 import { useEffect, type FormEvent } from 'react';
+import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 
 export type PaperAttemptAnalysis = {
   firstErrorStep: string;
@@ -75,7 +76,9 @@ export function PaperAttemptCopilot({
       >
         <header className="paper-attempt-dialog-header">
           <div className="paper-attempt-dialog-agent">
-            <span className="paper-attempt-dialog-icon"><MessageCircle size={16} /></span>
+            <span className="paper-attempt-dialog-icon">
+              <img src={owlLogoPath} alt="" />
+            </span>
             <div>
               <strong id="paper-attempt-dialog-title">فهيم · مراجعة المحاولة</strong>
               <small>نافذة مستقلة مرتبطة بورقة الطالب</small>

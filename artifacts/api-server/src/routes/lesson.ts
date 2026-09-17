@@ -271,6 +271,7 @@ async function generateExercise(
   curriculumYear: string,
   activeConcept: string,
   attemptContext: string,
+  forceComprehensive: boolean,
   retrieval: RetrievalContext,
 ): Promise<GeneratedExercise> {
   const sourceText = formatRetrievedContext(retrieval.documents);
@@ -281,7 +282,9 @@ async function generateExercise(
     attemptContext,
   ].join(" ");
   const isFunctionStudy = /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite|function/i.test(generationRequest);
-  const isScientificPaper = isFunctionStudy || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(generationRequest);
+  const isScientificPaper = forceComprehensive
+    || isFunctionStudy
+    || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(generationRequest);
   const generationInstruction = isFunctionStudy
     ? [
         "طلب الطالب دراسة شاملة ومدققة لدالة عددية. لا تنشئ سؤالًا واحدًا ولا أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
@@ -587,6 +590,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     activeConcept,
     attemptContext,
     mode,
+    worksheet,
   } =
     req.body as Record<string, unknown>;
   if (
@@ -598,6 +602,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
     (attemptContext !== undefined && typeof attemptContext !== "string") ||
     (mode !== undefined && mode !== "standard" && mode !== "creative_topic")
+    || (worksheet !== undefined && worksheet !== "comprehensive")
   ) {
     res.status(400).json({ error: "invalid_exercise_generation_payload" });
     return;
@@ -616,7 +621,8 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     const requestText = [lesson, activeConcept, attemptContext]
       .filter((value): value is string => Boolean(value))
       .join(" ");
-    const isPaperRequest = /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(requestText);
+    const isPaperRequest = worksheet === "comprehensive"
+      || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(requestText);
     const retrieval = await retrieveGroundedKnowledge(
       [
         lesson,
@@ -673,6 +679,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       ]
         .filter(Boolean)
         .join(" | "),
+      worksheet === "comprehensive",
       retrieval,
     );
     res.json(generated);
