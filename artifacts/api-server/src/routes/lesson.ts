@@ -735,12 +735,6 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     return;
   }
   let retrieval: RetrievalContext | undefined;
-  const requestText = [lesson, activeConcept, attemptContext]
-    .filter((value): value is string => Boolean(value))
-    .join(" ");
-  const isPaperRequest = mode === "paper"
-    || worksheet === "comprehensive"
-    || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(requestText);
   try {
     retrieval = await retrieveGroundedKnowledge(
       [lesson, activeConcept, attemptContext]
@@ -823,6 +817,15 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     return;
   }
   let retrieval: RetrievalContext | undefined;
+  const requestText = [lesson, activeConcept, attemptContext]
+    .filter((value): value is string => Boolean(value))
+    .join(" ");
+  const isPaperRequest =
+    mode === "paper" ||
+    worksheet === "comprehensive" ||
+    /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(
+      requestText,
+    );
   try {
     const userId = getUserId(req);
     if (!userId) {
