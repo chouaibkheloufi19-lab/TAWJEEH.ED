@@ -61,6 +61,7 @@ export type ComprehensivePaper = {
 type GenerationState = 'idle' | 'loading' | 'ready' | 'error';
 type AttemptState = 'idle' | 'analyzing' | 'ready' | 'error';
 type ApiErrorPayload = { message?: string; error?: string };
+const GENERATION_REQUEST_TIMEOUT_MS = 60_000;
 
 const levels = [
   { value: 'التعليم المتوسط', label: 'التعليم المتوسط' },
@@ -84,7 +85,7 @@ async function postJson<T>(endpoint: string, payload: Record<string, unknown>): 
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(payload),
-  });
+  }, GENERATION_REQUEST_TIMEOUT_MS);
   const body = await response.json().catch(() => null) as T | ApiErrorPayload | null;
   if (!response.ok) {
     const message = body && typeof body === 'object' && 'message' in body && typeof body.message === 'string'
