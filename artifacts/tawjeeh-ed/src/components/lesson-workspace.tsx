@@ -242,6 +242,8 @@ type CreativeIdeasResponse = {
     retrievedNodeIds: string[];
     sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
   };
+  fallback?: boolean;
+  fallbackMessage?: string;
 };
 
 type AttemptBankItem = AttemptAnalysis & {
@@ -1433,7 +1435,11 @@ export function LessonWorkspace() {
        const generated = payload as CreativeIdeasResponse;
        setCreativeIdeas(generated);
        setCreativeTopicError('');
-       setTopicAnalysis(generated.solutionSummary);
+        setTopicAnalysis(
+          generated.fallbackMessage
+            ? `${generated.fallbackMessage}\n\n${generated.solutionSummary}`
+            : generated.solutionSummary,
+        );
        if (completedTopic) {
          const nextTopic = generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0];
          setSelectedCreativeTopic(nextTopic);
@@ -1443,13 +1449,15 @@ export function LessonWorkspace() {
        } else if (!selectedCreativeTopic) {
          setSelectedCreativeTopic(generated.ideas[0]);
        }
-       if (!independent) {
+        if (!independent) {
          setMessages((current) => [...current, {
            id: `topic-creative-${Date.now()}`,
            role: 'assistant',
-           text: completedTopic
-             ? `حللت معطيات «${completedTopic.title}» وفتحت لك الموضوع التالي مباشرة: «${(generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0]).title}».`
-             : `بنى لك وكيل التمارين ${generated.ideas.length} موضوعات مختلفة من مصادر المنهاج. افتح أي موضوع لبدء دراسته في مساحة كاملة.`,
+            text: generated.fallbackMessage
+              ? generated.fallbackMessage
+              : completedTopic
+                ? `حللت معطيات «${completedTopic.title}» وفتحت لك الموضوع التالي مباشرة: «${(generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0]).title}».`
+                : `بنى لك وكيل التمارين ${generated.ideas.length} موضوعات مختلفة من مصادر المنهاج. افتح أي موضوع لبدء دراسته في مساحة كاملة.`,
          }]);
        }
        return generated;

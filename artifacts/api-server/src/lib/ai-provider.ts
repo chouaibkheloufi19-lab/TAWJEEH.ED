@@ -32,15 +32,21 @@ let discoveredModel: string | null = null;
 export class DeepSeekProviderError extends Error {
   readonly status?: number;
   readonly retryable: boolean;
+  readonly retryAfterMs?: number;
 
   constructor(
     message: string,
-    options: { status?: number; retryable?: boolean } = {},
+    options: {
+      status?: number;
+      retryable?: boolean;
+      retryAfterMs?: number;
+    } = {},
   ) {
     super(message);
     this.name = "DeepSeekProviderError";
     this.status = options.status;
     this.retryable = options.retryable ?? false;
+    this.retryAfterMs = options.retryAfterMs;
   }
 }
 
@@ -65,6 +71,20 @@ function withTimeout<T>(promise: Promise<T>, milliseconds: number): Promise<T> {
 async function readProviderError(response: Response): Promise<string> {
   const body = await response.text().catch(() => "");
   return body.replace(/\s+/g, " ").trim().slice(0, 320);
+}
+
+function retryAfterMs(response: Response): number | undefined {
+  const header = response.headers.get("retry-after")?.trim();
+  if (!header) return undefined;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.min(seconds * 1_000, 15_000);
+  }
+  const date = Date.parse(header);
+  if (!Number.isNaN(date)) {
+    return Math.min(Math.max(date - Date.now(), 0), 15_000);
+  }
+  return undefined;
 }
 
 function isConnectionError(message: string): boolean {
@@ -170,6 +190,7 @@ async function callGeminiApi(
           response.status === 408 ||
           response.status === 429 ||
           response.status >= 500,
+        retryAfterMs: retryAfterMs(response),
       },
     );
   }
@@ -256,6 +277,7 @@ async function callDeepSeekApi(
           response.status === 408 ||
           response.status === 429 ||
           response.status >= 500,
+        retryAfterMs: retryAfterMs(response),
       },
     );
   }
@@ -329,6 +351,7 @@ async function discoverXaiModel(): Promise<string> {
           response.status === 408 ||
           response.status === 429 ||
           response.status >= 500,
+        retryAfterMs: retryAfterMs(response),
       },
     );
   }
@@ -459,8 +482,8 @@ export async function callDeepSeekTextModelWithRetry(
   options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
   retryOptions: { maxAttempts?: number; baseDelayMs?: number } = {},
 ): Promise<string> {
-  const maxAttempts = Math.max(1, Math.min(retryOptions.maxAttempts ?? 3, 4));
-  const baseDelayMs = Math.max(100, retryOptions.baseDelayMs ?? 500);
+  const maxAttempts = Math.max(1, Math.min(retryOptions.maxAttempts ?? 4, 5));
+  const baseDelayMs = Math.max(250, retryOptions.baseDelayMs ?? 1_000);
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -473,7 +496,11 @@ export async function callDeepSeekTextModelWithRetry(
       if (!retryable || attempt === maxAttempts) {
         throw error;
       }
-      await wait(baseDelayMs * 2 ** (attempt - 1));
+      const providerDelay =
+        error instanceof DeepSeekProviderError ? error.retryAfterMs : undefined;
+      await wait(
+        providerDelay ?? Math.min(baseDelayMs * 2 ** (attempt - 1), 8_000),
+      );
     }
   }
 

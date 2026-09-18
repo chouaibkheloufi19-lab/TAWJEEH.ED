@@ -14,7 +14,7 @@ import {
   GROUNDED_CONTENT_RULES,
   LEARNER_SAFE_OUTPUT_RULES,
 } from "../lib/ai-prompts";
-import { callDeepSeekTextModel } from "../lib/ai-provider";
+import { callDeepSeekTextModelWithRetry } from "../lib/ai-provider";
 
 const router: IRouter = Router();
 
@@ -339,7 +339,7 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
         .join(" "),
       { nResults: 50 },
     );
-    const content = await callDeepSeekTextModel(
+    const content = await callDeepSeekTextModelWithRetry(
       [
         {
           role: "system",
@@ -366,6 +366,7 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
         },
       ],
       { temperature: 0.35, maxOutputTokens: 2200, jsonMode: true },
+      { maxAttempts: 4, baseDelayMs: 1_000 },
     );
     const parsed = extractCreativeIdeas(content, retrieval);
     res.json({
@@ -417,7 +418,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         .join(" "),
       { nResults: 24 },
     );
-    const content = await callDeepSeekTextModel(
+    const content = await callDeepSeekTextModelWithRetry(
       [
         {
           role: "system",
@@ -443,6 +444,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         },
       ],
       { temperature: 0.4, maxOutputTokens: 5200, jsonMode: true },
+      { maxAttempts: 4, baseDelayMs: 1_000 },
     );
     res.json(parseGeneratedExam(content, retrieval));
   } catch (error) {
@@ -458,7 +460,8 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         : errorMessage.includes("GEMINI_CONNECTION_NOT_CONFIGURED") ||
             errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
           ? "رفضت خدمة Gemini المفتاح الحالي أو لم تقبله. تحقق من GEMINI_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
-          : errorMessage.includes("Gemini provider responded with 5")
+          : errorMessage.includes("Gemini provider responded with 5") ||
+              errorMessage.includes("Gemini provider responded with 429")
             ? "خدمة Gemini مشغولة مؤقتًا. أعد المحاولة بعد قليل، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
           : error instanceof KnowledgeGroundingError
             ? "لا يمكن اعتماد موضوع قبل نجاح استرجاع مصادر المنهاج."

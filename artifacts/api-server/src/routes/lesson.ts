@@ -19,7 +19,10 @@ import {
   LEARNER_SAFE_OUTPUT_RULES,
   LESSON_GENERATION_PROMPT,
 } from "../lib/ai-prompts";
-import { callDeepSeekTextModel } from "../lib/ai-provider";
+import {
+  callDeepSeekTextModelWithRetry,
+  DeepSeekProviderError,
+} from "../lib/ai-provider";
 
 const router: IRouter = Router();
 
@@ -110,6 +113,8 @@ type GeneratedCreativeTopics = {
   sourceDocuments: SourceDocument[];
   sourceNodeIds: string[];
   grounding: Grounding;
+  fallback?: boolean;
+  fallbackMessage?: string;
 };
 
 function extractJsonObject(text: string, label: string): string {
@@ -241,7 +246,7 @@ async function generateLesson(
   retrieval: RetrievalContext,
 ) {
   const sourceText = formatRetrievedContext(retrieval.documents);
-  const content = await callDeepSeekTextModel(
+  const content = await callDeepSeekTextModelWithRetry(
     [
       {
         role: "system",
@@ -271,6 +276,7 @@ async function generateLesson(
       },
     ],
     { temperature: 0.15, maxOutputTokens: 1800, jsonMode: true },
+    { maxAttempts: 4, baseDelayMs: 1_000 },
   );
   const parsed = extractGeneratedLesson(content);
   return {
@@ -318,7 +324,7 @@ async function generateExercise(
           'أعد sections بهذا الشكل: [{"id":"data","title":"فهم المعطيات","points":3,"prompt":"..."},{"id":"law","title":"القانون أو النموذج","points":4,"prompt":"..."},{"id":"calculation","title":"الحساب والتطبيق","points":5,"prompt":"..."},{"id":"interpretation","title":"التفسير والتحقق","points":4,"prompt":"..."},{"id":"synthesis","title":"تركيب أو امتداد","points":4,"prompt":"..."}]',
         ].join("\n")
       : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
-  const content = await callDeepSeekTextModel(
+  const content = await callDeepSeekTextModelWithRetry(
     [
       {
         role: "system",
@@ -352,6 +358,7 @@ async function generateExercise(
       },
     ],
   { temperature: 0.15, maxOutputTokens: isFunctionStudy ? 3800 : isScientificPaper ? 3000 : 1200, jsonMode: true },
+  { maxAttempts: 4, baseDelayMs: 1_000 },
   );
   const candidate = extractJsonObject(content, "Exercise generator");
   const parsed = JSON.parse(candidate) as Partial<GeneratedExercise>;
@@ -429,7 +436,7 @@ async function generateCreativeExerciseTopics(
   attemptContext: string,
   retrieval: RetrievalContext,
 ): Promise<GeneratedCreativeTopics> {
-  const content = await callDeepSeekTextModel(
+  const content = await callDeepSeekTextModelWithRetry(
     [
       {
         role: "system",
@@ -459,6 +466,7 @@ async function generateCreativeExerciseTopics(
       },
     ],
     { temperature: 0.65, maxOutputTokens: 2200, jsonMode: true },
+    { maxAttempts: 4, baseDelayMs: 1_000 },
   );
   const candidate = extractJsonObject(content, "Creative exercise agent");
   const parsed = JSON.parse(candidate) as Partial<GeneratedCreativeTopics>;
@@ -523,6 +531,70 @@ async function generateCreativeExerciseTopics(
   };
 }
 
+function groundedCreativeTopicFallback(
+  lesson: string,
+  retrieval: RetrievalContext,
+): GeneratedCreativeTopics {
+  const documents = retrieval.documents.slice(0, 3);
+  const ideas = [
+    {
+      title: "استخرج الفكرة من المرجع",
+      approach: "اقرأ المقتطف المصدر وحدد المفهوم أو القاعدة التي يعالجها قبل كتابة أي حل.",
+      steps: [
+        "حدد المعطيات والكلمات المفتاحية في المرجع.",
+        "اكتب القاعدة أو الفكرة كما تظهر في المصدر.",
+        "طبّقها على مثال قصير من نفس المرجع وتحقق من النتيجة.",
+      ],
+      creativeTwist: "غيّر ترتيب المعطيات واسأل: ما الذي يبقى صحيحًا؟",
+      expectedOutcome: "تمييز الفكرة المركزية وربطها بالمعطيات المصدرية.",
+    },
+    {
+      title: "حوّل المرجع إلى وضعية",
+      approach: "أعد صياغة المثال أو التمرين المصدر في وضعية تطبيقية مع الحفاظ على معطياته.",
+      steps: [
+        "استخرج المعطيات القابلة للقياس من المرجع.",
+        "اكتب المطلوب بصيغة سؤال واحد واضح.",
+        "حل الوضعية خطوة خطوة وقارنها بالحل أو الفكرة في المصدر.",
+      ],
+      creativeTwist: "أضف قيدًا واحدًا ثم حدّد الخطوة التي ستتغير.",
+      expectedOutcome: "تحويل المعرفة النظرية إلى إجراء قابل للتحقق.",
+    },
+    {
+      title: "اختبر حدود القاعدة",
+      approach: "ابحث في المرجع عن الحالة التي تتغير فيها الطريقة أو تحتاج إلى تبرير إضافي.",
+      steps: [
+        "اكتب الحالة الأصلية والشرط الذي تعتمد عليه.",
+        "اقترح تغييرًا واحدًا في المعطيات.",
+        "برهن من المصدر هل تبقى الطريقة صالحة أم تحتاج إلى تعديل.",
+      ],
+      creativeTwist: "اطلب تبرير كل خطوة بدل الاكتفاء بالنتيجة النهائية.",
+      expectedOutcome: "التدرب على التحقق وعدم تطبيق القاعدة خارج شروطها.",
+    },
+  ].map((idea, index) => ({
+    ...idea,
+    sourceNodeIds: [documents[index % documents.length].id],
+  }));
+
+  return {
+    status: "generated",
+    mode: "creative_topic",
+    agent: "exercises",
+    lessonTitle: lesson.trim(),
+    solutionSummary:
+      "تعذر الوصول إلى Gemini مؤقتًا بعد إعادة المحاولة. أعددنا لك مسارات أولية آمنة مبنية مباشرة على المصادر المسترجعة، ويمكنك إعادة التوليد لاحقًا للحصول على صياغات أكثر تخصيصًا.",
+    ideas,
+    sourceDocuments: sourceDocumentsFrom(documents),
+    sourceNodeIds: assertGroundedNodeIds(
+      documents.map((document) => document.id),
+      retrieval,
+    ),
+    grounding: retrieval.grounding,
+    fallback: true,
+    fallbackMessage:
+      "Gemini مشغول مؤقتًا. هذه مسارات أولية من المصادر المتاحة وليست توليدًا جديدًا؛ أعد المحاولة لاحقًا للحصول على أفكار مخصصة.",
+  };
+}
+
 router.post("/lesson/generate", async (req, res): Promise<void> => {
   const { lesson, level, activeConcept, attemptContext } = req.body as Record<
     string,
@@ -544,8 +616,9 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     res.status(400).json({ error: "invalid_lesson_generation_payload" });
     return;
   }
+  let retrieval: RetrievalContext | undefined;
   try {
-    const retrieval = await retrieveGroundedKnowledge(
+    retrieval = await retrieveGroundedKnowledge(
       [lesson, activeConcept, attemptContext]
         .filter((value): value is string => Boolean(value))
         .join(" "),
@@ -581,7 +654,8 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
       : errorMessage.includes("GEMINI_CONNECTION_NOT_CONFIGURED") ||
           errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
         ? "رفضت خدمة Gemini المفتاح الحالي أو لم تقبله. تحقق من GEMINI_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
-        : errorMessage.includes("Gemini provider responded with 5")
+        : errorMessage.includes("Gemini provider responded with 5") ||
+            errorMessage.includes("Gemini provider responded with 429")
           ? "خدمة Gemini مشغولة مؤقتًا. أعد المحاولة بعد قليل، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
         : errorMessage.includes("DeepSeek provider responded with 402")
           ? "تعذر إكمال المساعدة الذكية لأن خدمة النموذج رفضت الطلب. يمكنك متابعة الدرس من المصادر المتاحة والمحاولة لاحقًا."
@@ -624,6 +698,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     res.status(400).json({ error: "invalid_exercise_generation_payload" });
     return;
   }
+  let retrieval: RetrievalContext | undefined;
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -641,7 +716,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     const isPaperRequest = mode === "paper"
       || worksheet === "comprehensive"
       || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(requestText);
-    const retrieval = await retrieveGroundedKnowledge(
+    retrieval = await retrieveGroundedKnowledge(
       [
         lesson,
         activeConcept,
@@ -719,12 +794,31 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Exercise generation failed");
+    if (
+      mode === "creative_topic" &&
+      error instanceof DeepSeekProviderError &&
+      error.retryable &&
+      retrieval
+    ) {
+      req.log.warn(
+        { status: error.status },
+        "Returning grounded creative-topic fallback after temporary provider failure",
+      );
+      res.json(
+        groundedCreativeTopicFallback(
+          lesson,
+          retrieval,
+        ),
+      );
+      return;
+    }
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
       ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
       : errorMessage.includes("GEMINI_CONNECTION_NOT_CONFIGURED") ||
           errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
         ? "رفضت خدمة Gemini المفتاح الحالي أو لم تقبله. تحقق من GEMINI_API_KEY في Secrets ثم أعد المحاولة، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
-        : errorMessage.includes("Gemini provider responded with 5")
+          : errorMessage.includes("Gemini provider responded with 5") ||
+              errorMessage.includes("Gemini provider responded with 429")
           ? "خدمة Gemini مشغولة مؤقتًا. أعد المحاولة بعد قليل، ويمكنك متابعة الدرس من المصادر المتاحة الآن."
         : errorMessage.startsWith("xAI provider responded with")
           ? "لم يكتمل تجهيز التمرين الآن. أعد المحاولة بعد قليل."
