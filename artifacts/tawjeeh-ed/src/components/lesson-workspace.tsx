@@ -212,6 +212,8 @@ type GeneratedExercise = {
     points: number;
     prompt: string;
   }>;
+  fallback?: boolean;
+  fallbackMessage?: string;
 };
 
 type CreativeIdea = {
@@ -1732,7 +1734,9 @@ export function LessonWorkspace() {
           setAnalysis(null);
           setExerciseAttemptStartedAt(Date.now());
           setExerciseAttemptElapsed(0);
-          reply = `جهز لك وكيل التمارين تدريبًا على «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
+           reply = (payload as GeneratedExercise).fallback
+             ? `جهزت لك ورقة تدريب موثقة من المصادر المتاحة بعنوان «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`
+             : `جهز لك وكيل التمارين تدريبًا على «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
        }
       }
       setMessages((current) => [...current, {
@@ -1999,9 +2003,11 @@ export function LessonWorkspace() {
       setMessages((current) => [...current, {
         id: `exercise-${Date.now()}`,
         role: 'assistant',
-        text: analysis
-          ? 'بنيت لك تمرينًا يعالج موضع الخطأ من الدرس وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.'
-          : 'جهزت لك تمرينًا مناسبًا للمفهوم الحالي. حاول وحدك أولًا، ثم اطلب التلميح عند الحاجة.',
+         text: (payload as GeneratedExercise).fallback
+           ? 'جهزت لك ورقة تدريب موثقة من المصادر المتاحة لأن خدمة التوليد غير متاحة مؤقتًا. ابدأ بكتابة المعطيات والخطوة الأولى.'
+           : analysis
+             ? 'بنيت لك تمرينًا يعالج موضع الخطأ من الدرس وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.'
+             : 'جهزت لك تمرينًا مناسبًا للمفهوم الحالي. حاول وحدك أولًا، ثم اطلب التلميح عند الحاجة.',
       }]);
     } catch {
       if (silent) {

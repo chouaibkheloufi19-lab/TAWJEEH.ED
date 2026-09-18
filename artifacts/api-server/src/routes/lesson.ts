@@ -77,6 +77,8 @@ type GeneratedExercise = {
     points: number;
     prompt: string;
   }>;
+  fallback?: boolean;
+  fallbackMessage?: string;
 };
 
 type StudentPaper = {
@@ -427,6 +429,122 @@ async function generateExercise(
   };
 }
 
+function buildGroundedExerciseFallback(
+  lesson: string,
+  activeConcept: string,
+  retrieval: RetrievalContext,
+  forceComprehensive: boolean,
+): GeneratedExercise {
+  const documents = retrieval.documents
+    .filter((document) => typeof document.document === "string" && document.document.trim())
+    .slice(0, 3);
+  const primary = documents[0];
+  const metadata = primary?.metadata ?? {};
+  const topic = activeConcept.trim() || String(metadata.lesson || metadata.unit || lesson);
+  const sourceLabel = String(metadata.source_file || "المصدر الدراسي");
+  const evidence = documents
+    .map((document, index) => {
+      const sourceMetadata = document.metadata ?? {};
+      const source = String(sourceMetadata.source_file || "مصدر دراسي");
+      const page = Number(sourceMetadata.source_page || 0);
+      return `المقتطف ${index + 1} من «${source}»${page > 0 ? `، ص ${page}` : ""}:\n${(document.document || "").trim().slice(0, 900)}`;
+    })
+    .join("\n\n");
+  const isFunctionStudy =
+    /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|function/i.test(
+      `${lesson} ${topic} ${evidence}`,
+    );
+  const isScientificPaper =
+    forceComprehensive ||
+    isFunctionStudy ||
+    /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(
+      `${lesson} ${topic}`,
+    );
+  const sections = isFunctionStudy
+    ? [
+        {
+          id: "domain",
+          title: "استخراج المعطيات",
+          points: 3,
+          prompt: "استخرج من المقتطف المرجعي تعريف الدالة أو المعطيات الأساسية، وحدد الشروط أو مجموعة التعريف المذكورة.",
+        },
+        {
+          id: "limits",
+          title: "النهايات والاشتقاق",
+          points: 4,
+          prompt: "انسخ النهايات أو قواعد الاشتقاق المرتبطة بالمفهوم من المصدر، ثم اشرح متى تستعمل كل واحدة.",
+        },
+        {
+          id: "variations",
+          title: "اتجاه التغيرات",
+          points: 3,
+          prompt: "أنشئ جدولًا مختصرًا يربط إشارة المشتقة باتجاه تغير الدالة، مستندًا إلى القاعدة الواردة في المصدر.",
+        },
+        {
+          id: "graph",
+          title: "التمثيل والتفسير",
+          points: 4,
+          prompt: "صف كيف يظهر هذا السلوك على المنحنى، واذكر أي مماس أو مقارب أو قراءة بيانية وردت في المقتطف.",
+        },
+        {
+          id: "synthesis",
+          title: "تركيب",
+          points: 6,
+          prompt: "اكتب خلاصة من خمس جمل تشرح المفهوم لطالب آخر، مع ذكر مثال أو تمرين ورد في المصادر.",
+        },
+      ]
+    : [
+        {
+          id: "data",
+          title: "فهم المعطيات",
+          points: 3,
+          prompt: "استخرج المفاهيم والمعطيات الأساسية من المقتطف المرجعي، واشرح المصطلحات التي تحتاجها للحل.",
+        },
+        {
+          id: "principle",
+          title: "القاعدة أو النموذج",
+          points: 4,
+          prompt: "اكتب القاعدة أو القانون الذي يعالج الموضوع كما ورد في المصدر، واذكر شروط استعماله.",
+        },
+        {
+          id: "application",
+          title: "التطبيق",
+          points: 5,
+          prompt: "طبّق القاعدة على المثال أو المعطى الأقرب في المقتطف، مع إظهار خطواتك وعدم القفز إلى النتيجة.",
+        },
+        {
+          id: "interpretation",
+          title: "التفسير والتحقق",
+          points: 4,
+          prompt: "فسّر النتيجة بجملة علمية، ثم تحقق من وحداتها أو منطقها بالرجوع إلى المصدر.",
+        },
+        {
+          id: "synthesis",
+          title: "تركيب",
+          points: 4,
+          prompt: "اكتب ما تعلمته في أربع جمل، واقترح سؤالًا جديدًا يمكن حله باستعمال الفكرة نفسها.",
+        },
+      ];
+
+  return {
+    status: "generated",
+    lessonTitle: lesson,
+    title: `ورقة تدريب موثقة: ${topic}`,
+    prompt: `استخدم المقتطفات التالية لبناء إجابتك. لا تعتمد على معلومة خارج المصادر، واذكر المصدر عند كل فكرة مهمة.\n\n${evidence}`,
+    answer: "هذه ورقة تدريب مصدرية؛ تُراجع الإجابات بمقارنة خطواتك مع المقتطفات المرجعية.",
+    hint: `ابدأ من المصدر «${sourceLabel}»، ثم حوّل كل قاعدة أو مثال فيه إلى خطوة واضحة.`,
+    solution: "لأن مزود التوليد غير متاح مؤقتًا، لم نعرض حلًا مولدًا. راجع خطواتك مع المقتطفات المرجعية واطلب التحليل بعد رفع المحاولة.",
+    sourceDocuments: sourceDocumentsFrom(documents),
+    sourceNodeIds: documents.map((document) => document.id),
+    grounding: retrieval.grounding,
+    format: isFunctionStudy ? "comprehensive_function" : "comprehensive_science",
+    totalPoints: sections.reduce((sum, section) => sum + section.points, 0),
+    sections,
+    fallback: true,
+    fallbackMessage: "تم بناء ورقة تدريب من المصادر المفهرسة لأن خدمة التوليد غير متاحة مؤقتًا.",
+  };
+}
+
 async function generateCreativeExerciseTopics(
   lesson: string,
   level: string,
@@ -617,6 +735,12 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
     return;
   }
   let retrieval: RetrievalContext | undefined;
+  const requestText = [lesson, activeConcept, attemptContext]
+    .filter((value): value is string => Boolean(value))
+    .join(" ");
+  const isPaperRequest = mode === "paper"
+    || worksheet === "comprehensive"
+    || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(requestText);
   try {
     retrieval = await retrieveGroundedKnowledge(
       [lesson, activeConcept, attemptContext]
@@ -710,12 +834,6 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       .slice(0, 12)
       .map((error) => `${error.concept_title}: ${error.error_tag}`)
       .join(" | ");
-    const requestText = [lesson, activeConcept, attemptContext]
-      .filter((value): value is string => Boolean(value))
-      .join(" ");
-    const isPaperRequest = mode === "paper"
-      || worksheet === "comprehensive"
-      || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(requestText);
     retrieval = await retrieveGroundedKnowledge(
       [
         lesson,
@@ -810,6 +928,39 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
           retrieval,
         ),
       );
+      return;
+    }
+    if (
+      error instanceof DeepSeekProviderError &&
+      error.retryable &&
+      retrieval
+    ) {
+      req.log.warn(
+        { status: error.status },
+        "Returning grounded exercise fallback after temporary provider failure",
+      );
+      const fallback = buildGroundedExerciseFallback(
+        lesson,
+        typeof activeConcept === "string" ? activeConcept : "",
+        retrieval,
+        isPaperRequest,
+      );
+      if (mode === "paper") {
+        const studentPaper: StudentPaper = {
+          status: fallback.status,
+          mode: "paper",
+          lessonTitle: fallback.lessonTitle,
+          title: fallback.title,
+          prompt: fallback.prompt,
+          hint: fallback.hint,
+          format: fallback.format ?? "comprehensive_science",
+          totalPoints: fallback.totalPoints ?? 20,
+          sections: fallback.sections ?? [],
+        };
+        res.json(studentPaper);
+      } else {
+        res.json(fallback);
+      }
       return;
     }
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
