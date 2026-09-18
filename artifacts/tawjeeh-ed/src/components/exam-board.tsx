@@ -163,11 +163,10 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
         {exam.sections.map((section, index) => (
           <section className="exam-paper-section grounded-exam-section" key={section.id}>
             <div className="exam-paper-section-heading">
-              <span>التمرين {index + 1} · {section.title}</span>
+              <span>التمرين {index + 1}</span>
               <b>{section.points} نقاط</b>
             </div>
-             <p className="exam-section-theme"><MathText>{section.theme}</MathText></p>
-             <p><MathText>{section.context}</MathText></p>
+             <p><MathText>{[section.theme, section.context].filter(Boolean).join('\n')}</MathText></p>
              {section.data && <MathText className="math-display generated-exam-data" block>{section.data}</MathText>}
             <ol>
               {section.questions.map((question) => (
