@@ -16,6 +16,7 @@ type MathToken = {
 const EXPLICIT_MATH_PATTERN = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|(?<!\$)\$(?!\$)[^$\n]+(?<!\$)\$(?!\$))/g;
 const TEX_COMMAND_PATTERN = /\\(?:frac|sqrt|sum|prod|int|lim|cdot|times|div|leq|geq|neq|approx|alpha|beta|gamma|delta|theta|pi|in|mathbb|mathrm|text)\b/;
 const PLAIN_FORMULA_PATTERN = /(?:[A-Za-z]\s*\([^()\n]{1,24}\)|[A-Za-z](?:\s*[_^]\s*[A-Za-z0-9{}]+)?)\s*(?:=|≤|≥|≠|≈)\s*[A-Za-z0-9À-ÿ₀-₉\s+\-*/^().{},\\×÷]+/;
+const BIDI_TOKEN_PATTERN = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’\-][A-Za-zÀ-ÖØ-öø-ÿ]+)*|\d+(?:[.,]\d+)?/g;
 
 function consumeBalancedGroup(value: string, start: number) {
   if (value[start] !== '{') return start;
@@ -80,6 +81,25 @@ function renderMath(token: MathToken, key: string) {
   );
 }
 
+function renderBidiText(value: string, keyPrefix: string): ReactNode[] {
+  const pieces: ReactNode[] = [];
+  let cursor = 0;
+  for (const match of value.matchAll(BIDI_TOKEN_PATTERN)) {
+    const token = match[0];
+    const start = match.index ?? 0;
+    if (!token || start < cursor) continue;
+    if (start > cursor) pieces.push(value.slice(cursor, start));
+    pieces.push(
+      <bdi key={`${keyPrefix}-bidi-${start}`} className="math-text-bidi" dir="ltr">
+        {token}
+      </bdi>,
+    );
+    cursor = start + token.length;
+  }
+  if (cursor < value.length) pieces.push(value.slice(cursor));
+  return pieces.length ? pieces : [value];
+}
+
 function isLikelyFormula(value: string) {
   const trimmed = value.trim();
   if (!trimmed || trimmed.length > 260) return false;
@@ -103,7 +123,7 @@ function renderUnwrappedText(value: string, keyPrefix: string): ReactNode[] {
 
   if (formula && formula.start >= cursor) {
     const before = value.slice(cursor, formula.start);
-    if (before) pieces.push(before);
+    if (before) pieces.push(...renderBidiText(before, `${keyPrefix}-before`));
     pieces.push(renderMath(
       { expression: value.slice(formula.start, formula.end).trim(), displayMode: false },
       `${keyPrefix}-formula-${formula.start}`,
@@ -115,7 +135,7 @@ function renderUnwrappedText(value: string, keyPrefix: string): ReactNode[] {
     pieces.push(renderMath({ expression: value.trim(), displayMode: true }, `${keyPrefix}-line`));
     return pieces;
   }
-  if (cursor < value.length) pieces.push(value.slice(cursor));
+  if (cursor < value.length) pieces.push(...renderBidiText(value.slice(cursor), `${keyPrefix}-after`));
   return pieces.length ? pieces : [value];
 }
 

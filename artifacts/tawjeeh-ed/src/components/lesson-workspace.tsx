@@ -2736,10 +2736,10 @@ export function LessonWorkspace() {
            {generatedExercise && (
              <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
                 <span>{generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? 'ورقة عملية شاملة · فهيم يصحح المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل طلب التوجيه'}</span>
-               <h4>{generatedExercise.title}</h4>
+               <h4><MathText>{generatedExercise.title}</MathText></h4>
                   {(
                   <>
-                    <p className="lesson-generated-intro">{generatedExercise.prompt}</p>
+                    <p className="lesson-generated-intro"><MathText>{generatedExercise.prompt}</MathText></p>
                     <div className="lesson-generated-meta">
                       <span>العلامة: {generatedExercise.totalPoints ?? 20} نقطة</span>
                       <span>أسئلة مترابطة · الحل بالقلم</span>
@@ -2748,8 +2748,14 @@ export function LessonWorkspace() {
                     <div className="lesson-generated-sections">
                       {generatedExercise.sections?.map((section, index) => (
                         <section key={section.id} className="lesson-generated-section">
-                          <div><strong>{String.fromCharCode(1575 + index)}. {section.title}</strong><b>{section.points} ن</b></div>
-                          <p>{section.prompt}</p>
+                          <div>
+                            <strong>
+                              <span className="lesson-generated-section-index">{String(index + 1).padStart(2, '0')}</span>
+                              <MathText>{section.title}</MathText>
+                            </strong>
+                            <b>{section.points} ن</b>
+                          </div>
+                          <p><MathText>{section.prompt}</MathText></p>
                         </section>
                       ))}
                     </div>
