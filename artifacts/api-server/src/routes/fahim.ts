@@ -240,6 +240,7 @@ async function callTextModel(
   concept: string,
   context: string,
   topicContext: string,
+  elapsedSeconds: number | undefined,
   retrieval: RetrievalContext,
 ) {
   const sourceText = formatRetrievedContext(retrieval.documents);
@@ -263,6 +264,7 @@ async function callTextModel(
           `المفهوم: ${concept}`,
           `الموضوع الذي يدرسه الطالب الآن: ${topicContext || "لا يوجد موضوع إبداعي محدد"}`,
           `سياق المحاولة والتحليل: ${context || "لا توجد محاولة محللة"}`,
+          `زمن المحاولة حتى الآن: ${typeof elapsedSeconds === "number" ? Math.max(0, Math.floor(elapsedSeconds)) : "غير مقاس"} ثانية`,
           `سؤال الطالب: ${question}`,
           "",
           "عقد المعرفة المسترجعة من ChromaDB:",
@@ -371,14 +373,15 @@ router.post("/fahim/whiteboard-query", async (req, res): Promise<void> => {
 });
 
 router.post("/fahim/message", async (req, res): Promise<void> => {
-  const { question, lesson, concept, context, topicContext } = req.body as Record<string, unknown>;
+  const { question, lesson, concept, context, topicContext, elapsed_seconds: elapsedSeconds } = req.body as Record<string, unknown>;
   if (
     typeof question !== "string" ||
     !question.trim() ||
     typeof lesson !== "string" ||
     typeof concept !== "string" ||
     (context !== undefined && typeof context !== "string") ||
-    (topicContext !== undefined && typeof topicContext !== "string")
+    (topicContext !== undefined && typeof topicContext !== "string") ||
+    (elapsedSeconds !== undefined && (typeof elapsedSeconds !== "number" || !Number.isFinite(elapsedSeconds)))
   ) {
     res.status(400).json({ error: "invalid_message_payload" });
     return;
@@ -395,6 +398,7 @@ router.post("/fahim/message", async (req, res): Promise<void> => {
       concept,
       typeof context === "string" ? context : "",
       typeof topicContext === "string" ? topicContext : "",
+      typeof elapsedSeconds === "number" ? elapsedSeconds : undefined,
       retrieval,
     );
     res.json({ ...fahim, answer: fahim.chat_response, fahim, grounding: retrieval.grounding });

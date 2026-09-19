@@ -64,8 +64,8 @@ type GroundedLesson = {
 type GroundedExercise = {
   title: string;
   prompt: string;
-  sourceDocuments: Array<{ title: string; source: string; page: number }>;
-  sourceNodeIds: string[];
+  sourceDocuments?: Array<{ title: string; source: string; page: number }>;
+  sourceNodeIds?: string[];
 };
 
 type LoopPhase = 'explain' | 'practice';

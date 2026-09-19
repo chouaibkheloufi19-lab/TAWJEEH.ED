@@ -87,7 +87,6 @@ type StudentPaper = {
   lessonTitle: string;
   title: string;
   prompt: string;
-  hint: string;
   format: "comprehensive_function" | "comprehensive_science";
   totalPoints: number;
   sections: Array<{
@@ -97,6 +96,35 @@ type StudentPaper = {
     prompt: string;
   }>;
 };
+
+type StudentExercise = {
+  status: "generated";
+  lessonTitle: string;
+  title: string;
+  prompt: string;
+  format?: "comprehensive_function" | "comprehensive_science";
+  totalPoints?: number;
+  sections?: Array<{
+    id: string;
+    title: string;
+    points: number;
+    prompt: string;
+  }>;
+};
+
+function studentExerciseView(generated: GeneratedExercise): StudentExercise {
+  return {
+    status: generated.status,
+    lessonTitle: generated.lessonTitle,
+    title: generated.title,
+    prompt: generated.prompt,
+    ...(generated.format ? { format: generated.format } : {}),
+    ...(generated.totalPoints !== undefined
+      ? { totalPoints: generated.totalPoints }
+      : {}),
+    ...(generated.sections ? { sections: generated.sections } : {}),
+  };
+}
 
 type GeneratedCreativeTopics = {
   status: "generated";
@@ -311,12 +339,12 @@ async function generateExercise(
     || isFunctionStudy
     || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(generationRequest);
   const generationInstruction = isFunctionStudy
-    ? [
+      ? [
         "طلب الطالب دراسة شاملة ومدققة لدالة عددية. لا تنشئ سؤالًا واحدًا ولا أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
         "أنشئ ورقة واحدة متماسكة حول دالة عددية واحدة، لا سؤالًا منفردًا. اجعلها دراسة شاملة طويلة من 8 محاور مترابطة، وكل محور يحتوي سؤالين أو ثلاثة أسئلة فرعية قصيرة عند الحاجة. يجب أن تقود المعطيات نفسها إلى: مجموعة التعريف والنهايات، الاشتقاق، اتجاه التغيرات، جدول التغيرات، حل معادلات أو متراجحات مرتبطة بالدالة، الوضع النسبي وإيجاد الأعداد الحقيقية، التمثيل البياني، المستقيمات المقاربة والمماس، ثم تركيب نهائي.",
         "اجعلها قابلة للنسخ على ورقة مدرسية: سياق مختصر، معطيات واضحة، ثم مطلوبات مرقمة من (أ) إلى (ح). يجب أن تكون كل المطلوبات قابلة للحل من المعطيات نفسها، وأن يكون مجموع العلامات 20 نقطة. لا تستخدم اختيارًا من متعدد ولا صح/خطأ.",
         "أعد أيضًا حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا قصيرًا. لا تعرض الحل في prompt أو sections.",
-        'أعد sections بهذا الشكل: [{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"..."},{"id":"limits","title":"النهايات","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق","points":3,"prompt":"..."},{"id":"variations","title":"اتجاه التغيرات وجدولها","points":3,"prompt":"..."},{"id":"equations","title":"المعادلات والمتراجحات","points":2,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":2,"prompt":"..."},{"id":"graph","title":"التمثيل البياني والمماس والمقارب","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}]',
+         'أعد sections بهذا الشكل، مع أسئلة فرعية متعددة داخل prompt كل محور: [{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"أ) ... ب) ..."},{"id":"limits","title":"النهايات والمقارب","points":3,"prompt":"أ) ... ب) ... ج) ..."},{"id":"derivative","title":"الاشتقاق","points":3,"prompt":"أ) ... ب) ..."},{"id":"variations","title":"اتجاه التغيرات وجدولها","points":3,"prompt":"أ) ... ب) ... ج) ..."},{"id":"equations","title":"المعادلات والمتراجحات","points":2,"prompt":"أ) ... ب) ..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":2,"prompt":"أ) ... ب) ..."},{"id":"graph","title":"التمثيل البياني والمماس","points":3,"prompt":"أ) ... ب) ... ج) ..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"أ) ... ب) ..."}]',
       ].join("\n")
     : isScientificPaper
       ? [
@@ -359,7 +387,7 @@ async function generateExercise(
         ].join("\n"),
       },
     ],
-  { temperature: 0.15, maxOutputTokens: isFunctionStudy ? 3800 : isScientificPaper ? 3000 : 1200, jsonMode: true },
+  { temperature: 0.15, maxOutputTokens: isFunctionStudy ? 4800 : isScientificPaper ? 3400 : 1200, jsonMode: true },
   { maxAttempts: 4, baseDelayMs: 1_000 },
   );
   const candidate = extractJsonObject(content, "Exercise generator");
@@ -464,33 +492,51 @@ function buildGroundedExerciseFallback(
     ? [
         {
           id: "domain",
-          title: "استخراج المعطيات",
-          points: 3,
-          prompt: "استخرج من المقتطف المرجعي تعريف الدالة أو المعطيات الأساسية، وحدد الشروط أو مجموعة التعريف المذكورة.",
+          title: "مجموعة التعريف والمعطيات",
+          points: 2,
+          prompt: "أ) اكتب مجموعة تعريف الدالة. ب) اذكر القيم الممنوعة وسبب منعها، ثم أعد كتابة الدالة على شكل يساعدك في متابعة الدراسة.",
         },
         {
           id: "limits",
-          title: "النهايات والاشتقاق",
-          points: 4,
-          prompt: "انسخ النهايات أو قواعد الاشتقاق المرتبطة بالمفهوم من المصدر، ثم اشرح متى تستعمل كل واحدة.",
+          title: "النهايات والمقارب",
+          points: 3,
+          prompt: "أ) احسب النهايات عند حدود مجال التعريف. ب) استنتج المقارب العمودي أو الأفقي أو المائل إن أمكن. ج) فسّر النتيجة بيانيًا.",
+        },
+        {
+          id: "derivative",
+          title: "الاشتقاق وإشارة المشتقة",
+          points: 3,
+          prompt: "أ) احسب المشتقة وبسّطها. ب) ادرس إشارتها على كل مجال. ج) اذكر القاعدة التي استعملتها في كل تحويل.",
         },
         {
           id: "variations",
-          title: "اتجاه التغيرات",
+          title: "اتجاه التغيرات وجدولها",
           points: 3,
-          prompt: "أنشئ جدولًا مختصرًا يربط إشارة المشتقة باتجاه تغير الدالة، مستندًا إلى القاعدة الواردة في المصدر.",
+          prompt: "أ) استنتج اتجاه تغير الدالة. ب) احسب القيم الحدية اللازمة. ج) أنجز جدول التغيرات كاملًا مع احترام القيم الممنوعة.",
+        },
+        {
+          id: "equations",
+          title: "المعادلات والمتراجحات",
+          points: 2,
+          prompt: "أ) حل المعادلة المرتبطة بالدالة. ب) استعمل جدول التغيرات أو الإشارة لحل المتراجحة المطلوبة.",
+        },
+        {
+          id: "relative-position",
+          title: "الوضع النسبي",
+          points: 2,
+          prompt: "أ) ادرس وضع المنحنى بالنسبة إلى المقارب. ب) حدّد نقاط التقاطع أو الأعداد الحقيقية المطلوبة مع تبرير كل نتيجة.",
         },
         {
           id: "graph",
-          title: "التمثيل والتفسير",
-          points: 4,
-          prompt: "صف كيف يظهر هذا السلوك على المنحنى، واذكر أي مماس أو مقارب أو قراءة بيانية وردت في المقتطف.",
+          title: "المماس والتمثيل البياني",
+          points: 3,
+          prompt: "أ) اكتب معادلة المماس في النقطة المطلوبة. ب) أنشئ المنحنى موضحًا المقاربات والمماس. ج) ضع نقاط التقاطع والاتجاهات الأساسية.",
         },
         {
           id: "synthesis",
-          title: "تركيب",
-          points: 6,
-          prompt: "اكتب خلاصة من خمس جمل تشرح المفهوم لطالب آخر، مع ذكر مثال أو تمرين ورد في المصادر.",
+          title: "تركيب شامل",
+          points: 2,
+          prompt: "أ) رتّب نتائج الدراسة في خلاصة واحدة. ب) اشرح كيف تتحول كل نتيجة حسابية إلى معلومة على التمثيل البياني.",
         },
       ]
     : [
@@ -530,7 +576,7 @@ function buildGroundedExerciseFallback(
     status: "generated",
     lessonTitle: lesson,
     title: `ورقة تدريب موثقة: ${topic}`,
-    prompt: `استخدم المقتطفات التالية لبناء إجابتك. لا تعتمد على معلومة خارج المصادر، واذكر المصدر عند كل فكرة مهمة.\n\n${evidence}`,
+     prompt: "أنجز الورقة بالقلم، واكتب المعطيات والتحويلات والتبريرات كاملة. لا تنتقل إلى المحور التالي قبل مراجعة السابق.",
     answer: "هذه ورقة تدريب مصدرية؛ تُراجع الإجابات بمقارنة خطواتك مع المقتطفات المرجعية.",
     hint: `ابدأ من المصدر «${sourceLabel}»، ثم حوّل كل قاعدة أو مثال فيه إلى خطوة واضحة.`,
     solution: "لأن مزود التوليد غير متاح مؤقتًا، لم نعرض حلًا مولدًا. راجع خطواتك مع المقتطفات المرجعية واطلب التحليل بعد رفع المحاولة.",
@@ -903,7 +949,6 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         lessonTitle: generated.lessonTitle,
         title: generated.title,
         prompt: generated.prompt,
-        hint: generated.hint,
         format: generated.format ?? "comprehensive_science",
         totalPoints: generated.totalPoints ?? generated.sections?.reduce((sum, section) => sum + section.points, 0) ?? 0,
         sections: generated.sections ?? [],
@@ -911,7 +956,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       res.json(studentPaper);
       return;
     }
-    res.json(generated);
+     res.json(studentExerciseView(generated));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Exercise generation failed");
@@ -955,14 +1000,13 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
           lessonTitle: fallback.lessonTitle,
           title: fallback.title,
           prompt: fallback.prompt,
-          hint: fallback.hint,
           format: fallback.format ?? "comprehensive_science",
           totalPoints: fallback.totalPoints ?? 20,
           sections: fallback.sections ?? [],
         };
         res.json(studentPaper);
       } else {
-        res.json(fallback);
+        res.json(studentExerciseView(fallback));
       }
       return;
     }

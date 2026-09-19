@@ -196,14 +196,6 @@ type GeneratedExercise = {
   lessonTitle: string;
   title: string;
   prompt: string;
-  sourceDocuments: { title: string; source: string; page: number }[];
-  sourceNodeIds: string[];
-  grounding: {
-    status: 'ready';
-    query: string;
-    retrievedNodeIds: string[];
-    sources: { nodeId: string; title: string; source: string; page: number; quote: string }[];
-  };
   format?: 'comprehensive_function' | 'comprehensive_science';
   totalPoints?: number;
   sections?: Array<{
@@ -361,6 +353,10 @@ const sessionKey = 'tawjeeh.lesson.workspace.v1';
 const attemptBankKey = 'tawjeeh.attempt.bank.v1';
 const profileKey = 'user.profile';
 const examDateKey = 'tawjeeh.exam.baccalaureate-date';
+
+function formatElapsed(seconds: number) {
+  return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+}
 const defaultExamDate = `${new Date().getFullYear() + 1}-06-07`;
 const currentLessonTopicKey = 'tawjeeh.lesson.current-topic.v1';
 const lessonId = 'newton-motion';
@@ -373,7 +369,7 @@ const partnerDetails: Record<ActivePartner, {
   dalil: {
     name: 'دليل',
     role: 'شريك الشرح',
-    description: 'يفكك الفكرة ويصلها بمصادر المنهاج.',
+    description: 'يفكك الفكرة ويصلها بتطبيقات المنهاج.',
     prompt: 'اكتب ما تريد توضيحه، وسأربطه بالجزء الحالي من الدرس.',
   },
   exercises: {
@@ -1723,7 +1719,7 @@ export function LessonWorkspace() {
           reply = `بدأ وكيل التمارين بالحل، ثم بنى لك ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة. اختر واحدًا وابدأ من خطواته.`;
         } else {
           const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
-          if (!response.ok || payload.status !== 'generated' || !payload.prompt || !Array.isArray(payload.sourceNodeIds) || payload.grounding?.status !== 'ready') {
+        if (!response.ok || payload.status !== 'generated' || !payload.prompt) {
             throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
           }
           setGeneratedExercise(payload as GeneratedExercise);
@@ -1756,7 +1752,13 @@ export function LessonWorkspace() {
     void (handoffComplete ? askPartner(question) : askFahim(question));
   };
 
-  const analyzeAttempt = async (imageDataUrl: string, fileName: string, exerciseContext = ''): Promise<boolean> => {
+  const analyzeAttempt = async (
+    imageDataUrl: string,
+    fileName: string,
+    exerciseContext = '',
+    exerciseLesson = 'قوانين نيوتن والحركة',
+    elapsedSeconds = 0,
+  ): Promise<boolean> => {
     setAnalysis(null);
     setAnalysisError('');
     setAnalysisState('analyzing');
@@ -1767,8 +1769,9 @@ export function LessonWorkspace() {
         headers: { 'content-type': 'application/json' },
          body: JSON.stringify({
            imageDataUrl,
-           lesson: 'قوانين نيوتن والحركة',
+           lesson: exerciseLesson,
            concept: exerciseContext ? `${activeSection.title} — ${exerciseContext.slice(0, 1200)}` : activeSection.title,
+           elapsed_seconds: elapsedSeconds,
          }),
       });
       const payload = await response.json() as Partial<AttemptAnalysis> & FahimPayload;
@@ -1844,13 +1847,22 @@ export function LessonWorkspace() {
       setExerciseAttemptImage(imageDataUrl);
       setExerciseAttemptName(file.name);
       setExerciseAttemptState('analyzing');
-      void analyzeAttempt(imageDataUrl, file.name, generatedExercise.prompt).then((analyzed) => {
+      const elapsedAtUpload = exerciseAttemptStartedAt
+        ? Math.max(0, Math.floor((Date.now() - exerciseAttemptStartedAt) / 1000))
+        : exerciseAttemptElapsed;
+      void analyzeAttempt(
+        imageDataUrl,
+        file.name,
+        generatedExercise.prompt,
+        generatedExercise.lessonTitle,
+        elapsedAtUpload,
+      ).then((analyzed) => {
         setExerciseAttemptState(analyzed ? 'ready' : 'error');
         if (analyzed) {
           setPaperCopilotAnswer('قرأت ورقتك وربطتها بهذا التمرين. اسألني عن موضع المراجعة أو الخطوة التالية.');
           setPaperCopilotState('idle');
           setPaperCopilotError('');
-          setPaperCopilotOpen(true);
+          setPaperCopilotOpen(false);
         } else {
           setExerciseAttemptError('تعذر قراءة المحاولة. أعد رفع صورة أوضح.');
         }
@@ -1880,8 +1892,10 @@ export function LessonWorkspace() {
             `آخر خطوة صحيحة: ${analysis.lastCorrectStep}`,
             `أول موضع يحتاج مراجعة: ${analysis.firstErrorStep}`,
             `التغذية الراجعة: ${analysis.feedback}`,
+            `زمن المحاولة حتى الرفع: ${formatElapsed(exerciseAttemptElapsed)}`,
             'اشرح الخطوة التالية أو سبب الخطأ بتوجيه تدريجي. لا تعرض الحل النموذجي الكامل، ولا تذكر مصادر أو مراجع التصحيح.',
           ].join('\n'),
+          elapsed_seconds: exerciseAttemptElapsed,
         }),
       });
       const payload = await response.json() as { answer?: string; chat_response?: string; message?: string };
@@ -1969,7 +1983,7 @@ export function LessonWorkspace() {
       setMessages((current) => [...current, {
         id: `exercise-not-ready-${Date.now()}`,
         role: 'assistant',
-        text: 'لم تجهز مصادر المنهاج بعد. أعد المحاولة بعد لحظات ليُبنى التمرين من محتوى موثوق.',
+        text: 'لم يكتمل إعداد محتوى التمرين بعد. أعد المحاولة بعد لحظات.',
       }]);
       return;
     }
@@ -1989,7 +2003,7 @@ export function LessonWorkspace() {
         }),
       });
        const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
-       if (!response.ok || payload.status !== 'generated' || !payload.prompt || !Array.isArray(payload.sourceNodeIds) || payload.grounding?.status !== 'ready') {
+       if (!response.ok || payload.status !== 'generated' || !payload.prompt) {
         throw new Error(payload.message || 'تعذر توليد تمرين مؤسس على المعرفة');
       }
       setGeneratedExercise(payload as GeneratedExercise);
@@ -2004,7 +2018,7 @@ export function LessonWorkspace() {
         id: `exercise-${Date.now()}`,
         role: 'assistant',
          text: (payload as GeneratedExercise).fallback
-           ? 'جهزت لك ورقة تدريب موثقة من المصادر المتاحة لأن خدمة التوليد غير متاحة مؤقتًا. ابدأ بكتابة المعطيات والخطوة الأولى.'
+           ? 'جهزت لك ورقة تدريب مؤقتة لأن خدمة التوليد غير متاحة الآن. ابدأ بكتابة المعطيات والخطوة الأولى.'
            : analysis
              ? 'بنيت لك تمرينًا يعالج موضع الخطأ من الدرس وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.'
              : 'جهزت لك تمرينًا مناسبًا للمفهوم الحالي. حاول وحدك أولًا، ثم اطلب التلميح عند الحاجة.',
@@ -2820,6 +2834,7 @@ export function LessonWorkspace() {
          onQuestionChange={setPaperCopilotQuestion}
          onAsk={() => void askPaperAttemptCopilot()}
          answer={paperCopilotAnswer}
+         elapsedSeconds={exerciseAttemptElapsed}
          error={paperCopilotState === 'error' ? paperCopilotError : ''}
          isAsking={paperCopilotState === 'asking'}
        />

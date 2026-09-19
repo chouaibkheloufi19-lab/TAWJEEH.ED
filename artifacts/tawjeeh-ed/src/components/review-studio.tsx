@@ -7,7 +7,6 @@ import {
   Download,
   FileImage,
   FileText,
-  Info,
   ListChecks,
   RefreshCw,
   Send,
@@ -52,7 +51,6 @@ export type ComprehensivePaper = {
   lessonTitle: string;
   title: string;
   prompt: string;
-  hint: string;
   format: 'comprehensive_function' | 'comprehensive_science';
   totalPoints: number;
   sections: ExerciseSection[];
@@ -109,7 +107,6 @@ function isComprehensivePaper(value: unknown): value is ComprehensivePaper {
     && typeof paper.lessonTitle === 'string'
     && typeof paper.title === 'string'
     && typeof paper.prompt === 'string'
-    && typeof paper.hint === 'string'
     && (paper.format === 'comprehensive_function' || paper.format === 'comprehensive_science')
     && typeof paper.totalPoints === 'number'
     && Array.isArray(paper.sections)
@@ -270,7 +267,7 @@ export function ReviewStudio() {
       setCopilotAnswer(`حللت محاولتك بعد ${formatElapsed(elapsed)}. اسألني عن الخطوة التي تريد مراجعتها، وسأقودك دون عرض الحل النموذجي.`);
       setCopilotError('');
       setCopilotState('idle');
-      setCopilotOpen(true);
+      setCopilotOpen(false);
     } catch (error) {
       setAttemptState('error');
       setAttemptError(getErrorMessage(error, 'تعذر تحليل صورة المحاولة.'));
@@ -474,10 +471,6 @@ export function ReviewStudio() {
               <button type="button" className="review-studio-secondary-action" data-testid="review-studio-reset" onClick={resetStudio}>بدء مراجعة جديدة</button>
             </div>
 
-            <div className="review-studio-source" data-testid="review-studio-source-attribution">
-              <Info size={15} aria-hidden="true" />
-              <p>تُستخدم المصادر للتحقق الداخلي من جودة التوليد، لكنها لا تظهر في ورقة الطالب ولا في حوار فهيم.</p>
-            </div>
           </form>
 
           <section className="review-studio-results" aria-label="نتائج المراجعة">
@@ -507,7 +500,7 @@ export function ReviewStudio() {
 
             <article className="review-studio-card review-studio-output-card fade-up" aria-busy={paperState === 'loading'} data-testid="review-studio-exercises-panel">
               <div className="review-studio-output-heading">
-                <div><h2>ورقة المراجعة الشاملة</h2><p>{paper?.lessonTitle ?? 'لا تظهر الإجابة أو المصادر أثناء المحاولة'}</p></div>
+                <div><h2>ورقة المراجعة الشاملة</h2><p>{paper?.lessonTitle ?? 'ابدأ بالمحاولة بالقلم قبل طلب التوجيه'}</p></div>
                 <span className="review-studio-output-badge"><ListChecks size={13} /><span>{paper ? `${paper.totalPoints} نقطة` : 'لم تُنشأ بعد'}</span></span>
               </div>
               <div className="review-studio-output-body" aria-live="polite">
@@ -560,6 +553,7 @@ export function ReviewStudio() {
         onQuestionChange={setCopilotQuestion}
         onAsk={() => void askPaperCopilot()}
         answer={copilotAnswer}
+        elapsedSeconds={attemptElapsed}
         error={copilotState === 'error' ? copilotError : ''}
         isAsking={copilotState === 'asking'}
       />

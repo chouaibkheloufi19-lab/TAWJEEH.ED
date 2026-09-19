@@ -1,4 +1,4 @@
-import { FileImage, LoaderCircle, Send, ShieldCheck, X } from 'lucide-react';
+import { BrainCircuit, FileImage, LoaderCircle, Send, ShieldCheck, Sparkles, X } from 'lucide-react';
 import { useEffect, type FormEvent } from 'react';
 import owlLogoPath from '@assets/tawjeeh-owl-transparent.png';
 
@@ -19,6 +19,7 @@ type PaperAttemptCopilotProps = {
   onQuestionChange: (question: string) => void;
   onAsk: () => void;
   answer: string;
+  elapsedSeconds?: number;
   error?: string;
   isAsking: boolean;
 };
@@ -34,6 +35,7 @@ export function PaperAttemptCopilot({
   onQuestionChange,
   onAsk,
   answer,
+  elapsedSeconds = 0,
   error,
   isAsking,
 }: PaperAttemptCopilotProps) {
@@ -53,7 +55,23 @@ export function PaperAttemptCopilot({
     };
   }, [onOpenChange, open]);
 
-  if (!open) return null;
+  if (!open) {
+    if (!analysis && !attemptImage) return null;
+    return (
+      <button
+        type="button"
+        className="paper-attempt-copilot-launcher"
+        onClick={() => onOpenChange(true)}
+        aria-label="فتح كوبيلوت فهيم"
+        data-testid="button-open-paper-copilot"
+      >
+        <span className="paper-attempt-copilot-launcher-aura" aria-hidden="true" />
+        <img src={owlLogoPath} alt="" />
+        <span><strong>فهيم</strong><small>اسألني عن محاولتك</small></span>
+        <BrainCircuit size={16} aria-hidden="true" />
+      </button>
+    );
+  }
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -122,17 +140,37 @@ export function PaperAttemptCopilot({
           ) : (
             <div className="paper-attempt-dialog-lock">
               <ShieldCheck size={15} />
-              <span>ارفع ورقة المحاولة أولًا. سيبقى الحل النموذجي ومصادر التصحيح مخفيين أثناء العمل.</span>
+              <span>ارفع ورقة المحاولة أولًا. سيبقى الحل النموذجي مخفيًا أثناء العمل.</span>
             </div>
           )}
 
           <div className="paper-attempt-dialog-thread" aria-live="polite" aria-describedby="paper-attempt-dialog-description">
             <p className="paper-attempt-dialog-welcome">
               {answer || (analysis
-                ? 'أنا مرتبط بهذه المحاولة الآن. اسألني عن الخطوة التالية أو عن سبب موضع المراجعة، وسأقودك دون كشف الحل كاملًا.'
+                ? `استغرقت محاولتك ${Math.floor(elapsedSeconds / 60).toString().padStart(2, '0')}:${(elapsedSeconds % 60).toString().padStart(2, '0')}. سأبني ردي على ما كتبته أنت، لا على عنوان الموضوع فقط.`
                 : 'بعد رفع الورقة وتحليلها، يمكنك مناقشة خطوات محاولتك معي هنا.')}
             </p>
           </div>
+
+          {analysis && (
+            <div className="paper-attempt-dialog-prompts" aria-label="طرق سريعة لطلب التوجيه">
+              <span><Sparkles size={12} /> اختر نوع المساعدة</span>
+              {[
+                'اسألني عن الخطوة التالية فقط',
+                'اطرح عليّ سؤالًا يقودني دون الحل',
+                'تحقق من الخطوة التي كتبتها',
+              ].map((prompt) => (
+                <button
+                  type="button"
+                  key={prompt}
+                  onClick={() => onQuestionChange(prompt)}
+                  disabled={isAsking}
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          )}
 
           {error && <p className="paper-attempt-dialog-error" role="alert">{error}</p>}
 
@@ -151,7 +189,7 @@ export function PaperAttemptCopilot({
             </button>
           </form>
           <p id="paper-attempt-dialog-description" className="paper-attempt-dialog-note">
-            يبقى الحل النموذجي مخفيًا حتى لا تستبدل المحاولة بالمشاهدة.
+            يبقى الحل النموذجي مخفيًا حتى تطلب توجيهًا مرتبطًا بخطوتك.
           </p>
         </div>
       </section>
