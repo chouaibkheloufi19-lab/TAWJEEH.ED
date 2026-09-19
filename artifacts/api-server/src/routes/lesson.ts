@@ -16,6 +16,7 @@ import {
   EXERCISE_GENERATION_PROMPT,
   FRIENDLY_TUTOR_PROMPT,
   GROUNDED_CONTENT_RULES,
+  INTERACTIVE_EXERCISES_PROMPT,
   LEARNER_SAFE_OUTPUT_RULES,
   LESSON_GENERATION_PROMPT,
 } from "../lib/ai-prompts";
@@ -362,6 +363,7 @@ async function generateExercise(
           ADAPTIVE_EXERCISE_PROMPT,
           ACADEMIC_EXAM_PROMPT,
           EXERCISE_GENERATION_PROMPT,
+          ...(isScientificPaper ? [INTERACTIVE_EXERCISES_PROMPT] : []),
           GROUNDED_CONTENT_RULES,
           LEARNER_SAFE_OUTPUT_RULES,
           `أنت وكيل تمارين عربي لمنصة توجيه. ${generationInstruction} أخفِ الإجابة في الحقول الداخلية المخصصة لها؛ لا تضع أي جزء من الحل النموذجي في prompt أو sections لأن الطالب سيراهما قبل المحاولة. اجعل الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.`,
@@ -427,6 +429,9 @@ async function generateExercise(
     : undefined;
   if (isScientificPaper && (!format || !sections || sections.length < 5)) {
     throw new Error("Exercise generator returned an incomplete practical paper");
+  }
+  if (isFunctionStudy && format !== "comprehensive_function") {
+    throw new Error("Exercise generator returned a non-function paper for a function study");
   }
   if (isScientificPaper && sections) {
     const totalPoints = typeof parsed.totalPoints === "number"
