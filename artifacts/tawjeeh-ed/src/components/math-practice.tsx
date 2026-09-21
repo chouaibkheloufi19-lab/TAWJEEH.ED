@@ -39,58 +39,58 @@ const functionStudy: FunctionSection[] = [
   {
     id: 'domain',
     letter: 'أ',
-    title: 'D_f · مجموعة التعريف | Domaine',
+    title: 'مجموعة التعريف',
     points: 2,
-    prompt: 'عيّن مجموعة تعريف الدالة f، ثم اذكر القيم الممنوعة وسبب منعها.',
+    prompt: 'عيّن مجموعة تعريف الدالة f، ثم اذكر القيم الممنوعة وعلّل منعها.',
   },
   {
     id: 'limits',
     letter: 'ب',
-    title: 'lim · النهايات | Limites',
+    title: 'النهايات والمقارب',
     points: 3,
-    prompt: 'احسب نهايتي الدالة عند طرفي مجال التعريف وعند اللانهاية، واستنتج المقارب إن وُجد.',
+    prompt: 'احسب نهايتي الدالة عند طرفي مجال التعريف وعند اللانهاية، ثم استنتج معادلة المقارب إن وُجد.',
   },
   {
     id: 'derivative',
     letter: 'ج',
-    title: 'f′ · الاشتقاق | Dérivée',
+    title: 'المشتقة',
     points: 3,
-    prompt: 'احسب f′(x) وبسّطها على مجال التعريف، ثم بيّن إشارة المشتقة باستعمال كتابتها المناسبة.',
+    prompt: 'احسب f′(x) وبسّط عبارتها، ثم ادرس إشارتها على مجال تعريف الدالة.',
   },
   {
     id: 'variations',
     letter: 'د',
-    title: 'Δf · اتجاه التغيرات | Variations',
+    title: 'اتجاه التغيرات',
     points: 3,
-    prompt: 'استنتج اتجاه تغير f على كل مجال من مجالات تعريفها، وأنجز جدول التغيرات كاملًا مع القيم الحدية.',
+    prompt: 'استنتج اتجاه تغير f على كل مجال من مجالات تعريفها، وأنجز جدول التغيرات كاملًا.',
   },
   {
     id: 'equations',
     letter: 'هـ',
-    title: 'E_f · المعادلات والمتراجحات | Équations · Inéquations',
+    title: 'المعادلات والمتراجحات',
     points: 2,
-    prompt: 'حل في ℝ المعادلة f(x)=2، ثم ناقش إشارة f(x)−2 واستنتج حلول المتراجحة المرتبطة بها.',
+    prompt: 'حل في ℝ المعادلة f(x)=2، ثم استنتج حلول المتراجحة f(x) ≥ 2.',
   },
   {
     id: 'relative-position',
     letter: 'و',
-    title: 'C_f/Δ · الوضع النسبي | Position relative',
+    title: 'الوضع النسبي',
     points: 2,
-    prompt: 'ادرس الوضع النسبي للمنحنى بالنسبة إلى المقارب المائل، وحدد نقاط التقاطع إن وُجدت، ثم استنتج الأعداد الحقيقية التي تحقق الشرط المطلوب.',
+    prompt: 'ادرس الوضع النسبي للمنحنى (C_f) بالنسبة إلى المقارب المائل، وحدد نقاط التقاطع إن وُجدت.',
   },
   {
     id: 'graph',
     letter: 'ز',
-    title: 'C_f · التمثيل البياني | Courbe',
+    title: 'التمثيل البياني',
     points: 3,
-    prompt: 'اكتب معادلة المماس عند النقطة المطلوبة، ثم أنشئ المنحنى موضحًا المقاربات والمماس ونقاط التقاطع.',
+    prompt: 'اكتب معادلة المماس عند النقطة المطلوبة، ثم أنشئ المنحنى (C_f) موضحًا المقارب والمماس.',
   },
   {
     id: 'synthesis',
     letter: 'ح',
-    title: 'Σ · تركيب الدراسة | Synthèse',
+    title: 'تركيب الدراسة',
     points: 2,
-    prompt: 'اكتب خلاصة منظمة لدراسة الدالة: المجال، النهايات، المقارب، المشتقة، التغيرات، ثم العناصر الضرورية للرسم.',
+    prompt: 'اكتب خلاصة منظمة لدراسة الدالة، ثم استخرج العناصر الضرورية لإنجاز تمثيلها البياني.',
   },
 ];
 
@@ -285,9 +285,9 @@ export function MathPractice() {
 
         <section className="function-practice-intro">
           <div>
-            <span className="function-practice-eyebrow"><Sparkles size={14} /> ورقة تطبيقية كاملة</span>
-            <h1>دراسة دالة ناطقة</h1>
-            <p>ليست إجابة واحدة. أنجز الدراسة كاملة بالقلم: من المجال والنهايات إلى الاشتقاق والتمثيل البياني، ثم ارفع ورقتك ليقرأ فهيم خطواتك ويصححها.</p>
+            <span className="function-practice-eyebrow"><Sparkles size={14} /> تدريب بصيغة امتحان</span>
+            <h1>تمرين 03: دراسة دالة</h1>
+            <p>أنجز الموضوع على ورقة كما في اختبار البكالوريا، ثم ارفع صورة حلك ليقرأ فهيم ترتيب خطواتك ويعطيك توجيهًا دقيقًا.</p>
           </div>
           <div className="function-practice-timer" aria-live="polite">
             <Clock3 size={17} />
@@ -298,15 +298,24 @@ export function MathPractice() {
         <section className="function-paper" aria-label="ورقة دراسة الدالة">
           <div className="function-paper-head">
             <div>
-              <span>التمرين 01 · موضوع مركب</span>
-              <h2>دراسة شاملة لدالة عددية</h2>
+              <div className="function-paper-official">
+                <span>الجمهورية الجزائرية الديمقراطية الشعبية</span>
+                <span>وزارة التربية الوطنية</span>
+              </div>
+              <h2>اختبار في مادة الرياضيات</h2>
+              <span>المستوى: السنة الثالثة ثانوي · الموسم الدراسي: 2026 / 2027</span>
             </div>
-            <div className="function-paper-score"><strong>{totalPoints}</strong><small>نقطة</small></div>
+            <div className="function-paper-meta">
+              <strong>الموضوع 03</strong>
+              <span>المدة: 1 سا</span>
+              <span>العلامة: {totalPoints} / 20</span>
+            </div>
           </div>
+          <div className="function-paper-title">التمرين الأول: دراسة دالة ناطقة</div>
           <div className="function-paper-formula" dir="ltr"><MathText>{functionFormula}</MathText></div>
           <div className="function-paper-instructions">
             <Lightbulb size={16} />
-            <p><strong>تعليمة العمل:</strong> اكتب جميع التحويلات والتبريرات على الورقة. لا تنتقل إلى المطلوب التالي قبل تثبيت السابق. لن تظهر لك الإجابة النموذجية أثناء المحاولة.</p>
+            <p><strong>تعليمة:</strong> أجب عن الأسئلة مرتبة، ودوّن جميع مراحل الحساب والتبريرات اللازمة.</p>
           </div>
           <div className="function-paper-sections">
             {functionStudy.map((section) => (

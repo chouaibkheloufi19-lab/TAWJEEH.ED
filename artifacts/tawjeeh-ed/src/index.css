@@ -12181,3 +12181,247 @@ button { cursor: pointer; }
     width: 100%;
   }
 }
+
+/* Final exam-paper presentation: keep the practice sheet close to a
+   printable baccalaureate subject and after the legacy practice rules. */
+.function-practice-page {
+  padding: 18px 16px 48px;
+  color: #1f2528;
+  background: #eef2f1;
+}
+
+.function-practice-shell {
+  width: min(980px, 100%);
+}
+
+.function-practice-header {
+  margin-bottom: 20px;
+}
+
+.function-practice-intro {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.function-practice-intro h1 {
+  color: #213b43;
+  font-size: clamp(24px, 3.5vw, 34px);
+}
+
+.function-practice-intro p {
+  max-width: 760px;
+  color: #68777a;
+}
+
+.function-paper {
+  padding: clamp(20px, 3vw, 36px);
+  border: 1px solid #cfd7d5;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(42, 58, 61, .09);
+}
+
+.function-paper-head {
+  align-items: stretch;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #252b2d;
+}
+
+.function-paper-head > div:first-child {
+  flex: 1;
+  gap: 3px;
+}
+
+.function-paper-official {
+  display: grid;
+  gap: 1px;
+  color: #31393b;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.function-paper-head h2 {
+  margin: 5px 0 1px;
+  color: #20282a;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.function-paper-head > div:first-child > span:last-child {
+  color: #606c6e;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.function-paper-meta {
+  display: grid;
+  min-width: 138px;
+  align-content: center;
+  justify-items: center;
+  gap: 3px;
+  padding: 8px 12px;
+  border: 1px solid #929b9b;
+  border-radius: 2px;
+  color: #2c3537;
+  font-size: 10px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.function-paper-meta strong {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.function-paper-meta span {
+  color: #5e696b;
+}
+
+.function-paper-title {
+  margin: 18px 0 10px;
+  color: #1c292d;
+  font-size: 16px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.function-paper-formula {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid #d4dcda;
+  border-radius: 2px;
+  color: #20282a;
+  background: #fafcfb;
+  font-size: 17px;
+}
+
+.function-paper-instructions {
+  margin-bottom: 16px;
+  padding: 9px 11px;
+  border: 1px solid #e0e5e3;
+  border-radius: 2px;
+  color: #4b5759;
+  background: #fbfcfb;
+}
+
+.function-paper-instructions svg {
+  color: #677b75;
+}
+
+.function-paper-instructions p {
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.function-paper-sections {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.function-paper-section {
+  display: grid;
+  grid-template-columns: minmax(150px, .34fr) minmax(0, 1fr);
+  column-gap: 18px;
+  align-items: start;
+  padding: 13px 0 15px;
+  border: 0;
+  border-top: 1px solid #dfe4e2;
+  border-radius: 0;
+  background: transparent;
+}
+
+.function-paper-section:first-child {
+  border-top: 2px solid #293335;
+}
+
+.function-paper-section-title > span {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #5f6c69;
+  border-radius: 50%;
+  color: #273437;
+  background: #fff;
+  font-size: 11px;
+}
+
+.function-paper-section-title h3 {
+  margin: 1px 0 3px;
+  color: #263336;
+  font-size: 12px;
+}
+
+.function-paper-section-title small {
+  color: #697779;
+  font-size: 9px;
+}
+
+.function-paper-section p {
+  margin: 1px 0 0;
+  color: #303b3d;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.9;
+}
+
+.function-paper-writing-lines {
+  display: none;
+}
+
+.function-paper-footer {
+  margin-top: 4px;
+  padding-top: 13px;
+  border-top: 2px solid #293335;
+}
+
+.function-paper-footer span {
+  color: #596769;
+  font-size: 10px;
+}
+
+.function-paper-footer button {
+  min-height: 32px;
+  border: 1px solid #7e918b;
+  border-radius: 2px;
+  color: #304d4a;
+  background: #f5f9f7;
+  font-size: 10px;
+}
+
+.attempt-preview {
+  width: min(100%, 400px);
+  max-height: 520px;
+  border: 1px solid #d0d9d7;
+  border-radius: 4px;
+  background: #fafcfb;
+}
+
+.attempt-preview-wrap {
+  justify-items: center;
+}
+
+@media (max-width: 720px) {
+  .function-paper-head {
+    flex-direction: column;
+  }
+
+  .function-paper-meta {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .function-paper-meta strong {
+    grid-column: 1 / -1;
+  }
+
+  .function-paper-section {
+    grid-template-columns: 1fr;
+    row-gap: 8px;
+  }
+
+  .function-paper-section-title {
+    align-items: center;
+  }
+}
