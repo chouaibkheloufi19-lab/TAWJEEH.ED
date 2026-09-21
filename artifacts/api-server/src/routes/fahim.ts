@@ -10,7 +10,10 @@ import {
   FRIENDLY_TUTOR_PROMPT,
   GROUNDED_CONTENT_RULES,
 } from "../lib/ai-prompts";
-import { callDeepSeekTextModel } from "../lib/ai-provider";
+import {
+  callDeepSeekTextModel,
+  callGeminiVisionModel,
+} from "../lib/ai-provider";
 
 const router: IRouter = Router();
 const connectors = new ReplitConnectors();
@@ -144,6 +147,21 @@ async function callVisionModel(
   retrieval: RetrievalContext,
 ) {
   const sourceText = formatRetrievedContext(retrieval.documents);
+  if (process.env.GEMINI_API_KEY?.trim()) {
+    const content = await callGeminiVisionModel(
+      [
+        FRIENDLY_TUTOR_PROMPT,
+        GROUNDED_CONTENT_RULES,
+        "أنت فهيم، مساعد تربوي يقرأ محاولات الطلاب. لا تخمّن ما لا يظهر في الصورة. حدّد أول خطوة خاطئة فقط، واذكر آخر خطوة صحيحة قبلها، ثم قدّم تغذية راجعة وتمرينًا واحدًا يعالج الخطأ.",
+        "هذه الواجهة تحتاج JSON داخليًا، فلا تضف نصًا خارج الكائن المطلوب. أعد errorArea كصندوق نسبي دقيق يحيط بأول خطوة خاطئة في الصورة: x وy وwidth وheight أعداد من 0 إلى 1، مع label عربي.",
+      ].join("\n\n"),
+      `حلّل محاولة الطالب المصورة في درس "${lesson}" ومفهوم "${concept}". حدد أول خطوة خاطئة فقط، وآخر خطوة صحيحة قبلها، وحدد صندوقها النسبي بدقة، ثم اقترح تمرينًا واحدًا يعالج نفس الخطأ من العقد المرفقة. أعد JSON فقط بهذه المفاتيح: firstError, firstErrorStep, lastCorrectStep, feedback, nextExercise, summaryAnchor, errorArea (كائن يحوي x,y,width,height,label).\nعقد المعرفة المسترجعة من ChromaDB:\n${sourceText}`,
+      imageDataUrl,
+      { temperature: 0, maxOutputTokens: 1200, jsonMode: true },
+    );
+    return extractJson(content);
+  }
+
   const response = await withTimeout(
     connectors.proxy("xai", "/v1/chat/completions", {
       method: "POST",
@@ -195,6 +213,19 @@ async function callVisionCopilotModel(
   retrieval: RetrievalContext,
 ) {
   const sourceText = formatRetrievedContext(retrieval.documents);
+  if (process.env.GEMINI_API_KEY?.trim()) {
+    return callGeminiVisionModel(
+      [
+        FRIENDLY_TUTOR_PROMPT,
+        GROUNDED_CONTENT_RULES,
+        "أنت فهيم. اقرأ الجزء المحدد من السبورة وأجب عن سؤال الطالب بالعربية، بجمل قصيرة وخطوات واضحة. لا تخمّن أي شيء غير ظاهر، وإذا لم تكف الصورة فاذكر ذلك واقترح ما يجب تحديده.",
+      ].join("\n\n"),
+      `الدرس: ${lesson}\nالمفهوم: ${concept}\nسؤال الطالب: ${question}\nالسياق النصي: ${context || "لا يوجد"}\nعقد المعرفة المسترجعة:\n${sourceText}`,
+      imageDataUrl,
+      { temperature: 0.1, maxOutputTokens: 900 },
+    );
+  }
+
   const response = await withTimeout(
     connectors.proxy("xai", "/v1/chat/completions", {
       method: "POST",

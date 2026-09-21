@@ -17,6 +17,12 @@ type GeminiGenerateContentResponse = {
   }>;
 };
 
+type GeminiVisionOptions = {
+  temperature: number;
+  maxOutputTokens: number;
+  jsonMode?: boolean;
+};
+
 const CHAT_TIMEOUT_MS = 45_000;
 const XAI_CONNECTOR = "xai";
 const DEFAULT_XAI_MODEL = "grok-3-mini";
@@ -123,7 +129,7 @@ function toGeminiRequest(messages: ChatMessage[]) {
 
 async function callGeminiApi(
   messages: ChatMessage[],
-  options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
+  options: GeminiVisionOptions,
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
@@ -214,6 +220,112 @@ async function callGeminiApi(
       status: response.status,
       retryable: true,
     });
+  }
+  return content;
+}
+
+export async function callGeminiVisionModel(
+  systemMessage: string,
+  userText: string,
+  imageDataUrl: string,
+  options: GeminiVisionOptions,
+): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    throw new DeepSeekProviderError("GEMINI_API_KEY is not configured", {
+      status: 401,
+    });
+  }
+
+  const image = imageDataUrl.match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
+  if (!image) {
+    throw new DeepSeekProviderError("Invalid image data URL", { status: 400 });
+  }
+
+  const model = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
+  const url = `${GEMINI_API_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  let response: Response;
+  try {
+    response = await withTimeout(
+      fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemMessage }] },
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: userText },
+                {
+                  inlineData: {
+                    mimeType: image[1],
+                    data: image[2],
+                  },
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: options.temperature,
+            maxOutputTokens: Math.max(options.maxOutputTokens, 8192),
+            ...(options.jsonMode ? { responseMimeType: "application/json" } : {}),
+          },
+        }),
+      }),
+      CHAT_TIMEOUT_MS,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new DeepSeekProviderError(
+      isConnectionError(message)
+        ? "GEMINI_CONNECTION_NOT_CONFIGURED"
+        : `Gemini vision request failed: ${message}`,
+      {
+        retryable: !isConnectionError(message),
+        status: isConnectionError(message) ? 401 : undefined,
+      },
+    );
+  }
+
+  if (!response.ok) {
+    const providerError = await readProviderError(response);
+    throw new DeepSeekProviderError(
+      response.status === 401 ||
+        response.status === 403 ||
+        isConnectionError(providerError)
+        ? "GEMINI_CONNECTION_NOT_CONFIGURED"
+        : `Gemini vision provider responded with ${response.status}${providerError ? `: ${providerError}` : ""}`,
+      {
+        status: response.status,
+        retryable:
+          response.status === 408 ||
+          response.status === 429 ||
+          response.status >= 500,
+        retryAfterMs: retryAfterMs(response),
+      },
+    );
+  }
+
+  let payload: GeminiGenerateContentResponse;
+  try {
+    payload = (await response.json()) as GeminiGenerateContentResponse;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new DeepSeekProviderError(
+      `Gemini vision provider returned invalid JSON: ${message}`,
+      { status: response.status, retryable: true },
+    );
+  }
+  const content = payload.candidates?.[0]?.content?.parts
+    ?.map((part) => (typeof part.text === "string" ? part.text : ""))
+    .join("")
+    .trim();
+  if (!content) {
+    throw new DeepSeekProviderError(
+      "Gemini vision provider returned no content",
+      { status: response.status, retryable: true },
+    );
   }
   return content;
 }

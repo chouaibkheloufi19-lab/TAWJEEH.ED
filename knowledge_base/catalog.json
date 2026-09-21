@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-09-19T23:03:15.376963+00:00",
+  "generated_at": "2026-09-21T21:51:47.711983+00:00",
   "assets_root": "attached_assets",
   "stats": {
-    "needs_review": 329,
+    "needs_review": 330,
     "indexed": 52,
     "excluded_media": 13,
-    "duplicate_source": 60,
+    "duplicate_source": 61,
     "excluded_reference": 1,
-    "total_assets": 455,
+    "total_assets": 457,
     "indexed_chunks": 685
   },
   "sources": [
@@ -5205,6 +5205,48 @@
         "reference"
       ],
       "indexed_source_hash": "f1cbea7b0d83fc15e7a4a082ca9901a492ddbdc1ebe355309878f8ac79f0d1cf"
+    },
+    {
+      "source_id": "f5979c1146a99bbf60ef1cd32f98ed797e08aa1371bb4476f57668f83ec24ff2",
+      "source_file": "image_1790027401466.png",
+      "asset_path": "attached_assets/image_1790027401466.png",
+      "source_type": "png",
+      "bytes": 33081,
+      "sha256": "f5979c1146a99bbf60ef1cd32f98ed797e08aa1371bb4476f57668f83ec24ff2",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "unspecified",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "lesson_key": "general",
+      "content_type": "reference",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "مراجعة عامة",
+      "concepts": "مراجعة عامة",
+      "prerequisites": "",
+      "lesson_keys": "general",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "غير محدد · مراجعة عامة",
+      "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
+      "pages": 1,
+      "chunks": 0,
+      "first_page": 0,
+      "extraction_method": "none",
+      "extraction_methods": {
+        "empty": 1
+      },
+      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "reference"
+      ],
+      "indexed_source_hash": "f5979c1146a99bbf60ef1cd32f98ed797e08aa1371bb4476f57668f83ec24ff2"
     },
     {
       "source_id": "dbb8966407793c9c3e5f361c1cdfe8a5933880e94065548e20a633bb1368ea6e",
@@ -14640,6 +14682,17 @@
       "source_id": "1936307e7dd9520fd1fa5f3c6769c42d7f5da2ef52716b78249d752c844583e0",
       "source_file": "Screenshot_2026-08-29_150415_1789856837258.png",
       "asset_path": "attached_assets/Screenshot_2026-08-29_150415_1789856837258.png",
+      "source_type": "png",
+      "bytes": 435634,
+      "sha256": "1936307e7dd9520fd1fa5f3c6769c42d7f5da2ef52716b78249d752c844583e0",
+      "status": "duplicate_source",
+      "canonical_source": "Screenshot_2026-08-29_150415_1788341853283.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
+    },
+    {
+      "source_id": "1936307e7dd9520fd1fa5f3c6769c42d7f5da2ef52716b78249d752c844583e0",
+      "source_file": "Screenshot_2026-08-29_150415_1790027159751.png",
+      "asset_path": "attached_assets/Screenshot_2026-08-29_150415_1790027159751.png",
       "source_type": "png",
       "bytes": 435634,
       "sha256": "1936307e7dd9520fd1fa5f3c6769c42d7f5da2ef52716b78249d752c844583e0",
