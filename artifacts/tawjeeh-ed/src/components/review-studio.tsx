@@ -311,7 +311,7 @@ export function ReviewStudio() {
       paper.prompt,
       '',
       paper.sections.map((section, index) => (
-        `${index + 1}. ${section.title} (${section.points} نقاط)\n${section.prompt}`
+        `${index + 1}. ${section.prompt}`
       )).join('\n\n'),
     ].join('\n');
     const url = URL.createObjectURL(new Blob([`\uFEFF${text}`], { type: 'text/plain;charset=utf-8' }));
@@ -518,7 +518,7 @@ export function ReviewStudio() {
                     <div className="review-studio-sections">
                       {paper.sections.map((section, index) => (
                         <article className="review-studio-paper-section" key={section.id}>
-                          <div className="review-studio-paper-section-heading"><span>{String(index + 1).padStart(2, '0')}</span><h4><MathText>{section.title}</MathText></h4><strong>{section.points} ن</strong></div>
+                          <span className="review-studio-paper-section-number">{index + 1}.</span>
                           <p><MathText>{section.prompt}</MathText></p>
                         </article>
                       ))}

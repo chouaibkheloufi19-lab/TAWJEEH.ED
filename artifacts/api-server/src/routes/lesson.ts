@@ -350,10 +350,11 @@ async function generateExercise(
       ].join("\n")
     : isScientificPaper
       ? [
-          "طلب الطالب مادة تطبيقية. لا تنشئ اختيارًا من متعدد ولا سؤالًا قصيرًا.",
-          "أنشئ ورقة عملية مترابطة من معطيات واضحة ومطلوبات متعددة، ليحلها الطالب بالقلم على الورق. اجعلها في الرياضيات أو الفيزياء بحسب المصادر، وتدرج من استخراج المعطيات والقانون إلى الحساب والتفسير والتحقق.",
+          "طلب الطالب ورقة اختبار رسمية. لا تنشئ اختيارًا من متعدد ولا سؤالًا قصيرًا ولا نصًا أدبيًا.",
+          "أنشئ موضوعًا على نمط ورقة البكالوريا: معطيات ورموز ووحدات واضحة، ثم مطلوبات رياضية مباشرة مرقمة بفروع (أ) و(ب) و(ج). اجعل كل مطلب قابلًا للحل بالقلم من المعطيات نفسها، واستعمل «عيّن» و«احسب» و«استنتج» و«بيّن» و«ادرس» و«مثّل».",
+          "لا تضع عناوين وصفية قبل المطلوبات. title في sections تسمية داخلية فقط؛ أما prompt فيبدأ بالسؤال مباشرة ولا يحتوي على لغة أدبية أو عبارات «اشرح» و«لماذا» و«كيف».",
           "أعد حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا لا يكشف النتيجة. لا تضع الحل داخل prompt أو sections.",
-          'أعد sections بهذا الشكل: [{"id":"data","title":"فهم المعطيات","points":3,"prompt":"..."},{"id":"law","title":"القانون أو النموذج","points":4,"prompt":"..."},{"id":"calculation","title":"الحساب والتطبيق","points":5,"prompt":"..."},{"id":"interpretation","title":"التفسير والتحقق","points":4,"prompt":"..."},{"id":"synthesis","title":"تركيب أو امتداد","points":4,"prompt":"..."}]',
+          'أعد sections بهذا الشكل، مع عناوين داخلية قصيرة لا تعرض للطالب: [{"id":"data","title":"data","points":3,"prompt":"أ) عيّن المعطيات اللازمة. ب) اكتب العلاقة المناسبة."},{"id":"law","title":"law","points":4,"prompt":"أ) اكتب القانون المستعمل. ب) استنتج..."},{"id":"calculation","title":"calculation","points":5,"prompt":"أ) احسب... ب) استنتج..."},{"id":"interpretation","title":"interpretation","points":4,"prompt":"أ) بيّن... ب) تحقق من التجانس..."},{"id":"synthesis","title":"synthesis","points":4,"prompt":"استنتج النتيجة النهائية."}]',
         ].join("\n")
       : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
   const content = await callDeepSeekTextModelWithRetry(
@@ -384,8 +385,8 @@ async function generateExercise(
           sourceText,
           isFunctionStudy
              ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"الدوال العددية","title":"دراسة شاملة في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"limits","title":"النهايات ومجموعة التعريف","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق والتغيرات","points":4,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":4,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"asymptotes","title":"المقارب والمماس","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
-             : isScientificPaper
-               ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان المادة","title":"موضوع عملي شامل","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"فهم المعطيات","points":3,"prompt":"..."},{"id":"law","title":"القانون أو النموذج","points":4,"prompt":"..."},{"id":"calculation","title":"الحساب والتطبيق","points":5,"prompt":"..."},{"id":"interpretation","title":"التفسير والتحقق","points":4,"prompt":"..."},{"id":"synthesis","title":"تركيب أو امتداد","points":4,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
+          : isScientificPaper
+               ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان المادة","title":"موضوع عملي شامل","prompt":"معطيات الورقة دون حل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"data","points":3,"prompt":"أ) عيّن... ب) اكتب..."},{"id":"law","title":"law","points":4,"prompt":"أ) اكتب... ب) استنتج..."},{"id":"calculation","title":"calculation","points":5,"prompt":"أ) احسب... ب) استنتج..."},{"id":"interpretation","title":"interpretation","points":4,"prompt":"أ) بيّن... ب) تحقق..."},{"id":"synthesis","title":"synthesis","points":4,"prompt":"استنتج النتيجة النهائية."}],"sourceNodeIds":["node-id"]}'
             : 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
         ].join("\n"),
       },
@@ -550,33 +551,33 @@ function buildGroundedExerciseFallback(
     : [
         {
           id: "data",
-          title: "فهم المعطيات",
+          title: "data",
           points: 3,
-          prompt: "استخرج المفاهيم والمعطيات الأساسية من المقتطف المرجعي، واشرح المصطلحات التي تحتاجها للحل.",
+          prompt: "أ) عيّن المعطيات اللازمة للحل. ب) اكتب الرموز والوحدات المستعملة.",
         },
         {
           id: "principle",
-          title: "القاعدة أو النموذج",
+          title: "principle",
           points: 4,
-          prompt: "اكتب القاعدة أو القانون الذي يعالج الموضوع كما ورد في المصدر، واذكر شروط استعماله.",
+          prompt: "أ) اكتب العلاقة أو القانون المناسب. ب) عوّض بالمعطيات. ج) استنتج النتيجة.",
         },
         {
           id: "application",
-          title: "التطبيق",
+          title: "application",
           points: 5,
-          prompt: "طبّق القاعدة على المثال أو المعطى الأقرب في المقتطف، مع إظهار خطواتك وعدم القفز إلى النتيجة.",
+          prompt: "أ) احسب الكمية المطلوبة. ب) استنتج الكمية التابعة لها. ج) اكتب النتيجة بالوحدة المناسبة.",
         },
         {
           id: "interpretation",
-          title: "التفسير والتحقق",
+          title: "interpretation",
           points: 4,
-          prompt: "فسّر النتيجة بجملة علمية، ثم تحقق من وحداتها أو منطقها بالرجوع إلى المصدر.",
+          prompt: "أ) بيّن طبيعة النتيجة. ب) تحقق من التجانس البعدي. ج) قارن النتيجة بالمعطيات.",
         },
         {
           id: "synthesis",
-          title: "تركيب",
+          title: "synthesis",
           points: 4,
-          prompt: "اكتب ما تعلمته في أربع جمل، واقترح سؤالًا جديدًا يمكن حله باستعمال الفكرة نفسها.",
+          prompt: "استنتج النتيجة النهائية للموضوع، مع كتابة العلاقة والنتيجة العددية إن وجدت.",
         },
       ];
 

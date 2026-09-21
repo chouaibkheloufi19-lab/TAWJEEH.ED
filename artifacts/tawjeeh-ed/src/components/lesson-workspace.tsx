@@ -1912,8 +1912,8 @@ export function LessonWorkspace() {
 
   const downloadGeneratedExercise = () => {
     if (!generatedExercise) return;
-    const sections = generatedExercise.sections?.map((section) => (
-      `${section.title} (${section.points} نقاط)\n${section.prompt}`
+    const sections = generatedExercise.sections?.map((section, index) => (
+      `${index + 1}. ${section.prompt}`
     )).join('\n\n') || generatedExercise.prompt;
     const content = [
       generatedExercise.title,
@@ -2748,13 +2748,7 @@ export function LessonWorkspace() {
                     <div className="lesson-generated-sections">
                       {generatedExercise.sections?.map((section, index) => (
                         <section key={section.id} className="lesson-generated-section">
-                          <div>
-                            <strong>
-                              <span className="lesson-generated-section-index">{String(index + 1).padStart(2, '0')}</span>
-                              <MathText>{section.title}</MathText>
-                            </strong>
-                            <b>{section.points} ن</b>
-                          </div>
+                          <span className="lesson-generated-section-index">{index + 1}.</span>
                           <p><MathText>{section.prompt}</MathText></p>
                         </section>
                       ))}
