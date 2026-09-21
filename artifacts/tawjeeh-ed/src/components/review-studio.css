@@ -1137,3 +1137,59 @@
     grid-column: auto;
   }
 }
+
+/*
+ * Final review-paper surface:
+ * the current worksheet markup contains only a number and a prompt. Keep the
+ * prompt compact and scannable like the lesson paper cards, without restoring
+ * the removed section headings.
+ */
+.review-studio-paper-section {
+  display: grid;
+  grid-template-columns: 31px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 15px 16px;
+  border: 1px solid #dbe9e8;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 3px 0 rgba(14, 83, 96, .025);
+}
+
+.review-studio-paper-section-number {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: 9px;
+  color: #fff;
+  background: #1a8090;
+  font-family: var(--app-font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.review-studio-paper-section > p {
+  min-width: 0;
+  margin: 1px 0 0;
+  padding: 0;
+  color: #456873;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.9;
+}
+
+@media (max-width: 560px) {
+  .review-studio-paper-section {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    padding: 13px;
+  }
+
+  .review-studio-paper-section-number {
+    width: 28px;
+    height: 28px;
+  }
+}
