@@ -16,6 +16,7 @@ import {
   retrieveGroundedKnowledge,
   type RetrievalContext,
 } from "./rag";
+import { normalizeFunctionSectionTitle } from "./function-section-titles";
 
 const MAX_CONTENT_LENGTH = 50_000;
 const MAX_EXERCISES = 10;
@@ -337,7 +338,14 @@ function parseExercises(
       };
     })
     .filter((section): section is ExerciseSection => section !== null)
-    .slice(0, 10);
+    .slice(0, 10)
+    .map((section) => ({
+      ...section,
+      title:
+        format === "comprehensive_function"
+          ? normalizeFunctionSectionTitle(section.id, section.title)
+          : section.title,
+    }));
   const totalPoints = Number(payload.total_points ?? payload.totalPoints);
   const sourceNodeIds = assertGroundedNodeIds(payload.sourceNodeIds, retrieval);
 
@@ -485,7 +493,7 @@ export async function generateExercises(
       role: "user",
       content: [
         buildUserContent(request, retrieval),
-        'أعد الشكل التالي فقط، واختر sourceNodeIds من المعرّفات الظاهرة في chromadb_context: {"lesson_title":"...","title":"دراسة شاملة في الدالة","prompt":"سياق الورقة والمعطيات دون أي حل","hint":"تلميح قصير لا يكشف النتيجة","solution":"الحل النموذجي الكامل للاستخدام الداخلي فقط","format":"comprehensive_function","total_points":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"مطلوب قابل للحل على الورق"},{"id":"limits","title":"النهايات","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق واتجاه التغير","points":3,"prompt":"..."},{"id":"variations","title":"جدول التغيرات","points":3,"prompt":"..."},{"id":"equations","title":"المعادلات والمتراجحات","points":2,"prompt":"..."},{"id":"graph","title":"التمثيل البياني والمماس والمقارب","points":5,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}',
+        'أعد الشكل التالي فقط، واختر sourceNodeIds من المعرّفات الظاهرة في chromadb_context: {"lesson_title":"...","title":"دراسة شاملة في الدالة","prompt":"سياق الورقة والمعطيات دون حل","hint":"تلميح مختصر","solution":"الحل النموذجي للاستخدام الداخلي فقط","format":"comprehensive_function","total_points":20,"sections":[{"id":"domain","title":"D_f · مجموعة التعريف | Domaine","points":2,"prompt":"مطلوب قابل للحل على الورق"},{"id":"limits","title":"lim · النهايات | Limites","points":3,"prompt":"..."},{"id":"derivative","title":"f′ · الاشتقاق | Dérivée","points":3,"prompt":"..."},{"id":"variations","title":"Δf · اتجاه التغيرات | Variations","points":3,"prompt":"..."},{"id":"equations","title":"E_f · المعادلات والمتراجحات | Équations · Inéquations","points":2,"prompt":"..."},{"id":"graph","title":"C_f · التمثيل البياني | Courbe","points":5,"prompt":"..."},{"id":"synthesis","title":"Σ · تركيب الدراسة | Synthèse","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}',
       ].join("\n\n"),
     },
   ];

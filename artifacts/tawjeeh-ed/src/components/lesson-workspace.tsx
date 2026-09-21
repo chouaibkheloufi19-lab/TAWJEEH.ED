@@ -1451,11 +1451,11 @@ export function LessonWorkspace() {
          setMessages((current) => [...current, {
            id: `topic-creative-${Date.now()}`,
            role: 'assistant',
-            text: generated.fallbackMessage
+                 text: generated.fallbackMessage
               ? generated.fallbackMessage
               : completedTopic
                 ? `حللت معطيات «${completedTopic.title}» وفتحت لك الموضوع التالي مباشرة: «${(generated.ideas.find((idea) => idea.title !== completedTopic.title) ?? generated.ideas[0]).title}».`
-                : `بنى لك وكيل التمارين ${generated.ideas.length} موضوعات مختلفة من مصادر المنهاج. افتح أي موضوع لبدء دراسته في مساحة كاملة.`,
+                 : `جهزت لك ${generated.ideas.length} موضوعات تطبيقية مختلفة. افتح أي موضوع لبدء دراسته.`,
          }]);
        }
        return generated;
@@ -1716,7 +1716,7 @@ export function LessonWorkspace() {
             throw new Error(payload.message || 'تعذر توليد الحل والموضوعات الإبداعية');
           }
           setCreativeIdeas(payload as CreativeIdeasResponse);
-          reply = `بدأ وكيل التمارين بالحل، ثم بنى لك ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة. اختر واحدًا وابدأ من خطواته.`;
+           reply = `بدأت بالحل، ثم جهزت لك ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة. اختر واحدًا وابدأ من خطواته.`;
         } else {
           const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
         if (!response.ok || payload.status !== 'generated' || !payload.prompt) {
@@ -1731,8 +1731,8 @@ export function LessonWorkspace() {
           setExerciseAttemptStartedAt(Date.now());
           setExerciseAttemptElapsed(0);
            reply = (payload as GeneratedExercise).fallback
-             ? `جهزت لك ورقة تدريب موثقة من المصادر المتاحة بعنوان «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`
-             : `جهز لك وكيل التمارين تدريبًا على «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
+             ? `جهزت لك ورقة تدريب بعنوان «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`
+             : `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
        }
       }
       setMessages((current) => [...current, {
@@ -2017,8 +2017,8 @@ export function LessonWorkspace() {
       setMessages((current) => [...current, {
         id: `exercise-${Date.now()}`,
         role: 'assistant',
-         text: (payload as GeneratedExercise).fallback
-           ? 'جهزت لك ورقة تدريب مؤقتة لأن خدمة التوليد غير متاحة الآن. ابدأ بكتابة المعطيات والخطوة الأولى.'
+           text: (payload as GeneratedExercise).fallback
+             ? 'جهزت لك ورقة تدريب. ابدأ بكتابة المعطيات والخطوة الأولى.'
            : analysis
              ? 'بنيت لك تمرينًا يعالج موضع الخطأ من الدرس وسجل محاولاتك. ابدأ بكتابة المعطيات والخطوة الأولى.'
              : 'جهزت لك تمرينًا مناسبًا للمفهوم الحالي. حاول وحدك أولًا، ثم اطلب التلميح عند الحاجة.',
@@ -2672,7 +2672,7 @@ export function LessonWorkspace() {
                    </button>
                  ))}
                </div>
-              <span className="lesson-canvas-hint">{activeSection.id === 'graph' ? 'الميل يروي قصة الحركة' : 'اكتب أو ارسم فوق اللوح'}</span>
+               <span className="lesson-canvas-hint">{activeSection.id === 'graph' ? 'ميل المنحنى: Δy / Δx' : 'اكتب أو ارسم فوق اللوح'}</span>
             </div>
           </div>
           <div className="lesson-teaching-footer">

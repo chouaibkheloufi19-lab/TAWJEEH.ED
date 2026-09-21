@@ -24,6 +24,7 @@ import {
   callDeepSeekTextModelWithRetry,
   DeepSeekProviderError,
 } from "../lib/ai-provider";
+import { normalizeFunctionSectionTitle } from "../lib/function-section-titles";
 
 const router: IRouter = Router();
 
@@ -419,7 +420,9 @@ async function generateExercise(
         .slice(0, 8)
         .map((section) => ({
           id: section.id.trim(),
-          title: section.title.trim(),
+          title: isFunctionStudy
+            ? normalizeFunctionSectionTitle(section.id.trim(), section.title)
+            : section.title.trim(),
           points: section.points,
           prompt: section.prompt.trim(),
         }))
@@ -497,49 +500,49 @@ function buildGroundedExerciseFallback(
     ? [
         {
           id: "domain",
-          title: "مجموعة التعريف والمعطيات",
+           title: "D_f · مجموعة التعريف | Domaine",
           points: 2,
           prompt: "أ) اكتب مجموعة تعريف الدالة. ب) اذكر القيم الممنوعة وسبب منعها، ثم أعد كتابة الدالة على شكل يساعدك في متابعة الدراسة.",
         },
         {
           id: "limits",
-          title: "النهايات والمقارب",
+           title: "lim · النهايات | Limites",
           points: 3,
           prompt: "أ) احسب النهايات عند حدود مجال التعريف. ب) استنتج المقارب العمودي أو الأفقي أو المائل إن أمكن. ج) فسّر النتيجة بيانيًا.",
         },
         {
           id: "derivative",
-          title: "الاشتقاق وإشارة المشتقة",
+           title: "f′ · الاشتقاق | Dérivée",
           points: 3,
           prompt: "أ) احسب المشتقة وبسّطها. ب) ادرس إشارتها على كل مجال. ج) اذكر القاعدة التي استعملتها في كل تحويل.",
         },
         {
           id: "variations",
-          title: "اتجاه التغيرات وجدولها",
+           title: "Δf · اتجاه التغيرات | Variations",
           points: 3,
           prompt: "أ) استنتج اتجاه تغير الدالة. ب) احسب القيم الحدية اللازمة. ج) أنجز جدول التغيرات كاملًا مع احترام القيم الممنوعة.",
         },
         {
           id: "equations",
-          title: "المعادلات والمتراجحات",
+           title: "E_f · المعادلات والمتراجحات | Équations · Inéquations",
           points: 2,
           prompt: "أ) حل المعادلة المرتبطة بالدالة. ب) استعمل جدول التغيرات أو الإشارة لحل المتراجحة المطلوبة.",
         },
         {
           id: "relative-position",
-          title: "الوضع النسبي",
+           title: "C_f/Δ · الوضع النسبي | Position relative",
           points: 2,
           prompt: "أ) ادرس وضع المنحنى بالنسبة إلى المقارب. ب) حدّد نقاط التقاطع أو الأعداد الحقيقية المطلوبة مع تبرير كل نتيجة.",
         },
         {
           id: "graph",
-          title: "المماس والتمثيل البياني",
+           title: "C_f · التمثيل البياني | Courbe",
           points: 3,
           prompt: "أ) اكتب معادلة المماس في النقطة المطلوبة. ب) أنشئ المنحنى موضحًا المقاربات والمماس. ج) ضع نقاط التقاطع والاتجاهات الأساسية.",
         },
         {
           id: "synthesis",
-          title: "تركيب شامل",
+           title: "Σ · تركيب الدراسة | Synthèse",
           points: 2,
           prompt: "أ) رتّب نتائج الدراسة في خلاصة واحدة. ب) اشرح كيف تتحول كل نتيجة حسابية إلى معلومة على التمثيل البياني.",
         },
@@ -581,10 +584,10 @@ function buildGroundedExerciseFallback(
     status: "generated",
     lessonTitle: lesson,
     title: `ورقة تدريب موثقة: ${topic}`,
-     prompt: "أنجز الورقة بالقلم، واكتب المعطيات والتحويلات والتبريرات كاملة. لا تنتقل إلى المحور التالي قبل مراجعة السابق.",
-    answer: "هذه ورقة تدريب مصدرية؛ تُراجع الإجابات بمقارنة خطواتك مع المقتطفات المرجعية.",
-    hint: `ابدأ من المصدر «${sourceLabel}»، ثم حوّل كل قاعدة أو مثال فيه إلى خطوة واضحة.`,
-    solution: "لأن مزود التوليد غير متاح مؤقتًا، لم نعرض حلًا مولدًا. راجع خطواتك مع المقتطفات المرجعية واطلب التحليل بعد رفع المحاولة.",
+     prompt: "أنجز الورقة بالقلم، واكتب المعطيات والتحويلات والتبريرات كاملة.",
+     answer: "الحل غير معروض في ورقة الطالب. ارفع محاولتك للحصول على توجيه بعد المراجعة.",
+     hint: `ابدأ من «${sourceLabel}» وحدد المعطيات اللازمة لكل محور.`,
+     solution: "الحل غير معروض في ورقة الطالب. ارفع محاولتك للحصول على توجيه بعد المراجعة.",
     sourceDocuments: sourceDocumentsFrom(documents),
     sourceNodeIds: documents.map((document) => document.id),
     grounding: retrieval.grounding,
@@ -592,7 +595,7 @@ function buildGroundedExerciseFallback(
     totalPoints: sections.reduce((sum, section) => sum + section.points, 0),
     sections,
     fallback: true,
-    fallbackMessage: "تم بناء ورقة تدريب من المصادر المفهرسة لأن خدمة التوليد غير متاحة مؤقتًا.",
+     fallbackMessage: "هذه ورقة تدريب مبنية على مادة الدرس المتاحة.",
   };
 }
 
@@ -750,7 +753,7 @@ function groundedCreativeTopicFallback(
     agent: "exercises",
     lessonTitle: lesson.trim(),
     solutionSummary:
-      "تعذر الوصول إلى Gemini مؤقتًا بعد إعادة المحاولة. أعددنا لك مسارات أولية آمنة مبنية مباشرة على المصادر المسترجعة، ويمكنك إعادة التوليد لاحقًا للحصول على صياغات أكثر تخصيصًا.",
+      "أعددنا لك مسارات أولية مبنية مباشرة على مادة الدرس المتاحة.",
     ideas,
     sourceDocuments: sourceDocumentsFrom(documents),
     sourceNodeIds: assertGroundedNodeIds(
@@ -760,7 +763,7 @@ function groundedCreativeTopicFallback(
     grounding: retrieval.grounding,
     fallback: true,
     fallbackMessage:
-      "Gemini مشغول مؤقتًا. هذه مسارات أولية من المصادر المتاحة وليست توليدًا جديدًا؛ أعد المحاولة لاحقًا للحصول على أفكار مخصصة.",
+      "هذه مسارات أولية مبنية على مادة الدرس المتاحة.",
   };
 }
 

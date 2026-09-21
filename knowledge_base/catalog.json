@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-09-19T22:37:18.763815+00:00",
+  "generated_at": "2026-09-19T23:03:15.376963+00:00",
   "assets_root": "attached_assets",
   "stats": {
     "needs_review": 329,
     "indexed": 52,
     "excluded_media": 13,
-    "duplicate_source": 59,
+    "duplicate_source": 60,
     "excluded_reference": 1,
-    "total_assets": 454,
+    "total_assets": 455,
     "indexed_chunks": 685
   },
   "sources": [
@@ -14512,6 +14512,17 @@
       "source_id": "1a3315791aff9ecf2b8334db046775ad188273d31afe80a1a5a3d487323d1dce",
       "source_file": "Screenshot_2026-08-29_150342_1788527744396.png",
       "asset_path": "attached_assets/Screenshot_2026-08-29_150342_1788527744396.png",
+      "source_type": "png",
+      "bytes": 400415,
+      "sha256": "1a3315791aff9ecf2b8334db046775ad188273d31afe80a1a5a3d487323d1dce",
+      "status": "duplicate_source",
+      "canonical_source": "Screenshot_2026-08-29_150342_1788341853281.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
+    },
+    {
+      "source_id": "1a3315791aff9ecf2b8334db046775ad188273d31afe80a1a5a3d487323d1dce",
+      "source_file": "Screenshot_2026-08-29_150342_1789858807202.png",
+      "asset_path": "attached_assets/Screenshot_2026-08-29_150342_1789858807202.png",
       "source_type": "png",
       "bytes": 400415,
       "sha256": "1a3315791aff9ecf2b8334db046775ad188273d31afe80a1a5a3d487323d1dce",

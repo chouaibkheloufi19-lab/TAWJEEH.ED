@@ -103,7 +103,7 @@ export function InteractiveWhiteboard({
       context.font = '700 18px IBM Plex Sans Arabic, sans-serif';
       context.fillText('v = Δx / Δt', width * .18, height * .35);
       context.font = '600 12px IBM Plex Sans Arabic, sans-serif';
-      context.fillText('الميل يروي قصة الحركة', width * .18, height * .43);
+       context.fillText('ميل المنحنى: Δy / Δx', width * .18, height * .43);
       context.strokeStyle = '#1b8596';
       context.lineWidth = 3;
       context.beginPath();
