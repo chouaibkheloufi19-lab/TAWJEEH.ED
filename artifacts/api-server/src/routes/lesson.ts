@@ -886,11 +886,23 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    const errorBank = await listErrorBank(userId);
-    const historicalErrors = errorBank.errors
-      .slice(0, 12)
-      .map((error) => `${error.concept_title}: ${error.error_tag}`)
-      .join(" | ");
+    let historicalErrors = "";
+    try {
+      const errorBank = await listErrorBank(userId);
+      historicalErrors = errorBank.errors
+        .slice(0, 12)
+        .map((error) => `${error.concept_title}: ${error.error_tag}`)
+        .join(" | ");
+    } catch (error) {
+      // Error history improves personalization, but it must not block a
+      // grounded exercise when the optional progress store is unavailable.
+      req.log.warn(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Skipping error-bank context during exercise generation",
+      );
+    }
     retrieval = await retrieveGroundedKnowledge(
       [
         lesson,
