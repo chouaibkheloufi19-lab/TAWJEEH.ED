@@ -838,6 +838,19 @@
   font-weight: 800;
 }
 
+.review-studio-paper-difficulty {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 8px 6px;
+  padding: 4px 9px;
+  border: 1px solid #e1b86b;
+  border-radius: 999px;
+  color: #82591e;
+  background: #fff7e6;
+  font-size: 10px;
+  font-weight: 800;
+}
+
 .review-studio-paper-intro h3 {
   margin: 0;
   color: #174d5c;

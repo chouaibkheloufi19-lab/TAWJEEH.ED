@@ -11,6 +11,9 @@ export const FUNCTION_REVIEW_SECTION_IDS = [
   "synthesis",
 ] as const;
 
+export const REVIEW_PAPER_DIFFICULTY = "advanced" as const;
+export type ReviewPaperDifficulty = typeof REVIEW_PAPER_DIFFICULTY;
+
 export type FunctionReviewSectionId = (typeof FUNCTION_REVIEW_SECTION_IDS)[number];
 
 export type GroundedReviewSection = {
@@ -25,6 +28,14 @@ type RetrievedReviewSource = {
   id: string;
   document: string;
 };
+
+export function assertReviewPaperDifficulty(
+  value: unknown,
+): asserts value is ReviewPaperDifficulty {
+  if (value !== REVIEW_PAPER_DIFFICULTY) {
+    throw new Error("Review paper must explicitly declare advanced difficulty");
+  }
+}
 
 function normalizeEvidence(value: string): string {
   return value.toLocaleLowerCase().replace(/\s+/g, " ").trim();

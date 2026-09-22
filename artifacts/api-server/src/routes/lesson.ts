@@ -27,7 +27,9 @@ import {
 import { normalizeFunctionSectionTitle } from "../lib/function-section-titles";
 import {
   assertGroundedReviewPaperContract,
+  assertReviewPaperDifficulty,
   FUNCTION_REVIEW_SECTION_IDS,
+  REVIEW_PAPER_DIFFICULTY,
 } from "../lib/review-paper-contract";
 
 const router: IRouter = Router();
@@ -75,7 +77,7 @@ type GeneratedExercise = {
   sourceDocuments: SourceDocument[];
   sourceNodeIds: string[];
   grounding: Grounding;
-  difficulty?: "advanced";
+  difficulty?: typeof REVIEW_PAPER_DIFFICULTY;
   format?: "comprehensive_function" | "comprehensive_science";
   totalPoints?: number;
   sections?: Array<{
@@ -96,7 +98,7 @@ type StudentPaper = {
   lessonTitle: string;
   title: string;
   prompt: string;
-  difficulty: "advanced";
+  difficulty: typeof REVIEW_PAPER_DIFFICULTY;
   format: "comprehensive_function" | "comprehensive_science";
   totalPoints: number;
   sections: Array<{
@@ -350,7 +352,7 @@ async function generateExercise(
     || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(generationRequest);
   const generationInstruction = isFunctionStudy
       ? [
-        "مستوى الصعوبة إلزاميًا: متقدم، على نمط بكالوريا صارم. اجعل كل محور متعدد الخطوات، واجعل الانتقال بين المحاور يعتمد على نتيجة المحور السابق.",
+        "مستوى الصعوبة إلزاميًا: متقدم. يجب أن يعلن JSON الحقل difficulty بالقيمة الإنجليزية الحرفية advanced، وإلا تُرفض الورقة. اجعلها على نمط بكالوريا صارم، وكل محور متعدد الخطوات، واجعل الانتقال بين المحاور يعتمد على نتيجة المحور السابق.",
         "طلب الطالب دراسة شاملة ومدققة لدالة عددية. لا تنشئ سؤالًا واحدًا ولا أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
         "أنشئ ورقة واحدة متماسكة حول دالة عددية واحدة، لا سؤالًا منفردًا. اجعلها دراسة شاملة من 10 محاور مترابطة، وكل محور يحتوي سؤالين أو ثلاثة أسئلة فرعية قصيرة عند الحاجة. يجب أن تقود المعطيات نفسها إلى: مجموعة التعريف والنهايات، الاشتقاق، اتجاه التغيرات، جدول التغيرات، حل معادلات أو متراجحات مرتبطة بالدالة، الوضع النسبي، المناقشة الأفقية، المناقشة المائلة، التمثيل البياني، ثم تركيب نهائي.",
         "اجعلها قابلة للنسخ على ورقة مدرسية: سياق مختصر، معطيات واضحة، ثم مطلوبات مرقمة من (أ) إلى (ح). يجب أن تكون كل المطلوبات قابلة للحل من المعطيات نفسها، وأن يكون مجموع العلامات 20 نقطة. لا تستخدم اختيارًا من متعدد ولا صح/خطأ.",
@@ -360,6 +362,7 @@ async function generateExercise(
       ].join("\n")
     : isScientificPaper
       ? [
+          "مستوى الصعوبة إلزاميًا: متقدم. يجب أن يعلن JSON الحقل difficulty بالقيمة الإنجليزية الحرفية advanced، وإلا تُرفض الورقة.",
           "طلب الطالب ورقة اختبار رسمية. لا تنشئ اختيارًا من متعدد ولا سؤالًا قصيرًا ولا نصًا أدبيًا.",
           "أنشئ موضوعًا على نمط ورقة البكالوريا: معطيات ورموز ووحدات واضحة، ثم مطلوبات رياضية مباشرة مرقمة بفروع (أ) و(ب) و(ج). اجعل كل مطلب قابلًا للحل بالقلم من المعطيات نفسها، واستعمل «عيّن» و«احسب» و«استنتج» و«بيّن» و«ادرس» و«مثّل».",
           "لا تضع عناوين وصفية قبل المطلوبات. title في sections تسمية داخلية فقط؛ أما prompt فيبدأ بالسؤال مباشرة ولا يحتوي على لغة أدبية أو عبارات «اشرح» و«لماذا» و«كيف».",
@@ -394,9 +397,9 @@ async function generateExercise(
           "عقد المتجه المسترجعة من ChromaDB:",
           sourceText,
            isFunctionStudy
-              ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds على مستوى الورقة وكل section، وevidence مقتبسًا حرفيًا من العقدة المستخدمة: {"lessonTitle":"الدوال العددية","title":"دراسة شاملة في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"limits","title":"النهايات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"derivative","title":"الاشتقاق","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"variations","title":"التغيرات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"equations","title":"المعادلات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"relative-position","title":"الوضع النسبي","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"horizontal-discussion","title":"المناقشة الأفقية","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"oblique-discussion","title":"المناقشة المائلة","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"graph","title":"التمثيل البياني","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"}],"sourceNodeIds":["node-id"]}'
+             ? 'أعد الشكل التالي حرفيًا، وأضف difficulty:"advanced" وsourceNodeIds على مستوى الورقة وكل section، وevidence مقتبسًا حرفيًا من العقدة المستخدمة: {"lessonTitle":"الدوال العددية","title":"دراسة شاملة في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","difficulty":"advanced","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"limits","title":"النهايات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"derivative","title":"الاشتقاق","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"variations","title":"التغيرات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"equations","title":"المعادلات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"relative-position","title":"الوضع النسبي","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"horizontal-discussion","title":"المناقشة الأفقية","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"oblique-discussion","title":"المناقشة المائلة","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"graph","title":"التمثيل البياني","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"}],"sourceNodeIds":["node-id"]}'
           : isScientificPaper
-               ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان المادة","title":"موضوع عملي شامل","prompt":"معطيات الورقة دون حل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"data","points":3,"prompt":"أ) عيّن... ب) اكتب..."},{"id":"law","title":"law","points":4,"prompt":"أ) اكتب... ب) استنتج..."},{"id":"calculation","title":"calculation","points":5,"prompt":"أ) احسب... ب) استنتج..."},{"id":"interpretation","title":"interpretation","points":4,"prompt":"أ) بيّن... ب) تحقق..."},{"id":"synthesis","title":"synthesis","points":4,"prompt":"استنتج النتيجة النهائية."}],"sourceNodeIds":["node-id"]}'
+               ? 'أعد الشكل التالي حرفيًا، وأضف difficulty:"advanced" وsourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان المادة","title":"موضوع عملي شامل","prompt":"معطيات الورقة دون حل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","difficulty":"advanced","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"data","points":3,"prompt":"أ) عيّن... ب) اكتب..."},{"id":"law","title":"law","points":4,"prompt":"أ) اكتب... ب) استنتج..."},{"id":"calculation","title":"calculation","points":5,"prompt":"أ) احسب... ب) استنتج..."},{"id":"interpretation","title":"interpretation","points":4,"prompt":"أ) بيّن... ب) تحقق..."},{"id":"synthesis","title":"synthesis","points":4,"prompt":"استنتج النتيجة النهائية."}],"sourceNodeIds":["node-id"]}'
             : 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
         ].join("\n"),
       },
@@ -446,6 +449,9 @@ async function generateExercise(
   const format = parsed.format === "comprehensive_function" || parsed.format === "comprehensive_science"
     ? parsed.format
     : undefined;
+  if (forceComprehensive && parsed.difficulty !== REVIEW_PAPER_DIFFICULTY) {
+    throw new Error("Exercise generator returned a paper without advanced difficulty");
+  }
   if (isScientificPaper && (!format || !sections || sections.length < 5)) {
     throw new Error("Exercise generator returned an incomplete practical paper");
   }
@@ -487,6 +493,7 @@ async function generateExercise(
     sourceDocuments: sourceDocumentsFrom(retrieval.documents),
     sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
     grounding: retrieval.grounding,
+    ...(forceComprehensive ? { difficulty: REVIEW_PAPER_DIFFICULTY } : {}),
     ...(sections && format
       ? {
           format,
@@ -995,12 +1002,14 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       retrieval,
     );
     if (mode === "paper") {
+      assertReviewPaperDifficulty(generated.difficulty);
       const studentPaper: StudentPaper = {
         status: generated.status,
         mode: "paper",
         lessonTitle: generated.lessonTitle,
         title: generated.title,
         prompt: generated.prompt,
+        difficulty: generated.difficulty,
         format: generated.format ?? "comprehensive_science",
         totalPoints: generated.totalPoints ?? generated.sections?.reduce((sum, section) => sum + section.points, 0) ?? 0,
         sections: generated.sections ?? [],

@@ -51,6 +51,7 @@ export type ComprehensivePaper = {
   lessonTitle: string;
   title: string;
   prompt: string;
+  difficulty: 'advanced';
   format: 'comprehensive_function' | 'comprehensive_science';
   totalPoints: number;
   sections: ExerciseSection[];
@@ -107,6 +108,7 @@ function isComprehensivePaper(value: unknown): value is ComprehensivePaper {
     && typeof paper.lessonTitle === 'string'
     && typeof paper.title === 'string'
     && typeof paper.prompt === 'string'
+    && paper.difficulty === 'advanced'
     && (paper.format === 'comprehensive_function' || paper.format === 'comprehensive_science')
     && typeof paper.totalPoints === 'number'
     && Array.isArray(paper.sections)
@@ -304,6 +306,7 @@ export function ReviewStudio() {
     const text = [
       paper.title,
       `المادة: ${paper.lessonTitle}`,
+      'المستوى: متقدم',
       `العلامة: ${paper.totalPoints} نقطة`,
       '',
       'أجب عن الورقة بالقلم، ثم ارفع صورة المحاولة إلى فهيم للتوجيه.',
@@ -510,7 +513,7 @@ export function ReviewStudio() {
                 {paper && paperState === 'ready' && (
                   <div className="review-studio-paper" data-testid="review-studio-paper-result">
                     <div className="review-studio-paper-intro">
-                      <div><span className="review-studio-paper-eyebrow">ورقة {paper.format === 'comprehensive_function' ? 'دوال' : 'تطبيقية'} · محاولة مؤقتة</span><h3><MathText>{paper.title}</MathText></h3></div>
+                      <div><span className="review-studio-paper-eyebrow">ورقة {paper.format === 'comprehensive_function' ? 'دوال' : 'تطبيقية'} · محاولة مؤقتة</span><span className="review-studio-paper-difficulty">المستوى: متقدم</span><h3><MathText>{paper.title}</MathText></h3></div>
                       <div className="review-studio-paper-score"><strong>{paper.totalPoints}</strong><span>نقطة</span></div>
                     </div>
                     <p className="review-studio-paper-prompt"><MathText>{paper.prompt}</MathText></p>

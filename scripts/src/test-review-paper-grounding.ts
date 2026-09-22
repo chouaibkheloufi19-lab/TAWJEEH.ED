@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import {
   assertGroundedReviewPaperContract,
+  assertReviewPaperDifficulty,
   FUNCTION_REVIEW_SECTION_IDS,
 } from "../../artifacts/api-server/src/lib/review-paper-contract";
+
+assert.doesNotThrow(() => assertReviewPaperDifficulty("advanced"));
+assert.throws(
+  () => assertReviewPaperDifficulty("intermediate"),
+  /must explicitly declare advanced difficulty/,
+);
 
 const validSections = FUNCTION_REVIEW_SECTION_IDS.map((id) => ({
   id,
