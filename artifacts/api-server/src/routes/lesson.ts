@@ -25,6 +25,10 @@ import {
   DeepSeekProviderError,
 } from "../lib/ai-provider";
 import { normalizeFunctionSectionTitle } from "../lib/function-section-titles";
+import {
+  assertGroundedReviewPaperContract,
+  FUNCTION_REVIEW_SECTION_IDS,
+} from "../lib/review-paper-contract";
 
 const router: IRouter = Router();
 
@@ -71,6 +75,7 @@ type GeneratedExercise = {
   sourceDocuments: SourceDocument[];
   sourceNodeIds: string[];
   grounding: Grounding;
+  difficulty?: "advanced";
   format?: "comprehensive_function" | "comprehensive_science";
   totalPoints?: number;
   sections?: Array<{
@@ -78,6 +83,8 @@ type GeneratedExercise = {
     title: string;
     points: number;
     prompt: string;
+    sourceNodeIds?: string[];
+    evidence?: string;
   }>;
   fallback?: boolean;
   fallbackMessage?: string;
@@ -89,6 +96,7 @@ type StudentPaper = {
   lessonTitle: string;
   title: string;
   prompt: string;
+  difficulty: "advanced";
   format: "comprehensive_function" | "comprehensive_science";
   totalPoints: number;
   sections: Array<{
@@ -342,11 +350,13 @@ async function generateExercise(
     || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(generationRequest);
   const generationInstruction = isFunctionStudy
       ? [
+        "مستوى الصعوبة إلزاميًا: متقدم، على نمط بكالوريا صارم. اجعل كل محور متعدد الخطوات، واجعل الانتقال بين المحاور يعتمد على نتيجة المحور السابق.",
         "طلب الطالب دراسة شاملة ومدققة لدالة عددية. لا تنشئ سؤالًا واحدًا ولا أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
-        "أنشئ ورقة واحدة متماسكة حول دالة عددية واحدة، لا سؤالًا منفردًا. اجعلها دراسة شاملة طويلة من 8 محاور مترابطة، وكل محور يحتوي سؤالين أو ثلاثة أسئلة فرعية قصيرة عند الحاجة. يجب أن تقود المعطيات نفسها إلى: مجموعة التعريف والنهايات، الاشتقاق، اتجاه التغيرات، جدول التغيرات، حل معادلات أو متراجحات مرتبطة بالدالة، الوضع النسبي وإيجاد الأعداد الحقيقية، التمثيل البياني، المستقيمات المقاربة والمماس، ثم تركيب نهائي.",
+        "أنشئ ورقة واحدة متماسكة حول دالة عددية واحدة، لا سؤالًا منفردًا. اجعلها دراسة شاملة من 10 محاور مترابطة، وكل محور يحتوي سؤالين أو ثلاثة أسئلة فرعية قصيرة عند الحاجة. يجب أن تقود المعطيات نفسها إلى: مجموعة التعريف والنهايات، الاشتقاق، اتجاه التغيرات، جدول التغيرات، حل معادلات أو متراجحات مرتبطة بالدالة، الوضع النسبي، المناقشة الأفقية، المناقشة المائلة، التمثيل البياني، ثم تركيب نهائي.",
         "اجعلها قابلة للنسخ على ورقة مدرسية: سياق مختصر، معطيات واضحة، ثم مطلوبات مرقمة من (أ) إلى (ح). يجب أن تكون كل المطلوبات قابلة للحل من المعطيات نفسها، وأن يكون مجموع العلامات 20 نقطة. لا تستخدم اختيارًا من متعدد ولا صح/خطأ.",
         "أعد أيضًا حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا قصيرًا. لا تعرض الحل في prompt أو sections.",
-         'أعد sections بهذا الشكل، مع أسئلة فرعية متعددة داخل prompt كل محور: [{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"أ) ... ب) ..."},{"id":"limits","title":"النهايات والمقارب","points":3,"prompt":"أ) ... ب) ... ج) ..."},{"id":"derivative","title":"الاشتقاق","points":3,"prompt":"أ) ... ب) ..."},{"id":"variations","title":"اتجاه التغيرات وجدولها","points":3,"prompt":"أ) ... ب) ... ج) ..."},{"id":"equations","title":"المعادلات والمتراجحات","points":2,"prompt":"أ) ... ب) ..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":2,"prompt":"أ) ... ب) ..."},{"id":"graph","title":"التمثيل البياني والمماس","points":3,"prompt":"أ) ... ب) ... ج) ..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"أ) ... ب) ..."}]',
+        "أضف محورين مستقلين وصريحين لا يجوز حذفهما: «المناقشة الأفقية» لدراسة عدد حلول f(x)=m وتمثيلها بالنسبة إلى y=m، و«المناقشة المائلة» لدراسة الوضع النسبي أو عدد حلول f(x)=ax+b عندما تثبت المصادر ذلك. لا تخترع معطيات أو قوانين لهذين المحورين؛ إذا لم تثبتها المصادر ارفض التوليد بدل التخمين.",
+        'أعد sections بهذا الترتيب وبمجموع 20 نقطة. كل section يجب أن يحتوي sourceNodeIds مأخوذة من العقد المسترجعة نفسها، وevidence عبارة قصيرة منسوخة حرفيًا من نص إحدى تلك العقد لتثبت أن المطلوب ليس قالبًا ثابتًا: [{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"limits","title":"النهايات والمقارب","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"derivative","title":"الاشتقاق","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"variations","title":"اتجاه التغيرات وجدولها","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"equations","title":"المعادلات والمتراجحات","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"relative-position","title":"الوضع النسبي","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"horizontal-discussion","title":"المناقشة الأفقية","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"oblique-discussion","title":"المناقشة المائلة","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"graph","title":"التمثيل البياني والمماس","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"}]',
       ].join("\n")
     : isScientificPaper
       ? [
@@ -383,8 +393,8 @@ async function generateExercise(
           `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
           "عقد المتجه المسترجعة من ChromaDB:",
           sourceText,
-          isFunctionStudy
-             ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"الدوال العددية","title":"دراسة شاملة في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"limits","title":"النهايات ومجموعة التعريف","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق والتغيرات","points":4,"prompt":"..."},{"id":"relative-position","title":"الوضع النسبي والأعداد الحقيقية","points":4,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"asymptotes","title":"المقارب والمماس","points":3,"prompt":"..."},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
+           isFunctionStudy
+              ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds على مستوى الورقة وكل section، وevidence مقتبسًا حرفيًا من العقدة المستخدمة: {"lessonTitle":"الدوال العددية","title":"دراسة شاملة في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"limits","title":"النهايات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"derivative","title":"الاشتقاق","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"variations","title":"التغيرات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"equations","title":"المعادلات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"relative-position","title":"الوضع النسبي","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"horizontal-discussion","title":"المناقشة الأفقية","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"oblique-discussion","title":"المناقشة المائلة","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"graph","title":"التمثيل البياني","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"}],"sourceNodeIds":["node-id"]}'
           : isScientificPaper
                ? 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان المادة","title":"موضوع عملي شامل","prompt":"معطيات الورقة دون حل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"data","points":3,"prompt":"أ) عيّن... ب) اكتب..."},{"id":"law","title":"law","points":4,"prompt":"أ) اكتب... ب) استنتج..."},{"id":"calculation","title":"calculation","points":5,"prompt":"أ) احسب... ب) استنتج..."},{"id":"interpretation","title":"interpretation","points":4,"prompt":"أ) بيّن... ب) تحقق..."},{"id":"synthesis","title":"synthesis","points":4,"prompt":"استنتج النتيجة النهائية."}],"sourceNodeIds":["node-id"]}'
             : 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
@@ -415,10 +425,13 @@ async function generateExercise(
           && typeof section.title === "string"
           && typeof section.points === "number"
           && typeof section.prompt === "string"
+          && Array.isArray(section.sourceNodeIds)
+          && typeof section.evidence === "string"
+          && section.evidence.trim()
           && section.points > 0
           && section.prompt.trim(),
         ))
-        .slice(0, 8)
+        .slice(0, isFunctionStudy ? FUNCTION_REVIEW_SECTION_IDS.length : 8)
         .map((section) => ({
           id: section.id.trim(),
           title: isFunctionStudy
@@ -426,6 +439,8 @@ async function generateExercise(
             : section.title.trim(),
           points: section.points,
           prompt: section.prompt.trim(),
+          sourceNodeIds: assertGroundedNodeIds(section.sourceNodeIds, retrieval),
+          evidence: section.evidence?.trim() ?? "",
         }))
     : undefined;
   const format = parsed.format === "comprehensive_function" || parsed.format === "comprehensive_science"
@@ -437,13 +452,29 @@ async function generateExercise(
   if (isFunctionStudy && format !== "comprehensive_function") {
     throw new Error("Exercise generator returned a non-function paper for a function study");
   }
+  const totalPoints = typeof parsed.totalPoints === "number"
+    ? parsed.totalPoints
+    : sections?.reduce((sum, section) => sum + section.points, 0) ?? 0;
   if (isScientificPaper && sections) {
-    const totalPoints = typeof parsed.totalPoints === "number"
-      ? parsed.totalPoints
-      : sections.reduce((sum, section) => sum + section.points, 0);
     if (totalPoints <= 0 || totalPoints > 20 || sections.some((section) => section.prompt.includes("الحل النموذجي"))) {
       throw new Error("Exercise generator returned an invalid practical paper");
     }
+  }
+  if (isFunctionStudy && sections) {
+    assertGroundedReviewPaperContract(
+      sections as Array<{
+        id: string;
+        points: number;
+        prompt: string;
+        sourceNodeIds: string[];
+        evidence: string;
+      }>,
+      totalPoints,
+      retrieval.documents.map((document) => ({
+        id: document.id,
+        document: document.document ?? "",
+      })),
+    );
   }
   return {
     status: "generated",
@@ -459,7 +490,7 @@ async function generateExercise(
     ...(sections && format
       ? {
           format,
-          totalPoints: typeof parsed.totalPoints === "number" ? parsed.totalPoints : sections.reduce((sum, section) => sum + section.points, 0),
+          totalPoints,
           sections,
         }
       : {}),
@@ -1002,7 +1033,8 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     if (
       error instanceof DeepSeekProviderError &&
       error.retryable &&
-      retrieval
+      retrieval &&
+      !isPaperRequest
     ) {
       req.log.warn(
         { status: error.status },
@@ -1014,21 +1046,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         retrieval,
         isPaperRequest,
       );
-      if (mode === "paper") {
-        const studentPaper: StudentPaper = {
-          status: fallback.status,
-          mode: "paper",
-          lessonTitle: fallback.lessonTitle,
-          title: fallback.title,
-          prompt: fallback.prompt,
-          format: fallback.format ?? "comprehensive_science",
-          totalPoints: fallback.totalPoints ?? 20,
-          sections: fallback.sections ?? [],
-        };
-        res.json(studentPaper);
-      } else {
-        res.json(studentExerciseView(fallback));
-      }
+      res.json(studentExerciseView(fallback));
       return;
     }
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")

@@ -5,6 +5,8 @@ const FUNCTION_SECTION_TITLES: Record<string, string> = {
   variations: "Δf · اتجاه التغيرات | Variations",
   equations: "E_f · المعادلات والمتراجحات | Équations · Inéquations",
   "relative-position": "C_f/Δ · الوضع النسبي | Position relative",
+  "horizontal-discussion": "H_m · المناقشة الأفقية | Discussion horizontale",
+  "oblique-discussion": "D_{a,b} · المناقشة المائلة | Discussion oblique",
   tangent: "T_a · المماس | Tangente",
   graph: "C_f · التمثيل البياني | Courbe",
   asymptotes: "Δ, T_a · المقارب والمماس | Asymptote · Tangente",
@@ -15,6 +17,8 @@ function sectionKey(id: string, title: string): string {
   const value = `${id} ${title}`.toLocaleLowerCase();
   if (/domain|مجموعة التعريف|مجال التعريف|تعريف الدالة/.test(value)) return "domain";
   if (/relative|position|الوضع النسبي/.test(value)) return "relative-position";
+  if (/horizontal|أفقية|أفقي/.test(value)) return "horizontal-discussion";
+  if (/oblique|مائلة|مائل/.test(value)) return "oblique-discussion";
   if (/asymptote|مقارب/.test(value) && !/graph|تمثيل بياني/.test(value)) return "asymptotes";
   if (/tangent|مماس/.test(value) && !/graph|تمثيل بياني/.test(value)) return "tangent";
   if (/graph|courbe|تمثيل بياني|منحنى/.test(value)) return "graph";
