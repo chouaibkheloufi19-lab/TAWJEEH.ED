@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-09-21T22:23:16.099712+00:00",
+  "generated_at": "2026-09-22T21:14:50.527442+00:00",
   "assets_root": "attached_assets",
   "stats": {
     "needs_review": 331,
     "indexed": 52,
     "excluded_media": 13,
-    "duplicate_source": 61,
+    "duplicate_source": 63,
     "excluded_reference": 1,
-    "total_assets": 458,
+    "total_assets": 460,
     "indexed_chunks": 685
   },
   "sources": [
@@ -5289,6 +5289,17 @@
         "reference"
       ],
       "indexed_source_hash": "e170aae519663323359859439f133e79fe971b6c1694d14c745f0fc5057cafd1"
+    },
+    {
+      "source_id": "e170aae519663323359859439f133e79fe971b6c1694d14c745f0fc5057cafd1",
+      "source_file": "image_1790029794625.png",
+      "asset_path": "attached_assets/image_1790029794625.png",
+      "source_type": "png",
+      "bytes": 42196,
+      "sha256": "e170aae519663323359859439f133e79fe971b6c1694d14c745f0fc5057cafd1",
+      "status": "duplicate_source",
+      "canonical_source": "image_1790028958274.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "dbb8966407793c9c3e5f361c1cdfe8a5933880e94065548e20a633bb1368ea6e",
@@ -14735,6 +14746,17 @@
       "source_id": "1936307e7dd9520fd1fa5f3c6769c42d7f5da2ef52716b78249d752c844583e0",
       "source_file": "Screenshot_2026-08-29_150415_1790027159751.png",
       "asset_path": "attached_assets/Screenshot_2026-08-29_150415_1790027159751.png",
+      "source_type": "png",
+      "bytes": 435634,
+      "sha256": "1936307e7dd9520fd1fa5f3c6769c42d7f5da2ef52716b78249d752c844583e0",
+      "status": "duplicate_source",
+      "canonical_source": "Screenshot_2026-08-29_150415_1788341853283.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
+    },
+    {
+      "source_id": "1936307e7dd9520fd1fa5f3c6769c42d7f5da2ef52716b78249d752c844583e0",
+      "source_file": "Screenshot_2026-08-29_150415_1790030095749.png",
+      "asset_path": "attached_assets/Screenshot_2026-08-29_150415_1790030095749.png",
       "source_type": "png",
       "bytes": 435634,
       "sha256": "1936307e7dd9520fd1fa5f3c6769c42d7f5da2ef52716b78249d752c844583e0",
