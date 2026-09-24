@@ -8,8 +8,8 @@ export const SCIENCE_REVIEW_SECTION_IDS = [
 
 type ScientificSource = {
   id: string;
-  document: string;
-  metadata?: Record<string, unknown>;
+  document?: string;
+  metadata?: Record<string, string | number>;
 };
 
 type ScientificSection = {
@@ -136,7 +136,10 @@ export function selectGroundedScientificScenario<TSource extends ScientificSourc
   subject: string,
 ): GroundedScientificScenario<TSource> | undefined {
   const candidates = sources
-    .filter((source) => source.id && typeof source.document === "string")
+    .filter(
+      (source): source is TSource & { document: string } =>
+        Boolean(source.id) && typeof source.document === "string",
+    )
     .map((source) => {
       const text = extractScenarioText(source.document);
       const score = scenarioScore(source, text, topic, subject);
