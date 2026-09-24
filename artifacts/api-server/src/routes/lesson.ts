@@ -14,11 +14,14 @@ import {
   ADAPTIVE_EXERCISE_PROMPT,
   CREATIVE_EXERCISE_TOPICS_PROMPT,
   EXERCISE_GENERATION_PROMPT,
+  FUNCTION_ACADEMIC_EXAM_PROMPT,
+  FUNCTION_EXERCISE_PROMPT,
   FRIENDLY_TUTOR_PROMPT,
   GROUNDED_CONTENT_RULES,
   INTERACTIVE_EXERCISES_PROMPT,
   LEARNER_SAFE_OUTPUT_RULES,
   LESSON_GENERATION_PROMPT,
+  SCIENCE_EXERCISE_PROMPT,
 } from "../lib/ai-prompts";
 import {
   callDeepSeekTextModelWithRetry,
@@ -352,8 +355,11 @@ async function generateExercise(
     subject,
     activeConcept,
   ].join(" ");
+  const isPhysicsRequest =
+    /فيزياء|فيزيائي|physics|physique/i.test(studyRequest);
   const isFunctionStudy =
     forceComprehensive &&
+    !isPhysicsRequest &&
     /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite|function/i.test(studyRequest);
   const isScientificPaper = forceComprehensive;
   const generationInstruction = isFunctionStudy
@@ -382,9 +388,13 @@ async function generateExercise(
         role: "system" as const,
         content: [
           ADAPTIVE_EXERCISE_PROMPT,
-          ...(isFunctionStudy ? [ACADEMIC_EXAM_PROMPT] : []),
+          ...(isFunctionStudy
+            ? [ACADEMIC_EXAM_PROMPT, FUNCTION_ACADEMIC_EXAM_PROMPT]
+            : []),
           EXERCISE_GENERATION_PROMPT,
+          ...(isFunctionStudy ? [FUNCTION_EXERCISE_PROMPT] : []),
           ...(isScientificPaper && !isFunctionStudy ? [INTERACTIVE_EXERCISES_PROMPT] : []),
+          ...(isScientificPaper && isPhysicsRequest ? [SCIENCE_EXERCISE_PROMPT] : []),
           GROUNDED_CONTENT_RULES,
           LEARNER_SAFE_OUTPUT_RULES,
           `أنت وكيل تمارين عربي لمنصة توجيه. ${generationInstruction} أخفِ الإجابة في الحقول الداخلية المخصصة لها؛ لا تضع أي جزء من الحل النموذجي في prompt أو sections لأن الطالب سيراهما قبل المحاولة. اجعل الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.`,
@@ -398,7 +408,7 @@ async function generateExercise(
           `مستوى الطالب: ${level || "غير محدد"}`,
           `المادة: ${subject || "غير محددة"}`,
           `السنة الدراسية: ${curriculumYear || "غير محددة"}`,
-          `المفهوم الحالي: ${activeConcept || "قوانين نيوتن والحركة"}`,
+          `المفهوم الحالي: ${activeConcept || "المفهوم المحدد في عنوان الدرس والمصادر"}`,
           `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
           "عقد المتجه المسترجعة من ChromaDB:",
           sourceText,
@@ -484,6 +494,9 @@ async function generateExercise(
       }
       if (isFunctionStudy && format !== "comprehensive_function") {
         throw new Error("Exercise generator returned a non-function paper for a function study");
+      }
+      if (isPhysicsRequest && format !== "comprehensive_science") {
+        throw new Error("Exercise generator returned a non-science paper for a physics request");
       }
       const totalPoints = typeof parsed.totalPoints === "number"
         ? parsed.totalPoints
@@ -588,7 +601,10 @@ function buildGroundedExerciseFallback(
     .slice(0, 3);
   const primary = documents[0];
   const metadata = primary?.metadata ?? {};
-  const topic = activeConcept.trim() || String(metadata.lesson || metadata.unit || lesson);
+  const topic =
+    activeConcept.trim() || lesson.trim() || String(metadata.lesson || metadata.unit || lesson);
+  const isPhysicsRequest =
+    /فيزياء|فيزيائي|physics|physique/i.test(`${subject} ${lesson} ${topic}`);
   const sourceLabel = String(metadata.source_file || "المصدر الدراسي");
   const evidence = documents
     .map((document, index) => {
@@ -600,6 +616,7 @@ function buildGroundedExerciseFallback(
     .join("\n\n");
   const isFunctionStudy =
     forceComprehensive &&
+    !isPhysicsRequest &&
     /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|function/i.test(
       `${lesson} ${topic}`,
     );

@@ -11,8 +11,11 @@ import {
   ACADEMIC_EXAM_PROMPT,
   CREATIVE_IDEAS_PROMPT,
   EXERCISE_GENERATION_PROMPT,
+  FUNCTION_ACADEMIC_EXAM_PROMPT,
+  FUNCTION_EXERCISE_PROMPT,
   GROUNDED_CONTENT_RULES,
   LEARNER_SAFE_OUTPUT_RULES,
+  SCIENCE_EXERCISE_PROMPT,
 } from "../lib/ai-prompts";
 import {
   callDeepSeekTextModelWithRetry,
@@ -420,6 +423,15 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         ? track.trim()
         : "شعبة العلوم التجريبية",
   };
+  const isPhysicsExam = /فيزياء|فيزيائي|physics|physique/i.test(
+    requestedContext.subject,
+  );
+  const isFunctionExam =
+    !isPhysicsExam &&
+    /رياضيات|math|mathématique|mathematics/i.test(requestedContext.subject) &&
+    /دالة|دوال|الدوال|الدالة|نهايات|اشتقاق|مماس|مقارب|function|derivative|limit/i.test(
+      request,
+    );
   try {
     const retrieval = await retrieveGroundedKnowledge(
       [
@@ -440,6 +452,10 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
           content: [
             ACADEMIC_EXAM_PROMPT,
             EXERCISE_GENERATION_PROMPT,
+            ...(isPhysicsExam ? [SCIENCE_EXERCISE_PROMPT] : []),
+            ...(isFunctionExam
+              ? [FUNCTION_ACADEMIC_EXAM_PROMPT, FUNCTION_EXERCISE_PROMPT]
+              : []),
             GROUNDED_CONTENT_RULES,
             LEARNER_SAFE_OUTPUT_RULES,
             "أنشئ ورقة عربية عملية من المصادر المتاحة. طلب الطالب يحدد الموضوع والمطلوبات والقيود الخاصة؛ التزم به بدل استبداله بموضوع ثابت أو إضافة محاور غير مطلوبة. إذا حدد عدد التمارين أو مستوى الصعوبة أو محورًا بعينه، فاتبعه ما دام متوافقًا مع المصادر. لا تخترع قانونًا أو قيمة أو نتيجة غير مسندة. حافظ على مجموع 20 نقطة، وعلى بنية امتحانية صالحة للطباعة تتضمن تمرينين على الأقل ودليل تصحيح مطابقًا لكل تمرين. اكتب بصيغة مهنية مباشرة: اجعل theme سياقًا قصيرًا، وابدأ كل prompt بالمطلوب مباشرة بفعل مثل عيّن أو احسب أو بيّن أو استنتج. استخدم title كعنوان داخلي للتمرين، ولا تكرر عنوان المحور داخل نص السؤال. أعد JSON فقط.",

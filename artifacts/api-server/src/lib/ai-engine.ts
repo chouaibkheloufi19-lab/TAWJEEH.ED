@@ -1,8 +1,12 @@
 import {
+  ACADEMIC_EXAM_PROMPT,
+  FUNCTION_ACADEMIC_EXAM_PROMPT,
+  FUNCTION_EXERCISE_PROMPT,
   EXPLANATION_ENGINE_PROMPT,
   INTERACTIVE_EXERCISES_PROMPT,
   LEARNER_SAFE_OUTPUT_RULES,
   DALEEL_TUTOR_PROMPT,
+  SCIENCE_EXERCISE_PROMPT,
 } from "./ai-prompts";
 import {
   callDeepSeekTextModelWithRetry,
@@ -17,6 +21,7 @@ import {
   type RetrievalContext,
 } from "./rag";
 import { normalizeFunctionSectionTitle } from "./function-section-titles";
+import { assertGroundedScienceReviewPaperContract } from "./scientific-paper-contract";
 
 const MAX_CONTENT_LENGTH = 50_000;
 const MAX_EXERCISES = 10;
@@ -311,6 +316,8 @@ function parseExplanation(
 function parseExercises(
   payload: Record<string, unknown>,
   retrieval: RetrievalContext,
+  expectedFormat?: "comprehensive_function" | "comprehensive_science",
+  isPhysicsRequest = false,
 ): GeneratedExercisePaper {
   const lessonTitle = asText(payload.lesson_title);
   const title = asText(payload.title);
@@ -364,6 +371,45 @@ function parseExercises(
     throw new AiEngineError(
       "Comprehensive exercise paper does not match the structured contract",
       "invalid_model_output",
+    );
+  }
+  if (expectedFormat && format !== expectedFormat) {
+    throw new AiEngineError(
+      `Exercise response format must be ${expectedFormat}`,
+      "invalid_model_output",
+    );
+  }
+  if (isPhysicsRequest) {
+    const groundedSections = rawSections
+      .map((section) => {
+        if (!section || typeof section !== "object") return null;
+        const value = section as Record<string, unknown>;
+        if (!Array.isArray(value.sourceNodeIds) || typeof value.evidence !== "string") {
+          return null;
+        }
+        return {
+          id: asText(value.id),
+          points: Number(value.points),
+          prompt: asText(value.prompt),
+          sourceNodeIds: assertGroundedNodeIds(value.sourceNodeIds, retrieval),
+          evidence: value.evidence,
+        };
+      })
+      .filter((section): section is NonNullable<typeof section> => section !== null);
+    if (groundedSections.length !== rawSections.length) {
+      throw new AiEngineError(
+        "Physics paper is missing section-level source evidence",
+        "invalid_model_output",
+      );
+    }
+    assertGroundedScienceReviewPaperContract(
+      prompt,
+      groundedSections,
+      totalPoints,
+      retrieval.documents.map((document) => ({
+        id: document.id,
+        document: document.document ?? "",
+      })),
     );
   }
   return {
@@ -478,11 +524,32 @@ export async function generateExercises(
   request: ExercisesRequest,
 ): Promise<ExercisesResult> {
   const retrieval = await retrieveForAi(request);
+  const requestTopic = `${request.subject ?? ""} ${request.lessonTitle}`;
+  const isPhysicsRequest = /فيزياء|فيزيائي|physics|physique/i.test(requestTopic);
+  const isFunctionStudy =
+    !isPhysicsRequest &&
+    /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|fonction|dérivée|limite|function/i.test(
+      requestTopic,
+    );
+  const expectedFormat = isPhysicsRequest
+    ? "comprehensive_science" as const
+    : isFunctionStudy
+      ? "comprehensive_function" as const
+      : undefined;
+  const outputContract = isPhysicsRequest
+    ? 'أعد JSON فقط: {"lesson_title":"...","title":"مسألة فيزيائية تطبيقية","prompt":"وضعية محددة تتضمن معطيين عدديين مختلفين على الأقل ووحدتيهما من المصادر","hint":"...","solution":"...","format":"comprehensive_science","total_points":20,"sections":[{"id":"data","title":"المعطيات","points":3,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"law","title":"القانون","points":4,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"calculation","title":"الحساب","points":5,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"interpretation","title":"التحقق","points":4,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"synthesis","title":"التركيب","points":4,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"}],"sourceNodeIds":["node-id"]}'
+    : isFunctionStudy
+      ? 'أعد JSON فقط: {"lesson_title":"...","title":"دراسة شاملة في الدالة","prompt":"معطيات الدراسة دون حل","hint":"...","solution":"...","format":"comprehensive_function","total_points":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"..."},{"id":"limits","title":"النهايات","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق","points":3,"prompt":"..."},{"id":"variations","title":"التغيرات","points":3,"prompt":"..."},{"id":"equations","title":"المعادلات والمتراجحات","points":3,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"synthesis","title":"التركيب","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
+      : 'أعد JSON فقط: {"lesson_title":"...","title":"...","prompt":"مسألة قابلة للحل من المحتوى","hint":"...","solution":"...","format":"comprehensive_science","total_points":20,"sections":[{"id":"section-1","title":"...","points":4,"prompt":"..."},{"id":"section-2","title":"...","points":4,"prompt":"..."},{"id":"section-3","title":"...","points":4,"prompt":"..."},{"id":"section-4","title":"...","points":4,"prompt":"..."},{"id":"section-5","title":"...","points":4,"prompt":"..."}],"sourceNodeIds":["node-id"]}';
   const messages: ChatMessage[] = [
     {
       role: "system",
       content: [
         INTERACTIVE_EXERCISES_PROMPT,
+        ...(isFunctionStudy
+          ? [ACADEMIC_EXAM_PROMPT, FUNCTION_ACADEMIC_EXAM_PROMPT, FUNCTION_EXERCISE_PROMPT]
+          : []),
+        ...(isPhysicsRequest ? [SCIENCE_EXERCISE_PROMPT] : []),
         LEARNER_SAFE_OUTPUT_RULES,
         "اعتمد على مقاطع ChromaDB المصدرية فقط. لا تضف قانونًا أو رقمًا أو مثالًا لا تثبته هذه المقاطع.",
         "فرّق بين نوع المصدر: استخرج المفهوم من lesson/summary/concept/reference، وابنِ المطلوبات والأعداد من exercise/assessment/solution. لا تستخدم program كمصدر لإجابة علمية.",
@@ -493,7 +560,7 @@ export async function generateExercises(
       role: "user",
       content: [
         buildUserContent(request, retrieval),
-        'أعد الشكل التالي فقط، واختر sourceNodeIds من المعرّفات الظاهرة في chromadb_context: {"lesson_title":"...","title":"دراسة شاملة في الدالة","prompt":"سياق الورقة والمعطيات دون حل","hint":"تلميح مختصر","solution":"الحل النموذجي للاستخدام الداخلي فقط","format":"comprehensive_function","total_points":20,"sections":[{"id":"domain","title":"D_f · مجموعة التعريف | Domaine","points":2,"prompt":"مطلوب قابل للحل على الورق"},{"id":"limits","title":"lim · النهايات | Limites","points":3,"prompt":"..."},{"id":"derivative","title":"f′ · الاشتقاق | Dérivée","points":3,"prompt":"..."},{"id":"variations","title":"Δf · اتجاه التغيرات | Variations","points":3,"prompt":"..."},{"id":"equations","title":"E_f · المعادلات والمتراجحات | Équations · Inéquations","points":2,"prompt":"..."},{"id":"graph","title":"C_f · التمثيل البياني | Courbe","points":5,"prompt":"..."},{"id":"synthesis","title":"Σ · تركيب الدراسة | Synthèse","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}',
+        outputContract,
       ].join("\n\n"),
     },
   ];
@@ -501,7 +568,12 @@ export async function generateExercises(
     messages,
     "Exercises engine",
     (payload) => {
-      const paper = parseExercises(payload, retrieval);
+      const paper = parseExercises(
+        payload,
+        retrieval,
+        expectedFormat,
+        isPhysicsRequest,
+      );
       return {
         lesson_title: paper.lesson_title,
         title: paper.title,

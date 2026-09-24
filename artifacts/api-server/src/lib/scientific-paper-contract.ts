@@ -28,6 +28,11 @@ export type GroundedScientificScenario<TSource extends ScientificSource = Scient
 
 const MEASUREMENT_PATTERN =
   /[-+]?\d+(?:[.,]\d+)?\s*(?:m\s*\/\s*s|m\s*\.\s*s(?:\s*[-−]?\s*1)?|mol\s*\/\s*l|km|cm|mm|kg|mg|g|n|j|w|pa|mol|ml|l|°\s*c|k|m(?![a-z])|s|min|h|a|v|ω|متر|سم|كلم|كم|كغ|غ|ثانية|ث|دقيقة|ساعة|نيوتن|جول|واط|باسكال|مول|لتر|مل|أمبير|فولت|كلفن|درجة)/giu;
+const PHYSICS_SUBJECT_PATTERN = /فيزياء|فيزيائي|physics|physique/i;
+const PHYSICS_CONTENT_PATTERN =
+  /حركة|سرعة|تسارع|قوة|طاقة|قمر|سقوط|رمي|كتلة|ضغط|غاز|حرارة|ناقلية|كهرباء|تيار|توتر|مقاومة|شحنة|حقل|موجة|صوت|ضوء|عدسة|إشعاع|عزم|احتكاك|mouvement|vitesse|accélération|force|énergie|masse|pression|courant|tension|résistance|charge|champ|onde|optique|chaleur/i;
+const GENERIC_TOPIC_WORDS =
+  /^(?:ال?فيزياء|ال?فيزيائي|ال?فيزيائية|physics|physique|موضوع|ورقة|تمرين|اختبار|بكالوريا|درس|محور|قوانين|قانون|مسألة)$/i;
 
 function normalizeScientificText(value: string): string {
   return value
@@ -94,23 +99,32 @@ function scenarioScore(
   const metadataSubject = normalizeScientificText(
     String(source.metadata?.subject ?? ""),
   ).toLocaleLowerCase();
+  const isPhysicsRequest = PHYSICS_SUBJECT_PATTERN.test(requested);
+  const hasPhysicsMetadata = PHYSICS_SUBJECT_PATTERN.test(metadataSubject);
+  const hasPhysicsContent = PHYSICS_CONTENT_PATTERN.test(searchable);
 
   if (
-    /فيزياء|فيزيائي|physics/i.test(requested) &&
+    isPhysicsRequest &&
     /رياضيات|math|أدب|biology|أحياء/i.test(metadataSubject)
   ) {
+    return Number.NEGATIVE_INFINITY;
+  }
+  if (isPhysicsRequest && !hasPhysicsMetadata && !hasPhysicsContent) {
     return Number.NEGATIVE_INFINITY;
   }
 
   const topicWords = requested
     .split(/[^\p{L}\p{N}]+/u)
-    .filter((word) => word.length >= 3);
+    .filter((word) => word.length >= 3 && !GENERIC_TOPIC_WORDS.test(word));
   const topicMatches = topicWords.filter((word) => searchable.includes(word)).length;
+  if (isPhysicsRequest && topicWords.length > 0 && topicMatches === 0) {
+    return Number.NEGATIVE_INFINITY;
+  }
   const contentType = String(source.metadata?.content_type ?? "").toLocaleLowerCase();
 
   return measurementsIn(scenario).length * 3
     + (/(?:المعطيات|يهدف التمرين|نريد دراسة|لدراسة|نعتبر|عند اللحظة)/u.test(scenario) ? 5 : 0)
-    + (/(?:حركة|مسار|سرعة|تسارع|قوة|طاقة|قمر|سقوط|رمي|كتلة|ضغط|غاز|تفاعل|حرارة|ناقلية)/u.test(scenario) ? 4 : 0)
+    + (hasPhysicsContent ? 4 : 0)
     + topicMatches * 2
     + (/exercise|assessment|exam|تمرين|اختبار/u.test(contentType) ? 2 : 0)
     - (/solution/u.test(contentType) ? 1 : 0);
@@ -130,9 +144,10 @@ export function selectGroundedScientificScenario<TSource extends ScientificSourc
     })
     .filter(({ text, score }) =>
       score > Number.NEGATIVE_INFINITY
+      && score >= 9
       && text.length >= 120
       && arabicLetterCount(text) >= 60
-      && measurementsIn(text).length >= 2,
+      && measuredNumbers(text).size >= 2,
     )
     .sort((left, right) => right.score - left.score);
 
@@ -176,11 +191,13 @@ export function assertGroundedScienceReviewPaperContract(
     retrievedSources.flatMap((source) => [...measuredNumbers(source.document)]),
   );
   const supportedPromptNumbers = measuredNumbers(problemPrompt);
-  const supportedCount = [...supportedPromptNumbers].filter((number) =>
-    sourceNumbers.has(number),
-  ).length;
-  if (supportedCount < 2) {
-    throw new Error("Science paper prompt has fewer than two numerical givens supported by sources");
+  const unsupportedPromptNumbers = [...supportedPromptNumbers].filter(
+    (number) => !sourceNumbers.has(number),
+  );
+  if (supportedPromptNumbers.size < 2 || unsupportedPromptNumbers.length > 0) {
+    throw new Error(
+      "Every numerical given in the science paper prompt must be supported by a retrieved source, with at least two distinct givens",
+    );
   }
 
   const sourcesById = new Map(
