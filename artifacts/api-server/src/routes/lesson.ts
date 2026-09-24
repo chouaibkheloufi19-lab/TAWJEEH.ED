@@ -108,6 +108,8 @@ type StudentPaper = {
     points: number;
     prompt: string;
   }>;
+  fallback?: boolean;
+  fallbackMessage?: string;
 };
 
 type StudentExercise = {
@@ -565,59 +567,33 @@ function buildGroundedExerciseFallback(
       `${lesson} ${topic}`,
     );
   const isComprehensive = forceComprehensive;
-  const sections = !isComprehensive
+  const primarySourceId = documents[0]?.id ?? "";
+  const groundedEvidence =
+    documents[0]?.document?.trim().slice(0, 600) ||
+    "المصدر المسترجع يحدد محور الدرس والمفاهيم المطلوب دراستها.";
+  type FallbackSection = NonNullable<GeneratedExercise["sections"]>[number];
+  const sections: FallbackSection[] = !isComprehensive
     ? []
     : isFunctionStudy
     ? [
-        {
-          id: "domain",
-           title: "D_f · مجموعة التعريف | Domaine",
-          points: 2,
-          prompt: "أ) اكتب مجموعة تعريف الدالة. ب) اذكر القيم الممنوعة وسبب منعها، ثم أعد كتابة الدالة على شكل يساعدك في متابعة الدراسة.",
-        },
-        {
-          id: "limits",
-           title: "lim · النهايات | Limites",
-          points: 3,
-          prompt: "أ) احسب النهايات عند حدود مجال التعريف. ب) استنتج المقارب العمودي أو الأفقي أو المائل إن أمكن. ج) فسّر النتيجة بيانيًا.",
-        },
-        {
-          id: "derivative",
-           title: "f′ · الاشتقاق | Dérivée",
-          points: 3,
-          prompt: "أ) احسب المشتقة وبسّطها. ب) ادرس إشارتها على كل مجال. ج) اذكر القاعدة التي استعملتها في كل تحويل.",
-        },
-        {
-          id: "variations",
-           title: "Δf · اتجاه التغيرات | Variations",
-          points: 3,
-          prompt: "أ) استنتج اتجاه تغير الدالة. ب) احسب القيم الحدية اللازمة. ج) أنجز جدول التغيرات كاملًا مع احترام القيم الممنوعة.",
-        },
-        {
-          id: "equations",
-           title: "E_f · المعادلات والمتراجحات | Équations · Inéquations",
-          points: 2,
-          prompt: "أ) حل المعادلة المرتبطة بالدالة. ب) استعمل جدول التغيرات أو الإشارة لحل المتراجحة المطلوبة.",
-        },
-        {
-          id: "relative-position",
-           title: "C_f/Δ · الوضع النسبي | Position relative",
-          points: 2,
-          prompt: "أ) ادرس وضع المنحنى بالنسبة إلى المقارب. ب) حدّد نقاط التقاطع أو الأعداد الحقيقية المطلوبة مع تبرير كل نتيجة.",
-        },
-        {
-          id: "graph",
-           title: "C_f · التمثيل البياني | Courbe",
-          points: 3,
-          prompt: "أ) اكتب معادلة المماس في النقطة المطلوبة. ب) أنشئ المنحنى موضحًا المقاربات والمماس. ج) ضع نقاط التقاطع والاتجاهات الأساسية.",
-        },
-        {
-          id: "synthesis",
-           title: "Σ · تركيب الدراسة | Synthèse",
-          points: 2,
-          prompt: "أ) رتّب نتائج الدراسة في خلاصة واحدة. ب) اشرح كيف تتحول كل نتيجة حسابية إلى معلومة على التمثيل البياني.",
-        },
-      ]
+        ["domain", "D_f · مجموعة التعريف | Domaine", "اكتب مجموعة تعريف الدالة، وحدد القيم الممنوعة وسبب منعها."],
+        ["limits", "lim · النهايات | Limites", "احسب النهايات عند حدود مجال التعريف واستنتج المقاربات الممكنة."],
+        ["derivative", "f′ · الاشتقاق | Dérivée", "احسب المشتقة وبسّطها، ثم اذكر قواعد الاشتقاق المستعملة."],
+        ["variations", "Δf · اتجاه التغيرات | Variations", "ادرس إشارة المشتقة وأنجز جدول التغيرات مع تبرير الاتجاهات."],
+        ["equations", "E_f · المعادلات والمتراجحات | Équations · Inéquations", "حل المعادلة المرتبطة بالدالة واستعمل الإشارة لحل المتراجحة."],
+        ["relative-position", "C_f/Δ · الوضع النسبي | Position relative", "ادرس وضع المنحنى بالنسبة إلى المقارب وحدد نقاط التقاطع."],
+        ["horizontal-discussion", "المناقشة الأفقية | Discussion horizontale", "ناقش عدد حلول المعادلة الأفقية المرتبطة بالمنحنى."],
+        ["oblique-discussion", "المناقشة المائلة | Discussion oblique", "ناقش الوضع النسبي بالنسبة إلى المقارب المائل إن وُجد."],
+        ["graph", "C_f · التمثيل البياني | Courbe", "أنشئ المنحنى موضحًا المقاربات والمماس ونقاط التقاطع الأساسية."],
+        ["synthesis", "Σ · تركيب شامل | Synthèse", "رتّب نتائج الدراسة في خلاصة واحدة واربط الحساب بالتمثيل البياني."],
+      ].map(([id, title, prompt]) => ({
+        id,
+        title,
+        points: 2,
+        prompt,
+        sourceNodeIds: primarySourceId ? [primarySourceId] : [],
+        evidence: groundedEvidence,
+      }))
     : [
         {
           id: "data",
@@ -666,6 +642,7 @@ function buildGroundedExerciseFallback(
     grounding: retrieval.grounding,
     ...(isComprehensive
       ? {
+           difficulty: REVIEW_PAPER_DIFFICULTY,
           format: isFunctionStudy ? "comprehensive_function" as const : "comprehensive_science" as const,
           totalPoints: sections.reduce((sum, section) => sum + section.points, 0),
           sections,
@@ -1073,6 +1050,63 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
           retrieval,
         ),
       );
+      return;
+    }
+    if (
+      isPaperRequest &&
+      error instanceof DeepSeekProviderError &&
+      shouldUseGroundedProviderFallback(error) &&
+      retrieval
+    ) {
+      req.log.warn(
+        { status: error.status },
+        "Returning grounded paper fallback after temporary provider failure",
+      );
+      const fallback = buildGroundedExerciseFallback(
+        lesson,
+        typeof activeConcept === "string" ? activeConcept : "",
+        retrieval,
+        true,
+      );
+      assertReviewPaperDifficulty(fallback.difficulty);
+      if (!fallback.format || fallback.totalPoints === undefined || !fallback.sections) {
+        throw new Error("Grounded paper fallback did not match the paper contract");
+      }
+      if (fallback.format === "comprehensive_function") {
+        assertGroundedReviewPaperContract(
+          fallback.sections as Array<{
+            id: string;
+            points: number;
+            prompt: string;
+            sourceNodeIds: string[];
+            evidence: string;
+          }>,
+          fallback.totalPoints ?? 0,
+          retrieval.documents.map((document) => ({
+            id: document.id,
+            document: document.document ?? "",
+          })),
+        );
+      }
+      res.json({
+        status: fallback.status,
+        mode: "paper",
+        lessonTitle: fallback.lessonTitle,
+        title: fallback.title,
+        prompt: fallback.prompt,
+        difficulty: fallback.difficulty,
+        format: fallback.format,
+        totalPoints: fallback.totalPoints,
+        sections: fallback.sections.map((section) => ({
+          id: section.id,
+          title: section.title,
+          points: section.points,
+          prompt: section.prompt,
+        })),
+        fallback: true,
+        fallbackMessage:
+          "تعذر تشغيل التوليد مؤقتًا؛ هذه ورقة مراجعة مبنية على المصادر المتاحة.",
+      } satisfies StudentPaper);
       return;
     }
     if (
