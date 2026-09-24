@@ -13,6 +13,7 @@ import {
 import {
   callDeepSeekTextModel,
   callGeminiVisionModel,
+  DeepSeekProviderError,
 } from "../lib/ai-provider";
 
 const router: IRouter = Router();
@@ -308,6 +309,33 @@ async function callTextModel(
   return extractFahimResponse(response, concept);
 }
 
+function buildGroundedFahimFallback(
+  concept: string,
+  retrieval: RetrievalContext,
+) {
+  const source = retrieval.grounding.sources[0];
+  const citation = source
+    ? `من «${source.title}»${source.page > 0 ? `، ص ${source.page}` : ""}`
+    : "من المصدر الدراسي المسترجع";
+  const excerpt = source?.quote.trim();
+  const chatResponse = [
+    "تعذّر تشغيل فهيم مؤقتًا، لذلك لن أقدّم تفسيرًا غير متحقق.",
+    excerpt
+      ? `راجع هذا المقتطف الموثق ${citation}: «${excerpt}».`
+      : `استرجعت مادة موثقة ${citation}، لكن لا يوجد مقتطف قصير لعرضه الآن.`,
+    "اكتب الخطوة التي توقفت عندها أو أعد المحاولة بعد قليل.",
+  ].join(" ");
+  return {
+    answer: chatResponse,
+    chat_response: chatResponse,
+    speech_text: chatResponse,
+    evaluated_skill: concept,
+    grounding: retrieval.grounding,
+    fallback: true,
+    fallbackMessage: "فهيم غير متاح مؤقتًا؛ هذا رد احتياطي مبني على مصدر موثق.",
+  };
+}
+
 router.post("/fahim/analyze-attempt", async (req, res): Promise<void> => {
   const { imageDataUrl, lesson, concept, elapsed_seconds: elapsedSeconds } = req.body as {
     imageDataUrl?: unknown;
@@ -418,8 +446,9 @@ router.post("/fahim/message", async (req, res): Promise<void> => {
     return;
   }
 
+  let retrieval: RetrievalContext | undefined;
   try {
-    const retrieval = await retrieveGroundedKnowledge(
+    retrieval = await retrieveGroundedKnowledge(
       [lesson, concept, question, typeof topicContext === "string" ? topicContext : ""].filter(Boolean).join(" "),
       { nResults: 8 },
     );
@@ -434,11 +463,43 @@ router.post("/fahim/message", async (req, res): Promise<void> => {
     );
     res.json({ ...fahim, answer: fahim.chat_response, fahim, grounding: retrieval.grounding });
   } catch (error) {
-    req.log.error({ error }, "Fahim message failed");
-    res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
-      error: error instanceof KnowledgeGroundingError ? error.code : "fahim_message_failed",
-      message: "لا يمكن أن يجيب فهيم قبل نجاح استرجاع عقد المعرفة من ChromaDB.",
-    });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    req.log.error({ error: errorMessage }, "Fahim message failed");
+    if (
+      retrieval &&
+      error instanceof DeepSeekProviderError &&
+      error.retryable
+    ) {
+      req.log.warn(
+        { status: error.status },
+        "Returning grounded Fahim message fallback after temporary provider failure",
+      );
+      res.json(buildGroundedFahimFallback(concept, retrieval));
+      return;
+    }
+
+    const retrievalFailed = !retrieval || error instanceof KnowledgeGroundingError;
+    const providerNotConfigured =
+      error instanceof DeepSeekProviderError &&
+      (error.status === 401 ||
+        error.status === 403 ||
+        error.message.includes("DEEPSEEK_API_KEY is not configured"));
+    const status = error instanceof KnowledgeGroundingError ? 424 : 502;
+    const errorCode = error instanceof KnowledgeGroundingError
+      ? error.code
+      : retrievalFailed
+        ? "knowledge_service_unavailable"
+        : providerNotConfigured
+          ? "fahim_provider_not_configured"
+          : "fahim_message_generation_failed";
+    const message = error instanceof KnowledgeGroundingError
+      ? "لم تُرجع قاعدة المعرفة مصدرًا موثقًا كافيًا للإجابة. جرّب سؤالًا مرتبطًا بمحتوى الدرس."
+      : retrievalFailed
+        ? "تعذر الوصول إلى خدمة مصادر المعرفة، لذلك لم يُرسل السؤال إلى فهيم. أعد المحاولة بعد قليل."
+        : providerNotConfigured
+          ? "مصادر الدرس جاهزة، لكن إعداد مزود فهيم غير مكتمل. يلزم ضبط اتصال المزود قبل المتابعة."
+          : "استُرجعت مصادر الدرس، لكن تعذر توليد رد فهيم. أعد المحاولة بعد قليل.";
+    res.status(status).json({ error: errorCode, message });
   }
 });
 

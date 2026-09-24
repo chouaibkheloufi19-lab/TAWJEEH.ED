@@ -1291,11 +1291,11 @@ function ChatPage() {
       setError(message);
       setChatCircuitOpen(true);
       setMessages((current) => current.some((item) => item.id === 'chat-api-fallback')
-        ? current
+        ? current.map((item) => item.id === 'chat-api-fallback' ? { ...item, text: message } : item)
         : [...current, {
             id: 'chat-api-fallback',
             from: 'agent',
-            text: 'تعذر الاتصال بالمساعد الآن. حدّث الصفحة للمتابعة.',
+            text: message,
           }]);
     } finally {
       setIsThinking(false);

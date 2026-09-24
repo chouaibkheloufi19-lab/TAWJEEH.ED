@@ -905,14 +905,14 @@ export function LessonWorkspace() {
     setSummaryPreview(summary);
   };
 
-  const openChatCircuit = () => {
+  const openChatCircuit = (message = 'تعذر الاتصال بخدمة التعلّم الآن. حدّث الصفحة للمتابعة.') => {
     setChatCircuitOpen(true);
-    setMessages((current) => current.some((message) => message.id === 'chat-api-fallback')
-      ? current
+    setMessages((current) => current.some((item) => item.id === 'chat-api-fallback')
+      ? current.map((item) => item.id === 'chat-api-fallback' ? { ...item, text: message } : item)
       : [...current, {
           id: 'chat-api-fallback',
           role: 'assistant',
-          text: 'تعذر الاتصال بخدمة التعلّم الآن. حدّث الصفحة للمتابعة.',
+          text: message,
         }]);
   };
 
@@ -1362,8 +1362,8 @@ export function LessonWorkspace() {
       if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
       const reply = applyFahimResponse(payload) || payload.answer;
       setMessages((current) => [...current, { id: `copilot-answer-${Date.now()}`, role: 'assistant', text: reply }]);
-    } catch {
-      openChatCircuit();
+    } catch (error) {
+      openChatCircuit(error instanceof Error ? error.message : 'تعذر رد فهيم الآن. أعد المحاولة بعد قليل.');
     } finally {
       setIsThinking(false);
     }
@@ -1536,8 +1536,8 @@ export function LessonWorkspace() {
       if (!response.ok || !payload.answer) throw new Error(payload.message || 'تعذر رد فهيم');
       const reply = applyFahimResponse(payload) || payload.answer;
       setMessages((current) => [...current, { id: `answer-${Date.now()}`, role: 'assistant', text: reply }]);
-    } catch {
-      openChatCircuit();
+    } catch (error) {
+      openChatCircuit(error instanceof Error ? error.message : 'تعذر رد فهيم الآن. أعد المحاولة بعد قليل.');
     } finally {
       setIsThinking(false);
     }
