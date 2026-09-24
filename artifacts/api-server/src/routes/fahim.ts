@@ -14,6 +14,7 @@ import {
   callDeepSeekTextModel,
   callGeminiVisionModel,
   DeepSeekProviderError,
+  shouldUseGroundedProviderFallback,
 } from "../lib/ai-provider";
 
 const router: IRouter = Router();
@@ -468,7 +469,7 @@ router.post("/fahim/message", async (req, res): Promise<void> => {
     if (
       retrieval &&
       error instanceof DeepSeekProviderError &&
-      error.retryable
+      shouldUseGroundedProviderFallback(error)
     ) {
       req.log.warn(
         { status: error.status },

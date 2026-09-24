@@ -23,6 +23,7 @@ import {
 import {
   callDeepSeekTextModelWithRetry,
   DeepSeekProviderError,
+  shouldUseGroundedProviderFallback,
 } from "../lib/ai-provider";
 import { normalizeFunctionSectionTitle } from "../lib/function-section-titles";
 import {
@@ -1059,7 +1060,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     if (
       mode === "creative_topic" &&
       error instanceof DeepSeekProviderError &&
-      error.retryable &&
+      shouldUseGroundedProviderFallback(error) &&
       retrieval
     ) {
       req.log.warn(
@@ -1076,7 +1077,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     }
     if (
       error instanceof DeepSeekProviderError &&
-      error.retryable &&
+      shouldUseGroundedProviderFallback(error) &&
       retrieval &&
       !isPaperRequest
     ) {
