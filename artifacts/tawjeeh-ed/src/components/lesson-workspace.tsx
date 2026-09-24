@@ -1694,6 +1694,11 @@ export function LessonWorkspace() {
       let reply = 'سأثبت الفكرة أولًا، ثم أبني لك تطبيقًا مناسبًا لها.';
       if (activePartner === 'exercises') {
         const wantsCreativeTopics = /موضوع|إبداع|فكرة|مسار|تطبيقات مختلفة|زاوية/.test(cleanText);
+        const rejectsWorksheetIntent =
+          /(?:ليس|ليست|لا|ما|مو|مش|بدون|دون|بدل|غير)\s*(?:أن\s*)?(?:أريد\s*)?(?:ورقة|اختبار|امتحان)/i.test(cleanText);
+        const wantsComprehensiveWorksheet =
+          !rejectsWorksheetIntent &&
+          /(?:أعطني|اعطني|أريد|اريد|أنشئ|انشئ|ولّد|ولد|حضّر|حضر|جهّز|جهز|ابنِ|ابني)\s*(?:لي\s*)?(?:ورقة|اختبار|امتحان)|(?:ورقة|اختبار|امتحان)\s*(?:كاملة|شاملة|رسمية|تدريبية|بكالوريا)|موضوع\s*(?:بكالوريا|اختبار|امتحان)|(?:full\s+(?:exam\s+)?paper|exam\s+paper|practice\s+(?:paper|exam))/i.test(cleanText);
         const response = await fetchWithTimeout('/api/lesson/exercise', {
           method: 'POST',
           credentials: 'include',
@@ -1708,6 +1713,7 @@ export function LessonWorkspace() {
               ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`
               : targetedConcept || cleanText,
             ...(wantsCreativeTopics ? { mode: 'creative_topic' } : {}),
+            ...(!wantsCreativeTopics && wantsComprehensiveWorksheet ? { worksheet: 'comprehensive' } : {}),
           }),
         });
         if (wantsCreativeTopics) {

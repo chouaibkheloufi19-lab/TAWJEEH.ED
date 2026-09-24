@@ -345,8 +345,10 @@ async function generateExercise(
     subject,
     activeConcept,
   ].join(" ");
-  const isFunctionStudy = /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite|function/i.test(studyRequest);
-  const isScientificPaper = forceComprehensive || isFunctionStudy;
+  const isFunctionStudy =
+    forceComprehensive &&
+    /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite|function/i.test(studyRequest);
+  const isScientificPaper = forceComprehensive;
   const generationInstruction = isFunctionStudy
       ? [
         "مستوى الصعوبة إلزاميًا: متقدم. يجب أن يعلن JSON الحقل difficulty بالقيمة الإنجليزية الحرفية advanced، وإلا تُرفض الورقة. اجعلها على نمط بكالوريا صارم، وكل محور متعدد الخطوات، واجعل الانتقال بين المحاور يعتمد على نتيجة المحور السابق.",
@@ -511,7 +513,7 @@ async function generateExercise(
         sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
         grounding: retrieval.grounding,
         ...(forceComprehensive ? { difficulty: REVIEW_PAPER_DIFFICULTY } : {}),
-        ...(sections && format
+        ...(forceComprehensive && sections && format
           ? {
               format,
               totalPoints,
@@ -557,10 +559,11 @@ function buildGroundedExerciseFallback(
     })
     .join("\n\n");
   const isFunctionStudy =
+    forceComprehensive &&
     /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|function/i.test(
       `${lesson} ${topic}`,
     );
-  const isComprehensive = forceComprehensive || isFunctionStudy;
+  const isComprehensive = forceComprehensive;
   const sections = !isComprehensive
     ? []
     : isFunctionStudy
@@ -946,15 +949,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     return;
   }
   let retrieval: RetrievalContext | undefined;
-  const requestText = [lesson, activeConcept, attemptContext]
-    .filter((value): value is string => Boolean(value))
-    .join(" ");
-   const isPaperRequest =
-    mode === "paper" ||
-    worksheet === "comprehensive" ||
-     /ورقة|اختبار|امتحان|بكالوريا|comprehensive|full\s+paper|exam\s+paper/i.test(
-      requestText,
-    );
+  const isPaperRequest = mode === "paper" || worksheet === "comprehensive";
   try {
     const userId = getUserId(req);
     if (!userId) {
