@@ -32,6 +32,10 @@ import {
   FUNCTION_REVIEW_SECTION_IDS,
   REVIEW_PAPER_DIFFICULTY,
 } from "../lib/review-paper-contract";
+import {
+  assertGroundedScienceReviewPaperContract,
+  selectGroundedScientificScenario,
+} from "../lib/scientific-paper-contract";
 
 const router: IRouter = Router();
 
@@ -366,10 +370,11 @@ async function generateExercise(
       ? [
           "مستوى الصعوبة إلزاميًا: متقدم. يجب أن يعلن JSON الحقل difficulty بالقيمة الإنجليزية الحرفية advanced، وإلا تُرفض الورقة.",
           "طلب الطالب ورقة اختبار رسمية. لا تنشئ اختيارًا من متعدد ولا سؤالًا قصيرًا ولا نصًا أدبيًا.",
-          "أنشئ موضوعًا على نمط ورقة البكالوريا: معطيات ورموز ووحدات واضحة، ثم مطلوبات رياضية مباشرة مرقمة بفروع (أ) و(ب) و(ج). اجعل كل مطلب قابلًا للحل بالقلم من المعطيات نفسها، واستعمل «عيّن» و«احسب» و«استنتج» و«بيّن» و«ادرس» و«مثّل».",
+          "أنشئ مسألة فيزيائية محددة حول المفهوم المطلوب، لا ورقة تعليمات عامة. ابدأ prompt بوضعية واقعية قصيرة تشرح ما يحدث، ثم اذكر المعطيات العددية ورموزها ووحداتها صراحة. يجب أن تتضمن الوضعية قيمتين فيزيائيتين على الأقل بوحداتهما، وأن تكونا من العقد المسترجعة ويمكن التحقق منهما فيها.",
+          "اجعل الأقسام الخمسة تطبيقًا على الوضعية نفسها وبالترتيب: تعيين المعطيات ووحداتها؛ اختيار القانون وكتابته؛ التعويض والحساب ثم استنتاج الكمية التابعة؛ تفسير النتيجة والتحقق من تجانس الوحدات؛ خلاصة عددية نهائية. لا تكتب هذه الخطوات بدل المسألة، ولا تترك بيانات أو فراغات ليخترعها الطالب.",
           "لا تضع عناوين وصفية قبل المطلوبات. title في sections تسمية داخلية فقط؛ أما prompt فيبدأ بالسؤال مباشرة ولا يحتوي على لغة أدبية أو عبارات «اشرح» و«لماذا» و«كيف».",
           "أعد حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا لا يكشف النتيجة. لا تضع الحل داخل prompt أو sections.",
-          'أعد sections بهذا الشكل، مع عناوين داخلية قصيرة لا تعرض للطالب: [{"id":"data","title":"data","points":3,"prompt":"أ) عيّن المعطيات اللازمة. ب) اكتب العلاقة المناسبة."},{"id":"law","title":"law","points":4,"prompt":"أ) اكتب القانون المستعمل. ب) استنتج..."},{"id":"calculation","title":"calculation","points":5,"prompt":"أ) احسب... ب) استنتج..."},{"id":"interpretation","title":"interpretation","points":4,"prompt":"أ) بيّن... ب) تحقق من التجانس..."},{"id":"synthesis","title":"synthesis","points":4,"prompt":"استنتج النتيجة النهائية."}]',
+          'أعد خمسة أقسام فقط بهذه المعرفات والترتيب والنقاط: data (3)، law (4)، calculation (5)، interpretation (4)، synthesis (4). اكتبها بأسلوب الورقة المرفقة، وأضف لكل قسم sourceNodeIds بمعرّفات موجودة فعلًا وevidence مقتبسًا حرفيًا من العقدة: [{"id":"data","title":"المعطيات","points":3,"prompt":"أ) عيّن المعطيات اللازمة للحل. ب) اكتب الرموز والوحدات المستعملة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"law","title":"القانون","points":4,"prompt":"أ) اكتب العلاقة أو القانون المناسب. ب) عوّض بالمعطيات. ج) استنتج النتيجة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"calculation","title":"الحساب","points":5,"prompt":"أ) احسب الكمية المطلوبة. ب) استنتج الكمية التابعة لها. ج) اكتب النتيجة بالوحدة المناسبة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"interpretation","title":"التحقق","points":4,"prompt":"أ) بيّن طبيعة النتيجة. ب) تحقق من التجانس البعدي. ج) قارن النتيجة بالمعطيات.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"synthesis","title":"التركيب","points":4,"prompt":"استنتج النتيجة النهائية للموضوع مع كتابة العلاقة والنتيجة العددية ووحدتها.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"}]',
         ].join("\n")
       : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
   const generationMessages = [
@@ -377,9 +382,9 @@ async function generateExercise(
         role: "system" as const,
         content: [
           ADAPTIVE_EXERCISE_PROMPT,
-          ACADEMIC_EXAM_PROMPT,
+          ...(isFunctionStudy ? [ACADEMIC_EXAM_PROMPT] : []),
           EXERCISE_GENERATION_PROMPT,
-          ...(isScientificPaper ? [INTERACTIVE_EXERCISES_PROMPT] : []),
+          ...(isScientificPaper && !isFunctionStudy ? [INTERACTIVE_EXERCISES_PROMPT] : []),
           GROUNDED_CONTENT_RULES,
           LEARNER_SAFE_OUTPUT_RULES,
           `أنت وكيل تمارين عربي لمنصة توجيه. ${generationInstruction} أخفِ الإجابة في الحقول الداخلية المخصصة لها؛ لا تضع أي جزء من الحل النموذجي في prompt أو sections لأن الطالب سيراهما قبل المحاولة. اجعل الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.`,
@@ -400,7 +405,7 @@ async function generateExercise(
            isFunctionStudy
              ? 'أعد الشكل التالي حرفيًا، وأضف difficulty:"advanced" وsourceNodeIds على مستوى الورقة وكل section، وevidence مقتبسًا حرفيًا من العقدة المستخدمة: {"lessonTitle":"الدوال العددية","title":"دراسة شاملة في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","difficulty":"advanced","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"limits","title":"النهايات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"derivative","title":"الاشتقاق","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"variations","title":"التغيرات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"equations","title":"المعادلات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"relative-position","title":"الوضع النسبي","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"horizontal-discussion","title":"المناقشة الأفقية","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"oblique-discussion","title":"المناقشة المائلة","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"graph","title":"التمثيل البياني","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"}],"sourceNodeIds":["node-id"]}'
           : isScientificPaper
-               ? 'أعد الشكل التالي حرفيًا، وأضف difficulty:"advanced" وsourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان المادة","title":"موضوع عملي شامل","prompt":"معطيات الورقة دون حل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","difficulty":"advanced","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"data","points":3,"prompt":"أ) عيّن... ب) اكتب..."},{"id":"law","title":"law","points":4,"prompt":"أ) اكتب... ب) استنتج..."},{"id":"calculation","title":"calculation","points":5,"prompt":"أ) احسب... ب) استنتج..."},{"id":"interpretation","title":"interpretation","points":4,"prompt":"أ) بيّن... ب) تحقق..."},{"id":"synthesis","title":"synthesis","points":4,"prompt":"استنتج النتيجة النهائية."}],"sourceNodeIds":["node-id"]}'
+               ? 'أعد الشكل التالي حرفيًا، مع وضع مسألة ذات وضعية ومعطيات عددية ووحدات موثقة في prompt، وأضف difficulty:"advanced" وsourceNodeIds على مستوى الورقة ولكل قسم مع evidence مقتبس حرفيًا: {"lessonTitle":"عنوان المادة","title":"مسألة فيزيائية تطبيقية","prompt":"وضعية واقعية واضحة تتضمن معطيين عدديين على الأقل بوحداتهما من المصادر، دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","difficulty":"advanced","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"المعطيات","points":3,"prompt":"أ) عيّن المعطيات اللازمة للحل. ب) اكتب الرموز والوحدات المستعملة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"},{"id":"law","title":"القانون","points":4,"prompt":"أ) اكتب العلاقة أو القانون المناسب. ب) عوّض بالمعطيات. ج) استنتج النتيجة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"},{"id":"calculation","title":"الحساب","points":5,"prompt":"أ) احسب الكمية المطلوبة. ب) استنتج الكمية التابعة لها. ج) اكتب النتيجة بالوحدة المناسبة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"},{"id":"interpretation","title":"التحقق","points":4,"prompt":"أ) بيّن طبيعة النتيجة. ب) تحقق من التجانس البعدي. ج) قارن النتيجة بالمعطيات.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"},{"id":"synthesis","title":"التركيب","points":4,"prompt":"استنتج النتيجة النهائية للموضوع مع كتابة العلاقة والنتيجة العددية ووحدتها.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"}],"sourceNodeIds":["node-id"]}'
             : 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
         ].join("\n"),
       },
@@ -504,6 +509,23 @@ async function generateExercise(
           })),
         );
       }
+      if (isScientificPaper && !isFunctionStudy && sections) {
+        assertGroundedScienceReviewPaperContract(
+          parsed.prompt,
+          sections as Array<{
+            id: string;
+            points: number;
+            prompt: string;
+            sourceNodeIds: string[];
+            evidence: string;
+          }>,
+          totalPoints,
+          retrieval.documents.map((document) => ({
+            id: document.id,
+            document: document.document ?? "",
+          })),
+        );
+      }
       return {
         status: "generated",
         lessonTitle: parsed.lessonTitle,
@@ -544,8 +566,23 @@ function buildGroundedExerciseFallback(
   lesson: string,
   activeConcept: string,
   retrieval: RetrievalContext,
+  forceComprehensive: true,
+  subject?: string,
+): GeneratedExercise | null;
+function buildGroundedExerciseFallback(
+  lesson: string,
+  activeConcept: string,
+  retrieval: RetrievalContext,
+  forceComprehensive: false,
+  subject?: string,
+): GeneratedExercise;
+function buildGroundedExerciseFallback(
+  lesson: string,
+  activeConcept: string,
+  retrieval: RetrievalContext,
   forceComprehensive: boolean,
-): GeneratedExercise {
+  subject = "",
+): GeneratedExercise | null {
   const documents = retrieval.documents
     .filter((document) => typeof document.document === "string" && document.document.trim())
     .slice(0, 3);
@@ -567,8 +604,21 @@ function buildGroundedExerciseFallback(
       `${lesson} ${topic}`,
     );
   const isComprehensive = forceComprehensive;
-  const primarySourceId = documents[0]?.id ?? "";
+  const scientificScenario = isComprehensive && !isFunctionStudy
+    ? selectGroundedScientificScenario(retrieval.documents, topic, subject)
+    : undefined;
+  if (isComprehensive && !isFunctionStudy && !scientificScenario) {
+    return null;
+  }
+  const sourceDocuments = scientificScenario
+    ? [
+        scientificScenario.source,
+        ...documents.filter((document) => document.id !== scientificScenario.source.id),
+      ]
+    : documents;
+  const primarySourceId = scientificScenario?.source.id ?? documents[0]?.id ?? "";
   const groundedEvidence =
+    scientificScenario?.evidence ||
     documents[0]?.document?.trim().slice(0, 600) ||
     "المصدر المسترجع يحدد محور الدرس والمفاهيم المطلوب دراستها.";
   type FallbackSection = NonNullable<GeneratedExercise["sections"]>[number];
@@ -600,30 +650,40 @@ function buildGroundedExerciseFallback(
           title: "data",
           points: 3,
           prompt: "أ) عيّن المعطيات اللازمة للحل. ب) اكتب الرموز والوحدات المستعملة.",
+          sourceNodeIds: primarySourceId ? [primarySourceId] : [],
+          evidence: groundedEvidence,
         },
         {
-          id: "principle",
+          id: "law",
           title: "principle",
           points: 4,
           prompt: "أ) اكتب العلاقة أو القانون المناسب. ب) عوّض بالمعطيات. ج) استنتج النتيجة.",
+          sourceNodeIds: primarySourceId ? [primarySourceId] : [],
+          evidence: groundedEvidence,
         },
         {
-          id: "application",
+          id: "calculation",
           title: "application",
           points: 5,
           prompt: "أ) احسب الكمية المطلوبة. ب) استنتج الكمية التابعة لها. ج) اكتب النتيجة بالوحدة المناسبة.",
+          sourceNodeIds: primarySourceId ? [primarySourceId] : [],
+          evidence: groundedEvidence,
         },
         {
           id: "interpretation",
           title: "interpretation",
           points: 4,
           prompt: "أ) بيّن طبيعة النتيجة. ب) تحقق من التجانس البعدي. ج) قارن النتيجة بالمعطيات.",
+          sourceNodeIds: primarySourceId ? [primarySourceId] : [],
+          evidence: groundedEvidence,
         },
         {
           id: "synthesis",
           title: "synthesis",
           points: 4,
           prompt: "استنتج النتيجة النهائية للموضوع، مع كتابة العلاقة والنتيجة العددية إن وجدت.",
+          sourceNodeIds: primarySourceId ? [primarySourceId] : [],
+          evidence: groundedEvidence,
         },
       ];
 
@@ -631,14 +691,21 @@ function buildGroundedExerciseFallback(
     status: "generated",
     lessonTitle: lesson,
     title: isComprehensive ? `ورقة تدريب موثقة: ${topic}` : `تمرين موثق: ${topic}`,
-     prompt: isComprehensive
-       ? "أنجز الورقة بالقلم، واكتب المعطيات والتحويلات والتبريرات كاملة."
+    prompt: isComprehensive && !isFunctionStudy && scientificScenario
+      ? [
+          `المسألة: ${topic}`,
+          "الوضعية والمعطيات:",
+          scientificScenario.text,
+          "أجب عن المطلوبات الخمسة بالترتيب، مع كتابة العلاقة والتعويض والوحدة والتحقق من النتيجة.",
+        ].join("\n\n")
+      : isComprehensive
+      ? "أنجز الورقة بالقلم، واكتب المعطيات والتحويلات والتبريرات كاملة."
        : `اعتمد على المقتطفات المسترجعة من «${sourceLabel}» حول ${topic}. استخرج المعطيات والوحدات، واختر العلاقة المناسبة، ثم احسب المطلوب واكتب النتيجة مع وحدتها.`,
      answer: "الحل غير معروض في ورقة الطالب. ارفع محاولتك للحصول على توجيه بعد المراجعة.",
      hint: `ابدأ من «${sourceLabel}» وحدد المعطيات اللازمة لكل محور.`,
      solution: "الحل غير معروض في ورقة الطالب. ارفع محاولتك للحصول على توجيه بعد المراجعة.",
-    sourceDocuments: sourceDocumentsFrom(documents),
-    sourceNodeIds: documents.map((document) => document.id),
+    sourceDocuments: sourceDocumentsFrom(sourceDocuments),
+    sourceNodeIds: sourceDocuments.map((document) => document.id),
     grounding: retrieval.grounding,
     ...(isComprehensive
       ? {
@@ -1067,7 +1134,15 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         typeof activeConcept === "string" ? activeConcept : "",
         retrieval,
         true,
+        subject,
       );
+      if (!fallback) {
+        res.status(424).json({
+          error: "grounded_physics_problem_unavailable",
+          message: "لم أعثر في المصادر المتاحة على مسألة فيزيائية بمعطيات عددية ووحدات كافية لبناء ورقة قابلة للحل. حدّد درسًا أو مفهومًا أدق ثم أعد المحاولة.",
+        });
+        return;
+      }
       assertReviewPaperDifficulty(fallback.difficulty);
       if (!fallback.format || fallback.totalPoints === undefined || !fallback.sections) {
         throw new Error("Grounded paper fallback did not match the paper contract");
@@ -1082,6 +1157,22 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
             evidence: string;
           }>,
           fallback.totalPoints ?? 0,
+          retrieval.documents.map((document) => ({
+            id: document.id,
+            document: document.document ?? "",
+          })),
+        );
+      } else {
+        assertGroundedScienceReviewPaperContract(
+          fallback.prompt,
+          fallback.sections as Array<{
+            id: string;
+            points: number;
+            prompt: string;
+            sourceNodeIds: string[];
+            evidence: string;
+          }>,
+          fallback.totalPoints,
           retrieval.documents.map((document) => ({
             id: document.id,
             document: document.document ?? "",
