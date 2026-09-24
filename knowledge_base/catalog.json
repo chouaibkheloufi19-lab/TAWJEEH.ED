@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-09-24T12:19:21.453892+00:00",
+  "generated_at": "2026-09-24T22:47:18.775410+00:00",
   "assets_root": "attached_assets",
   "stats": {
-    "needs_review": 333,
+    "needs_review": 334,
     "indexed": 52,
     "excluded_media": 13,
     "duplicate_source": 63,
     "excluded_reference": 1,
-    "total_assets": 462,
+    "total_assets": 463,
     "indexed_chunks": 685
   },
   "sources": [
@@ -5384,6 +5384,48 @@
         "reference"
       ],
       "indexed_source_hash": "addbd4010eeb7bf58699c755897e9094b464cbd69f605b0c57513e4765256531"
+    },
+    {
+      "source_id": "5adfd111a5ffa1cb00fb94550b0bcad232114284bd72623a22b8bd181a817f07",
+      "source_file": "image_1790253482137.png",
+      "asset_path": "attached_assets/image_1790253482137.png",
+      "source_type": "png",
+      "bytes": 232167,
+      "sha256": "5adfd111a5ffa1cb00fb94550b0bcad232114284bd72623a22b8bd181a817f07",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "unspecified",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "lesson_key": "general",
+      "content_type": "reference",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "مراجعة عامة",
+      "concepts": "مراجعة عامة",
+      "prerequisites": "",
+      "lesson_keys": "general",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "غير محدد · مراجعة عامة",
+      "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
+      "pages": 1,
+      "chunks": 0,
+      "first_page": 0,
+      "extraction_method": "none",
+      "extraction_methods": {
+        "empty": 1
+      },
+      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "reference"
+      ],
+      "indexed_source_hash": "5adfd111a5ffa1cb00fb94550b0bcad232114284bd72623a22b8bd181a817f07"
     },
     {
       "source_id": "dbb8966407793c9c3e5f361c1cdfe8a5933880e94065548e20a633bb1368ea6e",
