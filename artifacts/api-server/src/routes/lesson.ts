@@ -340,16 +340,13 @@ async function generateExercise(
   retrieval: RetrievalContext,
 ): Promise<GeneratedExercise> {
   const sourceText = formatRetrievedContext(retrieval.documents);
-  const generationRequest = [
+  const studyRequest = [
     lesson,
     subject,
     activeConcept,
-    attemptContext,
   ].join(" ");
-  const isFunctionStudy = /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite|function/i.test(generationRequest);
-  const isScientificPaper = forceComprehensive
-    || isFunctionStudy
-    || /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(generationRequest);
+  const isFunctionStudy = /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite|function/i.test(studyRequest);
+  const isScientificPaper = forceComprehensive || isFunctionStudy;
   const generationInstruction = isFunctionStudy
       ? [
         "مستوى الصعوبة إلزاميًا: متقدم. يجب أن يعلن JSON الحقل difficulty بالقيمة الإنجليزية الحرفية advanced، وإلا تُرفض الورقة. اجعلها على نمط بكالوريا صارم، وكل محور متعدد الخطوات، واجعل الانتقال بين المحاور يعتمد على نتيجة المحور السابق.",
@@ -370,10 +367,9 @@ async function generateExercise(
           'أعد sections بهذا الشكل، مع عناوين داخلية قصيرة لا تعرض للطالب: [{"id":"data","title":"data","points":3,"prompt":"أ) عيّن المعطيات اللازمة. ب) اكتب العلاقة المناسبة."},{"id":"law","title":"law","points":4,"prompt":"أ) اكتب القانون المستعمل. ب) استنتج..."},{"id":"calculation","title":"calculation","points":5,"prompt":"أ) احسب... ب) استنتج..."},{"id":"interpretation","title":"interpretation","points":4,"prompt":"أ) بيّن... ب) تحقق من التجانس..."},{"id":"synthesis","title":"synthesis","points":4,"prompt":"استنتج النتيجة النهائية."}]',
         ].join("\n")
       : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
-  const content = await callDeepSeekTextModelWithRetry(
-    [
+  const generationMessages = [
       {
-        role: "system",
+        role: "system" as const,
         content: [
           ADAPTIVE_EXERCISE_PROMPT,
           ACADEMIC_EXAM_PROMPT,
@@ -386,7 +382,7 @@ async function generateExercise(
         ].join("\n\n"),
       },
       {
-        role: "user",
+        role: "user" as const,
         content: [
           `عنوان الدرس: ${lesson}`,
           `مستوى الطالب: ${level || "غير محدد"}`,
@@ -403,105 +399,140 @@ async function generateExercise(
             : 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
         ].join("\n"),
       },
-    ],
-  { temperature: 0.15, maxOutputTokens: isFunctionStudy ? 4800 : isScientificPaper ? 3400 : 1200, jsonMode: true },
-  { maxAttempts: 4, baseDelayMs: 1_000 },
-  );
-  const candidate = extractJsonObject(content, "Exercise generator");
-  const parsed = JSON.parse(candidate) as Partial<GeneratedExercise>;
-  if (
-    typeof parsed.lessonTitle !== "string" ||
-    typeof parsed.title !== "string" ||
-    typeof parsed.prompt !== "string" ||
-    typeof parsed.answer !== "string" ||
-    typeof parsed.hint !== "string" ||
-    typeof parsed.solution !== "string" ||
-    !Array.isArray(parsed.sourceNodeIds)
-  ) {
-    throw new Error("Exercise generator returned an incomplete exercise");
-  }
-  const sections = Array.isArray(parsed.sections)
-    ? parsed.sections
-        .filter((section): section is NonNullable<GeneratedExercise["sections"]>[number] => Boolean(
-          section
-          && typeof section.id === "string"
-          && typeof section.title === "string"
-          && typeof section.points === "number"
-          && typeof section.prompt === "string"
-          && Array.isArray(section.sourceNodeIds)
-          && typeof section.evidence === "string"
-          && section.evidence.trim()
-          && section.points > 0
-          && section.prompt.trim(),
-        ))
-        .slice(0, isFunctionStudy ? FUNCTION_REVIEW_SECTION_IDS.length : 8)
-        .map((section) => ({
-          id: section.id.trim(),
-          title: isFunctionStudy
-            ? normalizeFunctionSectionTitle(section.id.trim(), section.title)
-            : section.title.trim(),
-          points: section.points,
-          prompt: section.prompt.trim(),
-          sourceNodeIds: assertGroundedNodeIds(section.sourceNodeIds, retrieval),
-          evidence: section.evidence?.trim() ?? "",
-        }))
-    : undefined;
-  const format = parsed.format === "comprehensive_function" || parsed.format === "comprehensive_science"
-    ? parsed.format
-    : undefined;
-  if (forceComprehensive && parsed.difficulty !== REVIEW_PAPER_DIFFICULTY) {
-    throw new Error("Exercise generator returned a paper without advanced difficulty");
-  }
-  if (isScientificPaper && (!format || !sections || sections.length < 5)) {
-    throw new Error("Exercise generator returned an incomplete practical paper");
-  }
-  if (isFunctionStudy && format !== "comprehensive_function") {
-    throw new Error("Exercise generator returned a non-function paper for a function study");
-  }
-  const totalPoints = typeof parsed.totalPoints === "number"
-    ? parsed.totalPoints
-    : sections?.reduce((sum, section) => sum + section.points, 0) ?? 0;
-  if (isScientificPaper && sections) {
-    if (totalPoints <= 0 || totalPoints > 20 || sections.some((section) => section.prompt.includes("الحل النموذجي"))) {
-      throw new Error("Exercise generator returned an invalid practical paper");
+  ];
+  let lastValidationError: string | undefined;
+
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const content = await callDeepSeekTextModelWithRetry(
+      [
+        ...generationMessages,
+        ...(lastValidationError
+          ? [
+              {
+                role: "user" as const,
+                content: `أعد المحاولة كاملة. فشل الإخراج السابق في التحقق لهذا السبب: ${lastValidationError}. أصلح السبب وأعد كائن JSON كاملًا، لا تكتفِ بشرح التعديل.`,
+              },
+            ]
+          : []),
+      ],
+      {
+        temperature: 0.15,
+        maxOutputTokens: isFunctionStudy ? 4800 : isScientificPaper ? 3400 : 1200,
+        jsonMode: true,
+      },
+      { maxAttempts: 4, baseDelayMs: 1_000 },
+    );
+
+    try {
+      const candidate = extractJsonObject(content, "Exercise generator");
+      const parsed = JSON.parse(candidate) as Partial<GeneratedExercise>;
+      if (
+        typeof parsed.lessonTitle !== "string" ||
+        typeof parsed.title !== "string" ||
+        typeof parsed.prompt !== "string" ||
+        typeof parsed.answer !== "string" ||
+        typeof parsed.hint !== "string" ||
+        typeof parsed.solution !== "string" ||
+        !Array.isArray(parsed.sourceNodeIds)
+      ) {
+        throw new Error("Exercise generator returned an incomplete exercise");
+      }
+      const sections = Array.isArray(parsed.sections)
+        ? parsed.sections
+            .filter((section): section is NonNullable<GeneratedExercise["sections"]>[number] => Boolean(
+              section
+              && typeof section.id === "string"
+              && typeof section.title === "string"
+              && typeof section.points === "number"
+              && typeof section.prompt === "string"
+              && Array.isArray(section.sourceNodeIds)
+              && typeof section.evidence === "string"
+              && section.evidence.trim()
+              && section.points > 0
+              && section.prompt.trim(),
+            ))
+            .slice(0, isFunctionStudy ? FUNCTION_REVIEW_SECTION_IDS.length : 8)
+            .map((section) => ({
+              id: section.id.trim(),
+              title: isFunctionStudy
+                ? normalizeFunctionSectionTitle(section.id.trim(), section.title)
+                : section.title.trim(),
+              points: section.points,
+              prompt: section.prompt.trim(),
+              sourceNodeIds: assertGroundedNodeIds(section.sourceNodeIds, retrieval),
+              evidence: section.evidence?.trim() ?? "",
+            }))
+        : undefined;
+      const format = parsed.format === "comprehensive_function" || parsed.format === "comprehensive_science"
+        ? parsed.format
+        : undefined;
+      if (forceComprehensive && parsed.difficulty !== REVIEW_PAPER_DIFFICULTY) {
+        throw new Error("Exercise generator returned a paper without advanced difficulty");
+      }
+      if (isScientificPaper && (!format || !sections || sections.length < 5)) {
+        throw new Error("Exercise generator returned an incomplete practical paper");
+      }
+      if (isFunctionStudy && format !== "comprehensive_function") {
+        throw new Error("Exercise generator returned a non-function paper for a function study");
+      }
+      const totalPoints = typeof parsed.totalPoints === "number"
+        ? parsed.totalPoints
+        : sections?.reduce((sum, section) => sum + section.points, 0) ?? 0;
+      if (isScientificPaper && sections) {
+        if (totalPoints <= 0 || totalPoints > 20 || sections.some((section) => section.prompt.includes("الحل النموذجي"))) {
+          throw new Error("Exercise generator returned an invalid practical paper");
+        }
+      }
+      if (isFunctionStudy && sections) {
+        assertGroundedReviewPaperContract(
+          sections as Array<{
+            id: string;
+            points: number;
+            prompt: string;
+            sourceNodeIds: string[];
+            evidence: string;
+          }>,
+          totalPoints,
+          retrieval.documents.map((document) => ({
+            id: document.id,
+            document: document.document ?? "",
+          })),
+        );
+      }
+      return {
+        status: "generated",
+        lessonTitle: parsed.lessonTitle,
+        title: parsed.title,
+        prompt: parsed.prompt,
+        answer: parsed.answer,
+        hint: parsed.hint,
+        solution: parsed.solution,
+        sourceDocuments: sourceDocumentsFrom(retrieval.documents),
+        sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
+        grounding: retrieval.grounding,
+        ...(forceComprehensive ? { difficulty: REVIEW_PAPER_DIFFICULTY } : {}),
+        ...(sections && format
+          ? {
+              format,
+              totalPoints,
+              sections,
+            }
+          : {}),
+      };
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      if (attempt === 2) {
+        if (error instanceof KnowledgeGroundingError) throw error;
+        throw new Error(
+          `Exercise generator failed contract validation after ${attempt} attempts: ${reason}`,
+          { cause: error },
+        );
+      }
+      lastValidationError = reason.slice(0, 400);
     }
   }
-  if (isFunctionStudy && sections) {
-    assertGroundedReviewPaperContract(
-      sections as Array<{
-        id: string;
-        points: number;
-        prompt: string;
-        sourceNodeIds: string[];
-        evidence: string;
-      }>,
-      totalPoints,
-      retrieval.documents.map((document) => ({
-        id: document.id,
-        document: document.document ?? "",
-      })),
-    );
-  }
-  return {
-    status: "generated",
-    lessonTitle: parsed.lessonTitle,
-    title: parsed.title,
-    prompt: parsed.prompt,
-    answer: parsed.answer,
-    hint: parsed.hint,
-    solution: parsed.solution,
-    sourceDocuments: sourceDocumentsFrom(retrieval.documents),
-    sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
-    grounding: retrieval.grounding,
-    ...(forceComprehensive ? { difficulty: REVIEW_PAPER_DIFFICULTY } : {}),
-    ...(sections && format
-      ? {
-          format,
-          totalPoints,
-          sections,
-        }
-      : {}),
-  };
+
+  throw new Error("Exercise generator exhausted contract-validation retries");
 }
 
 function buildGroundedExerciseFallback(
@@ -527,15 +558,12 @@ function buildGroundedExerciseFallback(
     .join("\n\n");
   const isFunctionStudy =
     /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|function/i.test(
-      `${lesson} ${topic} ${evidence}`,
-    );
-  const isScientificPaper =
-    forceComprehensive ||
-    isFunctionStudy ||
-    /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|mécanique|physique|mathématiques/i.test(
       `${lesson} ${topic}`,
     );
-  const sections = isFunctionStudy
+  const isComprehensive = forceComprehensive || isFunctionStudy;
+  const sections = !isComprehensive
+    ? []
+    : isFunctionStudy
     ? [
         {
           id: "domain",
@@ -622,19 +650,27 @@ function buildGroundedExerciseFallback(
   return {
     status: "generated",
     lessonTitle: lesson,
-    title: `ورقة تدريب موثقة: ${topic}`,
-     prompt: "أنجز الورقة بالقلم، واكتب المعطيات والتحويلات والتبريرات كاملة.",
+    title: isComprehensive ? `ورقة تدريب موثقة: ${topic}` : `تمرين موثق: ${topic}`,
+     prompt: isComprehensive
+       ? "أنجز الورقة بالقلم، واكتب المعطيات والتحويلات والتبريرات كاملة."
+       : `اعتمد على المقتطفات المسترجعة من «${sourceLabel}» حول ${topic}. استخرج المعطيات والوحدات، واختر العلاقة المناسبة، ثم احسب المطلوب واكتب النتيجة مع وحدتها.`,
      answer: "الحل غير معروض في ورقة الطالب. ارفع محاولتك للحصول على توجيه بعد المراجعة.",
      hint: `ابدأ من «${sourceLabel}» وحدد المعطيات اللازمة لكل محور.`,
      solution: "الحل غير معروض في ورقة الطالب. ارفع محاولتك للحصول على توجيه بعد المراجعة.",
     sourceDocuments: sourceDocumentsFrom(documents),
     sourceNodeIds: documents.map((document) => document.id),
     grounding: retrieval.grounding,
-    format: isFunctionStudy ? "comprehensive_function" : "comprehensive_science",
-    totalPoints: sections.reduce((sum, section) => sum + section.points, 0),
-    sections,
+    ...(isComprehensive
+      ? {
+          format: isFunctionStudy ? "comprehensive_function" as const : "comprehensive_science" as const,
+          totalPoints: sections.reduce((sum, section) => sum + section.points, 0),
+          sections,
+        }
+      : {}),
     fallback: true,
-     fallbackMessage: "هذه ورقة تدريب مبنية على مادة الدرس المتاحة.",
+    fallbackMessage: isComprehensive
+      ? "هذه ورقة تدريب مبنية على مادة الدرس المتاحة."
+      : "هذا تمرين موجز مبني على مادة الدرس المتاحة.",
   };
 }
 
@@ -913,10 +949,10 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
   const requestText = [lesson, activeConcept, attemptContext]
     .filter((value): value is string => Boolean(value))
     .join(" ");
-  const isPaperRequest =
+   const isPaperRequest =
     mode === "paper" ||
     worksheet === "comprehensive" ||
-    /رياضيات|الرياضيات|علوم فيزيائية|فيزياء|الفيزياء|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|mécanique|physique|mathématiques/i.test(
+     /ورقة|اختبار|امتحان|بكالوريا|comprehensive|full\s+paper|exam\s+paper/i.test(
       requestText,
     );
   try {
@@ -1058,7 +1094,18 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       res.json(studentExerciseView(fallback));
       return;
     }
-    const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
+    const contractFailure = errorMessage.startsWith(
+      "Exercise generator failed contract validation after",
+    );
+    const message = contractFailure
+      ? errorMessage.includes("incomplete practical paper")
+        ? "لم تكتمل بنية الورقة العملية بعد محاولتي توليد. أعد المحاولة، أو اختر تمرينًا عاديًا بدل الورقة الكاملة."
+        : errorMessage.includes("invalid practical paper")
+          ? "أنتج النموذج ورقة عملية غير مستوفية لشروط العلامات أو عرض الأسئلة بعد محاولتي تصحيح. أعد المحاولة أو اختر تمرينًا عاديًا."
+          : errorMessage.includes("without advanced difficulty")
+            ? "لم تصل الورقة إلى مستوى الصعوبة المتقدم المطلوب بعد محاولتي توليد. أعد المحاولة."
+            : "لم يكتمل تركيب التمرين بعد محاولتي توليد. جرّب موضوعًا أضيق أو أعد المحاولة."
+      : errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
       ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
       : errorMessage.includes("GEMINI_CONNECTION_NOT_CONFIGURED") ||
           errorMessage.includes("DEEPSEEK_CONNECTION_NOT_CONFIGURED")
@@ -1075,7 +1122,9 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       error:
         error instanceof KnowledgeGroundingError
           ? error.code
-          : "exercise_generation_failed",
+          : contractFailure
+            ? "exercise_generation_contract_failed"
+            : "exercise_generation_failed",
       message,
     });
   }
