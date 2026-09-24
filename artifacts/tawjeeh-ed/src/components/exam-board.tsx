@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ArrowRight, CheckCircle2, FileText, LoaderCircle, Printer, RefreshCw, ShieldCheck } from 'lucide-react';
 import { fetchWithTimeout } from '@/lib/request';
 import { MathText } from '@/components/math-text';
@@ -45,15 +45,30 @@ type GeneratedExam = {
 };
 
 function formatError(error: unknown) {
-  return error instanceof Error ? error.message : 'تعذر تجهيز الموضوع من مصادر المعرفة.';
+  if (!(error instanceof Error)) return 'تعذر تجهيز الموضوع من مصادر المعرفة.';
+  if (/failed to fetch|network error/i.test(error.message)) {
+    return 'تعذر الاتصال بمسار توليد موضوع البكالوريا. تحقّق من اتصال API ثم أعد المحاولة.';
+  }
+  return error.message;
 }
 
 export function ExamBoard({ onExit }: { onExit: () => void }) {
   const [exam, setExam] = useState<GeneratedExam | null>(null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [subject, setSubject] = useState('الرياضيات');
+  const [level, setLevel] = useState('السنة الثالثة ثانوي');
+  const [track, setTrack] = useState('شعبة العلوم التجريبية');
+  const [request, setRequest] = useState(
+    'موضوع بكالوريا كامل حول الدوال العددية والاشتقاق والنهايات، مع تدرج في الصعوبة ودليل تصحيح مفصل',
+  );
 
-  const generate = async () => {
+  const generate = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (!subject.trim() || !level.trim() || !track.trim() || !request.trim()) {
+      setError('أكمل المادة والمستوى والشعبة وطلب التوليد قبل المتابعة.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -62,10 +77,10 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          subject: 'الرياضيات',
-          level: 'السنة الثالثة ثانوي',
-          track: 'شعبة العلوم التجريبية',
-          request: 'موضوع بكالوريا كامل حول الدوال العددية والاشتقاق والنهايات، مع وضعيات جديدة وتدرج في الصعوبة ودليل تصحيح مفصل',
+          subject: subject.trim(),
+          level: level.trim(),
+          track: track.trim(),
+          request: request.trim(),
         }),
       }, 55_000);
       const responseText = await response.text();
@@ -74,8 +89,12 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
         payload = JSON.parse(responseText) as { message?: string } & Partial<GeneratedExam>;
       } catch {
         throw new Error(
-          response.status === 500
-            ? 'خدمة الخادم غير مهيأة بعد. فعّل مصادقة Clerk ثم أعد المحاولة.'
+          response.status === 502
+            ? 'أعاد مسار توليد موضوع البكالوريا HTTP 502 دون تفاصيل. لم يُعرض موضوع بديل؛ أعد المحاولة، وإذا تكرر الخطأ فتحقّق من سجل API.'
+            : response.status === 503
+              ? 'خدمة التوليد غير متاحة مؤقتًا. أعد المحاولة بعد قليل.'
+              : response.status === 500
+                ? 'خدمة API لم تبدأ بصورة صحيحة. تحقّق من سجل تشغيل الخادم ثم أعد المحاولة.'
             : 'استجابت الخدمة بصيغة غير متوقعة. أعد المحاولة.',
         );
       }
@@ -90,14 +109,26 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
     }
   };
 
-  useEffect(() => {
-    void generate();
-  }, []);
+  const requestForm = (
+    <ExamGenerationForm
+      subject={subject}
+      level={level}
+      track={track}
+      request={request}
+      loading={loading}
+      onSubjectChange={setSubject}
+      onLevelChange={setLevel}
+      onTrackChange={setTrack}
+      onRequestChange={setRequest}
+      onSubmit={generate}
+    />
+  );
 
   if (loading) {
     return (
       <div className="exam-board-page" dir="rtl">
-        <ExamBoardToolbar onExit={onExit} onRefresh={() => undefined} disabled />
+        <ExamBoardToolbar onExit={onExit} onRefresh={() => void generate()} disabled />
+        {requestForm}
         <div className="exam-paper exam-paper-loading" aria-busy="true" data-testid="state-exam-generating">
           <div className="exam-loading-seal"><LoaderCircle size={28} className="animate-spin" /></div>
           <p className="exam-paper-kicker">TAWJEEH.ED · GROUNDING</p>
@@ -112,7 +143,8 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
   if (error || !exam) {
     return (
       <div className="exam-board-page" dir="rtl">
-        <ExamBoardToolbar onExit={onExit} onRefresh={() => void generate()} />
+        <ExamBoardToolbar onExit={onExit} onRefresh={() => void generate()} disabled={!error} printDisabled />
+        {requestForm}
         <div className="exam-paper exam-paper-error" role="alert" data-testid="state-exam-generation-error">
           <div className="exam-error-icon"><FileText size={26} /></div>
           <p className="exam-paper-kicker">لم يُعتمد الموضوع</p>
@@ -128,6 +160,7 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
   return (
     <div className="exam-board-page" dir="rtl">
       <ExamBoardToolbar onExit={onExit} onRefresh={() => void generate()} />
+      {requestForm}
       <article className="exam-paper generated-exam-paper" data-testid="card-generated-grounded-exam">
         <header className="exam-paper-header">
           <div>
@@ -210,13 +243,70 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
   );
 }
 
-function ExamBoardToolbar({ onExit, onRefresh, disabled = false }: { onExit: () => void; onRefresh: () => void; disabled?: boolean }) {
+function ExamGenerationForm({
+  subject,
+  level,
+  track,
+  request,
+  loading,
+  onSubjectChange,
+  onLevelChange,
+  onTrackChange,
+  onRequestChange,
+  onSubmit,
+}: {
+  subject: string;
+  level: string;
+  track: string;
+  request: string;
+  loading: boolean;
+  onSubjectChange: (value: string) => void;
+  onLevelChange: (value: string) => void;
+  onTrackChange: (value: string) => void;
+  onRequestChange: (value: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  return (
+    <form className="exam-generation-form" onSubmit={onSubmit} aria-label="إعداد طلب توليد الموضوع">
+      <div className="exam-generation-heading">
+        <div>
+          <span className="exam-paper-kicker">إعداد الموضوع</span>
+          <h2>حدّد ما تريد توليده</h2>
+        </div>
+        <button className="primary-button" type="submit" disabled={loading || !subject.trim() || !level.trim() || !track.trim() || !request.trim()} data-testid="button-generate-requested-exam">
+          {loading ? <><LoaderCircle size={15} className="animate-spin" /> جارٍ التوليد</> : <><FileText size={15} /> توليد حسب الطلب</>}
+        </button>
+      </div>
+      <div className="exam-generation-fields">
+        <label className="exam-generation-field">
+          <span>المادة</span>
+          <input aria-label="المادة المطلوبة" value={subject} onChange={(event) => onSubjectChange(event.target.value)} maxLength={120} required disabled={loading} />
+        </label>
+        <label className="exam-generation-field">
+          <span>المستوى</span>
+          <input aria-label="المستوى الدراسي" value={level} onChange={(event) => onLevelChange(event.target.value)} maxLength={120} required disabled={loading} />
+        </label>
+        <label className="exam-generation-field">
+          <span>الشعبة</span>
+          <input aria-label="الشعبة الدراسية" value={track} onChange={(event) => onTrackChange(event.target.value)} maxLength={120} required disabled={loading} />
+        </label>
+        <label className="exam-generation-field exam-generation-request">
+          <span>طلب التوليد</span>
+          <textarea aria-label="ما الذي تريد توليده؟" value={request} onChange={(event) => onRequestChange(event.target.value)} maxLength={5000} rows={3} required disabled={loading} />
+          <small>هذا المسار يبني موضوعًا من تمرينين إلى 8 تمارين، مع تصحيح مطابق للمصادر.</small>
+        </label>
+      </div>
+    </form>
+  );
+}
+
+function ExamBoardToolbar({ onExit, onRefresh, disabled = false, printDisabled = false }: { onExit: () => void; onRefresh: () => void; disabled?: boolean; printDisabled?: boolean }) {
   return (
     <div className="exam-paper-toolbar">
       <button className="secondary-button !px-3 !py-2 !text-xs" onClick={onExit} data-testid="button-exit-exam-paper"><ArrowRight size={15} /> العودة للاختبارات</button>
       <div className="exam-toolbar-actions">
         <button className="secondary-button !px-3 !py-2 !text-xs" onClick={onRefresh} disabled={disabled} data-testid="button-refresh-exam-paper"><RefreshCw size={15} /> إعادة التوليد</button>
-        <button className="primary-button !px-3 !py-2 !text-xs" onClick={() => window.print()} disabled={disabled} data-testid="button-print-exam-paper"><Printer size={15} /> طباعة الموضوع</button>
+        <button className="primary-button !px-3 !py-2 !text-xs" onClick={() => window.print()} disabled={disabled || printDisabled} data-testid="button-print-exam-paper"><Printer size={15} /> طباعة الموضوع</button>
       </div>
     </div>
   );

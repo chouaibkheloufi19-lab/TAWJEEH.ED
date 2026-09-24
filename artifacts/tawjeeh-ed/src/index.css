@@ -2219,6 +2219,19 @@ button { cursor: pointer; }
 .generated-exam-meta span::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: #4f9da4; }
 .generated-exam-action { white-space: nowrap; }
 .exam-paper-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 auto 14px; width: min(920px, 100%); }
+.exam-generation-form { width: min(920px, 100%); margin: 0 auto 18px; padding: 20px; border: 1px solid #c9e0dc; border-radius: 16px; background: linear-gradient(145deg, #fff, #f4fbf9); box-shadow: 0 12px 32px rgba(24, 71, 86, .08); }
+.exam-generation-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+.exam-generation-heading h2 { margin: 3px 0 0; color: #073b58; font-size: 19px; font-weight: 950; }
+.exam-generation-heading .primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 15px; white-space: nowrap; }
+.exam-generation-heading .primary-button:disabled { cursor: not-allowed; opacity: .65; }
+.exam-generation-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.exam-generation-field { display: grid; gap: 6px; color: #486a74; font-size: 11px; font-weight: 850; }
+.exam-generation-field input, .exam-generation-field textarea { width: 100%; min-height: 40px; padding: 9px 11px; border: 1px solid #cfe0dc; border-radius: 10px; outline: 0; color: #173b4a; background: #fff; font: inherit; font-size: 12px; line-height: 1.8; }
+.exam-generation-field textarea { min-height: 78px; resize: vertical; }
+.exam-generation-field small { color: #71868b; font-size: 10px; font-weight: 650; line-height: 1.7; }
+.exam-generation-field input:focus, .exam-generation-field textarea:focus { border-color: #2e8b7b; box-shadow: 0 0 0 3px rgba(46, 139, 123, .12); }
+.exam-generation-field input:disabled, .exam-generation-field textarea:disabled { opacity: .7; }
+.exam-generation-request { grid-column: 1 / -1; }
 .exam-paper {
   position: relative;
   width: min(920px, 100%);
@@ -2298,10 +2311,12 @@ button { cursor: pointer; }
   .exam-paper-header { grid-template-columns: 1fr 1fr; }
   .exam-paper-brand { display: none; }
   .exam-paper-header-left { text-align: left; }
+  .exam-generation-heading { align-items: stretch; flex-direction: column; }
+  .exam-generation-fields { grid-template-columns: 1fr; }
 }
 @media print {
   body { background: #fff !important; }
-  .sidebar, .bottom-nav, .topbar, .exam-paper-toolbar { display: none !important; }
+  .sidebar, .bottom-nav, .topbar, .exam-paper-toolbar, .exam-generation-form { display: none !important; }
   .app-shell, .main-content, .shell-content { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
   .exam-paper { width: 100%; max-width: none; border: 0; border-radius: 0; outline: 0; box-shadow: none; }
   .exam-paper-section { break-inside: avoid; }
