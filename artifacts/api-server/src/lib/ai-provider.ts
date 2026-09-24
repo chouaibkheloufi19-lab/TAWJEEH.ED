@@ -96,6 +96,24 @@ function retryAfterMs(response: Response): number | undefined {
 function isConnectionError(message: string): boolean {
   return /unauthenticated|no[- ]credentials|not connected|connection (?:not found|not configured|failed|refused|reset)|credentials? (?:missing|invalid|not found)|incorrect api key|invalid api key|api key (?:provided|missing|not found|not valid|invalid|expired)|key not valid/i.test(
     message,
+  ) || /no\s+(?:[a-z0-9_-]+\s+)?connection\s+found/i.test(message);
+}
+
+export function isProviderConnectionUnavailable(error: unknown): boolean {
+  return (
+    error instanceof DeepSeekProviderError &&
+    (error.status === 401 ||
+      error.status === 403 ||
+      /(?:XAI|GEMINI|DEEPSEEK)_CONNECTION_NOT_CONFIGURED|(?:GEMINI_API_KEY|DEEPSEEK_API_KEY) is not configured/i.test(
+        error.message,
+      ))
+  );
+}
+
+export function shouldUseGroundedProviderFallback(error: unknown): boolean {
+  return (
+    error instanceof DeepSeekProviderError &&
+    (error.retryable || isProviderConnectionUnavailable(error))
   );
 }
 
