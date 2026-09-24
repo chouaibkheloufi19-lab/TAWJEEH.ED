@@ -931,7 +931,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     activeConcept,
     attemptContext,
     mode,
-    worksheet,
+    studentRequestedPaper,
   } =
     req.body as Record<string, unknown>;
   if (
@@ -942,14 +942,18 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     (curriculumYear !== undefined && typeof curriculumYear !== "string") ||
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
     (attemptContext !== undefined && typeof attemptContext !== "string") ||
-    (mode !== undefined && mode !== "standard" && mode !== "paper" && mode !== "creative_topic")
-    || (worksheet !== undefined && worksheet !== "comprehensive")
+    (mode !== undefined && mode !== "standard" && mode !== "paper" && mode !== "creative_topic") ||
+    (studentRequestedPaper !== undefined && typeof studentRequestedPaper !== "boolean")
   ) {
     res.status(400).json({ error: "invalid_exercise_generation_payload" });
     return;
   }
   let retrieval: RetrievalContext | undefined;
-  const isPaperRequest = mode === "paper" || worksheet === "comprehensive";
+  // A paper is a distinct student intent. Never derive it from lesson titles,
+  // active concepts, error history, or any other free-form context because
+  // those fields routinely contain words such as "paper" while asking for a
+  // normal practice exercise.
+  const isPaperRequest = mode === "paper" || studentRequestedPaper === true;
   try {
     const userId = getUserId(req);
     if (!userId) {

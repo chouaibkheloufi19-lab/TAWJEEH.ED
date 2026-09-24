@@ -1713,7 +1713,7 @@ export function LessonWorkspace() {
               ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`
               : targetedConcept || cleanText,
             ...(wantsCreativeTopics ? { mode: 'creative_topic' } : {}),
-            ...(!wantsCreativeTopics && wantsComprehensiveWorksheet ? { worksheet: 'comprehensive' } : {}),
+            ...(!wantsCreativeTopics ? { studentRequestedPaper: wantsComprehensiveWorksheet } : {}),
           }),
         });
         if (wantsCreativeTopics) {
@@ -2005,7 +2005,8 @@ export function LessonWorkspace() {
           subject: fixedLessonSubject,
           curriculum_year: '3AS',
           activeConcept: activeSection.title,
-            attemptContext,
+          attemptContext,
+          studentRequestedPaper: false,
         }),
       });
        const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
