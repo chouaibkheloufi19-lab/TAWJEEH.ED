@@ -11,3 +11,4 @@
 - [Quiz session persistence](quiz-session-persistence.md) — shared weekly quizzes must be database-backed and keyed by quiz type, unit, and ISO week.
 - [Official Daleel summaries](official-daleel-summaries.md) — keep lesson drafts local until mastery, then persist only the stamped summary.
 - [Fixed-port workflow coexistence](workflow-port-coexistence.md) — do not run the full-stack launcher alongside artifact services that already own its fixed ports.
+- [Quiz fallback Unicode](quiz-fallback-unicode.md) — sanitize fallback excerpts after truncation so PostgreSQL JSON never receives an unpaired surrogate.
