@@ -506,12 +506,39 @@ export async function callDeepSeekTextModel(
   options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
 ): Promise<string> {
   if (hasGeminiCredentials()) {
-    return callGeminiApi(messages, options);
+    try {
+      return await callGeminiApi(messages, options);
+    } catch (error) {
+      const shouldUseFallback =
+        error instanceof DeepSeekProviderError &&
+        error.retryable &&
+        (error.status === 408 ||
+          error.status === 429 ||
+          (error.status !== undefined && error.status >= 500));
+      if (!shouldUseFallback) {
+        throw error;
+      }
+      // A direct Gemini key can be temporarily exhausted even while the
+      // managed xAI connector is available. Keep text generation usable by
+      // trying the managed fallback before surfacing a provider error.
+      try {
+        return await callXaiTextModel(messages, options);
+      } catch {
+        throw error;
+      }
+    }
   }
   if (hasDeepSeekCredentials()) {
     return callDeepSeekApi(messages, options);
   }
 
+  return callXaiTextModel(messages, options);
+}
+
+async function callXaiTextModel(
+  messages: ChatMessage[],
+  options: { temperature: number; maxOutputTokens: number; jsonMode?: boolean },
+): Promise<string> {
   const model = await discoverXaiModel();
   let response: Response;
   try {
