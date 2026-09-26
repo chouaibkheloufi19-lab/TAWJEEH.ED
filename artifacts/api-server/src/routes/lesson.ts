@@ -630,21 +630,68 @@ const EXERCISE_FALLBACK_CONTENT_TYPES = new Set([
   "solution",
 ]);
 
+const SOURCE_TOPIC_EXERCISE_MARKER = /(?:ال)?تمرين\s*[0-9٠-٩]+/giu;
+const SOURCE_TOPIC_ACTION_PATTERN =
+  /(?:احسب|أوجد|اوجد|استنتج|ادرس|حل|بيّن|بين|برهن|مثّل|مثل|ناقش|عيّن|عين|أجب|déterminer|calculer|résoudre|étudier)/iu;
+
+function sourceTopicDocumentScore(document: KnowledgeDocument): number[] {
+  const text = document.document?.trim() ?? "";
+  const contentType = String(
+    document.metadata?.content_type || "",
+  ).toLowerCase();
+  const contentTypePriority =
+    contentType === "exercise"
+      ? 0
+      : contentType === "assessment"
+        ? 1
+        : contentType === "solution"
+          ? 2
+          : 3;
+  const markerCount = [...text.matchAll(SOURCE_TOPIC_EXERCISE_MARKER)].length;
+  const hasAction = SOURCE_TOPIC_ACTION_PATTERN.test(text) ? 0 : 1;
+  const hasSubstantialText = text.length >= 80 ? 0 : 1;
+
+  // Keep the existing content-type preference, but prefer a real exercise
+  // excerpt over a short curriculum heading within the same type.
+  return [
+    contentTypePriority,
+    markerCount > 0 ? 0 : 1,
+    hasAction,
+    hasSubstantialText,
+    -markerCount,
+    -text.length,
+  ];
+}
+
 function prioritizeExerciseFallbackDocuments(
   documents: KnowledgeDocument[],
 ): KnowledgeDocument[] {
   return documents
     .slice()
     .sort((left, right) => {
-      const priority = (document: KnowledgeDocument) =>
-        EXERCISE_FALLBACK_CONTENT_TYPES.has(
-          String(document.metadata?.content_type || "").toLowerCase(),
-        )
-          ? 0
-          : 1;
-      return priority(left) - priority(right);
+      const leftType = String(
+        left.metadata?.content_type || "",
+      ).toLowerCase();
+      const rightType = String(
+        right.metadata?.content_type || "",
+      ).toLowerCase();
+      const leftScore = sourceTopicDocumentScore(left);
+      const rightScore = sourceTopicDocumentScore(right);
+      const leftFallbackType = EXERCISE_FALLBACK_CONTENT_TYPES.has(leftType)
+        ? 0
+        : 1;
+      const rightFallbackType = EXERCISE_FALLBACK_CONTENT_TYPES.has(rightType)
+        ? 0
+        : 1;
+      for (let index = 0; index < leftScore.length; index += 1) {
+        const difference = leftScore[index] - rightScore[index];
+        if (difference !== 0) {
+          return difference;
+        }
+      }
+      return leftFallbackType - rightFallbackType;
     })
-    .slice(0, 3);
+    .slice(0, 6);
 }
 
 function buildGroundedExerciseFallback(
@@ -725,7 +772,7 @@ function buildGroundedExerciseFallback(
   const sourceTopicSections = isSourceTopicPaper
     ? documents.flatMap((document) => {
         const text = document.document?.trim() ?? "";
-        const markers = [...text.matchAll(/(?:ال)?تمرين\s*[0-9٠-٩]+/giu)];
+        const markers = [...text.matchAll(SOURCE_TOPIC_EXERCISE_MARKER)];
         return markers.slice(0, 8).map((marker, index) => {
           const start = marker.index ?? 0;
           const end = markers[index + 1]?.index ?? text.length;

@@ -12,3 +12,4 @@
 - [Official Daleel summaries](official-daleel-summaries.md) — keep lesson drafts local until mastery, then persist only the stamped summary.
 - [Fixed-port workflow coexistence](workflow-port-coexistence.md) — do not run the full-stack launcher alongside artifact services that already own its fixed ports.
 - [Quiz fallback Unicode](quiz-fallback-unicode.md) — sanitize fallback excerpts after truncation so PostgreSQL JSON never receives an unpaired surrogate.
+- [Grounded paper fallback](grounded-paper-fallback.md) — rank exercise fallbacks by usable exercise evidence, not content type or retrieval order alone.
