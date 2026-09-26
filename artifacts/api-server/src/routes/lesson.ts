@@ -624,6 +624,29 @@ async function generateExercise(
   throw new Error("Exercise generator exhausted contract-validation retries");
 }
 
+const EXERCISE_FALLBACK_CONTENT_TYPES = new Set([
+  "exercise",
+  "assessment",
+  "solution",
+]);
+
+function prioritizeExerciseFallbackDocuments(
+  documents: KnowledgeDocument[],
+): KnowledgeDocument[] {
+  return documents
+    .slice()
+    .sort((left, right) => {
+      const priority = (document: KnowledgeDocument) =>
+        EXERCISE_FALLBACK_CONTENT_TYPES.has(
+          String(document.metadata?.content_type || "").toLowerCase(),
+        )
+          ? 0
+          : 1;
+      return priority(left) - priority(right);
+    })
+    .slice(0, 3);
+}
+
 function buildGroundedExerciseFallback(
   lesson: string,
   activeConcept: string,
@@ -651,20 +674,12 @@ function buildGroundedExerciseFallback(
   studentRequest = "",
   exerciseIntent: ExerciseIntent = "standard",
 ): GeneratedExercise | null {
-  const documents = retrieval.documents
-    .filter(
+  const documents = prioritizeExerciseFallbackDocuments(
+    retrieval.documents.filter(
       (document) =>
         typeof document.document === "string" && document.document.trim(),
-    )
-    .slice()
-    .sort((left, right) => {
-      const priority = (document: KnowledgeDocument) => {
-        const type = String(document.metadata?.content_type || "").toLowerCase();
-        return ["exercise", "assessment", "solution"].includes(type) ? 0 : 1;
-      };
-      return priority(left) - priority(right);
-    })
-    .slice(0, 3);
+    ),
+  );
   const primary = documents[0];
   const metadata = primary?.metadata ?? {};
   const topic =
@@ -963,7 +978,7 @@ function groundedCreativeTopicFallback(
   lesson: string,
   retrieval: RetrievalContext,
 ): GeneratedCreativeTopics {
-  const documents = retrieval.documents.slice(0, 3);
+  const documents = prioritizeExerciseFallbackDocuments(retrieval.documents);
   const ideas = [
     {
       title: "استخرج الفكرة من المرجع",
