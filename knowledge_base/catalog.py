@@ -23,6 +23,8 @@ DISPLAY_SUBJECTS = {
     "mixed": "متعدد المواد",
     "unspecified": "غير محدد",
 }
+URL_PATTERN = re.compile(r"https?://\S+", re.IGNORECASE)
+DECORATIVE_SEPARATOR_PATTERN = re.compile(r"[-_=*>|#]+")
 
 TOPICS: tuple[tuple[str, tuple[str, ...], str, str], ...] = (
     ("functions", ("الدوال", "الدالة", "fonction", "functions", "اشتقاق", "مشتقة", "نهاية", "lim"), "الدوال العددية", "الدوال"),
@@ -42,6 +44,26 @@ def _haystack(path: Path, text: str) -> str:
 
 def _has_any(value: str, words: Iterable[str]) -> bool:
     return any(word.casefold() in value for word in words)
+
+
+def _link_listing_review_reason(text: str) -> str | None:
+    """Keep link-heavy playlists out of retrieval unless they contain real notes."""
+
+    links = URL_PATTERN.findall(text)
+    if len(links) < 8:
+        return None
+
+    substantive = URL_PATTERN.sub(" ", text)
+    substantive = DECORATIVE_SEPARATOR_PATTERN.sub(" ", substantive)
+    words = re.findall(r"[\w\u0600-\u06FF]{3,}", substantive, flags=re.UNICODE)
+    substantive_text = " ".join(words)
+    substantive_ratio = len(substantive_text) / max(len(text), 1)
+    if len(substantive_text) < 400 or substantive_ratio < 0.12:
+        return (
+            "يغلب على المصدر روابط فيديو وعناوين مختصرة ولا يتضمن شرحًا كافيًا؛ "
+            "يحتاج مراجعة قبل فهرسته"
+        )
+    return None
 
 
 def _infer_subject(path: Path, text: str) -> str:
@@ -291,6 +313,38 @@ def index_assets(
                 records.append(record)
                 continue
 
+            method_counts: dict[str, int] = {}
+            for page in pages:
+                method_counts[page.method] = method_counts.get(page.method, 0) + 1
+            extraction_details = {
+                "pages": len(pages),
+                "first_page": next((page.number for page in pages if page.text), 0),
+                "extraction_method": (
+                    "ocr"
+                    if method_counts.get("ocr")
+                    else "text"
+                    if method_counts.get("text")
+                    else "none"
+                ),
+                "extraction_methods": method_counts,
+            }
+            link_review_reason = _link_listing_review_reason(full_text)
+            if link_review_reason:
+                knowledge_store.replace_source(path.name, [])
+                record.update(profile)
+                record.update(
+                    {
+                        "status": "needs_review",
+                        "review_reason": link_review_reason,
+                        **extraction_details,
+                        "chunks": 0,
+                        "summary": _summary(full_text, profile["title"]),
+                        "tags": [profile["lesson"], profile["unit"], profile["content_type"]],
+                    }
+                )
+                records.append(record)
+                continue
+
             metadata = KnowledgeMetadata(
                 subject=profile["subject"],
                 curriculum_year=profile["curriculum_year"],
@@ -309,9 +363,6 @@ def index_assets(
             )
             chunks = extract_file_chunks(path, metadata, pages=pages)
             knowledge_store.replace_source(path.name, chunks)
-            method_counts: dict[str, int] = {}
-            for page in pages:
-                method_counts[page.method] = method_counts.get(page.method, 0) + 1
             record.update(profile)
             record.update(
                 {
@@ -321,17 +372,8 @@ def index_assets(
                         if chunks
                         else "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية"
                     ),
-                    "pages": len(pages),
                     "chunks": len(chunks),
-                    "first_page": next((page.number for page in pages if page.text), 0),
-                    "extraction_method": (
-                        "ocr"
-                        if method_counts.get("ocr")
-                        else "text"
-                        if method_counts.get("text")
-                        else "none"
-                    ),
-                    "extraction_methods": method_counts,
+                    **extraction_details,
                     "summary": _summary(full_text, profile["title"]),
                     "tags": [profile["lesson"], profile["unit"], profile["content_type"]],
                     "indexed_source_hash": source_hash,
