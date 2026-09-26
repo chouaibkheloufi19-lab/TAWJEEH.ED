@@ -108,6 +108,15 @@ type GeneratedExercise = {
   fallbackMessage?: string;
 };
 
+type GroundedFallbackSection = {
+  id: string;
+  title: string;
+  points: number;
+  prompt: string;
+  sourceNodeIds: string[];
+  evidence: string;
+};
+
 type StudentPaper = {
   status: "generated";
   mode: "paper";
@@ -630,7 +639,8 @@ const EXERCISE_FALLBACK_CONTENT_TYPES = new Set([
   "solution",
 ]);
 
-const SOURCE_TOPIC_EXERCISE_MARKER = /(?:ال)?تمرين\s*[0-9٠-٩]+/giu;
+const SOURCE_TOPIC_EXERCISE_MARKER =
+  /(?:ال)?تمرين\s*(?:(?:رقم|n[°o.]?)\s*)?(?:[0-9٠-٩]+|الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر)|(?:ال)?سؤال\s*(?:[0-9٠-٩]+|الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر)|(?:exercise|exercice)\s*(?:n[°o.]?\s*)?[0-9]+/giu;
 const SOURCE_TOPIC_ACTION_PATTERN =
   /(?:احسب|أوجد|اوجد|استنتج|ادرس|حل|بيّن|بين|برهن|مثّل|مثل|ناقش|عيّن|عين|أجب|déterminer|calculer|résoudre|étudier)/iu;
 
@@ -648,16 +658,17 @@ function sourceTopicDocumentScore(document: KnowledgeDocument): number[] {
           ? 2
           : 3;
   const markerCount = [...text.matchAll(SOURCE_TOPIC_EXERCISE_MARKER)].length;
-  const hasAction = SOURCE_TOPIC_ACTION_PATTERN.test(text) ? 0 : 1;
-  const hasSubstantialText = text.length >= 80 ? 0 : 1;
+  const hasAction = SOURCE_TOPIC_ACTION_PATTERN.test(text);
+  const hasSubstantialText = text.length >= 80;
+  const usableEvidence =
+    markerCount > 0 ? 0 : hasAction && hasSubstantialText ? 1 : hasAction ? 2 : 3;
 
-  // Keep the existing content-type preference, but prefer a real exercise
-  // excerpt over a short curriculum heading within the same type.
+  // Evidence quality must come before the inferred content type. A short
+  // heading can be classified as an exercise from its filename, while a later
+  // assessment/solution node may contain the actual solvable paper.
   return [
+    usableEvidence,
     contentTypePriority,
-    markerCount > 0 ? 0 : 1,
-    hasAction,
-    hasSubstantialText,
     -markerCount,
     -text.length,
   ];
@@ -692,6 +703,94 @@ function prioritizeExerciseFallbackDocuments(
       return leftFallbackType - rightFallbackType;
     })
     .slice(0, 6);
+}
+
+function buildSourceTopicSections(
+  documents: KnowledgeDocument[],
+): GroundedFallbackSection[] {
+  const sections: GroundedFallbackSection[] = [];
+  const seenPrompts = new Set<string>();
+
+  const addSection = (
+    document: KnowledgeDocument,
+    title: string,
+    prompt: string,
+    evidence = prompt,
+  ) => {
+    const cleanPrompt = prompt.replace(/\s+/g, " ").trim();
+    const cleanEvidence = evidence.replace(/\s+/g, " ").trim();
+    if (cleanPrompt.length < 20 || cleanEvidence.length < 20) return;
+    const promptKey = cleanPrompt.toLocaleLowerCase();
+    if (seenPrompts.has(promptKey)) return;
+    seenPrompts.add(promptKey);
+    sections.push({
+      id: `${document.id}-section-${sections.length + 1}`,
+      title: title.replace(/\s+/g, " ").trim(),
+      points: 1,
+      prompt: cleanPrompt.slice(0, 1200),
+      sourceNodeIds: [document.id],
+      evidence: cleanEvidence.slice(0, 220),
+    });
+  };
+
+  for (const document of documents) {
+    const text = document.document?.trim() ?? "";
+    const markers = [...text.matchAll(SOURCE_TOPIC_EXERCISE_MARKER)];
+    markers.slice(0, 8).forEach((marker, index) => {
+      const start = marker.index ?? 0;
+      const end = markers[index + 1]?.index ?? text.length;
+      const title = marker[0].replace(/\s+/g, " ").trim();
+      const prompt = text.slice(start + marker[0].length, end);
+      addSection(document, title, prompt);
+    });
+  }
+
+  // Some indexed sources are split into one node per exercise and do not
+  // preserve an explicit "Exercise 1" heading in every node. Use each
+  // substantial, actionable source node as a section in that case.
+  if (sections.length < 2) {
+    for (const document of documents) {
+      const text = document.document?.trim() ?? "";
+      const contentType = String(document.metadata?.content_type || "").toLowerCase();
+      if (
+        text.length < 80 ||
+        !SOURCE_TOPIC_ACTION_PATTERN.test(text) ||
+        !EXERCISE_FALLBACK_CONTENT_TYPES.has(contentType)
+      ) {
+        continue;
+      }
+      const metadata = document.metadata ?? {};
+      addSection(
+        document,
+        String(metadata.lesson || metadata.unit || metadata.source_file || "تمرين مستخرج"),
+        text,
+      );
+      if (sections.length >= 8) break;
+    }
+  }
+
+  // A single long node may contain lettered sub-exercises rather than numbered
+  // headings. Split only at visible question boundaries and only keep
+  // actionable excerpts, so the fallback never invents a second exercise.
+  if (sections.length < 2) {
+    for (const document of documents) {
+      const text = document.document?.trim() ?? "";
+      const fragments = text
+        .split(/\n{1,2}|(?=\s+[أبجدهـو]\s*[\).:؛-])/u)
+        .map((fragment) => fragment.trim())
+        .filter(
+          (fragment) =>
+            fragment.length >= 40 && SOURCE_TOPIC_ACTION_PATTERN.test(fragment),
+        );
+      for (const fragment of fragments) {
+        addSection(document, "مطلوب فرعي مستخرج من المصدر", fragment);
+        if (sections.length >= 8) break;
+      }
+      if (sections.length >= 8) break;
+    }
+  }
+
+  return sections.slice(0, 8);
 }
 
 function buildGroundedExerciseFallback(
@@ -768,29 +867,8 @@ function buildGroundedExerciseFallback(
     scientificScenario?.evidence ||
     documents[0]?.document?.trim().slice(0, 600) ||
     "المصدر المسترجع يحدد محور الدرس والمفاهيم المطلوب دراستها.";
-  type FallbackSection = NonNullable<GeneratedExercise["sections"]>[number];
   const sourceTopicSections = isSourceTopicPaper
-    ? documents.flatMap((document) => {
-        const text = document.document?.trim() ?? "";
-        const markers = [...text.matchAll(SOURCE_TOPIC_EXERCISE_MARKER)];
-        return markers.slice(0, 8).map((marker, index) => {
-          const start = marker.index ?? 0;
-          const end = markers[index + 1]?.index ?? text.length;
-          const title = marker[0].replace(/\s+/g, " ").trim();
-          const prompt = text
-            .slice(start + marker[0].length, end)
-            .replace(/\s+/g, " ")
-            .trim();
-          return {
-            id: `${document.id}-section-${index + 1}`,
-            title,
-            points: 1,
-            prompt: prompt.slice(0, 1200),
-            sourceNodeIds: [document.id],
-            evidence: prompt.slice(0, 220),
-          };
-        }).filter((section) => section.prompt.length >= 20);
-      })
+    ? buildSourceTopicSections(documents)
     : [];
   if (isSourceTopicPaper && sourceTopicSections.length < 2) {
     return null;
@@ -805,7 +883,7 @@ function buildGroundedExerciseFallback(
     ...section,
     points: fallbackPointBase + (index < fallbackPointRemainder ? 1 : 0),
   }));
-  const sections: FallbackSection[] = !isComprehensive
+  const sections: GroundedFallbackSection[] = !isComprehensive
     ? []
     : isFunctionStudy
     ? [
@@ -1233,7 +1311,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         .filter((value): value is string => Boolean(value))
         .join(" "),
       {
-        nResults: mode === "creative_topic" ? 24 : isPaperRequest ? 20 : 8,
+        nResults: mode === "creative_topic" ? 24 : isPaperRequest ? 50 : 8,
         where:
           typeof subject === "string" || typeof curriculumYear === "string"
             ? {
