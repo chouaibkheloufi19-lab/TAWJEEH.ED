@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "generated_at": "2026-09-24T22:47:18.775410+00:00",
+  "generated_at": "2026-09-26T10:50:17.564027+00:00",
   "assets_root": "attached_assets",
   "stats": {
-    "needs_review": 334,
-    "indexed": 52,
+    "needs_review": 336,
+    "indexed": 51,
     "excluded_media": 13,
     "duplicate_source": 63,
     "excluded_reference": 1,
-    "total_assets": 463,
-    "indexed_chunks": 685
+    "total_assets": 464,
+    "indexed_chunks": 678
   },
   "sources": [
     {
@@ -39,8 +39,8 @@
       "title": "#بكالوريا 37 نهاية بالحل في الدوال المثل",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 6,
       "chunks": 0,
+      "pages": 6,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -81,8 +81,8 @@
       "title": "1 مجلة الخليل في الدوال العددية الأستاذ قويسم خليل",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 50,
       "chunks": 0,
+      "pages": 50,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -123,8 +123,8 @@
       "title": "60 نهاية مع لحل",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 9,
       "chunks": 0,
+      "pages": 9,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -165,8 +165,8 @@
       "title": "⁨واجب في الاشتقاق⁩",
       "status": "indexed",
       "review_reason": "",
-      "pages": 4,
       "chunks": 4,
+      "pages": 4,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -207,8 +207,8 @@
       "title": "agent creation cropped",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -249,8 +249,8 @@
       "title": "agent failure cropped",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -291,8 +291,8 @@
       "title": "agent guiding cropped",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -333,8 +333,8 @@
       "title": "agent mistake cropped",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -375,8 +375,8 @@
       "title": "agent success cropped",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -417,8 +417,8 @@
       "title": "agent thinking cropped",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -459,8 +459,8 @@
       "title": "BcZ63qCCMmK2VxOd4libmEZCK3EDsuGjlEAlyZlz",
       "status": "indexed",
       "review_reason": "",
-      "pages": 5,
       "chunks": 3,
+      "pages": 5,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -502,8 +502,8 @@
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 9,
       "chunks": 0,
+      "pages": 9,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -544,8 +544,8 @@
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 15,
       "chunks": 0,
+      "pages": 15,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -586,8 +586,8 @@
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 420,
       "chunks": 0,
+      "pages": 420,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -628,8 +628,8 @@
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 285,
       "chunks": 0,
+      "pages": 285,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -670,8 +670,8 @@
       "title": "الرياضيات · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 219,
       "chunks": 0,
+      "pages": 219,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -712,8 +712,8 @@
       "title": "dzexams 2as mathematiques 1020872",
       "status": "indexed",
       "review_reason": "",
-      "pages": 6,
       "chunks": 6,
+      "pages": 6,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -754,8 +754,8 @@
       "title": "dzexams 2as mathematiques 1239357",
       "status": "indexed",
       "review_reason": "",
-      "pages": 7,
       "chunks": 8,
+      "pages": 7,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -796,8 +796,8 @@
       "title": "dzexams 2as mathematiques 1281644",
       "status": "indexed",
       "review_reason": "",
-      "pages": 7,
       "chunks": 8,
+      "pages": 7,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -838,8 +838,8 @@
       "title": "dzexams 2as mathematiques 141833",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 3,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -880,8 +880,8 @@
       "title": "dzexams 2as mathematiques 142133",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 2,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -922,8 +922,8 @@
       "title": "dzexams 2as mathematiques 185407",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 3,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -964,8 +964,8 @@
       "title": "dzexams 2as mathematiques 185681",
       "status": "indexed",
       "review_reason": "",
-      "pages": 3,
       "chunks": 5,
+      "pages": 3,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1006,8 +1006,8 @@
       "title": "dzexams 2as mathematiques 197621",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 3,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1048,8 +1048,8 @@
       "title": "dzexams 2as mathematiques 200899",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 3,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1090,8 +1090,8 @@
       "title": "dzexams 2as mathematiques 253605",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 2,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1132,8 +1132,8 @@
       "title": "dzexams 2as mathematiques 343543",
       "status": "indexed",
       "review_reason": "",
-      "pages": 4,
       "chunks": 4,
+      "pages": 4,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1174,8 +1174,8 @@
       "title": "dzexams 2as mathematiques 376520",
       "status": "indexed",
       "review_reason": "",
-      "pages": 4,
       "chunks": 4,
+      "pages": 4,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1216,8 +1216,8 @@
       "title": "dzexams 2as mathematiques 376766",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 2,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1258,8 +1258,8 @@
       "title": "dzexams 2as mathematiques 410266",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 2,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1300,8 +1300,8 @@
       "title": "dzexams 2as mathematiques 458613",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 2,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1342,8 +1342,8 @@
       "title": "dzexams 2as mathematiques 499824",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 2,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1384,8 +1384,8 @@
       "title": "dzexams 2as mathematiques 500437",
       "status": "indexed",
       "review_reason": "",
-      "pages": 4,
       "chunks": 5,
+      "pages": 4,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1426,8 +1426,8 @@
       "title": "dzexams 2as mathematiques 951483",
       "status": "indexed",
       "review_reason": "",
-      "pages": 5,
       "chunks": 6,
+      "pages": 5,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1468,8 +1468,8 @@
       "title": "dzexams 2as physique 107696",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 3,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1510,8 +1510,8 @@
       "title": "dzexams docs 3as 902063",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 2,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1552,8 +1552,8 @@
       "title": "dzexams docs 3as 907425",
       "status": "indexed",
       "review_reason": "",
-      "pages": 5,
       "chunks": 9,
+      "pages": 5,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1594,8 +1594,8 @@
       "title": "eddirasa.com اختبار في العلوم الفيزيائية الفصل الثاني السنة ال",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 2,
       "chunks": 0,
+      "pages": 2,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -1636,8 +1636,8 @@
       "title": "eddirasa.com اختبار في العلوم الفيزيائية الفصل الثاني السنة ال",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -1678,8 +1678,8 @@
       "title": "eddirasa.com الموضوع رقم 56 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
       "review_reason": "",
-      "pages": 6,
       "chunks": 6,
+      "pages": 6,
       "first_page": 2,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1721,8 +1721,8 @@
       "title": "eddirasa.com الموضوع رقم 57 اختبار الفصل الثاني علوم فيزيائية",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 3,
       "chunks": 0,
+      "pages": 3,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -1763,8 +1763,8 @@
       "title": "eddirasa.com الموضوع رقم 58 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
       "review_reason": "",
-      "pages": 5,
       "chunks": 6,
+      "pages": 5,
       "first_page": 2,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1806,8 +1806,8 @@
       "title": "eddirasa.com الموضوع رقم 59 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
       "review_reason": "",
-      "pages": 3,
       "chunks": 2,
+      "pages": 3,
       "first_page": 2,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1849,8 +1849,8 @@
       "title": "eddirasa.com الموضوع رقم 60 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
       "review_reason": "",
-      "pages": 5,
       "chunks": 1,
+      "pages": 5,
       "first_page": 5,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1892,8 +1892,8 @@
       "title": "eddirasa.com الموضوع رقم 61 اختبار الفصل الثاني علوم فيزيائية",
       "status": "indexed",
       "review_reason": "",
-      "pages": 6,
       "chunks": 10,
+      "pages": 6,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -1966,8 +1966,8 @@
       "title": "Gemini Generated Image exgepoexgepoexge",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2008,8 +2008,8 @@
       "title": "Gemini Generated Image o6bqsho6bqsho6bq",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2050,8 +2050,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2092,8 +2092,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2134,8 +2134,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2176,8 +2176,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2218,8 +2218,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2260,8 +2260,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2302,8 +2302,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2344,8 +2344,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2386,8 +2386,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2428,8 +2428,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2481,8 +2481,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2523,8 +2523,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2565,8 +2565,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2607,8 +2607,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2649,8 +2649,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2691,8 +2691,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2733,8 +2733,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2775,8 +2775,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2817,8 +2817,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2859,8 +2859,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2901,8 +2901,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -2954,8 +2954,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3007,8 +3007,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3049,8 +3049,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3091,8 +3091,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3133,8 +3133,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3175,8 +3175,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3217,8 +3217,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3259,8 +3259,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3301,8 +3301,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3343,8 +3343,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3385,8 +3385,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3427,8 +3427,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3469,8 +3469,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3511,8 +3511,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3553,8 +3553,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3595,8 +3595,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3637,8 +3637,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3679,8 +3679,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3721,8 +3721,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3763,8 +3763,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3805,8 +3805,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3847,8 +3847,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3889,8 +3889,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3931,8 +3931,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -3973,8 +3973,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4015,8 +4015,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4057,8 +4057,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4099,8 +4099,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4141,8 +4141,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4183,8 +4183,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4225,8 +4225,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4267,8 +4267,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4309,8 +4309,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4351,8 +4351,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4393,8 +4393,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4435,8 +4435,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4477,8 +4477,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4519,8 +4519,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4561,8 +4561,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4603,8 +4603,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4645,8 +4645,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4687,8 +4687,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4729,8 +4729,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4771,8 +4771,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4813,8 +4813,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4855,8 +4855,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4897,8 +4897,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4939,8 +4939,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -4981,8 +4981,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5023,8 +5023,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5065,8 +5065,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5107,8 +5107,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5149,8 +5149,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5191,8 +5191,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5233,8 +5233,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5275,8 +5275,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5328,8 +5328,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5370,8 +5370,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5412,8 +5412,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5426,6 +5426,48 @@
         "reference"
       ],
       "indexed_source_hash": "5adfd111a5ffa1cb00fb94550b0bcad232114284bd72623a22b8bd181a817f07"
+    },
+    {
+      "source_id": "9c763ff8279bc9eb68e4ae9a942d30e4c9beee0327c47225c8a88ca7fb5553b5",
+      "source_file": "image_1790290350580.png",
+      "asset_path": "attached_assets/image_1790290350580.png",
+      "source_type": "png",
+      "bytes": 234039,
+      "sha256": "9c763ff8279bc9eb68e4ae9a942d30e4c9beee0327c47225c8a88ca7fb5553b5",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "unspecified",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "lesson_key": "general",
+      "content_type": "reference",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "مراجعة عامة",
+      "concepts": "مراجعة عامة",
+      "prerequisites": "",
+      "lesson_keys": "general",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "غير محدد · مراجعة عامة",
+      "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
+      "chunks": 0,
+      "pages": 1,
+      "first_page": 0,
+      "extraction_method": "none",
+      "extraction_methods": {
+        "empty": 1
+      },
+      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "reference"
+      ],
+      "indexed_source_hash": "9c763ff8279bc9eb68e4ae9a942d30e4c9beee0327c47225c8a88ca7fb5553b5"
     },
     {
       "source_id": "dbb8966407793c9c3e5f361c1cdfe8a5933880e94065548e20a633bb1368ea6e",
@@ -5454,8 +5496,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5496,8 +5538,8 @@
       "title": "lim2as2027",
       "status": "indexed",
       "review_reason": "",
-      "pages": 13,
       "chunks": 54,
+      "pages": 13,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -5538,8 +5580,8 @@
       "title": "owl agent fahim gold",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5591,8 +5633,8 @@
       "title": "owl agent fahim mint",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5655,8 +5697,8 @@
       "title": "owl agent fahim teal",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5708,8 +5750,8 @@
       "title": "owl agent fahim violet",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5761,8 +5803,8 @@
       "title": "owl creation pose",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5803,8 +5845,8 @@
       "title": "owl failure pose",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5845,8 +5887,8 @@
       "title": "owl guiding pose",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5887,8 +5929,8 @@
       "title": "owl mistake pose",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5929,8 +5971,8 @@
       "title": "owl success pose",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -5971,8 +6013,8 @@
       "title": "owl thinking pose",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6053,8 +6095,8 @@
       "title": "Pasted 1787910632969",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 3,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -6161,8 +6203,8 @@
       "title": "Pasted STRICT SYSTEM PROMPT ACADEMIC EXAM PROBLEM SET GENERAT",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 3,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -6203,8 +6245,8 @@
       "title": "Pasted SYSTEM PROMPT AI PEDAGOGICAL EXERCISE GENERATION ENGIN",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 3,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -6245,8 +6287,8 @@
       "title": "Pasted SYSTEM PROMPT USER FRIENDLY TUTOR EXERCISE ENGINE 1 CO",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 2,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -6298,8 +6340,8 @@
       "title": "Pasted Role Task Definition You are acting as a Lead Full Stac",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 2,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -6351,8 +6393,8 @@
       "title": "Pasted SYSTEM INSTRUCTION STRICT COLOR OVERHAUL KNOWLEDGE BASE",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 2,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -6393,8 +6435,8 @@
       "title": "Pasted SYSTEM INSTRUCTION SYSTEM ARCHITECTURE FEATURE IMPLEMEN",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 2,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -6435,8 +6477,8 @@
       "title": "pdf 2026 07 22 13 41 39",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 11,
       "chunks": 0,
+      "pages": 11,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6477,8 +6519,8 @@
       "title": "pdf 2026 07 22 15 39 37",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 16,
       "chunks": 0,
+      "pages": 16,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6519,8 +6561,8 @@
       "title": "pdf 2026 07 22 18 08 08",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 10,
       "chunks": 0,
+      "pages": 10,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6561,8 +6603,8 @@
       "title": "pdf 2026 07 22 20 32 02",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 13,
       "chunks": 0,
+      "pages": 13,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6603,8 +6645,8 @@
       "title": "pdf 2026 08 08 12 12 21",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 8,
       "chunks": 0,
+      "pages": 8,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6645,8 +6687,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6687,8 +6729,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6729,8 +6771,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6771,8 +6813,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6813,8 +6855,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6855,8 +6897,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6897,8 +6939,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6939,8 +6981,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -6981,8 +7023,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7023,8 +7065,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7120,8 +7162,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7162,8 +7204,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7204,8 +7246,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7246,8 +7288,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7288,8 +7330,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7330,8 +7372,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7372,8 +7414,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7414,8 +7456,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7467,8 +7509,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7509,8 +7551,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7551,8 +7593,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7593,8 +7635,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7646,8 +7688,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7699,8 +7741,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7741,8 +7783,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7783,8 +7825,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7825,8 +7867,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7867,8 +7909,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7909,8 +7951,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7951,8 +7993,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -7993,8 +8035,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8035,8 +8077,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8077,8 +8119,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8119,8 +8161,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8161,8 +8203,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8203,8 +8245,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8245,8 +8287,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8287,8 +8329,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8329,8 +8371,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8371,8 +8413,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8413,8 +8455,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8455,8 +8497,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8497,8 +8539,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8539,8 +8581,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8581,8 +8623,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8623,8 +8665,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8665,8 +8707,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8707,8 +8749,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8749,8 +8791,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8802,8 +8844,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8844,8 +8886,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8886,8 +8928,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8939,8 +8981,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -8992,8 +9034,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9045,8 +9087,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9087,8 +9129,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9129,8 +9171,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9171,8 +9213,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9213,8 +9255,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9255,8 +9297,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9297,8 +9339,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9339,8 +9381,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9381,8 +9423,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9423,8 +9465,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9465,8 +9507,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9507,8 +9549,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9549,8 +9591,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9591,8 +9633,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9633,8 +9675,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9675,8 +9717,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9717,8 +9759,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9759,8 +9801,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9801,8 +9843,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9843,8 +9885,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9896,8 +9938,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9938,8 +9980,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -9980,8 +10022,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10022,8 +10064,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10064,8 +10106,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10106,8 +10148,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10148,8 +10190,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10190,8 +10232,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10232,8 +10274,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10274,8 +10316,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10316,8 +10358,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10358,8 +10400,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10400,8 +10442,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10442,8 +10484,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10484,8 +10526,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10526,8 +10568,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10568,8 +10610,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10610,8 +10652,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10652,8 +10694,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10694,8 +10736,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10736,8 +10778,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10778,8 +10820,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10820,8 +10862,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10862,8 +10904,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10904,8 +10946,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10946,8 +10988,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -10988,8 +11030,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11030,8 +11072,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11072,8 +11114,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11114,8 +11156,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11156,8 +11198,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11198,8 +11240,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11240,8 +11282,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11282,8 +11324,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11324,8 +11366,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11366,8 +11408,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11408,8 +11450,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11450,8 +11492,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11492,8 +11534,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11534,8 +11576,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11576,8 +11618,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11618,8 +11660,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11660,8 +11702,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11702,8 +11744,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11744,8 +11786,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11786,8 +11828,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11828,8 +11870,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11870,8 +11912,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11912,8 +11954,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -11954,8 +11996,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12007,8 +12049,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12049,8 +12091,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12091,8 +12133,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12144,8 +12186,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12186,8 +12228,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12239,8 +12281,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12281,8 +12323,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12334,8 +12376,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12376,8 +12418,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12418,8 +12460,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12460,8 +12502,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12502,8 +12544,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12544,8 +12586,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12597,8 +12639,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12639,8 +12681,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12692,8 +12734,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12734,8 +12776,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12776,8 +12818,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12818,8 +12860,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12860,8 +12902,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12902,8 +12944,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12944,8 +12986,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -12986,8 +13028,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13028,8 +13070,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13070,8 +13112,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13112,8 +13154,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13154,8 +13196,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13196,8 +13238,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13238,8 +13280,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13280,8 +13322,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13322,8 +13364,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13364,8 +13406,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13406,8 +13448,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13448,8 +13490,8 @@
       "title": "physics3as moghni unit01 (1)",
       "status": "indexed",
       "review_reason": "",
-      "pages": 51,
       "chunks": 11,
+      "pages": 51,
       "first_page": 2,
       "extraction_method": "text",
       "extraction_methods": {
@@ -13502,8 +13544,8 @@
       "title": "physics3as moghni unit02",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 39,
       "chunks": 0,
+      "pages": 39,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13544,8 +13586,8 @@
       "title": "physics3as moghni unit03",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 58,
       "chunks": 0,
+      "pages": 58,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13586,8 +13628,8 @@
       "title": "physics3as moghni unit04",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 57,
       "chunks": 0,
+      "pages": 57,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13628,8 +13670,8 @@
       "title": "physics3as moghni unit05",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 65,
       "chunks": 0,
+      "pages": 65,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13670,8 +13712,8 @@
       "title": "physics3as moghni unit06",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 38,
       "chunks": 0,
+      "pages": 38,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13744,8 +13786,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13786,8 +13828,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13828,8 +13870,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13870,8 +13912,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13912,8 +13954,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13954,8 +13996,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -13996,8 +14038,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14038,8 +14080,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14091,8 +14133,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14133,8 +14175,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14175,8 +14217,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14217,8 +14259,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14259,8 +14301,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14312,8 +14354,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14365,8 +14407,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14407,8 +14449,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14449,8 +14491,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14502,8 +14544,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14555,8 +14597,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14608,8 +14650,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14661,8 +14703,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14714,8 +14756,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14778,8 +14820,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14831,8 +14873,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14917,8 +14959,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -14970,8 +15012,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15023,8 +15065,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15076,8 +15118,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15118,8 +15160,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15160,8 +15202,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15202,8 +15244,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15244,8 +15286,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15297,8 +15339,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15339,8 +15381,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15381,8 +15423,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15423,8 +15465,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15465,8 +15507,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15507,8 +15549,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15571,8 +15613,8 @@
       "title": "غير محدد · مراجعة عامة",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15613,8 +15655,8 @@
       "title": "sy10D31pUO4VL75JDOB2by2UsxJs2n3r1xNUPGeL",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 15,
       "chunks": 0,
+      "pages": 15,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15655,8 +15697,8 @@
       "title": "tawjeeh logo transparent",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15697,8 +15739,8 @@
       "title": "tawjeeh owl transparent",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15739,8 +15781,8 @@
       "title": "xXtPpVcchbM0NX5MjzweqBbcp0zzhgrJeyNhwDJZ",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 16,
       "chunks": 0,
+      "pages": 16,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15781,8 +15823,8 @@
       "title": "أفكار الدوال",
       "status": "indexed",
       "review_reason": "",
-      "pages": 40,
       "chunks": 40,
+      "pages": 40,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -15823,8 +15865,8 @@
       "title": "استنتاج تمثيل بياني لدالة انطلاقا من تمثيل آخر من إعداد الأ",
       "status": "indexed",
       "review_reason": "",
-      "pages": 4,
       "chunks": 4,
+      "pages": 4,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -15865,8 +15907,8 @@
       "title": "التمرين 8",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 2,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -15907,8 +15949,8 @@
       "title": "الدورة التأسيسية ملف الحصة 07",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 17,
       "chunks": 0,
+      "pages": 17,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15949,8 +15991,8 @@
       "title": "الدورة التأسيسية ملف الحصة 08",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 8,
       "chunks": 0,
+      "pages": 8,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -15991,8 +16033,8 @@
       "title": "الدورة التأسيسية ملف الحصة 5",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 11,
       "chunks": 0,
+      "pages": 11,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16033,8 +16075,8 @@
       "title": "اللوغو العالمي",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 1,
       "chunks": 0,
+      "pages": 1,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16075,8 +16117,8 @@
       "title": "المحطة الثانية نحو الامتياز رياضيات نافع بكالوريا 2026",
       "status": "indexed",
       "review_reason": "",
-      "pages": 45,
       "chunks": 66,
+      "pages": 45,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16118,8 +16160,8 @@
       "title": "برنامج الرياضيات شعبة رياضيات 2023",
       "status": "indexed",
       "review_reason": "",
-      "pages": 19,
       "chunks": 34,
+      "pages": 19,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16160,8 +16202,8 @@
       "title": "بكالوريا في دوال عددية بالحل مفصل",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 5,
       "chunks": 0,
+      "pages": 5,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16202,8 +16244,8 @@
       "title": "تمارين الدوال العددية في البكالوريا للشعب العلمية",
       "status": "indexed",
       "review_reason": "",
-      "pages": 3,
       "chunks": 6,
+      "pages": 3,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16244,8 +16286,8 @@
       "title": "تمارين قراءات بيانية",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 12,
       "chunks": 0,
+      "pages": 12,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16297,8 +16339,8 @@
       "title": "تمارين قراءات بيانية ملاحظات محررة",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 7,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16339,8 +16381,8 @@
       "title": "تمرين بكالوريا",
       "status": "indexed",
       "review_reason": "",
-      "pages": 1,
       "chunks": 2,
+      "pages": 1,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16381,8 +16423,8 @@
       "title": "تمرين شامل في الناقلية و الضغط",
       "status": "indexed",
       "review_reason": "",
-      "pages": 2,
       "chunks": 2,
+      "pages": 2,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16423,8 +16465,8 @@
       "title": "حل الاختبار المقترح",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 32,
       "chunks": 0,
+      "pages": 32,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16465,8 +16507,8 @@
       "title": "حل تمرين شامل ضغط غاز",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 10,
       "chunks": 0,
+      "pages": 10,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16507,8 +16549,8 @@
       "title": "سلسلة تمارين رقم 3",
       "status": "indexed",
       "review_reason": "",
-      "pages": 3,
       "chunks": 3,
+      "pages": 3,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16549,8 +16591,8 @@
       "title": "سلسلة مكتسبات قبلية اضافية",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 25,
       "chunks": 0,
+      "pages": 25,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16591,8 +16633,8 @@
       "title": "مجلة الدوال العددية بكالوريا",
       "status": "indexed",
       "review_reason": "",
-      "pages": 62,
       "chunks": 100,
+      "pages": 62,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16644,8 +16686,8 @@
       "title": "محطة الانطلاق رياضيات الجزء الأول 01 نافع بكالوريا 2026",
       "status": "indexed",
       "review_reason": "",
-      "pages": 60,
       "chunks": 35,
+      "pages": 60,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16687,8 +16729,8 @@
       "title": "مسائل شاملة حول الدوال 4 صفحات في صفحة",
       "status": "indexed",
       "review_reason": "",
-      "pages": 59,
       "chunks": 159,
+      "pages": 59,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -16729,8 +16771,8 @@
       "title": "مسائل دوال عددية بدون حل",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 8,
       "chunks": 0,
+      "pages": 8,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16771,8 +16813,8 @@
       "title": "مسألة لمراجعة مكتسبات",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 12,
       "chunks": 0,
+      "pages": 12,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16822,22 +16864,21 @@
       "agent_roles": "fahim,guide,exercise",
       "agent_priority": "fahim",
       "title": "مستندات 2 ثانوي منسوخة",
-      "status": "indexed",
-      "review_reason": "",
+      "status": "needs_review",
+      "review_reason": "يغلب على المصدر روابط فيديو وعناوين مختصرة ولا يتضمن شرحًا كافيًا؛ يحتاج مراجعة قبل فهرسته",
       "pages": 1,
-      "chunks": 7,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
         "text": 1
       },
+      "chunks": 0,
       "summary": "https://youtu.be/8SrHwvlVYg4?si=1OiTnyRyth58uTzW ----------------->>>برنامج السنة الثانية فيزيك عبد اللطيف ---------------->>>>>>>>>>>>>>>>>>>>>>>>>> -----",
       "tags": [
         "الميكانيك",
         "الميكانيك",
         "exercise"
-      ],
-      "indexed_source_hash": "0b03f17f98abadccd77fcf62ce63921fc9877168276f5e7f662df0cd385cae16"
+      ]
     },
     {
       "source_id": "fa94a815ec1676ab0536e1eef1de59aff72e9fb4afd5450a95ef2f945ce9633a",
@@ -16866,8 +16907,8 @@
       "title": "مطوية المكتسبات القبلية 2027",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 2,
       "chunks": 0,
+      "pages": 2,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16919,8 +16960,8 @@
       "title": "مكتسبات قبلية في دوال عددية",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 15,
       "chunks": 0,
+      "pages": 15,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -16961,8 +17002,8 @@
       "title": "ملخص الدوال",
       "status": "needs_review",
       "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
-      "pages": 8,
       "chunks": 0,
+      "pages": 8,
       "first_page": 0,
       "extraction_method": "none",
       "extraction_methods": {
@@ -17014,8 +17055,8 @@
       "title": "ملف المراجعة الفصلية من معسكر الانقاذ",
       "status": "indexed",
       "review_reason": "",
-      "pages": 10,
       "chunks": 20,
+      "pages": 10,
       "first_page": 1,
       "extraction_method": "text",
       "extraction_methods": {
@@ -17957,24 +17998,6 @@
         "الدوال",
         "الدوال العددية",
         "reference"
-      ]
-    },
-    {
-      "id": "0b03f17f98abadccd77fcf62ce63921fc9877168276f5e7f662df0cd385cae16",
-      "title": "مستندات 2 ثانوي منسوخة",
-      "summary": "https://youtu.be/8SrHwvlVYg4?si=1OiTnyRyth58uTzW ----------------->>>برنامج السنة الثانية فيزيك عبد اللطيف ---------------->>>>>>>>>>>>>>>>>>>>>>>>>> -----",
-      "subject": "الفيزياء",
-      "curriculum_year": "second_secondary",
-      "unit": "الميكانيك",
-      "lesson": "الميكانيك",
-      "type": "exercise",
-      "difficulty": "mixed",
-      "source": "مستندات_2_ثانوي_منسوخة_1787926937404.txt",
-      "page": 1,
-      "tags": [
-        "الميكانيك",
-        "الميكانيك",
-        "exercise"
       ]
     },
     {
