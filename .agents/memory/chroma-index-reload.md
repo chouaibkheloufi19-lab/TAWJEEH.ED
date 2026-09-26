@@ -14,3 +14,14 @@ The full Tawjeeh preview startup may rewrite `knowledge_base/catalog.json` with 
 **Why:** Preview startup runs the asset indexing guard even when the UI-only change does not touch educational assets, which can otherwise create noisy unrelated diffs.
 
 **How to apply:** After restarting the full preview for a UI change, inspect the catalog diff and restore generated-only changes before delivery unless asset ingestion was intentional.
+
+Batch indexing treats the assets directory as the authoritative snapshot: sources that
+disappear, become unsupported, or fail review must not retain searchable chunks or
+catalog records from an earlier rebuild.
+
+**Why:** Keeping old vector segments or source cards makes retrieval disagree with the
+current educational library and can feed removed material into generated lessons.
+
+**How to apply:** Before processing the batch, remove Chroma sources outside the current
+supported set; clear each current source before extraction; write the catalog from the
+current batch rather than merging prior records.

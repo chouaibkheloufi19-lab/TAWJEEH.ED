@@ -261,9 +261,14 @@ def index_assets(
     if not root.is_dir():
         raise FileNotFoundError(f"Assets directory not found: {root}")
     knowledge_store = store or KnowledgeStore()
-    previous = load_catalog(catalog_path)
     records: list[dict[str, Any]] = []
     seen_hashes: dict[str, str] = {}
+    current_source_files = {
+        path.name
+        for path in root.iterdir()
+        if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
+    }
+    knowledge_store.remove_sources_not_in(current_source_files)
 
     for path in sorted(root.iterdir(), key=lambda item: item.name.casefold()):
         if not path.is_file():
@@ -294,9 +299,11 @@ def index_assets(
         try:
             if verbose:
                 print(f"[index] {path.name}", file=sys.stderr, flush=True)
+            # Clear the previous version before extraction so an OCR failure,
+            # exclusion, or review-only source cannot leave stale chunks.
+            knowledge_store.replace_source(path.name, [])
             canonical_name = seen_hashes.get(source_hash)
             if canonical_name:
-                knowledge_store.replace_source(path.name, [])
                 record.update(
                     status="duplicate_source",
                     canonical_source=canonical_name,
@@ -330,7 +337,6 @@ def index_assets(
             }
             link_review_reason = _link_listing_review_reason(full_text)
             if link_review_reason:
-                knowledge_store.replace_source(path.name, [])
                 record.update(profile)
                 record.update(
                     {
@@ -385,13 +391,9 @@ def index_assets(
             record.update(status="error", error=str(error))
         records.append(record)
 
-    processed_names = {record["source_file"] for record in records}
-    prior_records = [
-        record
-        for record in previous.get("sources", [])
-        if record.get("source_file") not in processed_names
-    ]
-    all_records = prior_records + records
+    # A batch rebuild is a snapshot of the current assets directory. Keeping
+    # records for deleted files would make the catalog disagree with Chroma.
+    all_records = records
     counts: dict[str, int] = {}
     for record in all_records:
         status = record.get("status", "unknown")

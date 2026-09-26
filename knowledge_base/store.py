@@ -89,6 +89,21 @@ class KnowledgeStore:
             self.collection.delete(ids=existing_ids)
         return self.upsert(chunks)
 
+    def remove_sources_not_in(self, source_files: set[str]) -> int:
+        """Remove chunks whose source is no longer part of a batch rebuild."""
+
+        existing = self.collection.get(include=["metadatas"])
+        ids = existing.get("ids", [])
+        metadatas = existing.get("metadatas", [])
+        stale_ids = [
+            chunk_id
+            for chunk_id, metadata in zip(ids, metadatas)
+            if not metadata or metadata.get("source_file") not in source_files
+        ]
+        if stale_ids:
+            self.collection.delete(ids=stale_ids)
+        return len(stale_ids)
+
     def query(
         self,
         query: str,
