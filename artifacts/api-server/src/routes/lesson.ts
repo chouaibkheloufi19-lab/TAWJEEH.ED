@@ -22,6 +22,8 @@ import {
   LEARNER_SAFE_OUTPUT_RULES,
   LESSON_GENERATION_PROMPT,
   SCIENCE_EXERCISE_PROMPT,
+  FUNCTION_SINGLE_EXERCISE_PROMPT,
+  SOURCE_TOPIC_EXERCISE_PROMPT,
 } from "../lib/ai-prompts";
 import {
   callDeepSeekTextModelWithRetry,
@@ -39,6 +41,12 @@ import {
   assertGroundedScienceReviewPaperContract,
   selectGroundedScientificScenario,
 } from "../lib/scientific-paper-contract";
+import { assertGroundedSourceTopicPaperContract } from "../lib/source-topic-contract";
+import {
+  classifyExerciseIntent,
+  FUNCTION_REQUEST_PATTERN,
+  type ExerciseIntent,
+} from "../lib/exercise-intent";
 
 const router: IRouter = Router();
 
@@ -86,7 +94,7 @@ type GeneratedExercise = {
   sourceNodeIds: string[];
   grounding: Grounding;
   difficulty?: typeof REVIEW_PAPER_DIFFICULTY;
-  format?: "comprehensive_function" | "comprehensive_science";
+  format?: "comprehensive_function" | "comprehensive_science" | "source_topic";
   totalPoints?: number;
   sections?: Array<{
     id: string;
@@ -107,7 +115,7 @@ type StudentPaper = {
   title: string;
   prompt: string;
   difficulty: typeof REVIEW_PAPER_DIFFICULTY;
-  format: "comprehensive_function" | "comprehensive_science";
+  format: "comprehensive_function" | "comprehensive_science" | "source_topic";
   totalPoints: number;
   sections: Array<{
     id: string;
@@ -124,7 +132,7 @@ type StudentExercise = {
   lessonTitle: string;
   title: string;
   prompt: string;
-  format?: "comprehensive_function" | "comprehensive_science";
+  format?: "comprehensive_function" | "comprehensive_science" | "source_topic";
   totalPoints?: number;
   sections?: Array<{
     id: string;
@@ -346,6 +354,8 @@ async function generateExercise(
   curriculumYear: string,
   activeConcept: string,
   attemptContext: string,
+  studentRequest: string,
+  exerciseIntent: ExerciseIntent,
   forceComprehensive: boolean,
   retrieval: RetrievalContext,
 ): Promise<GeneratedExercise> {
@@ -357,12 +367,23 @@ async function generateExercise(
   ].join(" ");
   const isPhysicsRequest =
     /فيزياء|فيزيائي|physics|physique/i.test(studyRequest);
+  const isSingleFunctionExercise =
+    !forceComprehensive && exerciseIntent === "single_function";
   const isFunctionStudy =
     forceComprehensive &&
     !isPhysicsRequest &&
-    /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|وضع نسبي|أعداد حقيقية|fonction|dérivée|limite|function/i.test(studyRequest);
-  const isScientificPaper = forceComprehensive;
-  const generationInstruction = isFunctionStudy
+    exerciseIntent !== "multi_topic" &&
+    FUNCTION_REQUEST_PATTERN.test(studentRequest);
+  const isPhysicsPaper = forceComprehensive && isPhysicsRequest;
+  const isSourceTopicPaper =
+    forceComprehensive && !isPhysicsPaper && !isFunctionStudy;
+  const generationInstruction = isSingleFunctionExercise
+      ? [
+        "طلب الطالب تمرين دوال واحد فقط، وليس موضوعًا شاملًا.",
+        "أنشئ مسألة واحدة حول دالة محددة من المصادر، مع فرعين أو ثلاثة فروع قصيرة مترابطة عند الحاجة.",
+        "أعد prompt واضحًا قابلًا للحل، والحل والتلميح في الحقول الداخلية فقط.",
+      ].join("\n")
+    : isFunctionStudy
       ? [
         "مستوى الصعوبة إلزاميًا: متقدم. يجب أن يعلن JSON الحقل difficulty بالقيمة الإنجليزية الحرفية advanced، وإلا تُرفض الورقة. اجعلها على نمط بكالوريا صارم، وكل محور متعدد الخطوات، واجعل الانتقال بين المحاور يعتمد على نتيجة المحور السابق.",
         "طلب الطالب دراسة شاملة ومدققة لدالة عددية. لا تنشئ سؤالًا واحدًا ولا أسئلة اختيار من متعدد ولا تمرينًا قصيرًا.",
@@ -372,7 +393,7 @@ async function generateExercise(
         "أضف محورين مستقلين وصريحين لا يجوز حذفهما: «المناقشة الأفقية» لدراسة عدد حلول f(x)=m وتمثيلها بالنسبة إلى y=m، و«المناقشة المائلة» لدراسة الوضع النسبي أو عدد حلول f(x)=ax+b عندما تثبت المصادر ذلك. لا تخترع معطيات أو قوانين لهذين المحورين؛ إذا لم تثبتها المصادر ارفض التوليد بدل التخمين.",
         'أعد sections بهذا الترتيب وبمجموع 20 نقطة. كل section يجب أن يحتوي sourceNodeIds مأخوذة من العقد المسترجعة نفسها، وevidence عبارة قصيرة منسوخة حرفيًا من نص إحدى تلك العقد لتثبت أن المطلوب ليس قالبًا ثابتًا: [{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"limits","title":"النهايات والمقارب","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"derivative","title":"الاشتقاق","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"variations","title":"اتجاه التغيرات وجدولها","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"equations","title":"المعادلات والمتراجحات","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"relative-position","title":"الوضع النسبي","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"horizontal-discussion","title":"المناقشة الأفقية","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"oblique-discussion","title":"المناقشة المائلة","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"graph","title":"التمثيل البياني والمماس","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"أ) ... ب) ...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"}]',
       ].join("\n")
-    : isScientificPaper
+     : isPhysicsPaper
       ? [
           "مستوى الصعوبة إلزاميًا: متقدم. يجب أن يعلن JSON الحقل difficulty بالقيمة الإنجليزية الحرفية advanced، وإلا تُرفض الورقة.",
           "طلب الطالب ورقة اختبار رسمية. لا تنشئ اختيارًا من متعدد ولا سؤالًا قصيرًا ولا نصًا أدبيًا.",
@@ -382,22 +403,31 @@ async function generateExercise(
           "أعد حلًا نموذجيًا داخليًا خطوة بخطوة وتلميحًا لا يكشف النتيجة. لا تضع الحل داخل prompt أو sections.",
           'أعد خمسة أقسام فقط بهذه المعرفات والترتيب والنقاط: data (3)، law (4)، calculation (5)، interpretation (4)، synthesis (4). اكتبها بأسلوب الورقة المرفقة، وأضف لكل قسم sourceNodeIds بمعرّفات موجودة فعلًا وevidence مقتبسًا حرفيًا من العقدة: [{"id":"data","title":"المعطيات","points":3,"prompt":"أ) عيّن المعطيات اللازمة للحل. ب) اكتب الرموز والوحدات المستعملة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"law","title":"القانون","points":4,"prompt":"أ) اكتب العلاقة أو القانون المناسب. ب) عوّض بالمعطيات. ج) استنتج النتيجة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"calculation","title":"الحساب","points":5,"prompt":"أ) احسب الكمية المطلوبة. ب) استنتج الكمية التابعة لها. ج) اكتب النتيجة بالوحدة المناسبة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"interpretation","title":"التحقق","points":4,"prompt":"أ) بيّن طبيعة النتيجة. ب) تحقق من التجانس البعدي. ج) قارن النتيجة بالمعطيات.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"synthesis","title":"التركيب","points":4,"prompt":"استنتج النتيجة النهائية للموضوع مع كتابة العلاقة والنتيجة العددية ووحدتها.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"}]',
         ].join("\n")
-      : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
+      : isSourceTopicPaper
+        ? [
+          "طلب الطالب موضوعًا متعدد التمارين.",
+          "حافظ على بنية الموضوع وترتيب المطلوبات وعناوين الأقسام كما تظهر في المصادر المسترجعة.",
+          "لا تستخدم قالب الأقسام الخمسة العام؛ كل section يجب أن يمثل تمرينًا أو فرعًا موجودًا في المصدر.",
+        ].join("\n")
+        : "أنشئ تمرينًا واحدًا قابلًا للحل يعالج الخطأ الأهم في السجل المرفق.";
   const generationMessages = [
       {
         role: "system" as const,
         content: [
           ADAPTIVE_EXERCISE_PROMPT,
-          ...(isFunctionStudy
+           ...(isSingleFunctionExercise
+             ? [FUNCTION_SINGLE_EXERCISE_PROMPT]
+             : []),
+           ...(isFunctionStudy
             ? [ACADEMIC_EXAM_PROMPT, FUNCTION_ACADEMIC_EXAM_PROMPT]
             : []),
           EXERCISE_GENERATION_PROMPT,
           ...(isFunctionStudy ? [FUNCTION_EXERCISE_PROMPT] : []),
-          ...(isScientificPaper && !isFunctionStudy ? [INTERACTIVE_EXERCISES_PROMPT] : []),
-          ...(isScientificPaper && isPhysicsRequest ? [SCIENCE_EXERCISE_PROMPT] : []),
+           ...(isSourceTopicPaper ? [SOURCE_TOPIC_EXERCISE_PROMPT, INTERACTIVE_EXERCISES_PROMPT] : []),
+           ...(isPhysicsPaper ? [INTERACTIVE_EXERCISES_PROMPT, SCIENCE_EXERCISE_PROMPT] : []),
           GROUNDED_CONTENT_RULES,
           LEARNER_SAFE_OUTPUT_RULES,
-          `أنت وكيل تمارين عربي لمنصة توجيه. ${generationInstruction} أخفِ الإجابة في الحقول الداخلية المخصصة لها؛ لا تضع أي جزء من الحل النموذجي في prompt أو sections لأن الطالب سيراهما قبل المحاولة. اجعل الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.`,
+           `أنت وكيل تمارين عربي لمنصة توجيه. ${generationInstruction} أخفِ الإجابة في الحقول الداخلية المخصصة لها؛ لا تضع أي جزء من الحل النموذجي في prompt أو sections لأن الطالب سيراهما قبل المحاولة. اجعل الحل خطوة خطوة ومربوطًا بمعرّفات العقد في sourceNodeIds. استخدم الأرقام العادية 1, 2, 3 فقط، ولا تستخدم الأرقام العربية الشرقية.`,
           "هذه الواجهة تحتاج JSON فقط؛ أعد الحقول المطلوبة فقط ولا تضف أي نص خارج الكائن.",
         ].join("\n\n"),
       },
@@ -409,13 +439,16 @@ async function generateExercise(
           `المادة: ${subject || "غير محددة"}`,
           `السنة الدراسية: ${curriculumYear || "غير محددة"}`,
           `المفهوم الحالي: ${activeConcept || "المفهوم المحدد في عنوان الدرس والمصادر"}`,
+           `صياغة طلب الطالب الأصلية: ${studentRequest || "طلب تمرين من الواجهة"}`,
           `سياق الأخطاء السابقة: ${attemptContext || "لا توجد أخطاء محفوظة بعد"}`,
           "عقد المتجه المسترجعة من ChromaDB:",
           sourceText,
            isFunctionStudy
              ? 'أعد الشكل التالي حرفيًا، وأضف difficulty:"advanced" وsourceNodeIds على مستوى الورقة وكل section، وevidence مقتبسًا حرفيًا من العقدة المستخدمة: {"lessonTitle":"الدوال العددية","title":"دراسة شاملة في الدوال","prompt":"تعريف مختصر بالورقة دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","difficulty":"advanced","format":"comprehensive_function","totalPoints":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"limits","title":"النهايات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"derivative","title":"الاشتقاق","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"variations","title":"التغيرات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"equations","title":"المعادلات","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"relative-position","title":"الوضع النسبي","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"horizontal-discussion","title":"المناقشة الأفقية","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"oblique-discussion","title":"المناقشة المائلة","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"graph","title":"التمثيل البياني","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"},{"id":"synthesis","title":"تركيب شامل","points":2,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"عبارة من المصدر"}],"sourceNodeIds":["node-id"]}'
-          : isScientificPaper
+             : isPhysicsPaper
                ? 'أعد الشكل التالي حرفيًا، مع وضع مسألة ذات وضعية ومعطيات عددية ووحدات موثقة في prompt، وأضف difficulty:"advanced" وsourceNodeIds على مستوى الورقة ولكل قسم مع evidence مقتبس حرفيًا: {"lessonTitle":"عنوان المادة","title":"مسألة فيزيائية تطبيقية","prompt":"وضعية واقعية واضحة تتضمن معطيين عدديين على الأقل بوحداتهما من المصادر، دون الحل","answer":"خلاصة النتائج النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل خطوة خطوة للاستخدام الداخلي فقط","difficulty":"advanced","format":"comprehensive_science","totalPoints":20,"sections":[{"id":"data","title":"المعطيات","points":3,"prompt":"أ) عيّن المعطيات اللازمة للحل. ب) اكتب الرموز والوحدات المستعملة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"},{"id":"law","title":"القانون","points":4,"prompt":"أ) اكتب العلاقة أو القانون المناسب. ب) عوّض بالمعطيات. ج) استنتج النتيجة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"},{"id":"calculation","title":"الحساب","points":5,"prompt":"أ) احسب الكمية المطلوبة. ب) استنتج الكمية التابعة لها. ج) اكتب النتيجة بالوحدة المناسبة.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"},{"id":"interpretation","title":"التحقق","points":4,"prompt":"أ) بيّن طبيعة النتيجة. ب) تحقق من التجانس البعدي. ج) قارن النتيجة بالمعطيات.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"},{"id":"synthesis","title":"التركيب","points":4,"prompt":"استنتج النتيجة النهائية للموضوع مع كتابة العلاقة والنتيجة العددية ووحدتها.","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي من المصدر"}],"sourceNodeIds":["node-id"]}'
+             : isSourceTopicPaper
+               ? 'أعد الشكل التالي حرفيًا، مع الحفاظ على ترتيب الموضوع وأقسامه كما تظهر في المصادر، وأضف difficulty:"advanced" وformat:"source_topic" وsourceNodeIds على مستوى الورقة وكل section مع evidence مقتبس حرفيًا: {"lessonTitle":"عنوان من المصدر","title":"موضوع متعدد التمارين","prompt":"وضعية الموضوع ومعطياته من المصدر دون الحل","answer":"الخلاصة النهائية للاستخدام الداخلي فقط","hint":"تلميح عام لا يكشف الحل","solution":"الحل النموذجي الكامل للاستخدام الداخلي فقط","difficulty":"advanced","format":"source_topic","totalPoints":20,"sections":[{"id":"source-section-1","title":"عنوان القسم كما في المصدر","points":10,"prompt":"المطلوب كما يظهر في المصدر","sourceNodeIds":["node-id"],"evidence":"عبارة مقتبسة حرفيًا من المصدر"},{"id":"source-section-2","title":"عنوان القسم التالي كما في المصدر","points":10,"prompt":"المطلوب التالي كما يظهر في المصدر","sourceNodeIds":["node-id"],"evidence":"عبارة مقتبسة حرفيًا من المصدر"}],"sourceNodeIds":["node-id"]}'
             : 'أعد الشكل التالي حرفيًا، وأضف sourceNodeIds بمعرّفات العقد المستخدمة: {"lessonTitle":"عنوان من المصادر","title":"عنوان التمرين","prompt":"نص تمرين واحد واضح","answer":"الإجابة النهائية المختصرة","hint":"تلميح دون كشف الحل","solution":"الحل خطوة خطوة","sourceNodeIds":["node-id"]}',
         ].join("\n"),
       },
@@ -437,7 +470,7 @@ async function generateExercise(
       ],
       {
         temperature: 0.15,
-        maxOutputTokens: isFunctionStudy ? 4800 : isScientificPaper ? 3400 : 1200,
+         maxOutputTokens: isFunctionStudy ? 4800 : forceComprehensive ? 4200 : 1400,
         jsonMode: true,
       },
       { maxAttempts: 4, baseDelayMs: 1_000 },
@@ -483,25 +516,31 @@ async function generateExercise(
               evidence: section.evidence?.trim() ?? "",
             }))
         : undefined;
-      const format = parsed.format === "comprehensive_function" || parsed.format === "comprehensive_science"
+      const format =
+        parsed.format === "comprehensive_function" ||
+        parsed.format === "comprehensive_science" ||
+        parsed.format === "source_topic"
         ? parsed.format
         : undefined;
       if (forceComprehensive && parsed.difficulty !== REVIEW_PAPER_DIFFICULTY) {
         throw new Error("Exercise generator returned a paper without advanced difficulty");
       }
-      if (isScientificPaper && (!format || !sections || sections.length < 5)) {
+      if (forceComprehensive && (!format || !sections || sections.length < 2)) {
         throw new Error("Exercise generator returned an incomplete practical paper");
       }
       if (isFunctionStudy && format !== "comprehensive_function") {
         throw new Error("Exercise generator returned a non-function paper for a function study");
       }
-      if (isPhysicsRequest && format !== "comprehensive_science") {
+      if (isPhysicsPaper && format !== "comprehensive_science") {
         throw new Error("Exercise generator returned a non-science paper for a physics request");
+      }
+      if (isSourceTopicPaper && format !== "source_topic") {
+        throw new Error("Exercise generator returned a non-source paper for a multi-exercise topic");
       }
       const totalPoints = typeof parsed.totalPoints === "number"
         ? parsed.totalPoints
         : sections?.reduce((sum, section) => sum + section.points, 0) ?? 0;
-      if (isScientificPaper && sections) {
+      if (forceComprehensive && sections) {
         if (totalPoints <= 0 || totalPoints > 20 || sections.some((section) => section.prompt.includes("الحل النموذجي"))) {
           throw new Error("Exercise generator returned an invalid practical paper");
         }
@@ -522,7 +561,7 @@ async function generateExercise(
           })),
         );
       }
-      if (isScientificPaper && !isFunctionStudy && sections) {
+      if (isPhysicsPaper && sections) {
         assertGroundedScienceReviewPaperContract(
           parsed.prompt,
           sections as Array<{
@@ -532,6 +571,16 @@ async function generateExercise(
             sourceNodeIds: string[];
             evidence: string;
           }>,
+          totalPoints,
+          retrieval.documents.map((document) => ({
+            id: document.id,
+            document: document.document ?? "",
+          })),
+        );
+      }
+      if (isSourceTopicPaper && sections) {
+        assertGroundedSourceTopicPaperContract(
+          sections,
           totalPoints,
           retrieval.documents.map((document) => ({
             id: document.id,
@@ -581,6 +630,8 @@ function buildGroundedExerciseFallback(
   retrieval: RetrievalContext,
   forceComprehensive: true,
   subject?: string,
+  studentRequest?: string,
+  exerciseIntent?: ExerciseIntent,
 ): GeneratedExercise | null;
 function buildGroundedExerciseFallback(
   lesson: string,
@@ -588,6 +639,8 @@ function buildGroundedExerciseFallback(
   retrieval: RetrievalContext,
   forceComprehensive: false,
   subject?: string,
+  studentRequest?: string,
+  exerciseIntent?: ExerciseIntent,
 ): GeneratedExercise;
 function buildGroundedExerciseFallback(
   lesson: string,
@@ -595,9 +648,22 @@ function buildGroundedExerciseFallback(
   retrieval: RetrievalContext,
   forceComprehensive: boolean,
   subject = "",
+  studentRequest = "",
+  exerciseIntent: ExerciseIntent = "standard",
 ): GeneratedExercise | null {
   const documents = retrieval.documents
-    .filter((document) => typeof document.document === "string" && document.document.trim())
+    .filter(
+      (document) =>
+        typeof document.document === "string" && document.document.trim(),
+    )
+    .slice()
+    .sort((left, right) => {
+      const priority = (document: KnowledgeDocument) => {
+        const type = String(document.metadata?.content_type || "").toLowerCase();
+        return ["exercise", "assessment", "solution"].includes(type) ? 0 : 1;
+      };
+      return priority(left) - priority(right);
+    })
     .slice(0, 3);
   const primary = documents[0];
   const metadata = primary?.metadata ?? {};
@@ -617,14 +683,16 @@ function buildGroundedExerciseFallback(
   const isFunctionStudy =
     forceComprehensive &&
     !isPhysicsRequest &&
-    /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|تمثيل بياني|fonction|dérivée|limite|function/i.test(
-      `${lesson} ${topic}`,
-    );
+    exerciseIntent !== "multi_topic" &&
+    FUNCTION_REQUEST_PATTERN.test(studentRequest);
   const isComprehensive = forceComprehensive;
-  const scientificScenario = isComprehensive && !isFunctionStudy
+  const isPhysicsPaper = isComprehensive && isPhysicsRequest;
+  const isSourceTopicPaper =
+    isComprehensive && !isFunctionStudy && !isPhysicsPaper;
+  const scientificScenario = isPhysicsPaper
     ? selectGroundedScientificScenario(retrieval.documents, topic, subject)
     : undefined;
-  if (isComprehensive && !isFunctionStudy && !scientificScenario) {
+  if (isPhysicsPaper && !scientificScenario) {
     return null;
   }
   const sourceDocuments = scientificScenario
@@ -639,6 +707,42 @@ function buildGroundedExerciseFallback(
     documents[0]?.document?.trim().slice(0, 600) ||
     "المصدر المسترجع يحدد محور الدرس والمفاهيم المطلوب دراستها.";
   type FallbackSection = NonNullable<GeneratedExercise["sections"]>[number];
+  const sourceTopicSections = isSourceTopicPaper
+    ? documents.flatMap((document) => {
+        const text = document.document?.trim() ?? "";
+        const markers = [...text.matchAll(/(?:ال)?تمرين\s*[0-9٠-٩]+/giu)];
+        return markers.slice(0, 8).map((marker, index) => {
+          const start = marker.index ?? 0;
+          const end = markers[index + 1]?.index ?? text.length;
+          const title = marker[0].replace(/\s+/g, " ").trim();
+          const prompt = text
+            .slice(start + marker[0].length, end)
+            .replace(/\s+/g, " ")
+            .trim();
+          return {
+            id: `${document.id}-section-${index + 1}`,
+            title,
+            points: 1,
+            prompt: prompt.slice(0, 1200),
+            sourceNodeIds: [document.id],
+            evidence: prompt.slice(0, 220),
+          };
+        }).filter((section) => section.prompt.length >= 20);
+      })
+    : [];
+  if (isSourceTopicPaper && sourceTopicSections.length < 2) {
+    return null;
+  }
+  const fallbackPointBase = sourceTopicSections.length
+    ? Math.floor(20 / sourceTopicSections.length)
+    : 0;
+  const fallbackPointRemainder = sourceTopicSections.length
+    ? 20 % sourceTopicSections.length
+    : 0;
+  const groundedSourceTopicSections = sourceTopicSections.map((section, index) => ({
+    ...section,
+    points: fallbackPointBase + (index < fallbackPointRemainder ? 1 : 0),
+  }));
   const sections: FallbackSection[] = !isComprehensive
     ? []
     : isFunctionStudy
@@ -661,7 +765,8 @@ function buildGroundedExerciseFallback(
         sourceNodeIds: primarySourceId ? [primarySourceId] : [],
         evidence: groundedEvidence,
       }))
-    : [
+    : isPhysicsPaper
+    ? [
         {
           id: "data",
           title: "data",
@@ -702,19 +807,24 @@ function buildGroundedExerciseFallback(
           sourceNodeIds: primarySourceId ? [primarySourceId] : [],
           evidence: groundedEvidence,
         },
-      ];
+      ]
+    : groundedSourceTopicSections
 
   return {
     status: "generated",
     lessonTitle: lesson,
     title: isComprehensive ? `ورقة تدريب موثقة: ${topic}` : `تمرين موثق: ${topic}`,
-    prompt: isComprehensive && !isFunctionStudy && scientificScenario
+    prompt: isComprehensive && isPhysicsPaper && scientificScenario
       ? [
           `المسألة: ${topic}`,
           "الوضعية والمعطيات:",
           scientificScenario.text,
           "أجب عن المطلوبات الخمسة بالترتيب، مع كتابة العلاقة والتعويض والوحدة والتحقق من النتيجة.",
         ].join("\n\n")
+      : isComprehensive && isFunctionStudy
+      ? "أنجز دراسة الدالة وفق ترتيب المحاور، واكتب التبريرات كاملة."
+      : isComprehensive && isSourceTopicPaper
+      ? `أنجز الموضوع «${topic}» باتباع ترتيب الأقسام والمطلوبات كما وردت في المصدر، واكتب كل تمرين أو فرع في موضعه.`
       : isComprehensive
       ? "أنجز الورقة بالقلم، واكتب المعطيات والتحويلات والتبريرات كاملة."
        : `اعتمد على المقتطفات المسترجعة من «${sourceLabel}» حول ${topic}. استخرج المعطيات والوحدات، واختر العلاقة المناسبة، ثم احسب المطلوب واكتب النتيجة مع وحدتها.`,
@@ -727,14 +837,20 @@ function buildGroundedExerciseFallback(
     ...(isComprehensive
       ? {
            difficulty: REVIEW_PAPER_DIFFICULTY,
-          format: isFunctionStudy ? "comprehensive_function" as const : "comprehensive_science" as const,
+           format: isFunctionStudy
+             ? "comprehensive_function" as const
+             : isPhysicsPaper
+               ? "comprehensive_science" as const
+               : "source_topic" as const,
           totalPoints: sections.reduce((sum, section) => sum + section.points, 0),
           sections,
         }
       : {}),
     fallback: true,
-    fallbackMessage: isComprehensive
-      ? "هذه ورقة تدريب مبنية على مادة الدرس المتاحة."
+     fallbackMessage: isComprehensive
+       ? isSourceTopicPaper
+         ? "هذه ورقة تدريب تحافظ على ترتيب الموضوع المستخرج من المصادر."
+         : "هذه ورقة تدريب مبنية على مادة الدرس المتاحة."
       : "هذا تمرين موجز مبني على مادة الدرس المتاحة.",
   };
 }
@@ -992,6 +1108,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     curriculum_year: curriculumYear,
     activeConcept,
     attemptContext,
+    studentRequest,
     mode,
     studentRequestedPaper,
   } =
@@ -1004,6 +1121,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     (curriculumYear !== undefined && typeof curriculumYear !== "string") ||
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
     (attemptContext !== undefined && typeof attemptContext !== "string") ||
+    (studentRequest !== undefined && typeof studentRequest !== "string") ||
     (mode !== undefined && mode !== "standard" && mode !== "paper" && mode !== "creative_topic") ||
     (studentRequestedPaper !== undefined && typeof studentRequestedPaper !== "boolean")
   ) {
@@ -1011,11 +1129,13 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     return;
   }
   let retrieval: RetrievalContext | undefined;
-  // A paper is a distinct student intent. Never derive it from lesson titles,
-  // active concepts, error history, or any other free-form context because
-  // those fields routinely contain words such as "paper" while asking for a
-  // normal practice exercise.
-  const isPaperRequest = mode === "paper" || studentRequestedPaper === true;
+  const requestText = typeof studentRequest === "string" ? studentRequest.trim() : "";
+  const exerciseIntent = classifyExerciseIntent(
+    requestText,
+    mode,
+    studentRequestedPaper === true,
+  );
+  const isPaperRequest = exerciseIntent === "multi_topic";
   try {
     const userId = getUserId(req);
     if (!userId) {
@@ -1095,6 +1215,8 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       ]
         .filter(Boolean)
         .join(" | "),
+      requestText,
+      exerciseIntent,
       isPaperRequest,
       retrieval,
     );
@@ -1151,12 +1273,21 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         typeof activeConcept === "string" ? activeConcept : "",
         retrieval,
         true,
-        subject,
+        typeof subject === "string" ? subject : "",
+        requestText,
+        exerciseIntent,
       );
       if (!fallback) {
+        const physicsPaper = /فيزياء|فيزيائي|physics|physique/i.test(
+          `${subject ?? ""} ${lesson} ${typeof activeConcept === "string" ? activeConcept : ""}`,
+        );
         res.status(424).json({
-          error: "grounded_physics_problem_unavailable",
-          message: "لم أعثر في المصادر المتاحة على مسألة فيزيائية بمعطيات عددية ووحدات كافية لبناء ورقة قابلة للحل. حدّد درسًا أو مفهومًا أدق ثم أعد المحاولة.",
+          error: physicsPaper
+            ? "grounded_physics_problem_unavailable"
+            : "grounded_source_topic_unavailable",
+          message: physicsPaper
+            ? "لم أعثر في المصادر المتاحة على مسألة فيزيائية بمعطيات عددية ووحدات كافية لبناء ورقة قابلة للحل. حدّد درسًا أو مفهومًا أدق ثم أعد المحاولة."
+            : "لم أعثر في المصادر المتاحة على بنية موضوع متعددة التمارين قابلة للحل. حدّد مصدرًا أو موضوعًا أدق ثم أعد المحاولة.",
         });
         return;
       }
@@ -1179,11 +1310,27 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
             document: document.document ?? "",
           })),
         );
-      } else {
+      } else if (fallback.format === "comprehensive_science") {
         assertGroundedScienceReviewPaperContract(
           fallback.prompt,
           fallback.sections as Array<{
             id: string;
+            points: number;
+            prompt: string;
+            sourceNodeIds: string[];
+            evidence: string;
+          }>,
+          fallback.totalPoints,
+          retrieval.documents.map((document) => ({
+            id: document.id,
+            document: document.document ?? "",
+          })),
+        );
+      } else {
+        assertGroundedSourceTopicPaperContract(
+          fallback.sections as Array<{
+            id: string;
+            title: string;
             points: number;
             prompt: string;
             sourceNodeIds: string[];
@@ -1232,6 +1379,9 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         typeof activeConcept === "string" ? activeConcept : "",
         retrieval,
         isPaperRequest,
+        typeof subject === "string" ? subject : "",
+        requestText,
+        exerciseIntent,
       );
       res.json(studentExerciseView(fallback));
       return;

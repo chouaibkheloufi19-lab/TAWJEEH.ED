@@ -196,7 +196,7 @@ type GeneratedExercise = {
   lessonTitle: string;
   title: string;
   prompt: string;
-  format?: 'comprehensive_function' | 'comprehensive_science';
+  format?: 'comprehensive_function' | 'comprehensive_science' | 'source_topic';
   totalPoints?: number;
   sections?: Array<{
     id: string;
@@ -1693,12 +1693,14 @@ export function LessonWorkspace() {
         : `مرجع الدرس الحالي: ${sourceExcerpt}`;
       let reply = 'سأثبت الفكرة أولًا، ثم أبني لك تطبيقًا مناسبًا لها.';
       if (activePartner === 'exercises') {
-        const wantsCreativeTopics = /موضوع|إبداع|فكرة|مسار|تطبيقات مختلفة|زاوية/.test(cleanText);
         const rejectsWorksheetIntent =
           /(?:ليس|ليست|لا|ما|مو|مش|بدون|دون|بدل|غير)\s*(?:أن\s*)?(?:أريد\s*)?(?:ورقة|اختبار|امتحان)/i.test(cleanText);
         const wantsComprehensiveWorksheet =
           !rejectsWorksheetIntent &&
-          /(?:أعطني|اعطني|أريد|اريد|أنشئ|انشئ|ولّد|ولد|حضّر|حضر|جهّز|جهز|ابنِ|ابني)\s*(?:لي\s*)?(?:ورقة|اختبار|امتحان)|(?:ورقة|اختبار|امتحان)\s*(?:كاملة|شاملة|رسمية|تدريبية|بكالوريا)|موضوع\s*(?:بكالوريا|اختبار|امتحان)|(?:full\s+(?:exam\s+)?paper|exam\s+paper|practice\s+(?:paper|exam))/i.test(cleanText);
+          /(?:أعطني|اعطني|أريد|اريد|أنشئ|انشئ|ولّد|ولد|حضّر|حضر|جهّز|جهز|ابنِ|ابني)\s*(?:لي\s*)?(?:ورقة|اختبار|امتحان)|(?:ورقة|اختبار|امتحان)\s*(?:كاملة|شاملة|رسمية|تدريبية|بكالوريا)|موضوع\s*(?:بكالوريا|اختبار|امتحان|متعدد\s*التمارين)|(?:عدة|مجموعة|متعدد(?:ة)?|متنوع(?:ة)?|مختلف(?:ة)?|أكثر\s+من)\s+(?:تمارين|موضوعات|مواضيع)|تمارين\s+(?:متعددة|متنوعة|مترابطة|عدة)|(?:full|multiple|several)\s+(?:exercises?|practice\s+paper|exam)/i.test(cleanText);
+        const wantsCreativeTopics =
+          !wantsComprehensiveWorksheet &&
+          /موضوعات|مواضيع|موضوع\s+(?:إبداعي|تطبيقي)|إبداع|فكرة|مسار|تطبيقات مختلفة|زاوية/.test(cleanText);
         const response = await fetchWithTimeout('/api/lesson/exercise', {
           method: 'POST',
           credentials: 'include',
@@ -1712,6 +1714,7 @@ export function LessonWorkspace() {
             attemptContext: analysis
               ? `${analysis.lastCorrectStep} — ${analysis.firstError}: ${analysis.feedback}`
               : targetedConcept || cleanText,
+            studentRequest: cleanText,
             ...(wantsCreativeTopics ? { mode: 'creative_topic' } : {}),
             ...(!wantsCreativeTopics ? { studentRequestedPaper: wantsComprehensiveWorksheet } : {}),
           }),
@@ -2006,6 +2009,7 @@ export function LessonWorkspace() {
           curriculum_year: '3AS',
           activeConcept: activeSection.title,
           attemptContext,
+          studentRequest: attemptContext,
           studentRequestedPaper: false,
         }),
       });
@@ -2742,7 +2746,7 @@ export function LessonWorkspace() {
             </div>
            {generatedExercise && (
              <div className="lesson-generated-exercise" data-testid="card-generated-error-exercise">
-                <span>{generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' ? 'ورقة عملية شاملة · فهيم يصحح المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل طلب التوجيه'}</span>
+                 <span>{generatedExercise.format === 'comprehensive_function' || generatedExercise.format === 'comprehensive_science' || generatedExercise.format === 'source_topic' ? 'ورقة عملية شاملة · فهيم يصحح المحاولة' : analysis ? 'تمرين إضافي يعالج نفس الخطأ' : 'تمرينك الآن · جرّب قبل طلب التوجيه'}</span>
                <h4><MathText>{generatedExercise.title}</MathText></h4>
                   {(
                   <>
