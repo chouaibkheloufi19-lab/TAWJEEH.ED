@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "test:review-paper": "tsx ./src/test-review-paper-grounding.ts",
+    "test:science-exercise": "tsx ./src/test-science-exercise-generation.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

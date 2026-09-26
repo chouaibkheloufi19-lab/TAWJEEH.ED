@@ -1098,7 +1098,7 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
       isPaperRequest,
       retrieval,
     );
-    if (mode === "paper") {
+    if (isPaperRequest) {
       assertReviewPaperDifficulty(generated.difficulty);
       const studentPaper: StudentPaper = {
         status: generated.status,
