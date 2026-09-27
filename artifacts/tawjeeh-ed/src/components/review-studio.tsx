@@ -52,9 +52,17 @@ export type ComprehensivePaper = {
   title: string;
   prompt: string;
   difficulty: 'advanced';
-  format: 'comprehensive_function' | 'comprehensive_science' | 'source_topic';
+  format: PaperFormat;
   totalPoints: number;
   sections: ExerciseSection[];
+};
+
+type PaperFormat = 'comprehensive_function' | 'comprehensive_science' | 'source_topic';
+
+const PAPER_SECTION_COUNTS: Record<PaperFormat, { min: number; max: number }> = {
+  comprehensive_function: { min: 10, max: 10 },
+  comprehensive_science: { min: 5, max: 5 },
+  source_topic: { min: 2, max: 10 },
 };
 
 type GenerationState = 'idle' | 'loading' | 'ready' | 'error';
@@ -100,26 +108,36 @@ function formatElapsed(seconds: number) {
   return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 }
 
+function isPaperFormat(value: unknown): value is PaperFormat {
+  return value === 'comprehensive_function'
+    || value === 'comprehensive_science'
+    || value === 'source_topic';
+}
+
 function isComprehensivePaper(value: unknown): value is ComprehensivePaper {
   if (!value || typeof value !== 'object') return false;
   const paper = value as Partial<ComprehensivePaper>;
+  if (!isPaperFormat(paper.format)) return false;
+  const sectionCount = PAPER_SECTION_COUNTS[paper.format];
   return paper.status === 'generated'
     && paper.mode === 'paper'
     && typeof paper.lessonTitle === 'string'
     && typeof paper.title === 'string'
     && typeof paper.prompt === 'string'
     && paper.difficulty === 'advanced'
-    && (paper.format === 'comprehensive_function'
-      || paper.format === 'comprehensive_science'
-      || paper.format === 'source_topic')
     && typeof paper.totalPoints === 'number'
+    && Number.isFinite(paper.totalPoints)
+    && paper.totalPoints === 20
     && Array.isArray(paper.sections)
-    && paper.sections.length >= (paper.format === 'source_topic' ? 2 : 5)
+    && paper.sections.length >= sectionCount.min
+    && paper.sections.length <= sectionCount.max
     && paper.sections.every((section) => (
       Boolean(section)
       && typeof section.id === 'string'
       && typeof section.title === 'string'
       && typeof section.points === 'number'
+      && Number.isFinite(section.points)
+      && section.points > 0
       && typeof section.prompt === 'string'
       && section.prompt.trim().length > 0
     ));
