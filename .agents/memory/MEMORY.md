@@ -15,3 +15,4 @@
 - [Grounded paper fallback](grounded-paper-fallback.md) — rank exercise fallbacks by usable exercise evidence, not content type or retrieval order alone.
 - [Subject-scoped generation](subject-scoped-generation.md) — generation safety requires subject/year filters at retrieval, not prompt instructions alone.
 - [Orchestrator wire contract](orchestrator-wire-contract.md) — serialize camelCase domain state to the generated snake_case API shape at the route boundary.
+- [Orchestrator runtime verification](orchestrator-runtime-verification.md) — health checks are not enough; verify persisted phase and agent availability together.
