@@ -47,6 +47,7 @@ import {
   getGetErrorBankQueryKey,
   getGetExamModeQueryKey,
   getGetSummaryBankQueryKey,
+  getGetOrchestratorStateQueryKey,
   getHealthCheckQueryKey,
   getListKnowledgeQueryKey,
   getListQuizAttemptsQueryKey,
@@ -54,6 +55,7 @@ import {
   useGetDashboard,
   useGetErrorBank,
   useGetExamMode,
+  useGetOrchestratorState,
   useGetSummaryBank,
   useHealthCheck,
   useListKnowledge,
@@ -74,10 +76,10 @@ import {
 import { Redirect, Route, Router as WouterRouter, Switch, Link, useLocation } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { LessonWorkspace } from '@/components/lesson-workspace';
+import { AgentWorkspace } from '@/components/agent-workspace';
 import { MathPractice } from '@/components/math-practice';
 import { ExamBoard } from '@/components/exam-board';
 import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/phase-one';
-import { ProgramAgent } from '@/components/program-agent';
 import { DynamicOwlCopilot } from '@/components/DynamicOwlCopilot';
 import { ReviewStudio } from '@/components/review-studio';
 import { MathText } from '@/components/math-text';
@@ -162,10 +164,9 @@ const clerkAppearance = {
 };
 
 const navItems = [
-  { href: '/profile', label: 'الصفحة الشخصية', icon: UserRound },
-  { href: '/program', label: 'تبويب التفاعل', icon: MessageCircle },
-  { href: '/review-studio', label: 'استوديو المراجعة', icon: Sparkles },
-  { href: '/quizzes', label: 'تبويب الكويزات والنقاط', icon: Trophy },
+  { href: '/profile', label: 'الملف وبنك المعرفة', icon: UserRound },
+  { href: '/program', label: 'مساحة الوكلاء', icon: MessageCircle },
+  { href: '/quizzes', label: 'الكويزات والنقاط', icon: Trophy },
 ];
 
 function Logo({ compact = false }: { compact?: boolean }) {
@@ -275,7 +276,7 @@ function Topbar({ title }: { title: string }) {
 
 function Shell({ children, title }: { children: ReactNode; title: string }) {
   const isLessonShell = title === 'جلسة فهيم';
-  const isInteractiveShell = title === 'التفاعل';
+  const isInteractiveShell = title === 'التفاعل' || title === 'مساحة الوكلاء';
   const initialAgent: OwlAgentId = 'FAHIM';
   return (
     <div className={`app-shell noise ${isLessonShell ? 'lesson-shell' : ''}`}>
@@ -481,6 +482,24 @@ function ProgramLessonRoute() {
     && sessionStorage.getItem('tawjeeh.program.lesson-access.v1') === '1';
   if (!canOpenLesson) return <Redirect to="/program" />;
   return <Shell title="جلسة فهيم"><LessonWorkspace /></Shell>;
+}
+
+function AgentWorkspaceRoute() {
+  const [, setLocation] = useLocation();
+  const entryDate = localStorage.getItem('tawjeeh.phase1.entryDate') || new Date().toISOString().slice(0, 10);
+
+  return (
+    <Shell title="مساحة الوكلاء">
+      <AgentWorkspace
+        entryDate={entryDate}
+        onOpenLesson={(lessonId) => {
+          const nextLessonId = lessonId || 'newton-motion';
+          sessionStorage.setItem('tawjeeh.program.lesson-access.v1', '1');
+          setLocation(`/lesson/${nextLessonId}`);
+        }}
+      />
+    </Shell>
+  );
 }
 
 function AuthStory({ mode }: { mode: 'login' | 'register' }) {
@@ -1194,6 +1213,12 @@ function QuizzesPage() {
   const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [examDate] = useState(() => localStorage.getItem(examDateKey) || defaultExamDate);
+  const entryDate = localStorage.getItem('tawjeeh.phase1.entryDate') || new Date().toISOString().slice(0, 10);
+  const dashboardQuery = useGetDashboard({ query: { queryKey: getGetDashboardQueryKey() } });
+  const orchestratorQuery = useGetOrchestratorState(
+    { entry_date: entryDate },
+    { query: { queryKey: getGetOrchestratorStateQueryKey({ entry_date: entryDate }), staleTime: 60_000 } },
+  );
   const attemptsQuery = useListQuizAttempts({ query: { queryKey: getListQuizAttemptsQueryKey() } });
   const examModeQuery = useGetExamMode(
     { exam_date: examDate },
@@ -1233,11 +1258,28 @@ function QuizzesPage() {
        {examModeQuery.data && examModeQuery.data.mode !== 'standard' && <section className={`quiz-exam-mode-banner ${examModeQuery.data.mode === 'error_stack' ? 'is-error-stack' : ''}`} data-testid="card-quiz-exam-mode"><div><span className="eyebrow">{examModeQuery.data.label}</span><h3>{examModeQuery.data.mode === 'error_stack' ? 'نحوّل أخطاءك المتكررة إلى نقاط قوة.' : 'أوراق محاكاة متنوعة ترفع جاهزيتك.'}</h3><p>{examModeQuery.data.description}</p></div><div className="quiz-exam-mode-stat"><strong>{Math.max(0, examModeQuery.data.days_until)}</strong><span>يومًا حتى الموعد</span><b>كثافة ×{examModeQuery.data.exercise_density}</b></div></section>}
        <section className="phase-one-score-card" data-testid="card-daily-score-threshold">
          <div className="phase-one-score-heading">
-           <div><span className="eyebrow">مقياس التقدم اليومي</span><h2 className="display">نقطة اليوم تربطنا بالنجاح.</h2></div>
-           <div className="phase-one-score-values"><strong data-testid="text-daily-score">{dailyScore}</strong><span>/ 70 نقطة</span></div>
+           <div><span className="eyebrow">هدف XP اليومي</span><h2 className="display">كل نقطة تقرّبك من الثبات.</h2></div>
+           <div className="phase-one-score-values"><strong data-testid="text-daily-score">{dailyScore}</strong><span>/ 70 XP</span></div>
          </div>
          <div className="phase-one-score-track" aria-label="التقدم نحو الحد اليومي"><span style={{ width: `${Math.min(100, Math.round((dailyScore / 70) * 100))}%` }} /></div>
-          <div className="phase-one-score-footer"><span><CheckCircle2 size={14} /> الحد المطلوب اليومي: 70 نقطة</span><span><Trophy size={14} /> مؤشر النجاح: 10 / 20 في المعدل</span><span>{dailyScore >= 70 ? 'أتممت حد اليوم' : `تبقّى ${Math.max(0, 70 - dailyScore)} نقطة`}</span></div>
+          <div className="phase-one-score-footer"><span><CheckCircle2 size={14} /> الحد المطلوب اليومي: 70 XP</span><span><Trophy size={14} /> مؤشر النجاح: 10 / 20 في المعدل</span><span>{dailyScore >= 70 ? 'أتممت حد اليوم' : `تبقّى ${Math.max(0, 70 - dailyScore)} XP`}</span></div>
+       </section>
+       <section className="quiz-gamification-strip" aria-label="ملخص التقدم والنقاط" data-testid="card-gamification-summary">
+         <article>
+           <span><Flame size={15} /> السلسلة الحالية</span>
+           <strong>{dashboardQuery.data?.profile.streak ?? 0}<small> يوم</small></strong>
+           <p>حافظ على إيقاع يومي ثابت.</p>
+         </article>
+         <article>
+           <span><Zap size={15} /> مضاعف العقوبة</span>
+           <strong>×{orchestratorQuery.data?.weekend_quiz_multiplier ?? 1}</strong>
+           <p>{(orchestratorQuery.data?.weekend_quiz_multiplier ?? 1) > 1 ? 'تطبيقات نهاية الأسبوع مكثفة.' : 'لا توجد عقوبة نشطة.'}</p>
+         </article>
+         <article>
+           <span><Target size={15} /> نقاط اليوم</span>
+           <strong>{dailyScore}<small> XP</small></strong>
+           <p>{Math.max(0, 70 - dailyScore)} XP للوصول إلى الهدف.</p>
+         </article>
        </section>
        {hardAttempts.length > 0 && <section className="quiz-attempt-history" data-testid="card-unit-assessment-history"><div><span className="eyebrow">سجل تقييم الوحدة</span><h3 className="display text-lg">نتائج التحدّي عالي الصعوبة</h3></div><div className="quiz-attempt-history-list">{hardAttempts.slice(0, 5).map((attempt: QuizAttemptRecord) => <div className="quiz-attempt-history-row" key={attempt.id}><span><strong>{attempt.score}%</strong><small>{attempt.correct} من {attempt.total} · {attempt.completed_at.slice(0, 10)}</small></span><b className={attempt.passed ? 'passed' : 'retry'}>{attempt.passed ? 'اجتاز' : 'يحتاج محاولة أخرى'}</b></div>)}</div></section>}
       {quizzesQuery.isLoading ? <LoadingState label="نحضّر تمارين مناسبة لك..." /> : quizzesQuery.isError ? <ErrorState onRetry={() => quizzesQuery.refetch()} /> : quizzes.length === 0 ? <EmptyState title="لا توجد اختبارات بعد" body="ستجد هنا تدريبات الوحدات والاختبار الأسبوعي عند توفرها." /> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{quizzes.map((quiz) => <QuizCard key={quiz.id} quiz={quiz} onStart={() => setSelectedQuiz(quiz)} />)}</div>}
@@ -1335,8 +1377,8 @@ function Router() {
         <Route path="/sign-in/*?" component={SignInPage} />
         <Route path="/sign-up/*?" component={SignUpPage} />
         <Route path="/dashboard" component={() => <ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/profile" component={() => <ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-         <Route path="/program" component={() => <ProtectedRoute><Shell title="التفاعل"><ProgramAgent /></Shell></ProtectedRoute>} />
+        <Route path="/profile" component={() => <ProtectedRoute><Shell title="الملف وبنك المعرفة"><ProfilePage /></Shell></ProtectedRoute>} />
+        <Route path="/program" component={() => <ProtectedRoute><AgentWorkspaceRoute /></ProtectedRoute>} />
         <Route path="/review-studio" component={() => <ProtectedRoute><Shell title="استوديو المراجعة"><ReviewStudio /></Shell></ProtectedRoute>} />
         <Route path="/lesson/:id" component={() => <ProtectedRoute><ProgramLessonRoute /></ProtectedRoute>} />
         <Route path="/library" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
