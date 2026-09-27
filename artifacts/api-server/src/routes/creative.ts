@@ -20,6 +20,7 @@ import {
 import {
   callDeepSeekTextModelWithRetry,
   DeepSeekProviderError,
+  shouldUseGroundedProviderFallback,
 } from "../lib/ai-provider";
 
 const router: IRouter = Router();
@@ -83,7 +84,121 @@ type GeneratedExamResponse = {
   sourceDocuments: ReturnType<typeof sourceDocumentsFrom>;
   sourceNodeIds: string[];
   grounding: RetrievalContext["grounding"];
+  fallback?: boolean;
+  fallbackMessage?: string;
 };
+
+function buildGroundedExamFallback(
+  retrieval: RetrievalContext,
+  requested: { subject: string; level: string; track: string },
+): GeneratedExamResponse | null {
+  const contentTypeWeight: Record<string, number> = {
+    assessment: 0,
+    exercise: 1,
+    solution: 2,
+    reference: 3,
+  };
+  const documents = retrieval.documents
+    .filter((document) => Boolean(document.document?.trim()))
+    .sort((left, right) => {
+      const leftType = String(left.metadata?.content_type || "reference");
+      const rightType = String(right.metadata?.content_type || "reference");
+      return (
+        (contentTypeWeight[leftType] ?? 4) -
+        (contentTypeWeight[rightType] ?? 4)
+      );
+    })
+    .slice(0, 2);
+
+  if (documents.length < 2) return null;
+
+  const sections = documents.map((document, index) => {
+    const metadata = document.metadata ?? {};
+    const source = String(metadata.source_file || "المصدر الدراسي");
+    const page = Number(metadata.source_page || 0);
+    const sourceLabel = `${source}${page > 0 ? `، ص ${page}` : ""}`;
+    const excerpt = document.document
+      ?.replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 1_200);
+    const sectionId = `grounded-source-${index + 1}`;
+    return {
+      id: sectionId,
+      title: String(
+        metadata.lesson || metadata.unit || `تمرين مستخرج ${index + 1}`,
+      ).trim(),
+      points: 10,
+      theme: `مقتطف موثق من ${sourceLabel}`,
+      context: excerpt || "راجع المقتطف المصدر المرفق قبل البدء.",
+      questions: [
+        {
+          id: `${sectionId}-q1`,
+          label: "أ",
+          prompt:
+            "استخرج من المقتطف المعطيات أو التعريفات أو العلاقات اللازمة، ثم اكتب الرموز والوحدات إن وجدت.",
+          points: 3,
+        },
+        {
+          id: `${sectionId}-q2`,
+          label: "ب",
+          prompt:
+            "أنجز المطلوب الواضح في المقتطف خطوة خطوة، مع ذكر القاعدة أو العلاقة التي اعتمدت عليها.",
+          points: 4,
+        },
+        {
+          id: `${sectionId}-q3`,
+          label: "ج",
+          prompt:
+            "تحقق من النتيجة بمقارنتها مع المعطيات أو التمثيل أو الخلاصة الواردة في المقتطف، ثم اكتب استنتاجًا موجزًا.",
+          points: 3,
+        },
+      ],
+      sourceNodeId: document.id,
+      sourceLabel,
+    };
+  });
+
+  return {
+    status: "generated",
+    title: `ورقة مراجعة موثقة: ${requested.subject}`,
+    subject: requested.subject,
+    track: requested.track,
+    grade: requested.level,
+    duration: "ساعتان",
+    totalPoints: 20,
+    instructions: [
+      "هذه مسودة مراجعة مبنية مباشرة على مقتطفين مستخرجين من المصادر.",
+      "اكتب كل المعطيات والتبريرات، ولا تضف قيمة غير موجودة في المصدر.",
+      "استعمل المقتطف المرفق لتحديد المطلوب قبل البدء في الحل.",
+    ],
+    sections,
+    correction: {
+      title: "إرشاد التصحيح المبني على المصدر",
+      introduction:
+        "هذه ليست إجابة مولّدة من النموذج؛ إنها شبكة تحقق تساعدك على مراجعة الحل مقابل المقتطف المصدر.",
+      sections: sections.map((section) => ({
+        sectionId: section.id,
+        title: `إرشاد ${section.title}`,
+        solutionSteps: [
+          "تحقق من استخراج المعطيات أو العلاقات من المقتطف دون إضافة معلومات خارجية.",
+          "راجع ترتيب خطوات الحل والقاعدة أو العلاقة المستعملة في المطلوب.",
+          "قارن النتيجة بالمعطيات أو التمثيل أو الخلاصة الموجودة في المصدر.",
+        ],
+        criteria: [
+          { label: "استخراج المعطيات والعلاقات من المصدر", points: 3 },
+          { label: "ترتيب التطبيق والتبرير", points: 4 },
+          { label: "التحقق وكتابة الاستنتاج", points: 3 },
+        ],
+      })),
+    },
+    sourceDocuments: sourceDocumentsFrom(documents),
+    sourceNodeIds: documents.map((document) => document.id),
+    grounding: retrieval.grounding,
+    fallback: true,
+    fallbackMessage:
+      "تعذر الوصول إلى مزود التوليد مؤقتًا؛ عُرضت مسودة قابلة للاستخدام مبنية مباشرة على المصادر المتاحة.",
+  };
+}
 
 function extractJsonObject(text: string, label: string): string {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1]?.trim();
@@ -432,8 +547,9 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
     /دالة|دوال|الدوال|الدالة|نهايات|اشتقاق|مماس|مقارب|function|derivative|limit/i.test(
       request,
     );
+  let retrieval: RetrievalContext | undefined;
   try {
-    const retrieval = await retrieveGroundedKnowledge(
+    retrieval = await retrieveGroundedKnowledge(
       [
         requestedContext.subject,
         requestedContext.level,
@@ -478,7 +594,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         },
       ],
       { temperature: 0.4, maxOutputTokens: 5200, jsonMode: true },
-      { maxAttempts: 4, baseDelayMs: 1_000 },
+      { maxAttempts: 2, baseDelayMs: 800 },
     );
     try {
       res.json(parseGeneratedExam(content, retrieval, requestedContext));
@@ -499,6 +615,17 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
       return;
     }
     if (error instanceof DeepSeekProviderError) {
+      if (shouldUseGroundedProviderFallback(error) && retrieval) {
+        const fallback = buildGroundedExamFallback(retrieval, requestedContext);
+        if (fallback) {
+          req.log.warn(
+            { status: error.status },
+            "Returning grounded exam fallback after temporary provider failure",
+          );
+          res.json(fallback);
+          return;
+        }
+      }
       const notConfigured =
         error.message.includes("XAI_CONNECTION_NOT_CONFIGURED") ||
         error.message.includes("GEMINI_CONNECTION_NOT_CONFIGURED") ||

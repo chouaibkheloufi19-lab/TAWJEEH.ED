@@ -42,6 +42,8 @@ type GeneratedExam = {
   };
   sourceDocuments: ExamSource[];
   grounding: { retrievedNodeIds: string[] };
+  fallback?: boolean;
+  fallbackMessage?: string;
 };
 
 function formatError(error: unknown) {
@@ -192,6 +194,11 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
           <strong>تعليمات المترشح:</strong>
           <ul>{exam.instructions.map((instruction) => <li key={instruction}>{instruction}</li>)}</ul>
         </div>
+        {exam.fallbackMessage && (
+          <div className="exam-paper-note exam-paper-fallback-note" role="status">
+            <strong>وضع التوليد:</strong> {exam.fallbackMessage}
+          </div>
+        )}
 
         {exam.sections.map((section, index) => (
           <section className="exam-paper-section grounded-exam-section" key={section.id}>
