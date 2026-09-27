@@ -708,6 +708,58 @@ function prioritizeExerciseFallbackDocuments(
     .slice(0, 6);
 }
 
+async function retrievePaperKnowledge(
+  query: string,
+  where?: Record<string, string | number>,
+): Promise<RetrievalContext> {
+  const contentTypes = ["exercise", "assessment", "solution"];
+  const retrievals = await Promise.all(
+    [
+      { where },
+      ...contentTypes.map((contentType) => ({
+        where: { ...(where ?? {}), content_type: contentType },
+      })),
+    ].map(async (options) => {
+      try {
+        return await retrieveGroundedKnowledge(query, {
+          nResults: 30,
+          where: options.where,
+        });
+      } catch (error) {
+        if (error instanceof KnowledgeGroundingError) return null;
+        throw error;
+      }
+    }),
+  );
+  const documentsById = new Map<string, KnowledgeDocument>();
+  for (const retrieval of retrievals) {
+    for (const document of retrieval?.documents ?? []) {
+      if (!documentsById.has(document.id)) {
+        documentsById.set(document.id, document);
+      }
+    }
+  }
+  const documents = prioritizeExerciseFallbackDocuments([
+    ...documentsById.values(),
+  ]).slice(0, 24);
+  if (!documents.length) {
+    throw new KnowledgeGroundingError(
+      "The knowledge base returned no indexed source nodes for this paper request",
+    );
+  }
+  return {
+    status: "ready",
+    query,
+    documents,
+    grounding: {
+      status: "ready",
+      query,
+      retrievedNodeIds: documents.map((document) => document.id),
+      sources: sourceDocumentsFrom(documents),
+    },
+  };
+}
+
 function buildSourceTopicSections(
   documents: KnowledgeDocument[],
 ): GroundedFallbackSection[] {
@@ -1302,32 +1354,33 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
         "Skipping error-bank context during exercise generation",
       );
     }
-    retrieval = await retrieveGroundedKnowledge(
-      [
-        lesson,
-        activeConcept,
-        historicalErrors,
-        mode === "creative_topic"
-          ? "موضوعات تطبيقية إبداعية، وضعيات، تجارب ذهنية، تمثيل بصري، وتحديات تغطي كل مكتسبات المنهاج"
-          : "تمارين",
-      ]
-        .filter((value): value is string => Boolean(value))
-        .join(" "),
-      {
-        nResults: mode === "creative_topic" ? 24 : isPaperRequest ? 50 : 8,
-        where:
-          typeof subject === "string" || typeof curriculumYear === "string"
-            ? {
-                ...(typeof subject === "string" && subject
-                  ? { subject }
-                  : {}),
-                ...(typeof curriculumYear === "string" && curriculumYear
-                  ? { curriculum_year: curriculumYear }
-                  : {}),
-              }
-            : undefined,
-      },
-    );
+    const retrievalQuery = [
+      lesson,
+      activeConcept,
+      historicalErrors,
+      mode === "creative_topic"
+        ? "موضوعات تطبيقية إبداعية، وضعيات، تجارب ذهنية، تمثيل بصري، وتحديات تغطي كل مكتسبات المنهاج"
+        : "تمارين",
+    ]
+      .filter((value): value is string => Boolean(value))
+      .join(" ");
+    const retrievalWhere =
+      typeof subject === "string" || typeof curriculumYear === "string"
+        ? {
+            ...(typeof subject === "string" && subject
+              ? { subject }
+              : {}),
+            ...(typeof curriculumYear === "string" && curriculumYear
+              ? { curriculum_year: curriculumYear }
+              : {}),
+          }
+        : undefined;
+    retrieval = isPaperRequest
+      ? await retrievePaperKnowledge(retrievalQuery, retrievalWhere)
+      : await retrieveGroundedKnowledge(retrievalQuery, {
+          nResults: mode === "creative_topic" ? 24 : 8,
+          where: retrievalWhere,
+        });
     if (mode === "creative_topic") {
       const generatedTopics = await generateCreativeExerciseTopics(
         lesson,
