@@ -157,12 +157,23 @@ export async function generateGroundedQuizQuestions(input: {
   mode: string;
   level: string;
   errorContext: string;
+  subject?: string;
+  curriculumYear?: string;
   questionCount?: number;
 }): Promise<{ questions: GroundedQuizQuestion[]; retrieval: RetrievalContext }> {
   const questionCount = Math.max(3, Math.min(input.questionCount ?? 6, 12));
+  const where =
+    input.subject || input.curriculumYear
+      ? {
+          ...(input.subject ? { subject: input.subject } : {}),
+          ...(input.curriculumYear
+            ? { curriculum_year: input.curriculumYear }
+            : {}),
+        }
+      : undefined;
   const retrieval = await retrieveGroundedKnowledge(
     [input.lesson, input.level, input.mode, input.errorContext, "اختبار وتمارين"].filter(Boolean).join(" "),
-    { nResults: 10 },
+    { nResults: 10, where },
   );
   const promptPolicy = input.mode === "pre_exam" || input.mode === "error_stack"
     ? ACADEMIC_EXAM_PROMPT
@@ -178,6 +189,7 @@ export async function generateGroundedQuizQuestions(input: {
             GROUNDED_CONTENT_RULES,
             LEARNER_SAFE_OUTPUT_RULES,
             `هذه الواجهة تفاعلية، لذلك أعد ${questionCount} سؤال اختيار من متعدد بالعربية بصيغة JSON فقط. رتّب الأسئلة من الأساسيات إلى التطبيق ثم سؤال التحدي، مع مراعاة سجل الأخطاء لتحديد الأولوية. يجب أن تكون كل الخيارات والإجابة الصحيحة مدعومة بالمصادر.`,
+            `التزم بالمادة المحددة في الطلب فقط: ${input.subject || "المادة المستنتجة من الدرس"}. لا تستخدم عقدة تحمل مادة أخرى حتى لو كانت قريبة دلاليًا.`,
             'أعد الشكل: {"questions":[{"id":"q1","prompt":"...","options":["...","...","...","..."],"correctOption":"...","conceptId":"...","conceptTitle":"...","sourceNodeIds":["node-id"]}]}',
           ].join("\n\n"),
         },
@@ -187,6 +199,8 @@ export async function generateGroundedQuizQuestions(input: {
             `الدرس: ${input.lesson}`,
             `المستوى: ${input.level || "3AS"}`,
             `النمط: ${input.mode}`,
+            `المادة المسموح بها فقط: ${input.subject || "المادة المستنتجة من الدرس"}`,
+            `السنة الدراسية المسموح بها: ${input.curriculumYear || "غير محددة"}`,
             `سجل الأخطاء: ${input.errorContext || "لا توجد أخطاء محفوظة"}`,
             "عقد المتجه المسترجعة من ChromaDB:",
             formatRetrievedContext(retrieval.documents),

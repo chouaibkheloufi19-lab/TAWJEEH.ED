@@ -43,7 +43,10 @@ function publicQuiz(session: QuizSession, status = "متاح الآن") {
   return {
     id: session.quizId,
     title: session.title,
-    subject: session.subject,
+    subject:
+      session.quizType === "WEEKLY_GLOBAL" && session.unitId === null
+        ? "العلوم الفيزيائية"
+        : session.subject,
     description: session.description,
     duration: session.duration,
     status,
@@ -90,6 +93,8 @@ async function createSharedWeeklyQuiz(input: {
   quizType: Exclude<QuizType, "CUSTOM_PRIVATE">;
   unitId?: string;
   lessonIds: string[];
+  subject: string;
+  curriculumYear: string;
   lesson: string;
   title: string;
   description: string;
@@ -111,17 +116,18 @@ async function createSharedWeeklyQuiz(input: {
       lesson: input.lesson,
       mode: input.quizType,
       level: "3AS",
+      subject: input.subject,
+      curriculumYear: input.curriculumYear,
       errorContext: "كويز موحد وثابت لجميع الطلاب خلال الأسبوع الحالي",
       questionCount: input.questionCount,
     });
-    const details = publicUnitDetails(input.unitId ?? "global");
     return insertQuizSession({
       quizId: `${input.quizType.toLowerCase()}:${input.unitId ?? "global"}:${week.key}`,
       cacheKey,
       quizType: input.quizType,
       ownerUserId: null,
       title: input.title,
-      subject: details.subject,
+      subject: input.subject,
       description: input.description,
       duration: input.quizType === "WEEKLY_GLOBAL" ? "20 دقيقة" : "25 دقيقة",
       points: input.questionCount * 30,
@@ -150,6 +156,8 @@ async function getGlobalWeeklyQuiz() {
   return createSharedWeeklyQuiz({
     quizType: "WEEKLY_GLOBAL",
     lessonIds: ["all-current-lessons"],
+    subject: "العلوم الفيزيائية",
+    curriculumYear: "3AS",
     lesson: "مراجعة أسبوعية شاملة في قوانين نيوتن والحركة",
     title: "الكويز الأسبوعي الموحد",
     description: "كويز ثابت ومشترك بين جميع الطلاب طوال الأسبوع الحالي.",
@@ -163,6 +171,8 @@ async function getUnitWeeklyQuiz(unitId: string) {
     quizType: "UNIT_WEEKLY",
     unitId,
     lessonIds: [unitId],
+    subject: details.subject,
+    curriculumYear: "3AS",
     lesson: `دروس وحدة ${details.title}`,
     title: `الكويز الأسبوعي لوحدة ${details.title}`,
     description: "كويز وحدة ثابت يغطي دروس الوحدة الحالية طوال الأسبوع.",
@@ -237,14 +247,18 @@ router.post("/quizzes/custom", async (req, res): Promise<void> => {
 
   try {
     const lesson = [input.unitId, ...input.lessonIds].filter(Boolean).join(" ");
+    const details = publicUnitDetails(input.unitId ?? "custom");
     const generated = await generateGroundedQuizQuestions({
       lesson: lesson || "المحتوى التعليمي المحدد",
       mode: "CUSTOM_PRIVATE",
       level: input.level,
+      ...(details.subject !== "التعليم الثانوي"
+        ? { subject: details.subject }
+        : {}),
+      curriculumYear: "3AS",
       errorContext: `كويز خاص للدروس: ${input.lessonIds.join("، ") || input.unitId}`,
       questionCount: input.questionCount,
     });
-    const details = publicUnitDetails(input.unitId ?? "custom");
     const session = await insertQuizSession({
       quizId: `custom-private:${randomUUID()}`,
       cacheKey: `CUSTOM_PRIVATE:${userId}:${randomUUID()}`,

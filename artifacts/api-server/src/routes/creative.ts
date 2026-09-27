@@ -549,6 +549,20 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
     );
   let retrieval: RetrievalContext | undefined;
   try {
+    const requestedYear =
+      /(?:^|\D)3AS(?:$|\D)|الثالث(?:ة)?\s+ثانوي|بكالوريا/i.test(
+        requestedContext.level,
+      )
+        ? "third_secondary"
+        : /(?:^|\D)2AS(?:$|\D)|الثاني(?:ة)?\s+ثانوي/i.test(
+              requestedContext.level,
+            )
+          ? "second_secondary"
+          : /(?:^|\D)1AS(?:$|\D)|الأول(?:ى)?\s+ثانوي/i.test(
+                requestedContext.level,
+              )
+            ? "first_secondary"
+            : undefined;
     retrieval = await retrieveGroundedKnowledge(
       [
         requestedContext.subject,
@@ -559,7 +573,13 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
       ]
         .filter(Boolean)
         .join(" "),
-      { nResults: 24 },
+      {
+        nResults: 24,
+        where: {
+          subject: requestedContext.subject,
+          ...(requestedYear ? { curriculum_year: requestedYear } : {}),
+        },
+      },
     );
     const content = await callDeepSeekTextModelWithRetry(
       [
