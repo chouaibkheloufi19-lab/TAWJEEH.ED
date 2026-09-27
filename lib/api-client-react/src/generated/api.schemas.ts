@@ -236,6 +236,336 @@ export interface OrchestratorState {
   notification_message: string;
 }
 
+export type AgentActorKind = typeof AgentActorKind[keyof typeof AgentActorKind];
+
+
+export const AgentActorKind = {
+  student: 'student',
+  agent: 'agent',
+  system: 'system',
+} as const;
+
+export interface AgentActor {
+  kind: AgentActorKind;
+  /** @minLength 1 */
+  id: string;
+  /** @nullable */
+  version?: string | null;
+}
+
+export type AgentEventInputEventType = typeof AgentEventInputEventType[keyof typeof AgentEventInputEventType];
+
+
+export const AgentEventInputEventType = {
+  ONBOARDING_COMPLETED: 'ONBOARDING_COMPLETED',
+  SCHEDULE_INITIALIZED: 'SCHEDULE_INITIALIZED',
+  SESSION_STARTED: 'SESSION_STARTED',
+  SESSION_HEARTBEAT: 'SESSION_HEARTBEAT',
+  MASTERY_EVIDENCE_SUBMITTED: 'MASTERY_EVIDENCE_SUBMITTED',
+  SESSION_COMPLETED: 'SESSION_COMPLETED',
+  SESSION_SKIPPED: 'SESSION_SKIPPED',
+  SESSION_MISSED: 'SESSION_MISSED',
+  SESSION_OUTCOME_RECORDED: 'SESSION_OUTCOME_RECORDED',
+  QUIZ_SUBMITTED: 'QUIZ_SUBMITTED',
+  MISTAKE_RECORDED: 'MISTAKE_RECORDED',
+  DIAGNOSTIC_DAY_COMPLETED: 'DIAGNOSTIC_DAY_COMPLETED',
+  DIAGNOSTIC_PHASE_COMPLETED: 'DIAGNOSTIC_PHASE_COMPLETED',
+  SCHEDULE_SHIFT_REQUESTED: 'SCHEDULE_SHIFT_REQUESTED',
+  PENALTY_APPLIED: 'PENALTY_APPLIED',
+  VOLUME_MULTIPLIER_APPLIED: 'VOLUME_MULTIPLIER_APPLIED',
+  PHASE_CHANGED: 'PHASE_CHANGED',
+  NOTIFICATION_REQUESTED: 'NOTIFICATION_REQUESTED',
+  LEARNER_PAUSED: 'LEARNER_PAUSED',
+  LEARNER_RESUMED: 'LEARNER_RESUMED',
+} as const;
+
+export type AgentEventInputPhase = typeof AgentEventInputPhase[keyof typeof AgentEventInputPhase];
+
+
+export const AgentEventInputPhase = {
+  ONBOARDING: 'ONBOARDING',
+  SCHEDULE_PENDING: 'SCHEDULE_PENDING',
+  DIAGNOSTIC: 'DIAGNOSTIC',
+  TRANSITIONING: 'TRANSITIONING',
+  CORE_LEARNING: 'CORE_LEARNING',
+  EXAM_PREP: 'EXAM_PREP',
+  PAUSED: 'PAUSED',
+} as const;
+
+export type AgentEventInputPayload = { [key: string]: unknown };
+
+export type AgentRoutingTargetAgent = typeof AgentRoutingTargetAgent[keyof typeof AgentRoutingTargetAgent];
+
+
+export const AgentRoutingTargetAgent = {
+  mascot: 'mascot',
+  program: 'program',
+  faheem: 'faheem',
+  daleel: 'daleel',
+  exercises: 'exercises',
+} as const;
+
+export type AgentRoutingPriority = typeof AgentRoutingPriority[keyof typeof AgentRoutingPriority];
+
+
+export const AgentRoutingPriority = {
+  LOW: 'LOW',
+  NORMAL: 'NORMAL',
+  HIGH: 'HIGH',
+} as const;
+
+export interface AgentRouting {
+  target_agent: AgentRoutingTargetAgent;
+  priority: AgentRoutingPriority;
+}
+
+export interface AgentEventInput {
+  /** @minLength 1 */
+  event_id: string;
+  event_type: AgentEventInputEventType;
+  occurred_at: string;
+  actor: AgentActor;
+  /** @nullable */
+  session_id?: string | null;
+  /** @nullable */
+  correlation_id?: string | null;
+  /** @nullable */
+  causation_id?: string | null;
+  /** @minLength 1 */
+  idempotency_key: string;
+  phase: AgentEventInputPhase;
+  payload: AgentEventInputPayload;
+  routing: AgentRouting;
+}
+
+export type AgentDiagnosticStateTotalDays = typeof AgentDiagnosticStateTotalDays[keyof typeof AgentDiagnosticStateTotalDays];
+
+
+export const AgentDiagnosticStateTotalDays = {
+  NUMBER_10: 10,
+} as const;
+
+export type AgentDiagnosticStateStatus = typeof AgentDiagnosticStateStatus[keyof typeof AgentDiagnosticStateStatus];
+
+
+export const AgentDiagnosticStateStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  PAUSED: 'PAUSED',
+} as const;
+
+export interface AgentDiagnosticState {
+  /** @nullable */
+  started_at: string | null;
+  /**
+     * @minimum 1
+     * @maximum 10
+     */
+  diagnostic_day: number;
+  total_days: AgentDiagnosticStateTotalDays;
+  status: AgentDiagnosticStateStatus;
+  faheem_enabled: boolean;
+  mastered_days: number[];
+  pending_days: number[];
+}
+
+export interface AgentLearningState {
+  weekly_exercise_multiplier: number;
+  weekly_multiplier_week: string;
+  current_concept_ids: string[];
+  mastery_threshold: number;
+  daleel_activity_multiplier: number;
+  exercises_intensity_multiplier: number;
+}
+
+export type AgentAvailabilityMascot = typeof AgentAvailabilityMascot[keyof typeof AgentAvailabilityMascot];
+
+
+export const AgentAvailabilityMascot = {
+  ACTIVE: 'ACTIVE',
+  LIMITED: 'LIMITED',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type AgentAvailabilityProgram = typeof AgentAvailabilityProgram[keyof typeof AgentAvailabilityProgram];
+
+
+export const AgentAvailabilityProgram = {
+  ACTIVE: 'ACTIVE',
+  LIMITED: 'LIMITED',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type AgentAvailabilityFaheem = typeof AgentAvailabilityFaheem[keyof typeof AgentAvailabilityFaheem];
+
+
+export const AgentAvailabilityFaheem = {
+  ACTIVE: 'ACTIVE',
+  LIMITED: 'LIMITED',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type AgentAvailabilityDaleel = typeof AgentAvailabilityDaleel[keyof typeof AgentAvailabilityDaleel];
+
+
+export const AgentAvailabilityDaleel = {
+  ACTIVE: 'ACTIVE',
+  LIMITED: 'LIMITED',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export type AgentAvailabilityExercises = typeof AgentAvailabilityExercises[keyof typeof AgentAvailabilityExercises];
+
+
+export const AgentAvailabilityExercises = {
+  ACTIVE: 'ACTIVE',
+  LIMITED: 'LIMITED',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export interface AgentAvailability {
+  mascot: AgentAvailabilityMascot;
+  program: AgentAvailabilityProgram;
+  faheem: AgentAvailabilityFaheem;
+  daleel: AgentAvailabilityDaleel;
+  exercises: AgentAvailabilityExercises;
+}
+
+export type AgentNetworkItemId = typeof AgentNetworkItemId[keyof typeof AgentNetworkItemId];
+
+
+export const AgentNetworkItemId = {
+  mascot: 'mascot',
+  program: 'program',
+  faheem: 'faheem',
+  daleel: 'daleel',
+  exercises: 'exercises',
+} as const;
+
+export type AgentNetworkItemAvailability = typeof AgentNetworkItemAvailability[keyof typeof AgentNetworkItemAvailability];
+
+
+export const AgentNetworkItemAvailability = {
+  ACTIVE: 'ACTIVE',
+  LIMITED: 'LIMITED',
+  INACTIVE: 'INACTIVE',
+} as const;
+
+export interface AgentNetworkItem {
+  id: AgentNetworkItemId;
+  name: string;
+  availability: AgentNetworkItemAvailability;
+  activation: string;
+  responsibilities: string[];
+}
+
+export type OrchestratorScheduleEntryAgent = typeof OrchestratorScheduleEntryAgent[keyof typeof OrchestratorScheduleEntryAgent];
+
+
+export const OrchestratorScheduleEntryAgent = {
+  mascot: 'mascot',
+  program: 'program',
+  faheem: 'faheem',
+  daleel: 'daleel',
+  exercises: 'exercises',
+} as const;
+
+export type OrchestratorScheduleEntryKind = typeof OrchestratorScheduleEntryKind[keyof typeof OrchestratorScheduleEntryKind];
+
+
+export const OrchestratorScheduleEntryKind = {
+  ONBOARDING: 'ONBOARDING',
+  DIAGNOSTIC: 'DIAGNOSTIC',
+  THEORY: 'THEORY',
+  PRACTICE: 'PRACTICE',
+  QUIZ: 'QUIZ',
+  ERROR_STACK: 'ERROR_STACK',
+  REVIEW: 'REVIEW',
+  EXAM: 'EXAM',
+} as const;
+
+export type OrchestratorScheduleEntryMastery = { [key: string]: unknown };
+
+export type OrchestratorScheduleEntryStatus = typeof OrchestratorScheduleEntryStatus[keyof typeof OrchestratorScheduleEntryStatus];
+
+
+export const OrchestratorScheduleEntryStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  MASTERED: 'MASTERED',
+  SKIPPED: 'SKIPPED',
+  MISSED: 'MISSED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+/**
+ * @nullable
+ */
+export type OrchestratorScheduleEntryShift = { [key: string]: unknown } | null;
+
+export type OrchestratorScheduleEntryNotification = { [key: string]: unknown };
+
+export interface OrchestratorScheduleEntry {
+  entry_id: string;
+  schedule_id: string;
+  week_key: string;
+  sequence: number;
+  agent: OrchestratorScheduleEntryAgent;
+  kind: OrchestratorScheduleEntryKind;
+  title: string;
+  subject: string;
+  concept_ids: string[];
+  planned_start: string;
+  /** @nullable */
+  started_at: string | null;
+  /** @nullable */
+  mastered_at: string | null;
+  /** @nullable */
+  ends_at: string | null;
+  mastery: OrchestratorScheduleEntryMastery;
+  status: OrchestratorScheduleEntryStatus;
+  /** @nullable */
+  original_entry_id: string | null;
+  /** @nullable */
+  shift: OrchestratorScheduleEntryShift;
+  volume_multiplier: number;
+  notification: OrchestratorScheduleEntryNotification;
+}
+
+export type AgentOrchestratorStatePhase = typeof AgentOrchestratorStatePhase[keyof typeof AgentOrchestratorStatePhase];
+
+
+export const AgentOrchestratorStatePhase = {
+  ONBOARDING: 'ONBOARDING',
+  SCHEDULE_PENDING: 'SCHEDULE_PENDING',
+  DIAGNOSTIC: 'DIAGNOSTIC',
+  TRANSITIONING: 'TRANSITIONING',
+  CORE_LEARNING: 'CORE_LEARNING',
+  EXAM_PREP: 'EXAM_PREP',
+  PAUSED: 'PAUSED',
+} as const;
+
+export type AgentOrchestratorStateCurriculum = { [key: string]: unknown };
+
+export type AgentOrchestratorStatePreferences = { [key: string]: unknown };
+
+export interface AgentOrchestratorState {
+  user_id: string;
+  phase: AgentOrchestratorStatePhase;
+  timezone: string;
+  locale: string;
+  curriculum: AgentOrchestratorStateCurriculum;
+  diagnostic: AgentDiagnosticState;
+  agent_availability: AgentAvailability;
+  agents: AgentNetworkItem[];
+  learning: AgentLearningState;
+  preferences: AgentOrchestratorStatePreferences;
+  version: number;
+  updated_at: string;
+  entries: OrchestratorScheduleEntry[];
+}
+
 export interface ErrorBankItem {
   id: number;
   lesson_id: string;

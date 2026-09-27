@@ -544,6 +544,174 @@ export const GetOrchestratorStateResponse = zod.object({
 
 
 /**
+ * @summary Get the persisted multi-agent state machine and canonical schedule
+ */
+export const getOrchestratorStateMachineResponseDiagnosticDiagnosticDayMax = 10;
+
+
+
+export const GetOrchestratorStateMachineResponse = zod.object({
+  "user_id": zod.string(),
+  "phase": zod.enum(['ONBOARDING', 'SCHEDULE_PENDING', 'DIAGNOSTIC', 'TRANSITIONING', 'CORE_LEARNING', 'EXAM_PREP', 'PAUSED']),
+  "timezone": zod.string(),
+  "locale": zod.string(),
+  "curriculum": zod.record(zod.string(), zod.unknown()),
+  "diagnostic": zod.object({
+  "started_at": zod.coerce.date().nullable(),
+  "diagnostic_day": zod.int().min(1).max(getOrchestratorStateMachineResponseDiagnosticDiagnosticDayMax),
+  "total_days": zod.literal(10),
+  "status": zod.enum(['ACTIVE', 'COMPLETED', 'PAUSED']),
+  "faheem_enabled": zod.boolean(),
+  "mastered_days": zod.array(zod.int()),
+  "pending_days": zod.array(zod.int())
+}),
+  "agent_availability": zod.object({
+  "mascot": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "program": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "faheem": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "daleel": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "exercises": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE'])
+}),
+  "agents": zod.array(zod.object({
+  "id": zod.enum(['mascot', 'program', 'faheem', 'daleel', 'exercises']),
+  "name": zod.string(),
+  "availability": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "activation": zod.string(),
+  "responsibilities": zod.array(zod.string())
+})),
+  "learning": zod.object({
+  "weekly_exercise_multiplier": zod.number(),
+  "weekly_multiplier_week": zod.string(),
+  "current_concept_ids": zod.array(zod.string()),
+  "mastery_threshold": zod.number(),
+  "daleel_activity_multiplier": zod.number(),
+  "exercises_intensity_multiplier": zod.number()
+}),
+  "preferences": zod.record(zod.string(), zod.unknown()),
+  "version": zod.int(),
+  "updated_at": zod.coerce.date(),
+  "entries": zod.array(zod.object({
+  "entry_id": zod.string(),
+  "schedule_id": zod.string(),
+  "week_key": zod.string(),
+  "sequence": zod.int(),
+  "agent": zod.enum(['mascot', 'program', 'faheem', 'daleel', 'exercises']),
+  "kind": zod.enum(['ONBOARDING', 'DIAGNOSTIC', 'THEORY', 'PRACTICE', 'QUIZ', 'ERROR_STACK', 'REVIEW', 'EXAM']),
+  "title": zod.string(),
+  "subject": zod.string(),
+  "concept_ids": zod.array(zod.string()),
+  "planned_start": zod.coerce.date(),
+  "started_at": zod.coerce.date().nullable(),
+  "mastered_at": zod.coerce.date().nullable(),
+  "ends_at": zod.coerce.date().nullable(),
+  "mastery": zod.record(zod.string(), zod.unknown()),
+  "status": zod.enum(['PENDING', 'ACTIVE', 'PAUSED', 'MASTERED', 'SKIPPED', 'MISSED', 'CANCELLED']),
+  "original_entry_id": zod.string().nullable(),
+  "shift": zod.record(zod.string(), zod.unknown()).nullable(),
+  "volume_multiplier": zod.int(),
+  "notification": zod.record(zod.string(), zod.unknown())
+}))
+})
+
+
+/**
+ * @summary Append an idempotent learning event to the agent gateway
+ */
+
+
+
+
+
+export const PostOrchestratorEventBody = zod.object({
+  "event_id": zod.string().min(1),
+  "event_type": zod.enum(['ONBOARDING_COMPLETED', 'SCHEDULE_INITIALIZED', 'SESSION_STARTED', 'SESSION_HEARTBEAT', 'MASTERY_EVIDENCE_SUBMITTED', 'SESSION_COMPLETED', 'SESSION_SKIPPED', 'SESSION_MISSED', 'SESSION_OUTCOME_RECORDED', 'QUIZ_SUBMITTED', 'MISTAKE_RECORDED', 'DIAGNOSTIC_DAY_COMPLETED', 'DIAGNOSTIC_PHASE_COMPLETED', 'SCHEDULE_SHIFT_REQUESTED', 'PENALTY_APPLIED', 'VOLUME_MULTIPLIER_APPLIED', 'PHASE_CHANGED', 'NOTIFICATION_REQUESTED', 'LEARNER_PAUSED', 'LEARNER_RESUMED']),
+  "occurred_at": zod.coerce.date(),
+  "actor": zod.object({
+  "kind": zod.enum(['student', 'agent', 'system']),
+  "id": zod.string().min(1),
+  "version": zod.string().nullish()
+}),
+  "session_id": zod.string().nullish(),
+  "correlation_id": zod.string().nullish(),
+  "causation_id": zod.string().nullish(),
+  "idempotency_key": zod.string().min(1),
+  "phase": zod.enum(['ONBOARDING', 'SCHEDULE_PENDING', 'DIAGNOSTIC', 'TRANSITIONING', 'CORE_LEARNING', 'EXAM_PREP', 'PAUSED']),
+  "payload": zod.record(zod.string(), zod.unknown()),
+  "routing": zod.object({
+  "target_agent": zod.enum(['mascot', 'program', 'faheem', 'daleel', 'exercises']),
+  "priority": zod.enum(['LOW', 'NORMAL', 'HIGH'])
+})
+})
+
+export const postOrchestratorEventResponseDiagnosticDiagnosticDayMax = 10;
+
+
+
+export const PostOrchestratorEventResponse = zod.object({
+  "user_id": zod.string(),
+  "phase": zod.enum(['ONBOARDING', 'SCHEDULE_PENDING', 'DIAGNOSTIC', 'TRANSITIONING', 'CORE_LEARNING', 'EXAM_PREP', 'PAUSED']),
+  "timezone": zod.string(),
+  "locale": zod.string(),
+  "curriculum": zod.record(zod.string(), zod.unknown()),
+  "diagnostic": zod.object({
+  "started_at": zod.coerce.date().nullable(),
+  "diagnostic_day": zod.int().min(1).max(postOrchestratorEventResponseDiagnosticDiagnosticDayMax),
+  "total_days": zod.literal(10),
+  "status": zod.enum(['ACTIVE', 'COMPLETED', 'PAUSED']),
+  "faheem_enabled": zod.boolean(),
+  "mastered_days": zod.array(zod.int()),
+  "pending_days": zod.array(zod.int())
+}),
+  "agent_availability": zod.object({
+  "mascot": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "program": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "faheem": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "daleel": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "exercises": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE'])
+}),
+  "agents": zod.array(zod.object({
+  "id": zod.enum(['mascot', 'program', 'faheem', 'daleel', 'exercises']),
+  "name": zod.string(),
+  "availability": zod.enum(['ACTIVE', 'LIMITED', 'INACTIVE']),
+  "activation": zod.string(),
+  "responsibilities": zod.array(zod.string())
+})),
+  "learning": zod.object({
+  "weekly_exercise_multiplier": zod.number(),
+  "weekly_multiplier_week": zod.string(),
+  "current_concept_ids": zod.array(zod.string()),
+  "mastery_threshold": zod.number(),
+  "daleel_activity_multiplier": zod.number(),
+  "exercises_intensity_multiplier": zod.number()
+}),
+  "preferences": zod.record(zod.string(), zod.unknown()),
+  "version": zod.int(),
+  "updated_at": zod.coerce.date(),
+  "entries": zod.array(zod.object({
+  "entry_id": zod.string(),
+  "schedule_id": zod.string(),
+  "week_key": zod.string(),
+  "sequence": zod.int(),
+  "agent": zod.enum(['mascot', 'program', 'faheem', 'daleel', 'exercises']),
+  "kind": zod.enum(['ONBOARDING', 'DIAGNOSTIC', 'THEORY', 'PRACTICE', 'QUIZ', 'ERROR_STACK', 'REVIEW', 'EXAM']),
+  "title": zod.string(),
+  "subject": zod.string(),
+  "concept_ids": zod.array(zod.string()),
+  "planned_start": zod.coerce.date(),
+  "started_at": zod.coerce.date().nullable(),
+  "mastered_at": zod.coerce.date().nullable(),
+  "ends_at": zod.coerce.date().nullable(),
+  "mastery": zod.record(zod.string(), zod.unknown()),
+  "status": zod.enum(['PENDING', 'ACTIVE', 'PAUSED', 'MASTERED', 'SKIPPED', 'MISSED', 'CANCELLED']),
+  "original_entry_id": zod.string().nullable(),
+  "shift": zod.record(zod.string(), zod.unknown()).nullable(),
+  "volume_multiplier": zod.int(),
+  "notification": zod.record(zod.string(), zod.unknown())
+}))
+})
+
+
+/**
  * @summary List source-aware learning cards
  */
 export const ListKnowledgeQueryParams = zod.object({

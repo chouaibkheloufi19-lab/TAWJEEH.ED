@@ -20,6 +20,9 @@
 - Replit workflow: `Tawjeeh preview` runs `bash scripts/start-tawjeeh.sh`
 - Vite serves the web app on port `25786` with `BASE_PATH=/`; the launcher supervises the API on `8080` and Knowledge Base on `8001`
 - Required setup: Replit PostgreSQL (`DATABASE_URL` is managed automatically), either `GEMINI_API_KEY` for server-side Gemini text generation or a working Replit-managed xAI connection for Grok text generation, and Replit-managed Clerk Auth
+- The deterministic multi-agent orchestrator persists its phase machine in `learning_state`, append-only gateway events in `agent_events`, canonical sessions in `schedule_entries`, mistakes in `mistakes`, and committed notifications in `notification_outbox`.
+- Orchestrator API: `GET /api/orchestrator/state-machine` returns the complete agent network and schedule; `POST /api/orchestrator/events` accepts the idempotent event contract from `lib/api-spec/openapi.yaml`.
+- Invalid agent transitions return HTTP 409 with the typed `AgentStateTransitionException` code; they are never silently rerouted.
 - Optional env: `KNOWLEDGE_BASE_URL` (defaults to `http://127.0.0.1:8001/knowledge`), `GEMINI_MODEL` (defaults to `gemini-3.6-flash`), `XAI_MODEL` or `GROK_TEXT_MODEL` to pin a text model, and `GROK_VISION_MODEL` for the optional image-analysis path
 - `python main.py index-assets --directory attached_assets --catalog knowledge_base/catalog.json` — inventory and index the educational library
 - Add `--no-ocr` for a fast, safe catalog pass that marks scanned pages for later OCR

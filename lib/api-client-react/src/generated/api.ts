@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AgentEventInput,
+  AgentOrchestratorState,
   AgentReadiness,
   BenchmarkLock,
   DailyPoints,
@@ -1469,6 +1471,154 @@ export function useGetOrchestratorState<TData = Awaited<ReturnType<typeof getOrc
 
 
 
+
+export const getGetOrchestratorStateMachineUrl = () => {
+
+
+
+
+  return `/api/orchestrator/state-machine`
+}
+
+/**
+ * @summary Get the persisted multi-agent state machine and canonical schedule
+ */
+export const getOrchestratorStateMachine = async ( options?: Parameters<typeof customFetch>[1]): Promise<AgentOrchestratorState> => {
+
+  return customFetch<AgentOrchestratorState>(getGetOrchestratorStateMachineUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrchestratorStateMachineQueryKey = () => {
+    return [
+    `/api/orchestrator/state-machine`
+    ] as const;
+    }
+
+
+export const getGetOrchestratorStateMachineQueryOptions = <TData = Awaited<ReturnType<typeof getOrchestratorStateMachine>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOrchestratorStateMachine>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrchestratorStateMachineQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrchestratorStateMachine>>> = ({ signal }) => getOrchestratorStateMachine({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrchestratorStateMachine>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOrchestratorStateMachineQueryResult = NonNullable<Awaited<ReturnType<typeof getOrchestratorStateMachine>>>
+export type GetOrchestratorStateMachineQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the persisted multi-agent state machine and canonical schedule
+ */
+
+export function useGetOrchestratorStateMachine<TData = Awaited<ReturnType<typeof getOrchestratorStateMachine>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOrchestratorStateMachine>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOrchestratorStateMachineQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPostOrchestratorEventUrl = () => {
+
+
+
+
+  return `/api/orchestrator/events`
+}
+
+/**
+ * @summary Append an idempotent learning event to the agent gateway
+ */
+export const postOrchestratorEvent = async (agentEventInput: AgentEventInput, options?: Parameters<typeof customFetch>[1]): Promise<AgentOrchestratorState> => {
+
+  return customFetch<AgentOrchestratorState>(getPostOrchestratorEventUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(agentEventInput)
+  }
+);}
+
+
+
+
+
+export const getPostOrchestratorEventMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postOrchestratorEvent>>, TError,{data: BodyType<AgentEventInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postOrchestratorEvent>>, TError,{data: BodyType<AgentEventInput>}, TContext> => {
+
+const mutationKey = ['postOrchestratorEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postOrchestratorEvent>>, {data: BodyType<AgentEventInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  postOrchestratorEvent(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostOrchestratorEventMutationResult = NonNullable<Awaited<ReturnType<typeof postOrchestratorEvent>>>
+    export type PostOrchestratorEventMutationBody = BodyType<AgentEventInput>
+    export type PostOrchestratorEventMutationError = ErrorType<void>
+
+    /**
+ * @summary Append an idempotent learning event to the agent gateway
+ */
+export const usePostOrchestratorEvent = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postOrchestratorEvent>>, TError,{data: BodyType<AgentEventInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof postOrchestratorEvent>>,
+        TError,
+        {data: BodyType<AgentEventInput>},
+        TContext
+      > => {
+      return useMutation(getPostOrchestratorEventMutationOptions(options));
+    }
 
 export const getListKnowledgeUrl = (params?: ListKnowledgeParams,) => {
   const normalizedParams = new URLSearchParams();

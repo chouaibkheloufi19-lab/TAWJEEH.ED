@@ -16,6 +16,8 @@ tags:
     description: Source-aware learning content search
   - name: quizzes
     description: Practice quizzes and attempts
+  - name: orchestrator
+    description: Deterministic multi-agent learning orchestration
 paths:
   /healthz:
     get:
@@ -314,6 +316,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OrchestratorState"
+  /orchestrator/state-machine:
+    get:
+      operationId: getOrchestratorStateMachine
+      tags: [orchestrator]
+      summary: Get the persisted multi-agent state machine and canonical schedule
+      responses:
+        "200":
+          description: Persisted orchestration state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentOrchestratorState"
+  /orchestrator/events:
+    post:
+      operationId: postOrchestratorEvent
+      tags: [orchestrator]
+      summary: Append an idempotent learning event to the agent gateway
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentEventInput"
+      responses:
+        "200":
+          description: State after the event was applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentOrchestratorState"
+        "400":
+          description: Invalid event payload
+        "409":
+          description: Invalid state or agent transition
   /knowledge:
     get:
       operationId: listKnowledge
@@ -810,6 +846,254 @@ components:
           type: number
         notification_message:
           type: string
+    AgentActor:
+      type: object
+      required: [kind, id]
+      properties:
+        kind:
+          type: string
+          enum: [student, agent, system]
+        id:
+          type: string
+          minLength: 1
+        version:
+          type: ["string", "null"]
+    AgentEventInput:
+      type: object
+      required: [event_id, event_type, occurred_at, actor, idempotency_key, phase, payload, routing]
+      properties:
+        event_id:
+          type: string
+          minLength: 1
+        event_type:
+          type: string
+          enum:
+            - ONBOARDING_COMPLETED
+            - SCHEDULE_INITIALIZED
+            - SESSION_STARTED
+            - SESSION_HEARTBEAT
+            - MASTERY_EVIDENCE_SUBMITTED
+            - SESSION_COMPLETED
+            - SESSION_SKIPPED
+            - SESSION_MISSED
+            - SESSION_OUTCOME_RECORDED
+            - QUIZ_SUBMITTED
+            - MISTAKE_RECORDED
+            - DIAGNOSTIC_DAY_COMPLETED
+            - DIAGNOSTIC_PHASE_COMPLETED
+            - SCHEDULE_SHIFT_REQUESTED
+            - PENALTY_APPLIED
+            - VOLUME_MULTIPLIER_APPLIED
+            - PHASE_CHANGED
+            - NOTIFICATION_REQUESTED
+            - LEARNER_PAUSED
+            - LEARNER_RESUMED
+        occurred_at:
+          type: string
+          format: date-time
+        actor:
+          $ref: "#/components/schemas/AgentActor"
+        session_id:
+          type: ["string", "null"]
+        correlation_id:
+          type: ["string", "null"]
+        causation_id:
+          type: ["string", "null"]
+        idempotency_key:
+          type: string
+          minLength: 1
+        phase:
+          type: string
+          enum: [ONBOARDING, SCHEDULE_PENDING, DIAGNOSTIC, TRANSITIONING, CORE_LEARNING, EXAM_PREP, PAUSED]
+        payload:
+          type: object
+          additionalProperties: true
+        routing:
+          $ref: "#/components/schemas/AgentRouting"
+    AgentRouting:
+      type: object
+      required: [target_agent, priority]
+      properties:
+        target_agent:
+          type: string
+          enum: [mascot, program, faheem, daleel, exercises]
+        priority:
+          type: string
+          enum: [LOW, NORMAL, HIGH]
+    AgentDiagnosticState:
+      type: object
+      required: [started_at, diagnostic_day, total_days, status, faheem_enabled, mastered_days, pending_days]
+      properties:
+        started_at:
+          type: ["string", "null"]
+          format: date-time
+        diagnostic_day:
+          type: integer
+          minimum: 1
+          maximum: 10
+        total_days:
+          type: integer
+          enum: [10]
+        status:
+          type: string
+          enum: [ACTIVE, COMPLETED, PAUSED]
+        faheem_enabled:
+          type: boolean
+        mastered_days:
+          type: array
+          items:
+            type: integer
+        pending_days:
+          type: array
+          items:
+            type: integer
+    AgentLearningState:
+      type: object
+      required: [weekly_exercise_multiplier, weekly_multiplier_week, current_concept_ids, mastery_threshold, daleel_activity_multiplier, exercises_intensity_multiplier]
+      properties:
+        weekly_exercise_multiplier:
+          type: number
+        weekly_multiplier_week:
+          type: string
+        current_concept_ids:
+          type: array
+          items:
+            type: string
+        mastery_threshold:
+          type: number
+        daleel_activity_multiplier:
+          type: number
+        exercises_intensity_multiplier:
+          type: number
+    AgentAvailability:
+      type: object
+      required: [mascot, program, faheem, daleel, exercises]
+      properties:
+        mascot:
+          type: string
+          enum: [ACTIVE, LIMITED, INACTIVE]
+        program:
+          type: string
+          enum: [ACTIVE, LIMITED, INACTIVE]
+        faheem:
+          type: string
+          enum: [ACTIVE, LIMITED, INACTIVE]
+        daleel:
+          type: string
+          enum: [ACTIVE, LIMITED, INACTIVE]
+        exercises:
+          type: string
+          enum: [ACTIVE, LIMITED, INACTIVE]
+    AgentNetworkItem:
+      type: object
+      required: [id, name, availability, activation, responsibilities]
+      properties:
+        id:
+          type: string
+          enum: [mascot, program, faheem, daleel, exercises]
+        name:
+          type: string
+        availability:
+          type: string
+          enum: [ACTIVE, LIMITED, INACTIVE]
+        activation:
+          type: string
+        responsibilities:
+          type: array
+          items:
+            type: string
+    OrchestratorScheduleEntry:
+      type: object
+      required: [entry_id, schedule_id, week_key, sequence, agent, kind, title, subject, concept_ids, planned_start, started_at, mastered_at, ends_at, mastery, status, original_entry_id, shift, volume_multiplier, notification]
+      properties:
+        entry_id:
+          type: string
+        schedule_id:
+          type: string
+        week_key:
+          type: string
+        sequence:
+          type: integer
+        agent:
+          type: string
+          enum: [mascot, program, faheem, daleel, exercises]
+        kind:
+          type: string
+          enum: [ONBOARDING, DIAGNOSTIC, THEORY, PRACTICE, QUIZ, ERROR_STACK, REVIEW, EXAM]
+        title:
+          type: string
+        subject:
+          type: string
+        concept_ids:
+          type: array
+          items:
+            type: string
+        planned_start:
+          type: string
+          format: date-time
+        started_at:
+          type: ["string", "null"]
+          format: date-time
+        mastered_at:
+          type: ["string", "null"]
+          format: date-time
+        ends_at:
+          type: ["string", "null"]
+          format: date-time
+        mastery:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [PENDING, ACTIVE, PAUSED, MASTERED, SKIPPED, MISSED, CANCELLED]
+        original_entry_id:
+          type: ["string", "null"]
+        shift:
+          type: ["object", "null"]
+          additionalProperties: true
+        volume_multiplier:
+          type: integer
+        notification:
+          type: object
+          additionalProperties: true
+    AgentOrchestratorState:
+      type: object
+      required: [user_id, phase, timezone, locale, curriculum, diagnostic, agent_availability, agents, learning, preferences, version, updated_at, entries]
+      properties:
+        user_id:
+          type: string
+        phase:
+          type: string
+          enum: [ONBOARDING, SCHEDULE_PENDING, DIAGNOSTIC, TRANSITIONING, CORE_LEARNING, EXAM_PREP, PAUSED]
+        timezone:
+          type: string
+        locale:
+          type: string
+        curriculum:
+          type: object
+          additionalProperties: true
+        diagnostic:
+          $ref: "#/components/schemas/AgentDiagnosticState"
+        agent_availability:
+          $ref: "#/components/schemas/AgentAvailability"
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentNetworkItem"
+        learning:
+          $ref: "#/components/schemas/AgentLearningState"
+        preferences:
+          type: object
+          additionalProperties: true
+        version:
+          type: integer
+        updated_at:
+          type: string
+          format: date-time
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrchestratorScheduleEntry"
     ErrorBankItem:
       type: object
       required: [id, lesson_id, lesson_title, concept_id, concept_title, error_tag, attempts_count, errors_count, error_percentage, deep_link, summary_id, created_at]
