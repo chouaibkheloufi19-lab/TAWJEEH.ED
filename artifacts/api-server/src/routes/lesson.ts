@@ -124,7 +124,10 @@ type StudentPaper = {
   title: string;
   prompt: string;
   difficulty: typeof REVIEW_PAPER_DIFFICULTY;
-  format: "comprehensive_function" | "comprehensive_science" | "source_topic";
+  format:
+    | "comprehensive_function"
+    | "comprehensive_science"
+    | "source_topic";
   totalPoints: number;
   sections: Array<{
     id: string;

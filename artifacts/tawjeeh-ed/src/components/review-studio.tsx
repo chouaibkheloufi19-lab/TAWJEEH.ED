@@ -52,7 +52,7 @@ export type ComprehensivePaper = {
   title: string;
   prompt: string;
   difficulty: 'advanced';
-  format: 'comprehensive_function' | 'comprehensive_science';
+  format: 'comprehensive_function' | 'comprehensive_science' | 'source_topic';
   totalPoints: number;
   sections: ExerciseSection[];
 };
@@ -109,10 +109,12 @@ function isComprehensivePaper(value: unknown): value is ComprehensivePaper {
     && typeof paper.title === 'string'
     && typeof paper.prompt === 'string'
     && paper.difficulty === 'advanced'
-    && (paper.format === 'comprehensive_function' || paper.format === 'comprehensive_science')
+    && (paper.format === 'comprehensive_function'
+      || paper.format === 'comprehensive_science'
+      || paper.format === 'source_topic')
     && typeof paper.totalPoints === 'number'
     && Array.isArray(paper.sections)
-    && paper.sections.length >= 5
+    && paper.sections.length >= (paper.format === 'source_topic' ? 2 : 5)
     && paper.sections.every((section) => (
       Boolean(section)
       && typeof section.id === 'string'
@@ -513,7 +515,7 @@ export function ReviewStudio() {
                 {paper && paperState === 'ready' && (
                   <div className="review-studio-paper" data-testid="review-studio-paper-result">
                     <div className="review-studio-paper-intro">
-                      <div><span className="review-studio-paper-eyebrow">ورقة {paper.format === 'comprehensive_function' ? 'دوال' : 'تطبيقية'} · محاولة مؤقتة</span><span className="review-studio-paper-difficulty">المستوى: متقدم</span><h3><MathText>{paper.title}</MathText></h3></div>
+                      <div><span className="review-studio-paper-eyebrow">ورقة {paper.format === 'comprehensive_function' ? 'دوال' : paper.format === 'source_topic' ? 'موثقة من المصدر' : 'تطبيقية'} · محاولة مؤقتة</span><span className="review-studio-paper-difficulty">المستوى: متقدم</span><h3><MathText>{paper.title}</MathText></h3></div>
                       <div className="review-studio-paper-score"><strong>{paper.totalPoints}</strong><span>نقطة</span></div>
                     </div>
                     <p className="review-studio-paper-prompt"><MathText>{paper.prompt}</MathText></p>
