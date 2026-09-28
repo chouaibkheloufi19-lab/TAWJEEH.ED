@@ -47,6 +47,11 @@ import {
   FUNCTION_REQUEST_PATTERN,
   type ExerciseIntent,
 } from "../lib/exercise-intent";
+import {
+  isAcademicScopeError,
+  resolveAcademicScope,
+  scopeWhere,
+} from "../lib/subject-scope";
 
 const router: IRouter = Router();
 
@@ -1241,29 +1246,24 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
   }
   let retrieval: RetrievalContext | undefined;
   try {
+    const scope = resolveAcademicScope({
+      subject,
+      curriculumYear,
+      inferenceText: [lesson, activeConcept, attemptContext],
+    });
     retrieval = await retrieveGroundedKnowledge(
       [lesson, activeConcept, attemptContext]
         .filter((value): value is string => Boolean(value))
         .join(" "),
       {
-        where:
-          typeof subject === "string" || typeof curriculumYear === "string"
-            ? {
-                ...(typeof subject === "string" && subject
-                  ? { subject }
-                  : {}),
-                ...(typeof curriculumYear === "string" && curriculumYear
-                  ? { curriculum_year: curriculumYear }
-                  : {}),
-              }
-            : undefined,
+        scope,
       },
     );
     const generated = await generateLesson(
       lesson,
       typeof level === "string" ? level : "",
-      typeof subject === "string" ? subject : "",
-      typeof curriculumYear === "string" ? curriculumYear : "",
+      scope.subject,
+      scope.curriculumYear ?? "",
       typeof activeConcept === "string" ? activeConcept : "",
       typeof attemptContext === "string" ? attemptContext : "",
       retrieval,
@@ -1272,6 +1272,13 @@ router.post("/lesson/generate", async (req, res): Promise<void> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Lesson generation failed");
+    if (isAcademicScopeError(error)) {
+      res.status(400).json({
+        error: "academic_scope_requires_subject",
+        message: "حدّد المادة قبل التوليد حتى لا تختلط مصادر مادة أخرى.",
+      });
+      return;
+    }
     const message = errorMessage.includes("XAI_CONNECTION_NOT_CONFIGURED")
       ? "تعذر تشغيل المساعدة الذكية لأن اتصال مزود الذكاء الاصطناعي غير مهيأ. يمكنك متابعة الدرس من المصادر المتاحة، ثم إعادة المحاولة بعد تهيئة الاتصال."
       : errorMessage.includes("GEMINI_CONNECTION_NOT_CONFIGURED") ||
@@ -1332,6 +1339,11 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
   );
   const isPaperRequest = exerciseIntent === "multi_topic";
   try {
+    const scope = resolveAcademicScope({
+      subject,
+      curriculumYear,
+      inferenceText: [lesson, activeConcept, studentRequest, attemptContext],
+    });
     const userId = getUserId(req);
     if (!userId) {
       res.status(401).json({ error: "Unauthorized" });
@@ -1364,29 +1376,19 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     ]
       .filter((value): value is string => Boolean(value))
       .join(" ");
-    const retrievalWhere =
-      typeof subject === "string" || typeof curriculumYear === "string"
-        ? {
-            ...(typeof subject === "string" && subject
-              ? { subject }
-              : {}),
-            ...(typeof curriculumYear === "string" && curriculumYear
-              ? { curriculum_year: curriculumYear }
-              : {}),
-          }
-        : undefined;
+    const retrievalWhere = scopeWhere(scope);
     retrieval = isPaperRequest
       ? await retrievePaperKnowledge(retrievalQuery, retrievalWhere)
       : await retrieveGroundedKnowledge(retrievalQuery, {
           nResults: mode === "creative_topic" ? 24 : 8,
-          where: retrievalWhere,
+          scope,
         });
     if (mode === "creative_topic") {
       const generatedTopics = await generateCreativeExerciseTopics(
         lesson,
         typeof level === "string" ? level : "",
-        typeof subject === "string" ? subject : "",
-        typeof curriculumYear === "string" ? curriculumYear : "",
+        scope.subject,
+        scope.curriculumYear ?? "",
         typeof activeConcept === "string" ? activeConcept : "",
         [
           typeof attemptContext === "string" ? attemptContext : "",
@@ -1402,8 +1404,8 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
     const generated = await generateExercise(
       lesson,
       typeof level === "string" ? level : "",
-      typeof subject === "string" ? subject : "",
-      typeof curriculumYear === "string" ? curriculumYear : "",
+      scope.subject,
+      scope.curriculumYear ?? "",
       typeof activeConcept === "string" ? activeConcept : "",
       [
         typeof attemptContext === "string" ? attemptContext : "",
@@ -1436,6 +1438,13 @@ router.post("/lesson/exercise", async (req, res): Promise<void> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Exercise generation failed");
+    if (isAcademicScopeError(error)) {
+      res.status(400).json({
+        error: "academic_scope_requires_subject",
+        message: "حدّد المادة قبل توليد التمرين حتى لا تختلط مصادر مادة أخرى.",
+      });
+      return;
+    }
     if (
       mode === "creative_topic" &&
       error instanceof DeepSeekProviderError &&

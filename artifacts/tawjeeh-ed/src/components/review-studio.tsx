@@ -76,6 +76,11 @@ const levels = [
   { value: 'التعليم الجامعي التمهيدي', label: 'الجامعي التمهيدي' },
 ] as const;
 
+const subjects = [
+  { value: 'الرياضيات', label: 'الرياضيات' },
+  { value: 'العلوم الفيزيائية', label: 'العلوم الفيزيائية' },
+] as const;
+
 function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.name === 'AbortError') {
     return 'استغرق الطلب وقتًا أطول من المتوقع. تحقّق من الاتصال ثم أعد المحاولة.';
@@ -146,6 +151,7 @@ function isComprehensivePaper(value: unknown): value is ComprehensivePaper {
 export function ReviewStudio() {
   const [lessonTitle, setLessonTitle] = useState('');
   const [content, setContent] = useState('');
+  const [subject, setSubject] = useState('');
   const [level, setLevel] = useState('التعليم الثانوي');
   const [explanation, setExplanation] = useState<ExplanationResult | null>(null);
   const [paper, setPaper] = useState<ComprehensivePaper | null>(null);
@@ -174,8 +180,8 @@ export function ReviewStudio() {
   );
 
   const validate = useCallback(() => {
-    if (!lessonTitle.trim() || !content.trim()) {
-      setFormError('أدخل عنوان الدرس ومحتواه أولًا.');
+    if (!lessonTitle.trim() || !content.trim() || !subject.trim()) {
+      setFormError('أدخل المادة وعنوان الدرس ومحتواه أولًا حتى لا تختلط مصادر مادة أخرى.');
       return false;
     }
     setFormError('');
@@ -224,6 +230,7 @@ export function ReviewStudio() {
       const result = await postJson<unknown>('/api/lesson/exercise', {
         lesson: lessonTitle.trim(),
         level,
+        subject,
         activeConcept: lessonTitle.trim(),
         attemptContext: content.trim().slice(0, 4000),
         mode: 'paper',
@@ -385,6 +392,7 @@ export function ReviewStudio() {
   const resetStudio = () => {
     setLessonTitle('');
     setContent('');
+    setSubject('');
     setLevel('التعليم الثانوي');
     setExplanation(null);
     setPaper(null);
@@ -451,6 +459,20 @@ export function ReviewStudio() {
                 <span>{formError}</span>
               </div>
             )}
+
+            <div className="review-studio-field">
+              <label htmlFor="review-studio-subject">المادة</label>
+              <select
+                id="review-studio-subject"
+                data-testid="review-studio-subject"
+                value={subject}
+                onChange={(event) => { setSubject(event.target.value); setFormError(''); }}
+              >
+                <option value="">اختر المادة</option>
+                {subjects.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select>
+              <span className="review-studio-helper">لن تُستخدم مصادر مادة أخرى في بناء الورقة.</span>
+            </div>
 
             <div className="review-studio-field">
               <label htmlFor="review-studio-title">عنوان الدرس أو الوحدة</label>

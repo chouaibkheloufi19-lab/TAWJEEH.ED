@@ -24,6 +24,12 @@ export type RetrievalContext = {
   };
 };
 
+import {
+  documentMatchesScope,
+  scopeWhere,
+  type AcademicScope,
+} from "./subject-scope";
+
 export type AgentReadiness = {
   status: "ready";
   retrieval: RetrievalContext["grounding"];
@@ -146,6 +152,7 @@ export async function retrieveGroundedKnowledge(
   options: {
     nResults?: number;
     where?: Record<string, string | number>;
+    scope?: AcademicScope;
   } = {},
 ): Promise<RetrievalContext> {
   const cleanQuery = query.trim();
@@ -153,6 +160,7 @@ export async function retrieveGroundedKnowledge(
     throw new KnowledgeGroundingError("Knowledge retrieval requires a meaningful query");
   }
 
+  const where = options.scope ? scopeWhere(options.scope) : options.where;
   const payload = await knowledgeFetch<{
     query?: string;
     results?: KnowledgeDocument[];
@@ -161,10 +169,14 @@ export async function retrieveGroundedKnowledge(
     body: JSON.stringify({
       query: cleanQuery,
       n_results: options.nResults ?? 8,
-      where: options.where,
+      where,
     }),
   });
-  const documents = (payload.results ?? []).filter(isGroundedDocument);
+  const documents = (payload.results ?? [])
+    .filter(isGroundedDocument)
+    .filter((document) =>
+      options.scope ? documentMatchesScope(document.metadata, options.scope) : true,
+    );
   if (!documents.length) {
     throw new KnowledgeGroundingError(
       "The knowledge base returned no indexed source nodes for this request",

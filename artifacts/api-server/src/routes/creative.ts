@@ -22,6 +22,10 @@ import {
   DeepSeekProviderError,
   shouldUseGroundedProviderFallback,
 } from "../lib/ai-provider";
+import {
+  isAcademicScopeError,
+  resolveAcademicScope,
+} from "../lib/subject-scope";
 
 const router: IRouter = Router();
 
@@ -429,7 +433,7 @@ function extractCreativeIdeas(text: string, retrieval: RetrievalContext) {
 }
 
 router.post("/creative/ideas", async (req, res): Promise<void> => {
-  const { lesson, level, activeConcept, question, context, curriculumContext } =
+  const { lesson, level, subject, curriculum_year: curriculumYear, activeConcept, question, context, curriculumContext } =
     req.body as Record<string, unknown>;
   if (
     typeof lesson !== "string" ||
@@ -437,6 +441,8 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
     typeof question !== "string" ||
     !question.trim() ||
     (level !== undefined && typeof level !== "string") ||
+    (subject !== undefined && typeof subject !== "string") ||
+    (curriculumYear !== undefined && typeof curriculumYear !== "string") ||
     (activeConcept !== undefined && typeof activeConcept !== "string") ||
     (context !== undefined && typeof context !== "string") ||
     (curriculumContext !== undefined && typeof curriculumContext !== "string")
@@ -446,6 +452,11 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
   }
 
   try {
+    const scope = resolveAcademicScope({
+      subject,
+      curriculumYear,
+      inferenceText: [lesson, activeConcept, question, context, curriculumContext],
+    });
     const retrieval = await retrieveGroundedKnowledge(
       [
         lesson,
@@ -457,7 +468,7 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
       ]
         .filter((value): value is string => Boolean(value?.trim()))
         .join(" "),
-      { nResults: 50 },
+      { nResults: 50, scope },
     );
     const content = await callDeepSeekTextModelWithRetry(
       [
@@ -476,6 +487,8 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
           content: [
             `عنوان الدرس: ${lesson}`,
             `مستوى الطالب: ${typeof level === "string" && level ? level : "3AS"}`,
+            `المادة المسموح بها فقط: ${scope.subject}`,
+            `السنة الدراسية المسموح بها فقط: ${scope.curriculumYear || "غير محددة"}`,
             `المفهوم الحالي: ${typeof activeConcept === "string" && activeConcept ? activeConcept : "المفهوم الحالي"}`,
             `طلب الطالب: ${question}`,
             `السياق المتاح: ${typeof context === "string" && context ? context : "لا يوجد سياق إضافي"}`,
@@ -497,6 +510,13 @@ router.post("/creative/ideas", async (req, res): Promise<void> => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Creative ideas generation failed");
+    if (isAcademicScopeError(error)) {
+      res.status(400).json({
+        error: "academic_scope_requires_subject",
+        message: "حدّد المادة قبل توليد الموضوعات حتى لا تختلط مصادر مادة أخرى.",
+      });
+      return;
+    }
     res.status(error instanceof KnowledgeGroundingError ? 424 : 502).json({
       error:
         error instanceof KnowledgeGroundingError
@@ -549,20 +569,11 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
     );
   let retrieval: RetrievalContext | undefined;
   try {
-    const requestedYear =
-      /(?:^|\D)3AS(?:$|\D)|الثالث(?:ة)?\s+ثانوي|بكالوريا/i.test(
-        requestedContext.level,
-      )
-        ? "third_secondary"
-        : /(?:^|\D)2AS(?:$|\D)|الثاني(?:ة)?\s+ثانوي/i.test(
-              requestedContext.level,
-            )
-          ? "second_secondary"
-          : /(?:^|\D)1AS(?:$|\D)|الأول(?:ى)?\s+ثانوي/i.test(
-                requestedContext.level,
-              )
-            ? "first_secondary"
-            : undefined;
+    const scope = resolveAcademicScope({
+      subject: requestedContext.subject,
+      curriculumYear: requestedContext.level,
+      inferenceText: [request],
+    });
     retrieval = await retrieveGroundedKnowledge(
       [
         requestedContext.subject,
@@ -575,10 +586,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         .join(" "),
       {
         nResults: 24,
-        where: {
-          subject: requestedContext.subject,
-          ...(requestedYear ? { curriculum_year: requestedYear } : {}),
-        },
+        scope,
       },
     );
     const content = await callDeepSeekTextModelWithRetry(
