@@ -6308,6 +6308,76 @@ button { cursor: pointer; }
 .lesson-agent-option.is-exercises .lesson-agent-option-icon {
   background: #f8e9bf;
 }
+.lesson-exercise-mode-picker {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px 11px;
+  border-bottom: 1px solid #eadfbe;
+  background: linear-gradient(100deg, #fffaf0, #fffdf7);
+}
+.lesson-exercise-mode-copy {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.lesson-exercise-mode-copy strong {
+  color: #80601d;
+  font-size: 10px;
+  font-weight: 900;
+}
+.lesson-exercise-mode-copy small {
+  color: var(--lesson-muted);
+  font-size: 8px;
+  font-weight: 700;
+}
+.lesson-exercise-mode-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.lesson-exercise-mode-option {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  min-height: 48px;
+  padding: 7px 8px;
+  border: 1px solid #e4d8b9;
+  border-radius: 10px;
+  color: #80601d;
+  text-align: right;
+  background: rgba(255, 255, 255, .72);
+  transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.lesson-exercise-mode-option:hover {
+  border-color: #c9a75a;
+  transform: translateY(-1px);
+}
+.lesson-exercise-mode-option:focus-visible {
+  outline: 3px solid rgba(185, 138, 44, .2);
+  outline-offset: 2px;
+}
+.lesson-exercise-mode-option.is-selected {
+  border-color: var(--lesson-gold);
+  background: #fff0c9;
+  box-shadow: 0 5px 12px rgba(185, 138, 44, .12);
+}
+.lesson-exercise-mode-option span {
+  overflow: hidden;
+  color: var(--lesson-navy);
+  font-size: 9px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson-exercise-mode-option small {
+  overflow: hidden;
+  color: var(--lesson-muted);
+  font-size: 7px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .lesson-conversation-panel .lesson-messages {
   min-height: 300px;
   max-height: 520px;

@@ -78,6 +78,7 @@ type LessonSectionId = 'definition' | 'worked-example' | 'graph' | 'practice' | 
 type BoardMode = 'pen' | 'highlight' | 'select';
 type Point = { x: number; y: number };
 type ActivePartner = 'dalil' | 'exercises';
+type ExerciseGenerationMode = 'standard' | 'creative_topic' | 'paper';
 type SpeechRecognitionEventLike = {
   results: ArrayLike<ArrayLike<{ transcript: string }>>;
 };
@@ -672,6 +673,7 @@ export function LessonWorkspace() {
   const [isLessonRailCollapsed, setIsLessonRailCollapsed] = useState(false);
   const [roadmapSync, setRoadmapSync] = useState<LessonBoardSync | null>(null);
   const [activePartner, setActivePartner] = useState<ActivePartner>('dalil');
+  const [exerciseGenerationMode, setExerciseGenerationMode] = useState<ExerciseGenerationMode>('standard');
   const [exerciseAttemptImage, setExerciseAttemptImage] = useState<string | null>(null);
   const [exerciseAttemptName, setExerciseAttemptName] = useState('');
   const [exerciseAttemptState, setExerciseAttemptState] = useState<'idle' | 'analyzing' | 'ready' | 'error'>('idle');
@@ -1693,14 +1695,8 @@ export function LessonWorkspace() {
         : `مرجع الدرس الحالي: ${sourceExcerpt}`;
       let reply = 'سأثبت الفكرة أولًا، ثم أبني لك تطبيقًا مناسبًا لها.';
       if (activePartner === 'exercises') {
-        const rejectsWorksheetIntent =
-          /(?:ليس|ليست|لا|ما|مو|مش|بدون|دون|بدل|غير)\s*(?:أن\s*)?(?:أريد\s*)?(?:ورقة|اختبار|امتحان)/i.test(cleanText);
-        const wantsComprehensiveWorksheet =
-          !rejectsWorksheetIntent &&
-          /(?:أعطني|اعطني|أريد|اريد|أنشئ|انشئ|ولّد|ولد|حضّر|حضر|جهّز|جهز|ابنِ|ابني)\s*(?:لي\s*)?(?:ورقة|اختبار|امتحان)|(?:ورقة|اختبار|امتحان)\s*(?:كاملة|شاملة|رسمية|تدريبية|بكالوريا)|موضوع\s*(?:بكالوريا|اختبار|امتحان|متعدد\s*التمارين)|(?:عدة|مجموعة|متعدد(?:ة)?|متنوع(?:ة)?|مختلف(?:ة)?|أكثر\s+من)\s+(?:تمارين|موضوعات|مواضيع)|تمارين\s+(?:متعددة|متنوعة|مترابطة|عدة)|(?:full|multiple|several)\s+(?:exercises?|practice\s+paper|exam)/i.test(cleanText);
-        const wantsCreativeTopics =
-          !wantsComprehensiveWorksheet &&
-          /موضوعات|مواضيع|موضوع\s+(?:إبداعي|تطبيقي)|إبداع|فكرة|مسار|تطبيقات مختلفة|زاوية/.test(cleanText);
+        const wantsCreativeTopics = exerciseGenerationMode === 'creative_topic';
+        const wantsComprehensiveWorksheet = exerciseGenerationMode === 'paper';
         const response = await fetchWithTimeout('/api/lesson/exercise', {
           method: 'POST',
           credentials: 'include',
@@ -1725,7 +1721,7 @@ export function LessonWorkspace() {
             throw new Error(payload.message || 'تعذر توليد الحل والموضوعات الإبداعية');
           }
           setCreativeIdeas(payload as CreativeIdeasResponse);
-           reply = `بدأت بالحل، ثم جهزت لك ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة. اختر واحدًا وابدأ من خطواته.`;
+            reply = `بدأت بالحل، ثم جهزت لك ${(payload as CreativeIdeasResponse).ideas.length} موضوعات مختلفة من النوع الذي حددته. اختر واحدًا وابدأ من خطواته.`;
         } else {
           const payload = await response.json() as Partial<GeneratedExercise> & { message?: string };
         if (!response.ok || payload.status !== 'generated' || !payload.prompt) {
@@ -1739,9 +1735,9 @@ export function LessonWorkspace() {
           setAnalysis(null);
           setExerciseAttemptStartedAt(Date.now());
           setExerciseAttemptElapsed(0);
-           reply = (payload as GeneratedExercise).fallback
-             ? `جهزت لك ورقة تدريب بعنوان «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`
-             : `جهزت لك تدريبًا على «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
+            reply = (payload as GeneratedExercise).fallback
+              ? `جهزت لك ${wantsComprehensiveWorksheet ? 'ورقة شاملة' : 'تمرينًا مباشرًا'} بعنوان «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`
+              : `جهزت لك ${wantsComprehensiveWorksheet ? 'ورقة شاملة' : 'تدريبًا مباشرًا'} بعنوان «${(payload as GeneratedExercise).title}». ابدأ بكتابة المعطيات والخطوة الأولى.`;
        }
       }
       setMessages((current) => [...current, {
@@ -2432,6 +2428,36 @@ export function LessonWorkspace() {
                })}
              </div>
            )}
+            {handoffComplete && activePartner === 'exercises' && (
+              <div className="lesson-exercise-mode-picker" role="group" aria-labelledby="lesson-exercise-mode-title">
+                <div className="lesson-exercise-mode-copy">
+                  <strong id="lesson-exercise-mode-title">أنت تحدد نوع الموضوع</strong>
+                  <small>اختر النوع أولًا، ثم اكتب المحور أو المطلوب في الرسالة.</small>
+                </div>
+                <div className="lesson-exercise-mode-options">
+                  {([
+                    { value: 'standard', label: 'تمرين مباشر', detail: 'سؤال واحد قابل للحل' },
+                    { value: 'creative_topic', label: 'موضوعات إبداعية', detail: 'عدة أفكار تطبيقية' },
+                    { value: 'paper', label: 'ورقة شاملة', detail: 'موضوع اختبار متعدد الأقسام' },
+                  ] as const).map((option) => {
+                    const selected = exerciseGenerationMode === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`lesson-exercise-mode-option ${selected ? 'is-selected' : ''}`}
+                        aria-pressed={selected}
+                        onClick={() => setExerciseGenerationMode(option.value)}
+                        data-testid={`button-exercise-mode-${option.value}`}
+                      >
+                        <span>{option.label}</span>
+                        <small>{option.detail}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
            <div className="lesson-messages" aria-live="polite" data-testid="region-fahim-messages">
              {messages.map((message) => (
               <article key={message.id} className={`lesson-message ${message.role === 'assistant' ? 'is-assistant' : 'is-user'}`} data-testid={`message-lesson-${message.id}`}>
