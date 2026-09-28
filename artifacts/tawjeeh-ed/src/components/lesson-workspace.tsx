@@ -773,6 +773,9 @@ export function LessonWorkspace() {
   const handoffComplete = (phase4Active || agentsAvailable) && ragReady;
   const faheemActive = !phase4Active && session.activeAgent === 'faheem';
   const lessonToolsActive = ragReady;
+  const exercisePartnerActive = ragReady && activePartner === 'exercises';
+  const partnerConversationActive = handoffComplete || exercisePartnerActive;
+  const showPartnerUi = handoffComplete || exercisePartnerActive;
   const activePartnerDetails = useMemo(() => {
     const details = partnerDetails[activePartner];
     if (activePartner === 'dalil' && examMode?.reduce_passive_explanation) {
@@ -1546,7 +1549,7 @@ export function LessonWorkspace() {
   };
 
   const switchPartner = (partner: ActivePartner) => {
-    if (!handoffComplete || partner === activePartner) return;
+    if (!ragReady || partner === activePartner) return;
     setActivePartner(partner);
     setQuestion('');
     setMessages((current) => [...current, {
@@ -1657,7 +1660,7 @@ export function LessonWorkspace() {
 
   const askPartner = async (text: string, selection: WhiteboardSelection | null = boardSelection) => {
     if (chatCircuitOpen) return;
-    if (!handoffComplete) {
+    if (!handoffComplete && activePartner !== 'exercises') {
       await askFahim(text);
       return;
     }
@@ -1754,7 +1757,7 @@ export function LessonWorkspace() {
 
   const handleQuestionSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void (handoffComplete ? askPartner(question) : askFahim(question));
+    void (partnerConversationActive ? askPartner(question) : askFahim(question));
   };
 
   const analyzeAttempt = async (
@@ -2395,16 +2398,16 @@ export function LessonWorkspace() {
            <div className="lesson-path-note"><Lightbulb size={15} /><span>اتبع الخطوات بالترتيب، وتنتقل السبورة معك تلقائيًا.</span></div>
         </aside>
 
-          <section className="lesson-panel lesson-conversation-panel" aria-label={handoffComplete ? 'الطبقة الثانية: التواصل مع شركاء التعلّم' : 'الطبقة الثانية: حديثك مع فهيم'} data-layer="ai-conversation">
+          <section className="lesson-panel lesson-conversation-panel" aria-label={showPartnerUi ? 'الطبقة الثانية: التواصل مع شركاء التعلّم' : 'الطبقة الثانية: حديثك مع فهيم'} data-layer="ai-conversation">
             <div className="lesson-layer-badge"><MessageCircle size={13} /> طبقة 2 · الحوار المباشر</div>
            <div className="lesson-panel-heading lesson-conversation-heading">
              <div className="lesson-fahim-chip">
-                <span className={`lesson-fahim-avatar ${handoffComplete ? 'is-handoff' : ''}`}><img src={handoffComplete ? (activePartner === 'dalil' ? owlAgentTeal : owlAgentViolet) : (isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal)} alt={handoffComplete ? `${activePartnerDetails.name}، ${activePartnerDetails.role}` : 'فهيم، مساعد تثبيت المفاهيم'} /></span>
-                 <span><strong>{handoffComplete ? activePartnerDetails.name : 'فهيم'}</strong><small>{handoffComplete ? activePartnerDetails.role : faheemActive ? 'تفاعل وتغذية راجعة' : 'اكتمل التسليم إلى الشريكين'}</small></span>
+                 <span className={`lesson-fahim-avatar ${showPartnerUi ? 'is-handoff' : ''}`}><img src={showPartnerUi ? (activePartner === 'dalil' ? owlAgentTeal : owlAgentViolet) : (isThinking ? owlAgentViolet : analysisState === 'error' ? owlAgentGold : owlAgentTeal)} alt={showPartnerUi ? `${activePartnerDetails.name}، ${activePartnerDetails.role}` : 'فهيم، مساعد تثبيت المفاهيم'} /></span>
+                  <span><strong>{showPartnerUi ? activePartnerDetails.name : 'فهيم'}</strong><small>{showPartnerUi ? activePartnerDetails.role : faheemActive ? 'تفاعل وتغذية راجعة' : 'اكتمل التسليم إلى الشريكين'}</small></span>
              </div>
-              <span className={`lesson-live-state ${isThinking || analysisState === 'analyzing' ? 'is-working' : ''}`}><i />{handoffComplete ? (isThinking ? 'يراجع الآن' : 'متاح') : !faheemActive ? 'تم التسليم' : analysisState === 'analyzing' ? 'يحلل الصورة' : isThinking ? 'يكتب الآن' : 'جاهز'}</span>
+               <span className={`lesson-live-state ${isThinking || analysisState === 'analyzing' ? 'is-working' : ''}`}><i />{showPartnerUi ? (isThinking ? 'يراجع الآن' : 'متاح') : !faheemActive ? 'تم التسليم' : analysisState === 'analyzing' ? 'يحلل الصورة' : isThinking ? 'يكتب الآن' : 'جاهز'}</span>
           </div>
-           {handoffComplete && (
+           {ragReady && (
              <div className="lesson-agent-switcher" role="tablist" aria-label="اختيار شريك التعلّم">
                {(Object.keys(partnerDetails) as ActivePartner[]).map((partner) => {
                  const details = partnerDetails[partner];
@@ -2428,7 +2431,7 @@ export function LessonWorkspace() {
                })}
              </div>
            )}
-            {handoffComplete && activePartner === 'exercises' && (
+            {ragReady && activePartner === 'exercises' && (
               <div className="lesson-exercise-mode-picker" role="group" aria-labelledby="lesson-exercise-mode-title">
                 <div className="lesson-exercise-mode-copy">
                   <strong id="lesson-exercise-mode-title">أنت تحدد نوع الموضوع</strong>
@@ -2461,7 +2464,7 @@ export function LessonWorkspace() {
            <div className="lesson-messages" aria-live="polite" data-testid="region-fahim-messages">
              {messages.map((message) => (
               <article key={message.id} className={`lesson-message ${message.role === 'assistant' ? 'is-assistant' : 'is-user'}`} data-testid={`message-lesson-${message.id}`}>
-                 <div className="lesson-message-meta">{message.role === 'assistant' ? <><Sparkles size={11} /> {handoffComplete ? activePartnerDetails.name : 'فهيم'}</> : 'أنت'}<span className="lesson-message-time">{getTimeLabel()}</span></div>
+                  <div className="lesson-message-meta">{message.role === 'assistant' ? <><Sparkles size={11} /> {showPartnerUi ? activePartnerDetails.name : 'فهيم'}</> : 'أنت'}<span className="lesson-message-time">{getTimeLabel()}</span></div>
                  <p><MathText>{message.text}</MathText></p>
                  {message.id === 'chat-api-fallback' && <button type="button" className="lesson-generation-error-button" onClick={() => window.location.reload()} data-testid="button-refresh-lesson-chat"><RotateCcw size={12} /> تحديث الصفحة</button>}
               </article>
@@ -2490,13 +2493,13 @@ export function LessonWorkspace() {
                </article>
              )}
           </div>
-            <form className={`lesson-composer ${!faheemActive && !handoffComplete ? 'is-disabled' : ''}`} onSubmit={handleQuestionSubmit}>
-            <label className="lesson-composer-label" htmlFor="lesson-question"><span>{handoffComplete ? `اكتب إلى ${activePartnerDetails.name}` : 'سؤال أو ملاحظة'}</span><span>العنصر الحالي: {activeSection.label}</span></label>
+            <form className={`lesson-composer ${!faheemActive && !partnerConversationActive ? 'is-disabled' : ''}`} onSubmit={handleQuestionSubmit}>
+             <label className="lesson-composer-label" htmlFor="lesson-question"><span>{showPartnerUi ? `اكتب إلى ${activePartnerDetails.name}` : 'سؤال أو ملاحظة'}</span><span>العنصر الحالي: {activeSection.label}</span></label>
             <div className="lesson-composer-box">
-                <textarea id="lesson-question" value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!faheemActive && !handoffComplete} placeholder={handoffComplete ? activePartnerDetails.prompt : faheemActive ? 'مثال: لماذا يستمر الراكب في الحركة؟' : 'اكتمل التسليم إلى دليل ووكيل التمارين'} rows={2} data-testid="input-lesson-question" />
-                <button type="button" className={`lesson-icon-button lesson-voice-button ${isListening ? 'is-listening' : ''}`} onClick={toggleVoiceInput} disabled={!lessonToolsActive || (!faheemActive && !handoffComplete) || isThinking} aria-label={isListening ? 'إيقاف الإملاء الصوتي' : 'تسجيل سؤال صوتي'} aria-pressed={isListening} data-testid="button-voice-question">{isListening ? <MicOff size={17} /> : <Mic size={17} />}</button>
+                 <textarea id="lesson-question" value={question} onChange={(event) => setQuestion(event.target.value)} disabled={!faheemActive && !partnerConversationActive} placeholder={showPartnerUi ? activePartnerDetails.prompt : faheemActive ? 'مثال: لماذا يستمر الراكب في الحركة؟' : 'اكتمل التسليم إلى دليل ووكيل التمارين'} rows={2} data-testid="input-lesson-question" />
+                 <button type="button" className={`lesson-icon-button lesson-voice-button ${isListening ? 'is-listening' : ''}`} onClick={toggleVoiceInput} disabled={!lessonToolsActive || (!faheemActive && !partnerConversationActive) || isThinking} aria-label={isListening ? 'إيقاف الإملاء الصوتي' : 'تسجيل سؤال صوتي'} aria-pressed={isListening} data-testid="button-voice-question">{isListening ? <MicOff size={17} /> : <Mic size={17} />}</button>
                 <button type="button" className="lesson-icon-button" onClick={() => attachmentInputRef.current?.click()} disabled={!lessonToolsActive} aria-label="إرفاق صورة الحل" data-testid="button-attach-handwritten"><ImagePlus size={17} /></button>
-                <button type="submit" className="lesson-send-button" aria-label={`إرسال السؤال إلى ${handoffComplete ? activePartnerDetails.name : 'فهيم'}`} disabled={(!faheemActive && !handoffComplete) || !question.trim() || isThinking} data-testid="button-send-lesson-question"><Send size={16} /></button>
+                 <button type="submit" className="lesson-send-button" aria-label={`إرسال السؤال إلى ${showPartnerUi ? activePartnerDetails.name : 'فهيم'}`} disabled={(!faheemActive && !partnerConversationActive) || !question.trim() || isThinking} data-testid="button-send-lesson-question"><Send size={16} /></button>
             </div>
               <input ref={attachmentInputRef} type="file" accept="image/*" onChange={handleAttachment} disabled={!lessonToolsActive} hidden data-testid="input-handwritten-image" />
             {session.attachment && (
@@ -2508,7 +2511,7 @@ export function LessonWorkspace() {
             )}
             {attachmentError && <p className="lesson-field-error" role="alert" data-testid="status-attachment-error">{attachmentError}</p>}
              {voiceError && <p className="lesson-field-error lesson-voice-error" role="alert" data-testid="status-voice-error">{voiceError}</p>}
-             {(isThinking || analysisState === 'analyzing') && <div className="lesson-thinking" role="status" data-testid="status-ai-generation"><LoaderCircle size={14} /><span>{analysisState === 'analyzing' ? 'فهيم يقرأ المحاولة ويبحث عن أول خطأ...' : `${handoffComplete ? activePartnerDetails.name : 'فهيم'} يراجع الخطوة...`}</span><i /></div>}
+             {(isThinking || analysisState === 'analyzing') && <div className="lesson-thinking" role="status" data-testid="status-ai-generation"><LoaderCircle size={14} /><span>{analysisState === 'analyzing' ? 'فهيم يقرأ المحاولة ويبحث عن أول خطأ...' : `${showPartnerUi ? activePartnerDetails.name : 'فهيم'} يراجع الخطوة...`}</span><i /></div>}
             {analysisState === 'error' && <div className="lesson-analysis-error" role="alert" data-testid="status-attempt-analysis-error"><span>{analysisError}</span><button type="button" onClick={() => { if (session.attachment) void analyzeAttempt(session.attachment, session.attachmentName ?? 'محاولة'); }}>إعادة التحليل</button></div>}
             {analysis && (
               <div className="lesson-analysis-card" data-testid="card-attempt-analysis">
