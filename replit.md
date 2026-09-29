@@ -19,7 +19,7 @@
 - `POST /api/learning/profile-summary/pdf` creates a real PDF in App Storage and returns metadata plus an authenticated download path.
 - Replit workflow: `Tawjeeh preview` runs `bash scripts/start-tawjeeh.sh`
 - Vite serves the web app on port `25786` with `BASE_PATH=/`; the launcher supervises the API on `8080` and Knowledge Base on `8001`
-- Required setup: Replit PostgreSQL (`DATABASE_URL` is managed automatically), either `GEMINI_API_KEY` for server-side Gemini text generation or a working Replit-managed xAI connection for Grok text generation, and Replit-managed Clerk Auth
+- Required setup: Replit PostgreSQL (`DATABASE_URL` is managed automatically), either `GEMINI_API_KEY` for server-side Gemini text generation (with optional `GEMINI_API_KEY2` as an automatic fallback) or a working Replit-managed xAI connection for Grok text generation, and Replit-managed Clerk Auth
 - The deterministic multi-agent orchestrator persists its phase machine in `learning_state`, append-only gateway events in `agent_events`, canonical sessions in `schedule_entries`, mistakes in `mistakes`, and committed notifications in `notification_outbox`.
 - Orchestrator API: `GET /api/orchestrator/state-machine` returns the complete agent network and schedule; `POST /api/orchestrator/events` accepts the idempotent event contract from `lib/api-spec/openapi.yaml`.
 - Invalid agent transitions return HTTP 409 with the typed `AgentStateTransitionException` code; they are never silently rerouted.

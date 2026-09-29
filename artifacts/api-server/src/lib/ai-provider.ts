@@ -30,6 +30,7 @@ const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 // Gemini's current direct API response for this account requires the 3.6
 // Flash model. This can still be overridden with GEMINI_MODEL when needed.
 const DEFAULT_GEMINI_MODEL = "gemini-3.6-flash";
+const GEMINI_KEY_ENV_NAMES = ["GEMINI_API_KEY", "GEMINI_API_KEY2"] as const;
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
 const connectors = new ReplitConnectors();
@@ -121,8 +122,26 @@ function hasDeepSeekCredentials(): boolean {
   return Boolean(process.env.DEEPSEEK_API_KEY?.trim());
 }
 
+function getGeminiApiKeys(): string[] {
+  return GEMINI_KEY_ENV_NAMES.map((name) => process.env[name]?.trim())
+    .filter((key): key is string => Boolean(key))
+    .filter((key, index, keys) => keys.indexOf(key) === index);
+}
+
 function hasGeminiCredentials(): boolean {
-  return Boolean(process.env.GEMINI_API_KEY?.trim());
+  return getGeminiApiKeys().length > 0;
+}
+
+function shouldTryAlternateGeminiKey(error: unknown): boolean {
+  return (
+    error instanceof DeepSeekProviderError &&
+    (error.status === 401 ||
+      error.status === 403 ||
+      error.status === 404 ||
+      error.status === 408 ||
+      error.status === 429 ||
+      (error.status !== undefined && error.status >= 500))
+  );
 }
 
 function toGeminiRequest(messages: ChatMessage[]) {
@@ -148,14 +167,8 @@ function toGeminiRequest(messages: ChatMessage[]) {
 async function callGeminiApi(
   messages: ChatMessage[],
   options: GeminiVisionOptions,
+  apiKey: string,
 ): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  if (!apiKey) {
-    throw new DeepSeekProviderError("GEMINI_API_KEY is not configured", {
-      status: 401,
-    });
-  }
-
   const model = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
   const url = `${GEMINI_API_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   let response: Response;
@@ -242,19 +255,44 @@ async function callGeminiApi(
   return content;
 }
 
-export async function callGeminiVisionModel(
-  systemMessage: string,
-  userText: string,
-  imageDataUrl: string,
+async function callGeminiTextModelWithKeys(
+  messages: ChatMessage[],
   options: GeminiVisionOptions,
 ): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  if (!apiKey) {
+  const apiKeys = getGeminiApiKeys();
+  if (!apiKeys.length) {
     throw new DeepSeekProviderError("GEMINI_API_KEY is not configured", {
       status: 401,
     });
   }
 
+  let lastError: unknown;
+  for (let index = 0; index < apiKeys.length; index += 1) {
+    try {
+      return await callGeminiApi(messages, options, apiKeys[index]);
+    } catch (error) {
+      lastError = error;
+      if (
+        index === apiKeys.length - 1 ||
+        !shouldTryAlternateGeminiKey(error)
+      ) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new DeepSeekProviderError("Gemini provider failed", { retryable: true });
+}
+
+async function callGeminiVisionApi(
+  systemMessage: string,
+  userText: string,
+  imageDataUrl: string,
+  options: GeminiVisionOptions,
+  apiKey: string,
+): Promise<string> {
   const image = imageDataUrl.match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
   if (!image) {
     throw new DeepSeekProviderError("Invalid image data URL", { status: 400 });
@@ -346,6 +384,47 @@ export async function callGeminiVisionModel(
     );
   }
   return content;
+}
+
+export async function callGeminiVisionModel(
+  systemMessage: string,
+  userText: string,
+  imageDataUrl: string,
+  options: GeminiVisionOptions,
+): Promise<string> {
+  const apiKeys = getGeminiApiKeys();
+  if (!apiKeys.length) {
+    throw new DeepSeekProviderError("GEMINI_API_KEY is not configured", {
+      status: 401,
+    });
+  }
+
+  let lastError: unknown;
+  for (let index = 0; index < apiKeys.length; index += 1) {
+    try {
+      return await callGeminiVisionApi(
+        systemMessage,
+        userText,
+        imageDataUrl,
+        options,
+        apiKeys[index],
+      );
+    } catch (error) {
+      lastError = error;
+      if (
+        index === apiKeys.length - 1 ||
+        !shouldTryAlternateGeminiKey(error)
+      ) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new DeepSeekProviderError("Gemini vision provider failed", {
+        retryable: true,
+      });
 }
 
 async function callDeepSeekApi(
@@ -525,7 +604,7 @@ export async function callDeepSeekTextModel(
 ): Promise<string> {
   if (hasGeminiCredentials()) {
     try {
-      return await callGeminiApi(messages, options);
+      return await callGeminiTextModelWithKeys(messages, options);
     } catch (error) {
       const shouldUseFallback =
         error instanceof DeepSeekProviderError &&
