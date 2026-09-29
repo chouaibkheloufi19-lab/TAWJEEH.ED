@@ -33,6 +33,7 @@ import {
   RotateCcw,
   Search,
   Send,
+  ShieldCheck,
   Sparkles,
   Target,
   Trophy,
@@ -82,6 +83,7 @@ import { ExamBoard } from '@/components/exam-board';
 import { PhaseOnePresentation, type PlannerIntakeValues } from '@/components/phase-one';
 import { DynamicOwlCopilot } from '@/components/DynamicOwlCopilot';
 import { ReviewStudio } from '@/components/review-studio';
+import { ManagerTestLab } from '@/components/manager-test-lab';
 import { MathText } from '@/components/math-text';
 import type { OwlAgentId } from '@/config/owlAgents';
 import { fetchWithTimeout } from '@/lib/request';
@@ -167,6 +169,7 @@ const navItems = [
   { href: '/profile', label: 'الملف وبنك المعرفة', icon: UserRound },
   { href: '/program', label: 'مساحة الوكلاء', icon: MessageCircle },
   { href: '/quizzes', label: 'الكويزات والنقاط', icon: Trophy },
+  { href: '/manager', label: 'مختبر المدير', icon: ShieldCheck },
 ];
 
 function Logo({ compact = false }: { compact?: boolean }) {
@@ -470,11 +473,11 @@ function HomeRedirect() {
   return isSignedIn ? <Redirect to="/profile" /> : <AuthWelcome />;
 }
 
-function ProtectedRoute({ children }: { children: ReactNode }) {
+function ProtectedRoute({ children, skipOnboarding = false }: { children: ReactNode; skipOnboarding?: boolean }) {
   const { isLoaded, isSignedIn } = useAppAuth();
   if (!isLoaded) return <AuthLoading />;
   if (!isSignedIn) return <Redirect to="/sign-in" />;
-  return <OnboardingGate>{children}</OnboardingGate>;
+  return skipOnboarding ? children : <OnboardingGate>{children}</OnboardingGate>;
 }
 
 function ProgramLessonRoute() {
@@ -1383,6 +1386,7 @@ function Router() {
         <Route path="/lesson/:id" component={() => <ProtectedRoute><ProgramLessonRoute /></ProtectedRoute>} />
         <Route path="/library" component={() => <ProtectedRoute><KnowledgePage /></ProtectedRoute>} />
         <Route path="/quizzes" component={() => <ProtectedRoute><QuizzesPage /></ProtectedRoute>} />
+        <Route path="/manager" component={() => <ProtectedRoute skipOnboarding><Shell title="مختبر المدير"><ManagerTestLab /></Shell></ProtectedRoute>} />
         <Route path="/chat" component={() => <ProtectedRoute><Redirect to="/program" /></ProtectedRoute>} />
         <Route component={NotFoundArabic} />
       </Switch>
