@@ -360,7 +360,7 @@ function parseGeneratedExam(
     throw new Error("Exam generator returned an incomplete correction guide");
   }
   const result = {
-    status: "generated",
+    status: "generated" as const,
     title: parsed.title.trim(),
     subject: requested.subject,
     track: requested.track,

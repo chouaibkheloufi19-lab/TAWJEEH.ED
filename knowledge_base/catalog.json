@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-09-28T17:09:22.307073+00:00",
+  "generated_at": "2026-09-29T13:41:48.498594+00:00",
   "assets_root": "attached_assets",
   "stats": {
     "needs_review": 341,
     "indexed": 51,
     "excluded_media": 13,
-    "duplicate_source": 63,
+    "duplicate_source": 67,
     "excluded_reference": 1,
-    "total_assets": 469,
+    "total_assets": 473,
     "indexed_chunks": 678
   },
   "sources": [
@@ -14222,6 +14222,17 @@
       "indexed_source_hash": "c60db08005b5d086b71cd0f537fd89b060c12e3d287199a8d59255b45740bf21"
     },
     {
+      "source_id": "c60db08005b5d086b71cd0f537fd89b060c12e3d287199a8d59255b45740bf21",
+      "source_file": "Screenshot_2026-08-24_140249_1790687878254.png",
+      "asset_path": "attached_assets/Screenshot_2026-08-24_140249_1790687878254.png",
+      "source_type": "png",
+      "bytes": 233251,
+      "sha256": "c60db08005b5d086b71cd0f537fd89b060c12e3d287199a8d59255b45740bf21",
+      "status": "duplicate_source",
+      "canonical_source": "Screenshot_2026-08-24_140249_1788604422982.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
+    },
+    {
       "source_id": "14e13b9b17eb9e47224d7d98e7f7716892a351c3cd2dca628277f67221790375",
       "source_file": "Screenshot_2026-08-24_140342_1788604422982.png",
       "asset_path": "attached_assets/Screenshot_2026-08-24_140342_1788604422982.png",
@@ -14262,6 +14273,17 @@
         "reference"
       ],
       "indexed_source_hash": "14e13b9b17eb9e47224d7d98e7f7716892a351c3cd2dca628277f67221790375"
+    },
+    {
+      "source_id": "14e13b9b17eb9e47224d7d98e7f7716892a351c3cd2dca628277f67221790375",
+      "source_file": "Screenshot_2026-08-24_140342_1790687882061.png",
+      "asset_path": "attached_assets/Screenshot_2026-08-24_140342_1790687882061.png",
+      "source_type": "png",
+      "bytes": 390046,
+      "sha256": "14e13b9b17eb9e47224d7d98e7f7716892a351c3cd2dca628277f67221790375",
+      "status": "duplicate_source",
+      "canonical_source": "Screenshot_2026-08-24_140342_1788604422982.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "37c3f23430e1173539b689134804eeed98425eb51cd361616ab4bbee4478e6f7",
@@ -14317,6 +14339,17 @@
       "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
+      "source_id": "37c3f23430e1173539b689134804eeed98425eb51cd361616ab4bbee4478e6f7",
+      "source_file": "Screenshot_2026-08-24_140353_1790687883921.png",
+      "asset_path": "attached_assets/Screenshot_2026-08-24_140353_1790687883921.png",
+      "source_type": "png",
+      "bytes": 419763,
+      "sha256": "37c3f23430e1173539b689134804eeed98425eb51cd361616ab4bbee4478e6f7",
+      "status": "duplicate_source",
+      "canonical_source": "Screenshot_2026-08-24_140353_1788469495998.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
+    },
+    {
       "source_id": "697198c94500991ceb43f36aa9c5ed27eb45abc6cb71e46ed745e0da28c2bc02",
       "source_file": "Screenshot_2026-08-24_140406_1788604422979.png",
       "asset_path": "attached_assets/Screenshot_2026-08-24_140406_1788604422979.png",
@@ -14357,6 +14390,17 @@
         "reference"
       ],
       "indexed_source_hash": "697198c94500991ceb43f36aa9c5ed27eb45abc6cb71e46ed745e0da28c2bc02"
+    },
+    {
+      "source_id": "697198c94500991ceb43f36aa9c5ed27eb45abc6cb71e46ed745e0da28c2bc02",
+      "source_file": "Screenshot_2026-08-24_140406_1790687880490.png",
+      "asset_path": "attached_assets/Screenshot_2026-08-24_140406_1790687880490.png",
+      "source_type": "png",
+      "bytes": 328358,
+      "sha256": "697198c94500991ceb43f36aa9c5ed27eb45abc6cb71e46ed745e0da28c2bc02",
+      "status": "duplicate_source",
+      "canonical_source": "Screenshot_2026-08-24_140406_1788604422979.png",
+      "reason": "نسخة مطابقة لمصدر مفهرس؛ حُفظت في الكتالوج دون تكرار المقاطع"
     },
     {
       "source_id": "d6e2158bb56aa2c547160aa94fe45503879b2bea30f5af800d5e729fda8410c9",
