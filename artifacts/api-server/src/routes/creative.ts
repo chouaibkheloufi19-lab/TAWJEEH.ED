@@ -15,6 +15,7 @@ import {
   FUNCTION_EXERCISE_PROMPT,
   GROUNDED_CONTENT_RULES,
   LEARNER_SAFE_OUTPUT_RULES,
+  BAC_MATH_EXAM_STYLE_PROMPT,
   SCIENCE_EXERCISE_PROMPT,
 } from "../lib/ai-prompts";
 import {
@@ -26,6 +27,10 @@ import {
   isAcademicScopeError,
   resolveAcademicScope,
 } from "../lib/subject-scope";
+import {
+  assertBaccalaureateMathExamContract,
+  isMathematicsSubject,
+} from "../lib/baccalaureate-math-contract";
 
 const router: IRouter = Router();
 
@@ -63,6 +68,7 @@ type GeneratedExamSection = {
   context: string;
   data?: string;
   questions: GeneratedExamQuestion[];
+  sourceNodeIds: string[];
 };
 
 type GeneratedExamResponse = {
@@ -157,7 +163,7 @@ function buildGroundedExamFallback(
           points: 3,
         },
       ],
-      sourceNodeId: document.id,
+      sourceNodeIds: [document.id],
       sourceLabel,
     };
   });
@@ -271,7 +277,8 @@ function parseGeneratedExam(
       typeof section.theme !== "string" ||
       typeof section.context !== "string" ||
       !Array.isArray(section.questions) ||
-      section.questions.length < 2
+        section.questions.length < 2 ||
+        !Array.isArray(section.sourceNodeIds)
     )
       throw new Error(
         `Exam generator returned an invalid section at index ${index}`,
@@ -304,6 +311,7 @@ function parseGeneratedExam(
       theme: section.theme.trim(),
       context: section.context.trim(),
       data: typeof section.data === "string" ? section.data.trim() : undefined,
+      sourceNodeIds: assertGroundedNodeIds(section.sourceNodeIds, retrieval),
       questions,
     };
   });
@@ -351,7 +359,7 @@ function parseGeneratedExam(
   ) {
     throw new Error("Exam generator returned an incomplete correction guide");
   }
-  return {
+  const result = {
     status: "generated",
     title: parsed.title.trim(),
     subject: requested.subject,
@@ -375,6 +383,18 @@ function parseGeneratedExam(
     sourceNodeIds: assertGroundedNodeIds(parsed.sourceNodeIds, retrieval),
     grounding: retrieval.grounding,
   };
+  if (isMathematicsSubject(requested.subject)) {
+    assertBaccalaureateMathExamContract({
+      title: result.title,
+      duration: result.duration,
+      totalPoints: result.totalPoints,
+      instructions: result.instructions,
+      sections: result.sections,
+      correctionSections: result.correction.sections,
+      retrievedNodeIds: retrieval.documents.map((document) => document.id),
+    });
+  }
+  return result;
 }
 
 function extractCreativeIdeas(text: string, retrieval: RetrievalContext) {
@@ -561,6 +581,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
   const isPhysicsExam = /فيزياء|فيزيائي|physics|physique/i.test(
     requestedContext.subject,
   );
+  const isMathematicsExam = isMathematicsSubject(requestedContext.subject);
   const isFunctionExam =
     !isPhysicsExam &&
     /رياضيات|math|mathématique|mathematics/i.test(requestedContext.subject) &&
@@ -596,6 +617,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
           content: [
             ACADEMIC_EXAM_PROMPT,
             EXERCISE_GENERATION_PROMPT,
+            ...(isMathematicsExam ? [BAC_MATH_EXAM_STYLE_PROMPT] : []),
             ...(isPhysicsExam ? [SCIENCE_EXERCISE_PROMPT] : []),
             ...(isFunctionExam
               ? [FUNCTION_ACADEMIC_EXAM_PROMPT, FUNCTION_EXERCISE_PROMPT]
@@ -603,7 +625,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
             GROUNDED_CONTENT_RULES,
             LEARNER_SAFE_OUTPUT_RULES,
             "أنشئ ورقة عربية عملية من المصادر المتاحة. طلب الطالب يحدد الموضوع والمطلوبات والقيود الخاصة؛ التزم به بدل استبداله بموضوع ثابت أو إضافة محاور غير مطلوبة. إذا حدد عدد التمارين أو مستوى الصعوبة أو محورًا بعينه، فاتبعه ما دام متوافقًا مع المصادر. لا تخترع قانونًا أو قيمة أو نتيجة غير مسندة. حافظ على مجموع 20 نقطة، وعلى بنية امتحانية صالحة للطباعة تتضمن تمرينين على الأقل ودليل تصحيح مطابقًا لكل تمرين. اكتب بصيغة مهنية مباشرة: اجعل theme سياقًا قصيرًا، وابدأ كل prompt بالمطلوب مباشرة بفعل مثل عيّن أو احسب أو بيّن أو استنتج. استخدم title كعنوان داخلي للتمرين، ولا تكرر عنوان المحور داخل نص السؤال. أعد JSON فقط.",
-            'أعد الشكل: {"title":"...","subject":"...","track":"...","grade":"...","duration":"ساعتان و30 دقيقة","totalPoints":20,"instructions":["..."],"sections":[{"id":"section-1","title":"...","points":6,"theme":"...","context":"...","data":"...","questions":[{"id":"q1","label":"أ","prompt":"...","points":2}]}],"correction":{"title":"شبكة التصحيح النموذجي","introduction":"...","sections":[{"sectionId":"section-1","title":"تصحيح التمرين الأول","solutionSteps":["...","..."],"criteria":[{"label":"...","points":2}]}]},"sourceNodeIds":["node-id"]}',
+             'أعد الشكل: {"title":"موضوع مراجعة في الرياضيات","subject":"...","track":"...","grade":"...","duration":"ساعتان و30 دقيقة","totalPoints":20,"instructions":["..."],"sections":[{"id":"section-1","title":"التمرين الأول","points":6,"theme":"...","context":"...","data":"...","sourceNodeIds":["node-id"],"questions":[{"id":"q1","label":"أ","prompt":"عيّن ...","points":2}]}],"correction":{"title":"شبكة التصحيح النموذجي","introduction":"...","sections":[{"sectionId":"section-1","title":"تصحيح التمرين الأول","solutionSteps":["...","..."],"criteria":[{"label":"...","points":2}]}]},"sourceNodeIds":["node-id"]}',
           ].join("\n\n"),
         },
         {
@@ -643,7 +665,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
       return;
     }
     if (error instanceof DeepSeekProviderError) {
-      if (shouldUseGroundedProviderFallback(error) && retrieval) {
+       if (!isMathematicsExam && shouldUseGroundedProviderFallback(error) && retrieval) {
         const fallback = buildGroundedExamFallback(retrieval, requestedContext);
         if (fallback) {
           req.log.warn(
@@ -671,8 +693,10 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
             : "ai_provider_rejected_request",
         message: notConfigured
           ? "اتصال خدمة التوليد غير مهيأ. تحقّق من إعداد Gemini أو اتصال xAI ثم أعد المحاولة."
-          : temporarilyUnavailable
-            ? "تعذّر على مزود الذكاء الاصطناعي إكمال هذا الطلب الآن. لم يُنشأ موضوع بديل؛ أعد المحاولة بعد قليل."
+           : temporarilyUnavailable
+             ? isMathematicsExam
+               ? "تعذّر على مزود الذكاء الاصطناعي إكمال الموضوع المطابق للنموذج. لم يُنشأ موضوع مخالف أو بديل؛ أعد المحاولة بعد قليل."
+               : "تعذّر على مزود الذكاء الاصطناعي إكمال هذا الطلب الآن. لم يُنشأ موضوع بديل؛ أعد المحاولة بعد قليل."
             : "رفض مزود الذكاء الاصطناعي طلب التوليد. جرّب طلبًا أقصر أو أعد المحاولة لاحقًا.",
         ...(temporarilyUnavailable ? { retryable: true } : {}),
       });

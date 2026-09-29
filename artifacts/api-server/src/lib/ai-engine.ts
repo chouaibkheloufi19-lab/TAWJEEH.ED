@@ -7,6 +7,7 @@ import {
   LEARNER_SAFE_OUTPUT_RULES,
   DALEEL_TUTOR_PROMPT,
   SCIENCE_EXERCISE_PROMPT,
+  BAC_MATH_EXERCISE_STYLE_PROMPT,
 } from "./ai-prompts";
 import {
   callDeepSeekTextModelWithRetry,
@@ -22,6 +23,10 @@ import {
 } from "./rag";
 import { normalizeFunctionSectionTitle } from "./function-section-titles";
 import { assertGroundedScienceReviewPaperContract } from "./scientific-paper-contract";
+import {
+  assertBaccalaureateMathExerciseContract,
+  isMathematicsSubject,
+} from "./baccalaureate-math-contract";
 
 const MAX_CONTENT_LENGTH = 50_000;
 const MAX_EXERCISES = 10;
@@ -57,6 +62,7 @@ export type ExerciseSection = {
   title: string;
   points: number;
   prompt: string;
+  sourceNodeIds: string[];
 };
 
 type GeneratedExercisePaper = {
@@ -318,6 +324,7 @@ function parseExercises(
   retrieval: RetrievalContext,
   expectedFormat?: "comprehensive_function" | "comprehensive_science",
   isPhysicsRequest = false,
+  isMathematicsRequest = false,
 ): GeneratedExercisePaper {
   const lessonTitle = asText(payload.lesson_title);
   const title = asText(payload.title);
@@ -342,6 +349,9 @@ function parseExercises(
         title: sectionTitle,
         points,
         prompt: sectionPrompt,
+        sourceNodeIds: Array.isArray(value.sourceNodeIds)
+          ? assertGroundedNodeIds(value.sourceNodeIds, retrieval)
+          : [],
       };
     })
     .filter((section): section is ExerciseSection => section !== null)
@@ -411,6 +421,16 @@ function parseExercises(
         document: document.document ?? "",
       })),
     );
+  }
+  if (isMathematicsRequest) {
+    assertBaccalaureateMathExerciseContract({
+      title,
+      prompt,
+      totalPoints,
+      sections,
+      sourceNodeIds,
+      retrievedNodeIds: retrieval.documents.map((document) => document.id),
+    });
   }
   return {
     lesson_title: lessonTitle,
@@ -526,6 +546,8 @@ export async function generateExercises(
   const retrieval = await retrieveForAi(request);
   const requestTopic = `${request.subject ?? ""} ${request.lessonTitle}`;
   const isPhysicsRequest = /فيزياء|فيزيائي|physics|physique/i.test(requestTopic);
+  const isMathematicsRequest = isMathematicsSubject(request.subject ?? "") ||
+    /رياضيات|math|mathématique|mathematics/i.test(requestTopic);
   const isFunctionStudy =
     !isPhysicsRequest &&
     /دالة|دوال|الدالة|الدوال|نهايات|اشتقاق|مشتق|مماس|مقارب|fonction|dérivée|limite|function/i.test(
@@ -539,13 +561,14 @@ export async function generateExercises(
   const outputContract = isPhysicsRequest
     ? 'أعد JSON فقط: {"lesson_title":"...","title":"مسألة فيزيائية تطبيقية","prompt":"وضعية محددة تتضمن معطيين عدديين مختلفين على الأقل ووحدتيهما من المصادر","hint":"...","solution":"...","format":"comprehensive_science","total_points":20,"sections":[{"id":"data","title":"المعطيات","points":3,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"law","title":"القانون","points":4,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"calculation","title":"الحساب","points":5,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"interpretation","title":"التحقق","points":4,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"},{"id":"synthesis","title":"التركيب","points":4,"prompt":"...","sourceNodeIds":["node-id"],"evidence":"اقتباس حرفي"}],"sourceNodeIds":["node-id"]}'
     : isFunctionStudy
-      ? 'أعد JSON فقط: {"lesson_title":"...","title":"دراسة شاملة في الدالة","prompt":"معطيات الدراسة دون حل","hint":"...","solution":"...","format":"comprehensive_function","total_points":20,"sections":[{"id":"domain","title":"مجموعة التعريف","points":2,"prompt":"..."},{"id":"limits","title":"النهايات","points":3,"prompt":"..."},{"id":"derivative","title":"الاشتقاق","points":3,"prompt":"..."},{"id":"variations","title":"التغيرات","points":3,"prompt":"..."},{"id":"equations","title":"المعادلات والمتراجحات","points":3,"prompt":"..."},{"id":"graph","title":"التمثيل البياني","points":4,"prompt":"..."},{"id":"synthesis","title":"التركيب","points":2,"prompt":"..."}],"sourceNodeIds":["node-id"]}'
+       ? 'أعد JSON فقط: {"lesson_title":"...","title":"موضوع مراجعة في الرياضيات","prompt":"وضعية ومعطيات الموضوع دون حل","hint":"...","solution":"...","format":"comprehensive_function","total_points":20,"sections":[{"id":"exercise-1","title":"التمرين الأول","points":6,"prompt":"أ) عيّن ... ب) احسب ...","sourceNodeIds":["node-id"]},{"id":"exercise-2","title":"التمرين الثاني","points":7,"prompt":"أ) ادرس ... ب) استنتج ...","sourceNodeIds":["node-id"]},{"id":"exercise-3","title":"التمرين الثالث","points":7,"prompt":"أ) بيّن ... ب) مثّل ...","sourceNodeIds":["node-id"]}],"sourceNodeIds":["node-id"]}'
       : 'أعد JSON فقط: {"lesson_title":"...","title":"...","prompt":"مسألة قابلة للحل من المحتوى","hint":"...","solution":"...","format":"comprehensive_science","total_points":20,"sections":[{"id":"section-1","title":"...","points":4,"prompt":"..."},{"id":"section-2","title":"...","points":4,"prompt":"..."},{"id":"section-3","title":"...","points":4,"prompt":"..."},{"id":"section-4","title":"...","points":4,"prompt":"..."},{"id":"section-5","title":"...","points":4,"prompt":"..."}],"sourceNodeIds":["node-id"]}';
   const messages: ChatMessage[] = [
     {
       role: "system",
       content: [
         INTERACTIVE_EXERCISES_PROMPT,
+        ...(isMathematicsRequest ? [BAC_MATH_EXERCISE_STYLE_PROMPT] : []),
         ...(isFunctionStudy
           ? [ACADEMIC_EXAM_PROMPT, FUNCTION_ACADEMIC_EXAM_PROMPT, FUNCTION_EXERCISE_PROMPT]
           : []),
@@ -573,6 +596,7 @@ export async function generateExercises(
         retrieval,
         expectedFormat,
         isPhysicsRequest,
+        isMathematicsRequest,
       );
       return {
         lesson_title: paper.lesson_title,
