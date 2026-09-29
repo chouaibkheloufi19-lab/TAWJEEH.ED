@@ -12,6 +12,7 @@
 - `Run Tawjeeh preview` — run `bash scripts/start-tawjeeh.sh` to install dependencies, refresh the knowledge index when needed, and start the web app, API server, and knowledge-base services together
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
+- `pnpm --filter @workspace/scripts run test:exam-generation-errors` — verify Arabic generation-error messaging and retry-safe error mapping
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Durable learning policy defaults are stored in `learning_policy`: a 50% error rate creates an emergency remediation module, and 70 daily points is the on-track target.

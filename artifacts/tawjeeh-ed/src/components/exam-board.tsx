@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { ArrowRight, CheckCircle2, FileText, LoaderCircle, Printer, RefreshCw, ShieldCheck } from 'lucide-react';
 import { fetchWithTimeout } from '@/lib/request';
 import { MathText } from '@/components/math-text';
+import { formatExamApiError, type ExamApiErrorPayload } from '@/lib/exam-generation-errors';
 
 type ExamSource = { title: string; source: string; page: number };
 type ExamQuestion = {
@@ -46,11 +47,7 @@ type GeneratedExam = {
   fallbackMessage?: string;
 };
 
-type ExamApiPayload = {
-  message?: string;
-  error?: string;
-  retryable?: boolean;
-} & Partial<GeneratedExam>;
+type ExamApiPayload = ExamApiErrorPayload & Partial<GeneratedExam>;
 
 function formatError(error: unknown) {
   if (!(error instanceof Error)) return 'تعذر تجهيز الموضوع من مصادر المعرفة.';
@@ -58,32 +55,6 @@ function formatError(error: unknown) {
     return 'تعذر الاتصال بمسار توليد موضوع البكالوريا. تحقّق من اتصال API ثم أعد المحاولة.';
   }
   return error.message || 'تعذر تجهيز الموضوع من مصادر المعرفة.';
-}
-
-function formatExamApiError(
-  status: number,
-  payload: ExamApiPayload | null,
-): string {
-  if (payload?.message?.trim()) return payload.message.trim();
-  switch (payload?.error) {
-    case 'ai_provider_unavailable':
-      return 'خدمة التوليد مشغولة الآن بسبب ضغط Gemini. أعد المحاولة بعد قليل؛ لم يُنشأ موضوع بديل.';
-    case 'ai_connection_not_configured':
-      return 'اتصال خدمة التوليد غير مهيأ. تحقّق من إعداد Gemini ثم أعد المحاولة.';
-    case 'exam_generation_contract_failed':
-      return 'وصل رد التوليد لكنه لم يطابق بنية الموضوع ودليل التصحيح. أعد المحاولة.';
-    case 'knowledge_retrieval_unavailable':
-    case 'knowledge_sources_insufficient':
-      return 'لم تكتمل قراءة مصادر المنهاج. أعد المحاولة بعد قليل.';
-    default:
-      if (status === 503) {
-        return 'خدمة التوليد غير متاحة مؤقتًا بسبب ضغط Gemini. أعد المحاولة بعد قليل.';
-      }
-      if (status === 502) {
-        return 'لم يكتمل توليد الموضوع من المصادر. أعد المحاولة بعد قليل.';
-      }
-      return 'تعذر تجهيز الموضوع من مصادر المعرفة. أعد المحاولة.';
-  }
 }
 
 export function ExamBoard({ onExit }: { onExit: () => void }) {
