@@ -12954,3 +12954,28 @@ button { cursor: pointer; }
     align-items: center;
   }
 }
+
+.exam-generation-inline-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e7b9b2;
+  border-radius: 12px;
+  color: #8f4b45;
+  background: #fff3f1;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.exam-generation-inline-error strong {
+  flex: 0 0 auto;
+  color: #7d3934;
+  font-weight: 950;
+}
+
+.exam-generation-inline-error span {
+  min-width: 0;
+  font-weight: 750;
+}

@@ -46,12 +46,44 @@ type GeneratedExam = {
   fallbackMessage?: string;
 };
 
+type ExamApiPayload = {
+  message?: string;
+  error?: string;
+  retryable?: boolean;
+} & Partial<GeneratedExam>;
+
 function formatError(error: unknown) {
   if (!(error instanceof Error)) return 'تعذر تجهيز الموضوع من مصادر المعرفة.';
   if (/failed to fetch|network error/i.test(error.message)) {
     return 'تعذر الاتصال بمسار توليد موضوع البكالوريا. تحقّق من اتصال API ثم أعد المحاولة.';
   }
-  return error.message;
+  return error.message || 'تعذر تجهيز الموضوع من مصادر المعرفة.';
+}
+
+function formatExamApiError(
+  status: number,
+  payload: ExamApiPayload | null,
+): string {
+  if (payload?.message?.trim()) return payload.message.trim();
+  switch (payload?.error) {
+    case 'ai_provider_unavailable':
+      return 'خدمة التوليد مشغولة الآن بسبب ضغط Gemini. أعد المحاولة بعد قليل؛ لم يُنشأ موضوع بديل.';
+    case 'ai_connection_not_configured':
+      return 'اتصال خدمة التوليد غير مهيأ. تحقّق من إعداد Gemini ثم أعد المحاولة.';
+    case 'exam_generation_contract_failed':
+      return 'وصل رد التوليد لكنه لم يطابق بنية الموضوع ودليل التصحيح. أعد المحاولة.';
+    case 'knowledge_retrieval_unavailable':
+    case 'knowledge_sources_insufficient':
+      return 'لم تكتمل قراءة مصادر المنهاج. أعد المحاولة بعد قليل.';
+    default:
+      if (status === 503) {
+        return 'خدمة التوليد غير متاحة مؤقتًا بسبب ضغط Gemini. أعد المحاولة بعد قليل.';
+      }
+      if (status === 502) {
+        return 'لم يكتمل توليد الموضوع من المصادر. أعد المحاولة بعد قليل.';
+      }
+      return 'تعذر تجهيز الموضوع من مصادر المعرفة. أعد المحاولة.';
+  }
 }
 
 export function ExamBoard({ onExit }: { onExit: () => void }) {
@@ -86,9 +118,9 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
         }),
       }, 55_000);
       const responseText = await response.text();
-      let payload: ({ message?: string } & Partial<GeneratedExam>) | null = null;
+      let payload: ExamApiPayload | null = null;
       try {
-        payload = JSON.parse(responseText) as { message?: string } & Partial<GeneratedExam>;
+        payload = JSON.parse(responseText) as ExamApiPayload;
       } catch {
         throw new Error(
           response.status === 502
@@ -101,7 +133,7 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
         );
       }
       if (!response.ok || payload.status !== 'generated') {
-        throw new Error(payload.message || 'لم تكتمل عملية التوليد grounded.');
+        throw new Error(formatExamApiError(response.status, payload));
       }
       setExam(payload as GeneratedExam);
     } catch (requestError) {
@@ -118,6 +150,7 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
       track={track}
       request={request}
       loading={loading}
+      error={error}
       onSubjectChange={setSubject}
       onLevelChange={setLevel}
       onTrackChange={setTrack}
@@ -256,6 +289,7 @@ function ExamGenerationForm({
   track,
   request,
   loading,
+  error,
   onSubjectChange,
   onLevelChange,
   onTrackChange,
@@ -267,6 +301,7 @@ function ExamGenerationForm({
   track: string;
   request: string;
   loading: boolean;
+  error: string;
   onSubjectChange: (value: string) => void;
   onLevelChange: (value: string) => void;
   onTrackChange: (value: string) => void;
@@ -303,6 +338,12 @@ function ExamGenerationForm({
           <small>هذا المسار يبني موضوعًا من تمرينين إلى 8 تمارين، مع تصحيح مطابق للمصادر.</small>
         </label>
       </div>
+      {error && (
+        <div className="exam-generation-inline-error" role="alert" aria-live="assertive" data-testid="status-exam-generation-error">
+          <strong>تعذر إنشاء الموضوع</strong>
+          <span>{error}</span>
+        </div>
+      )}
     </form>
   );
 }
