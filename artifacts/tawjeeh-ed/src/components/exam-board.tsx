@@ -210,17 +210,17 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
               <span>التمرين {index + 1}</span>
               <b>{section.points} نقاط</b>
             </div>
-             <p><MathText>{[section.theme, section.context].filter(Boolean).join('\n')}</MathText></p>
+             <p><MathText>{section.context}</MathText></p>
              {section.data && <MathText className="math-display generated-exam-data" block>{section.data}</MathText>}
-            <ol>
+            <div className="exam-question-list">
               {section.questions.map((question) => (
-                <li key={question.id}>
+                <div className="exam-question-item" key={question.id}>
                   <span className="exam-question-label">{question.label} <b>({question.points} ن)</b></span>
                    <p><MathText>{question.prompt}</MathText></p>
                   <div className="answer-space" aria-hidden="true" />
-                </li>
+                </div>
               ))}
-            </ol>
+            </div>
           </section>
         ))}
 

@@ -2687,6 +2687,9 @@ button { cursor: pointer; }
 .exam-paper-section ol { margin: 12px 0 0; padding-right: 22px; color: #3d5964; }
 .exam-paper-section li { margin: 10px 0; padding-right: 3px; font-size: 12px; font-weight: 650; line-height: 2; }
 .exam-paper-section li::marker { color: #005f73; font-weight: 900; }
+.exam-question-list { display: grid; gap: 8px; margin: 12px 0 0; color: #3d5964; }
+.exam-question-item { padding-right: 3px; font-size: 12px; font-weight: 650; line-height: 2; break-inside: avoid; }
+.exam-question-item p { margin: 4px 0; }
 .math-inline { display: inline-block; direction: ltr; color: #063f5c; font-family: var(--app-font-mono); font-size: .96em; font-weight: 800; unicode-bidi: isolate; }
 .math-display { width: fit-content; max-width: 100%; margin: 12px auto; padding: 9px 16px; direction: ltr; color: #063f5c; border: 1px solid #b7d9d6; border-radius: 9px; background: #f3fbfa; font-family: var(--app-font-mono); font-size: 13px; font-weight: 800; line-height: 1.6; text-align: center; unicode-bidi: isolate; overflow-x: auto; }
 .math-text-bidi { display: inline-block; direction: ltr; unicode-bidi: isolate; }

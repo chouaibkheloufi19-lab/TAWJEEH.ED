@@ -35,6 +35,7 @@ const FORBIDDEN_STUDENT_PATTERNS =
   /اختيار من متعدد|صح\s*(?:أو|و)?\s*خطأ|qcm|mcq|اشرح|لماذا|كيف\s+(?:يمكن|نستعمل|نحسب)|الحل النموذجي|التصحيح النموذجي|الإجابة الصحيحة/i;
 const MATH_SUBJECT_PATTERN =
   /رياضيات|math(?:ématique|ematics)?|mathematics/i;
+const OFFICIAL_MATH_QUESTION_LABEL = /^\d+\)(?:\s*[أ-ي])?$/u;
 
 export function isMathematicsSubject(subject: string): boolean {
   return MATH_SUBJECT_PATTERN.test(subject);
@@ -131,6 +132,7 @@ export function assertBaccalaureateMathExamContract(input: {
         !question.id ||
         questionIds.has(question.id) ||
         !question.label ||
+        !OFFICIAL_MATH_QUESTION_LABEL.test(question.label) ||
         labels.has(question.label) ||
         !prompt ||
         !isHalfPointValue(question.points) ||
