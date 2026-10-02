@@ -7,6 +7,7 @@ import { formatExamApiError, type ExamApiErrorPayload } from '@/lib/exam-generat
 type ExamSource = { title: string; source: string; page: number };
 type ExamQuestion = {
   id: string;
+  questionNumber?: number;
   label: string;
   prompt: string;
   points: number;
@@ -48,6 +49,28 @@ type GeneratedExam = {
 };
 
 type ExamApiPayload = ExamApiErrorPayload & Partial<GeneratedExam>;
+
+function groupExamQuestions(questions: ExamQuestion[]) {
+  const groups = new Map<number, Array<{ question: ExamQuestion; branch: string }>>();
+  for (const question of questions) {
+    const label = question.label.trim();
+    const match = label.match(/^(?:(\d+)\)\s*)?([أ-ي])$/u);
+    const questionNumber =
+      question.questionNumber ??
+      (match?.[1] ? Number(match[1]) : undefined);
+    const branch = match?.[2];
+    if (!questionNumber || !Number.isInteger(questionNumber) || !branch) {
+      return null;
+    }
+    const group = groups.get(questionNumber) ?? [];
+    group.push({ question, branch });
+    groups.set(questionNumber, group);
+  }
+  return Array.from(groups, ([questionNumber, branches]) => ({
+    questionNumber,
+    branches,
+  }));
+}
 
 function formatError(error: unknown) {
   if (!(error instanceof Error)) return 'تعذر تجهيز الموضوع من مصادر المعرفة.';
@@ -213,10 +236,23 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
              <p><MathText>{section.context}</MathText></p>
              {section.data && <MathText className="math-display generated-exam-data" block>{section.data}</MathText>}
             <div className="exam-question-list">
-              {section.questions.map((question) => (
+              {groupExamQuestions(section.questions)?.map((group) => (
+                <div className="exam-question-group" key={group.questionNumber}>
+                  <span className="exam-question-main-label">{group.questionNumber})</span>
+                  <div className="exam-question-branches">
+                    {group.branches.map(({ question, branch }) => (
+                      <div className="exam-question-item" key={question.id}>
+                        <span className="exam-question-label">{branch} <b>({question.points} ن)</b></span>
+                        <p><MathText>{question.prompt}</MathText></p>
+                        <div className="answer-space" aria-hidden="true" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )) ?? section.questions.map((question) => (
                 <div className="exam-question-item" key={question.id}>
                   <span className="exam-question-label">{question.label} <b>({question.points} ن)</b></span>
-                   <p><MathText>{question.prompt}</MathText></p>
+                  <p><MathText>{question.prompt}</MathText></p>
                   <div className="answer-space" aria-hidden="true" />
                 </div>
               ))}

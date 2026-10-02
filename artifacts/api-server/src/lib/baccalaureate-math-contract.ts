@@ -1,5 +1,6 @@
 type MathExamQuestion = {
   id: string;
+  questionNumber: number;
   label: string;
   prompt: string;
   points: number;
@@ -35,7 +36,7 @@ const FORBIDDEN_STUDENT_PATTERNS =
   /اختيار من متعدد|صح\s*(?:أو|و)?\s*خطأ|qcm|mcq|اشرح|لماذا|كيف\s+(?:يمكن|نستعمل|نحسب)|الحل النموذجي|التصحيح النموذجي|الإجابة الصحيحة/i;
 const MATH_SUBJECT_PATTERN =
   /رياضيات|math(?:ématique|ematics)?|mathematics/i;
-const OFFICIAL_MATH_QUESTION_LABEL = /^\d+\)(?:\s*[أ-ي])?$/u;
+const OFFICIAL_MATH_BRANCH_LABEL = /^[أ-ي]$/u;
 
 export function isMathematicsSubject(subject: string): boolean {
   return MATH_SUBJECT_PATTERN.test(subject);
@@ -126,14 +127,21 @@ export function assertBaccalaureateMathExamContract(input: {
     const questionIds = new Set<string>();
     const labels = new Set<string>();
     let questionPoints = 0;
+    let lastQuestionNumber = 0;
     for (const question of section.questions) {
       const prompt = normalized(question.prompt);
+      const labelKey = `${question.questionNumber}) ${question.label}`;
       if (
         !question.id ||
         questionIds.has(question.id) ||
-        !question.label ||
-        !OFFICIAL_MATH_QUESTION_LABEL.test(question.label) ||
-        labels.has(question.label) ||
+        !Number.isInteger(question.questionNumber) ||
+        question.questionNumber < 1 ||
+        question.questionNumber < lastQuestionNumber ||
+        question.questionNumber > lastQuestionNumber + 1 ||
+        (question.questionNumber > lastQuestionNumber &&
+          question.label !== "أ") ||
+        !OFFICIAL_MATH_BRANCH_LABEL.test(question.label) ||
+        labels.has(labelKey) ||
         !prompt ||
         !isHalfPointValue(question.points) ||
         !ACTION_VERBS.test(prompt)
@@ -141,7 +149,8 @@ export function assertBaccalaureateMathExamContract(input: {
         throw new Error(`Mathematics exercise ${sectionIndex + 1} contains an invalid sub-question`);
       }
       questionIds.add(question.id);
-      labels.add(question.label);
+      labels.add(labelKey);
+      lastQuestionNumber = question.questionNumber;
       questionPoints += question.points;
     }
     assertPointsSum(questionPoints, section.points, `Mathematics exercise ${sectionIndex + 1}`);

@@ -80,6 +80,26 @@ export async function knowledgeFetch<T>(
   return (await response.json()) as T;
 }
 
+function isInstructionArtifact(document: KnowledgeDocument): boolean {
+  const metadata = document.metadata ?? {};
+  const source = String(metadata.source_file ?? "");
+  const content = String(document.document ?? "").slice(0, 2_500);
+  const normalizedSource = source
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, " ");
+  return (
+    /strict[\s_-]*system[\s_-]*prompt/i.test(source) ||
+    /#\s*STRICT SYSTEM PROMPT\b/i.test(content) ||
+    /academic exam\s*&\s*problem set generator/i.test(content) ||
+    /system prompt ai pedagogical exercise generation engin(?:e)?\b/i.test(
+      normalizedSource,
+    ) ||
+    /system prompt\s*:\s*ai pedagogical\s*&\s*exercise generation engin(?:e)?\b/i.test(
+      content,
+    )
+  );
+}
+
 function isGroundedDocument(
   document: KnowledgeDocument,
 ): document is KnowledgeDocument & { document: string } {
@@ -88,7 +108,8 @@ function isGroundedDocument(
     document.id &&
       typeof document.document === "string" &&
       document.document.trim() &&
-      String(metadata.source_file ?? "").trim(),
+      String(metadata.source_file ?? "").trim() &&
+      !isInstructionArtifact(document),
   );
 }
 

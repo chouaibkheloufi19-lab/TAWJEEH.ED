@@ -2688,6 +2688,9 @@ button { cursor: pointer; }
 .exam-paper-section li { margin: 10px 0; padding-right: 3px; font-size: 12px; font-weight: 650; line-height: 2; }
 .exam-paper-section li::marker { color: #005f73; font-weight: 900; }
 .exam-question-list { display: grid; gap: 8px; margin: 12px 0 0; color: #3d5964; }
+.exam-question-group { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 5px; align-items: start; margin: 5px 0; }
+.exam-question-main-label { padding-top: 2px; color: #073b58; font-size: 12px; font-weight: 950; }
+.exam-question-branches { display: grid; gap: 7px; min-width: 0; }
 .exam-question-item { padding-right: 3px; font-size: 12px; font-weight: 650; line-height: 2; break-inside: avoid; }
 .exam-question-item p { margin: 4px 0; }
 .math-inline { display: inline-block; direction: ltr; color: #063f5c; font-family: var(--app-font-mono); font-size: .96em; font-weight: 800; unicode-bidi: isolate; }
