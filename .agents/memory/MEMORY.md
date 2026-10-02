@@ -17,3 +17,4 @@
 - [Orchestrator wire contract](orchestrator-wire-contract.md) — serialize camelCase domain state to the generated snake_case API shape at the route boundary.
 - [Orchestrator runtime verification](orchestrator-runtime-verification.md) — health checks are not enough; verify persisted phase and agent availability together.
 - [Gemini provider availability](gemini-provider-availability.md) — the supported default is 3.6 Flash; quota exhaustion is separate from grounded retrieval readiness.
+- [Exam contract repair](exam-contract-repair.md) — give grounded exam generation one validated repair pass and enough client timeout for it.

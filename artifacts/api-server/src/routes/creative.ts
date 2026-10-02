@@ -610,8 +610,10 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         scope,
       },
     );
-    const content = await callDeepSeekTextModelWithRetry(
-      [
+    const generationMessages: Array<{
+      role: "system" | "user" | "assistant";
+      content: string;
+    }> = [
         {
           role: "system",
           content: [
@@ -624,7 +626,12 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
               : []),
             GROUNDED_CONTENT_RULES,
             LEARNER_SAFE_OUTPUT_RULES,
-            "أنشئ ورقة عربية عملية من المصادر المتاحة. طلب الطالب يحدد الموضوع والمطلوبات والقيود الخاصة؛ التزم به بدل استبداله بموضوع ثابت أو إضافة محاور غير مطلوبة. إذا حدد عدد التمارين أو مستوى الصعوبة أو محورًا بعينه، فاتبعه ما دام متوافقًا مع المصادر. لا تخترع قانونًا أو قيمة أو نتيجة غير مسندة. حافظ على مجموع 20 نقطة، وعلى بنية امتحانية صالحة للطباعة تتضمن تمرينين على الأقل ودليل تصحيح مطابقًا لكل تمرين. اكتب بصيغة مهنية مباشرة: اجعل theme سياقًا قصيرًا، وابدأ كل prompt بالمطلوب مباشرة بفعل مثل عيّن أو احسب أو بيّن أو استنتج. استخدم title كعنوان داخلي للتمرين، ولا تكرر عنوان المحور داخل نص السؤال. أعد JSON فقط.",
+            `أنشئ ورقة عربية عملية من المصادر المتاحة. طلب الطالب يحدد الموضوع والمطلوبات والقيود الخاصة؛ التزم به بدل استبداله بموضوع ثابت أو إضافة محاور غير مطلوبة. إذا حدد مستوى الصعوبة أو محورًا بعينه، فاتبعه ما دام متوافقًا مع المصادر. لا تخترع قانونًا أو قيمة أو نتيجة غير مسندة. ${isMathematicsExam ? "في الرياضيات أنشئ ثلاثة تمارين بالضبط ومجموعها 20 نقطة." : "اجعل الورقة من تمرينين على الأقل ومجموعها 20 نقطة."} أنشئ دليل تصحيح مطابقًا لكل تمرين، واجعل sectionId في التصحيح مطابقًا حرفيًا لمعرّف التمرين، ومجموع نقاط معايير تصحيحه مساويًا لنقاط ذلك التمرين. اكتب بصيغة مهنية مباشرة: اجعل theme سياقًا قصيرًا، وابدأ كل prompt بالمطلوب مباشرة بفعل مثل عيّن أو احسب أو بيّن أو استنتج. استخدم title كعنوان داخلي للتمرين، ولا تكرر عنوان المحور داخل نص السؤال. أعد JSON فقط.`,
+            ...(isMathematicsExam
+              ? [
+                  "عقد الرياضيات إلزامي: sections ثلاثة بالضبط، ومجموع نقاط كل سؤال يساوي نقاط تمرينه، ومجموع نقاط التمارين ومعايير التصحيح يساوي 20. المثال البنيوي أدناه يوضح شكل section واحد فقط؛ كرره ثلاث مرات، وأنشئ section تصحيح مطابقًا لكل واحد.",
+                ]
+              : []),
              'أعد الشكل: {"title":"موضوع مراجعة في الرياضيات","subject":"...","track":"...","grade":"...","duration":"ساعتان و30 دقيقة","totalPoints":20,"instructions":["..."],"sections":[{"id":"section-1","title":"التمرين الأول","points":6,"theme":"...","context":"...","data":"...","sourceNodeIds":["node-id"],"questions":[{"id":"q1","label":"أ","prompt":"عيّن ...","points":2}]}],"correction":{"title":"شبكة التصحيح النموذجي","introduction":"...","sections":[{"sectionId":"section-1","title":"تصحيح التمرين الأول","solutionSteps":["...","..."],"criteria":[{"label":"...","points":2}]}]},"sourceNodeIds":["node-id"]}',
           ].join("\n\n"),
         },
@@ -642,18 +649,73 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
             formatRetrievedContext(retrieval.documents),
           ].join("\n"),
         },
-      ],
-      { temperature: 0.4, maxOutputTokens: 5200, jsonMode: true },
+      ];
+    const generationOptions = {
+      temperature: 0.4,
+      maxOutputTokens: 5200,
+      jsonMode: true,
+    };
+    const content = await callDeepSeekTextModelWithRetry(
+      generationMessages,
+      generationOptions,
       { maxAttempts: 2, baseDelayMs: 800 },
     );
+    let generated: GeneratedExamResponse;
     try {
-      res.json(parseGeneratedExam(content, retrieval, requestedContext));
+      generated = parseGeneratedExam(
+        content,
+        retrieval,
+        requestedContext,
+      );
     } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
-      throw new Error(`Exam generator returned an invalid requested paper: ${detail}`, {
-        cause: error,
-      });
+      const firstValidationError =
+        error instanceof Error ? error.message : String(error);
+      req.log.warn(
+        { validationError: firstValidationError },
+        "Generated exam failed validation; requesting one structured correction",
+      );
+      const correctionRequirements = [
+        `رُفض الرد السابق في التحقق البنيوي لهذا السبب: ${firstValidationError}`,
+        "أعد الورقة كاملة ككائن JSON صالح، ولا تكتب أي نص خارج JSON. أصلح البنية ودليل التصحيح فقط مع الحفاظ على طلب الطالب والمصادر المسترجعة.",
+        "يجب أن يقابل كل section قسم تصحيح واحدًا يحمل sectionId مطابقًا حرفيًا لمعرّف section، وأن تتكون كل شبكة تصحيح من خطوتين على الأقل ومعايير ذات نقاط صحيحة.",
+        "لا تضف معلومة أو قيمة أو قانونًا أو معرّف مصدر غير موجود في السياق المسترجع.",
+        ...(isMathematicsExam
+          ? [
+              "لأن المادة رياضيات: أعد ثلاثة sections بالضبط، ومجموع نقاطها 20. يجب أن يساوي مجموع نقاط أسئلة كل تمرين نقاطه، ومجموع نقاط معايير تصحيحه نقاط التمرين نفسه.",
+            ]
+          : []),
+      ];
+      const correctionContent = await callDeepSeekTextModelWithRetry(
+        [
+          ...generationMessages,
+          { role: "assistant" as const, content },
+          { role: "user" as const, content: correctionRequirements.join("\n") },
+        ],
+        { ...generationOptions, temperature: 0.15 },
+        { maxAttempts: 2, baseDelayMs: 800 },
+      );
+      try {
+        generated = parseGeneratedExam(
+          correctionContent,
+          retrieval,
+          requestedContext,
+        );
+        req.log.info(
+          { validationError: firstValidationError },
+          "Generated exam passed validation after one structured correction",
+        );
+      } catch (correctionError) {
+        const correctionMessage =
+          correctionError instanceof Error
+            ? correctionError.message
+            : String(correctionError);
+        throw new Error(
+          `Exam generator returned an invalid requested paper after correction: ${firstValidationError}; ${correctionMessage}`,
+          { cause: correctionError },
+        );
+      }
     }
+    res.json(generated);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     req.log.error({ error: errorMessage }, "Grounded exam generation failed");
@@ -708,7 +770,7 @@ router.post("/creative/exam-topic", async (req, res): Promise<void> => {
         ? "exam_generation_contract_failed"
         : "exam_generation_failed",
       message: contractFailure
-        ? "وصل رد التوليد، لكنه لم يطابق بنية الموضوع أو دليل التصحيح. أعد المحاولة أو ضيّق المحور المطلوب."
+        ? "تعذر مطابقة بنية الموضوع ودليل التصحيح حتى بعد محاولة إصلاح تلقائية؛ لم يُعتمد الموضوع. ضيّق المحور وبيّن عدد التمارين المطلوب."
         : "لم يكتمل توليد الموضوع من المصادر. أعد المحاولة، وإذا تكرر الخطأ فتحقّق من سجل API لمعرفة سبب الخدمة.",
       ...(contractFailure ? { retryable: true } : {}),
     });

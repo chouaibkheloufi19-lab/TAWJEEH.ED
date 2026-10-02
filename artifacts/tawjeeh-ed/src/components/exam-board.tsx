@@ -65,7 +65,7 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
   const [level, setLevel] = useState('السنة الثالثة ثانوي');
   const [track, setTrack] = useState('شعبة العلوم التجريبية');
   const [request, setRequest] = useState(
-    'موضوع بكالوريا كامل حول الدوال العددية والاشتقاق والنهايات، مع تدرج في الصعوبة ودليل تصحيح مفصل',
+    'موضوع بكالوريا كامل من ثلاثة تمارين بالضبط حول الدوال العددية والاشتقاق والنهايات، مجموعها 20 نقطة، مع تدرج في الصعوبة ودليل تصحيح مفصل',
   );
 
   const generate = async (event?: FormEvent<HTMLFormElement>) => {
@@ -87,7 +87,7 @@ export function ExamBoard({ onExit }: { onExit: () => void }) {
           track: track.trim(),
           request: request.trim(),
         }),
-      }, 55_000);
+      }, 120_000);
       const responseText = await response.text();
       let payload: ExamApiPayload | null = null;
       try {
@@ -279,6 +279,8 @@ function ExamGenerationForm({
   onRequestChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const isMathematicsSubject = /رياضيات|math(?:ématique|ematics)?|mathematics/i.test(subject);
+
   return (
     <form className="exam-generation-form" onSubmit={onSubmit} aria-label="إعداد طلب توليد الموضوع">
       <div className="exam-generation-heading">
@@ -306,7 +308,11 @@ function ExamGenerationForm({
         <label className="exam-generation-field exam-generation-request">
           <span>طلب التوليد</span>
           <textarea aria-label="ما الذي تريد توليده؟" value={request} onChange={(event) => onRequestChange(event.target.value)} maxLength={5000} rows={3} required disabled={loading} />
-          <small>هذا المسار يبني موضوعًا من تمرينين إلى 8 تمارين، مع تصحيح مطابق للمصادر.</small>
+          <small>
+            {isMathematicsSubject
+              ? 'موضوع الرياضيات يتكون من ثلاثة تمارين بالضبط ومجموع 20 نقطة، مع تصحيح مطابق لكل تمرين.'
+              : 'يبني هذا المسار موضوعًا من تمرينين إلى 8 تمارين، مع تصحيح مطابق للمصادر.'}
+          </small>
         </label>
       </div>
       {error && (

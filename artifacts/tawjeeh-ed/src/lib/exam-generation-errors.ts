@@ -13,7 +13,7 @@ export function formatExamApiError(
     case 'ai_connection_not_configured':
       return 'اتصال خدمة التوليد غير مهيأ. تحقّق من إعداد Gemini ثم أعد المحاولة.';
     case 'exam_generation_contract_failed':
-      return 'وصل رد التوليد لكنه لم يطابق بنية الموضوع ودليل التصحيح. أعد المحاولة.';
+      return 'تعذر مطابقة بنية الموضوع ودليل التصحيح حتى بعد محاولة إصلاح تلقائية؛ لم يُعتمد الموضوع. ضيّق المحور وبيّن عدد التمارين المطلوب.';
     case 'knowledge_retrieval_unavailable':
     case 'knowledge_sources_insufficient':
       return 'لم تكتمل قراءة مصادر المنهاج. أعد المحاولة بعد قليل.';
