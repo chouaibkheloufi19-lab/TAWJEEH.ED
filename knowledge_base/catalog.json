@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "generated_at": "2026-10-01T18:33:04.392276+00:00",
+  "generated_at": "2026-10-02T13:27:26.196935+00:00",
   "assets_root": "attached_assets",
   "stats": {
-    "needs_review": 341,
+    "needs_review": 343,
     "indexed": 51,
     "excluded_media": 13,
     "duplicate_source": 67,
     "excluded_reference": 1,
-    "total_assets": 473,
+    "total_assets": 475,
     "indexed_chunks": 678
   },
   "sources": [
@@ -5636,6 +5636,90 @@
         "reference"
       ],
       "indexed_source_hash": "ce577a4d269641eeafc34503896faf41d0773af049eaba0ec88ba3fe93a3253b"
+    },
+    {
+      "source_id": "3ece0b8306f5f2fb500f88e92cb724cbed2c52e2b9a924ff7e0b7448b191816d",
+      "source_file": "image_1790937473762.png",
+      "asset_path": "attached_assets/image_1790937473762.png",
+      "source_type": "png",
+      "bytes": 44803,
+      "sha256": "3ece0b8306f5f2fb500f88e92cb724cbed2c52e2b9a924ff7e0b7448b191816d",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "unspecified",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "lesson_key": "general",
+      "content_type": "reference",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "مراجعة عامة",
+      "concepts": "مراجعة عامة",
+      "prerequisites": "",
+      "lesson_keys": "general",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "غير محدد · مراجعة عامة",
+      "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
+      "chunks": 0,
+      "pages": 1,
+      "first_page": 0,
+      "extraction_method": "none",
+      "extraction_methods": {
+        "empty": 1
+      },
+      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "reference"
+      ],
+      "indexed_source_hash": "3ece0b8306f5f2fb500f88e92cb724cbed2c52e2b9a924ff7e0b7448b191816d"
+    },
+    {
+      "source_id": "dee7b4580fe4c00dcb5d0c1b71e48fb6be170c7c4fd3db42cc6c89b97eb5aae1",
+      "source_file": "image_1790938413206.png",
+      "asset_path": "attached_assets/image_1790938413206.png",
+      "source_type": "png",
+      "bytes": 55329,
+      "sha256": "dee7b4580fe4c00dcb5d0c1b71e48fb6be170c7c4fd3db42cc6c89b97eb5aae1",
+      "subject": "غير محدد",
+      "subject_id": "unspecified",
+      "curriculum_year": "unspecified",
+      "stream": "all",
+      "term": "unspecified",
+      "unit": "غير محدد",
+      "lesson": "مراجعة عامة",
+      "lesson_key": "general",
+      "content_type": "reference",
+      "difficulty": "mixed",
+      "language": "ar",
+      "skills": "مراجعة عامة",
+      "concepts": "مراجعة عامة",
+      "prerequisites": "",
+      "lesson_keys": "general",
+      "agent_roles": "fahim,guide,exercise",
+      "agent_priority": "fahim",
+      "title": "غير محدد · مراجعة عامة",
+      "status": "needs_review",
+      "review_reason": "لا يوجد نص قابل للاستخراج؛ يحتاج المصدر إلى OCR أو مراجعة يدوية",
+      "chunks": 0,
+      "pages": 1,
+      "first_page": 0,
+      "extraction_method": "none",
+      "extraction_methods": {
+        "empty": 1
+      },
+      "summary": "محتوى تعليمي مصنّف ضمن غير محدد · مراجعة عامة.",
+      "tags": [
+        "مراجعة عامة",
+        "غير محدد",
+        "reference"
+      ],
+      "indexed_source_hash": "dee7b4580fe4c00dcb5d0c1b71e48fb6be170c7c4fd3db42cc6c89b97eb5aae1"
     },
     {
       "source_id": "dbb8966407793c9c3e5f361c1cdfe8a5933880e94065548e20a633bb1368ea6e",
