@@ -13,7 +13,7 @@
 - [Official Daleel summaries](official-daleel-summaries.md) — keep lesson drafts local until mastery, then persist only the stamped summary.
 - [Fixed-port workflow coexistence](workflow-port-coexistence.md) — do not run the full-stack launcher alongside artifact services that already own its fixed ports.
 - [Quiz fallback Unicode](quiz-fallback-unicode.md) — sanitize fallback excerpts after truncation so PostgreSQL JSON never receives an unpaired surrogate.
-- [Grounded paper fallback](grounded-paper-fallback.md) — rank exercise fallbacks by usable exercise evidence, not content type or retrieval order alone.
+- [Grounded paper fallback](grounded-paper-fallback.md) — rank excerpts by exercise evidence; never present a source-only draft as a BAC math paper.
 - [Subject-scoped generation](subject-scoped-generation.md) — generation safety requires subject/year filters at retrieval, not prompt instructions alone.
 - [Orchestrator wire contract](orchestrator-wire-contract.md) — serialize camelCase domain state to the generated snake_case API shape at the route boundary.
 - [Orchestrator runtime verification](orchestrator-runtime-verification.md) — health checks are not enough; verify persisted phase and agent availability together.
