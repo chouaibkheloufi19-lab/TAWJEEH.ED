@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "python-3.11", "bash", "postgresql-16"]
+modules = ["nodejs-20", "web", "python-3.11", "bash"]
 
 [deployment]
 router = "application"
@@ -27,7 +27,7 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash \"$(git rev-parse --show-toplevel)/scripts/start-tawjeeh.sh\""
-waitForPort = 25786
+waitForPort = 5173
 
 [workflows.workflow.metadata]
 outputType = "webview"

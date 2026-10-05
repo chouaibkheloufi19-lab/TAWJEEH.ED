@@ -11,7 +11,7 @@
 - [Lesson UI cascade](lesson-ui-cascade.md) — final lesson board overrides must come after legacy stylesheet blocks.
 - [Quiz session persistence](quiz-session-persistence.md) — shared weekly quizzes must be database-backed and keyed by quiz type, unit, and ISO week.
 - [Official Daleel summaries](official-daleel-summaries.md) — keep lesson drafts local until mastery, then persist only the stamped summary.
-- [Fixed-port workflow coexistence](workflow-port-coexistence.md) — do not run the full-stack launcher alongside artifact services that already own its fixed ports.
+- [Fixed-port workflow coexistence](workflow-port-coexistence.md) — keep managed API/knowledge services on their ports; use a separate preview port rather than stopping them.
 - [Quiz fallback Unicode](quiz-fallback-unicode.md) — sanitize fallback excerpts after truncation so PostgreSQL JSON never receives an unpaired surrogate.
 - [Grounded paper fallback](grounded-paper-fallback.md) — rank excerpts by exercise evidence; never present a source-only draft as a BAC math paper.
 - [Subject-scoped generation](subject-scoped-generation.md) — generation safety requires subject/year filters at retrieval, not prompt instructions alone.
